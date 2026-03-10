@@ -1,0 +1,114 @@
+import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { createTellerSchema } from '@/lib/validation/schemas'
+import { provisionTellerAccount } from '@/lib/auth/teller'
+
+export async function GET() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { data, error } = await supabase
+    .from('tellers')
+    .select('*')
+    .eq('active', true)
+    .order('name')
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data)
+}
+
+export async function POST(request: Request) {
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
+
+  const parsed = createTellerSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? 'Invalid input' },
+      { status: 400 },
+    )
+  }
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const role = user.app_metadata?.role as string | undefined
+  if (role !== 'owner') return NextResponse.json({ error: 'Only owners can add tellers' }, { status: 403 })
+
+  const shopId = user.app_metadata?.shop_id as string | undefined
+  if (!shopId) return NextResponse.json({ error: 'No shop found' }, { status: 403 })
+
+  // Look up shop code (needed for synthetic email)
+  const { data: shop, error: shopError } = await supabase
+    .from('shops')
+    .select('code')
+    .eq('id', shopId)
+    .single()
+  if (shopError || !shop) return NextResponse.json({ error: 'Shop not found' }, { status: 500 })
+
+  const { name, password } = parsed.data
+
+  // Check for name conflict before provisioning
+  const { data: existing } = await supabase
+    .from('tellers')
+    .select('id')
+    .eq('shop_id', shopId)
+    .ilike('name', name)
+    .single()
+  if (existing) {
+    return NextResponse.json({ error: 'A teller with that name already exists' }, { status: 409 })
+  }
+
+  // Provision Supabase Auth account
+  let authUserId: string
+  try {
+    const result = await provisionTellerAccount(name, shop.code, shopId, password)
+    authUserId = result.authUserId
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to create teller account'
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+
+  const admin = createAdminClient()
+
+  // Insert teller record
+  const { data: teller, error: tellerError } = await supabase
+    .from('tellers')
+    .insert({ shop_id: shopId, name, user_id: authUserId })
+    .select()
+    .single()
+
+  if (tellerError) {
+    // Roll back the auth user
+    await admin.auth.admin.deleteUser(authUserId)
+    if (tellerError.code === '23505') {
+      return NextResponse.json({ error: 'A teller with that name already exists' }, { status: 409 })
+    }
+    return NextResponse.json({ error: tellerError.message }, { status: 500 })
+  }
+
+  // Insert shop_users record
+  const { error: shopUserError } = await supabase
+    .from('shop_users')
+    .insert({ shop_id: shopId, user_id: authUserId, role: 'teller' })
+
+  if (shopUserError) {
+    // Roll back
+    await admin.auth.admin.deleteUser(authUserId)
+    await supabase.from('tellers').delete().eq('id', teller.id)
+    return NextResponse.json({ error: 'Failed to link teller to shop' }, { status: 500 })
+  }
+
+  return NextResponse.json(teller, { status: 201 })
+}

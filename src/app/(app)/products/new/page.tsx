@@ -1,0 +1,111 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+
+export default function NewProductPage() {
+  const router = useRouter()
+  const [form, setForm] = useState({ barcode: '', name: '', price: '', stock_qty: '0' })
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          barcode: form.barcode.trim(),
+          name: form.name.trim(),
+          price: parseFloat(form.price),
+          stock_qty: parseInt(form.stock_qty, 10) || 0,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error ?? 'Something went wrong')
+        return
+      }
+      router.push('/products')
+    } catch {
+      setError('Something went wrong. Try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+      <div className="flex items-center gap-3 mb-8">
+        <button onClick={() => router.back()} className="text-gray-400 active:text-gray-600 text-sm">
+          ← Back
+        </button>
+        <h1 className="text-2xl font-bold text-gray-900">Add Product</h1>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Barcode</label>
+          <input
+            value={form.barcode}
+            onChange={(e) => setForm((f) => ({ ...f, barcode: e.target.value }))}
+            placeholder="e.g. 6001234567890"
+            required
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Product name</label>
+          <input
+            value={form.name}
+            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+            placeholder="e.g. Simba Chips 120g"
+            required
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Price (ZAR)</label>
+          <input
+            type="number"
+            inputMode="decimal"
+            step="0.01"
+            min="0.01"
+            value={form.price}
+            onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+            placeholder="e.g. 9.99"
+            required
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Opening stock</label>
+          <input
+            type="number"
+            inputMode="numeric"
+            min="0"
+            value={form.stock_qty}
+            onChange={(e) => setForm((f) => ({ ...f, stock_qty: e.target.value }))}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+          />
+        </div>
+
+        {error && <p className="text-red-600 text-sm">{error}</p>}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl active:bg-orange-600 disabled:opacity-50 min-h-[48px]"
+        >
+          {loading ? 'Saving…' : 'Add Product'}
+        </button>
+      </form>
+    </main>
+  )
+}
