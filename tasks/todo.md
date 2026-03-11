@@ -126,3 +126,20 @@ Stock take complete. Owner opens /stock-take → sees all products with current 
 
 ### Review
 Offline support complete. When offline: sale queued to IndexedDB, banner shown, /sale/complete shows "Sale Saved" message. When back online: auto-sync fires, pending sales POSTed to /api/sales (offline_id deduplicates). SW caches /api/products stale-while-revalidate so barcode scanning works offline. App is installable as PWA (manifest + SW). Ready for Phase 8.
+
+---
+
+## Phase 8: Stock Management — COMPLETE ✓
+
+- [x] supabase/migrations/003_stock_adjustments.sql — audit table with RLS
+- [x] src/lib/db/stock.ts — listProductsWithStock (low_stock flag, sorted by qty ASC), adjustStock (clamped, audit)
+- [x] src/app/api/stock/route.ts — GET /api/stock, POST /api/stock
+- [x] src/types/index.ts — StockAdjustment + StockAdjustInput types
+- [x] src/app/(app)/stock/page.tsx — overview: summary strip, search, All/Low tabs, colour badges
+- [x] src/app/(app)/stock/[id]/page.tsx — adjust form: Add/Remove toggle, quick amounts, clamping warning, reason dropdown
+- [x] Fixed pre-existing formatCurrency → formatZAR in 3 sale files
+- [x] 0 TypeScript errors, 16/16 tests passing
+- [x] Glob scan → CLAUDE.md updated → Phase 8 checked off
+
+### Review
+Stock management complete. Owner opens /stock → sees all products ordered by lowest stock first, with summary strip (total/low/out). Taps any product → /stock/[id] → chooses Add or Remove mode → enters qty (or uses quick-add buttons: +10/24/48/100) → optional reason → saves. Stock clamped to ≥0. Every adjustment creates an audit row in stock_adjustments. A stock take prompt appears if 3+ products are out of stock. Ready for Phase 9.

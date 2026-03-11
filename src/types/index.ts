@@ -135,6 +135,24 @@ export interface CreateTellerInput {
   password: string
 }
 
+export interface StockAdjustment {
+  id: string
+  shop_id: string
+  product_id: string
+  qty_before: number
+  qty_after: number
+  delta: number
+  reason: string | null
+  adjusted_by: string | null
+  adjusted_at: string
+}
+
+export interface StockAdjustInput {
+  product_id: string
+  qty_delta: number
+  reason?: string
+}
+
 // --- Auth session context ---
 
 export interface SessionUser {

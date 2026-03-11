@@ -190,7 +190,7 @@ At the start of every session:
 - [x] Phase 5: Barcode Scanner + Sale Flow
 - [x] Phase 6: Stock Take
 - [x] Phase 7: Offline Support
-- [ ] Phase 8: Stock Management
+- [x] Phase 8: Stock Management
 - [ ] Phase 9: WhatsApp Summaries
 - [ ] Phase 10: Dashboard
 - [ ] Phase 11: Polish & Hardening
@@ -269,6 +269,16 @@ What was built:
 - src/app/api/stock-take/route.ts — POST /api/stock-take with Zod validation
 - src/app/(app)/stock-take/page.tsx — owner counts each product, enters real qty; changed rows highlighted in orange; sticky Save button shows count; success screen after submit
 
+### Phase 8: Stock Management — COMPLETE
+What was built:
+- supabase/migrations/003_stock_adjustments.sql — stock_adjustments audit table with RLS
+- src/lib/db/stock.ts — listProductsWithStock (low_stock flag, sorted by qty ASC), adjustStock (clamp to 0, audit trail)
+- src/app/api/stock/route.ts — GET /api/stock (list with threshold), POST /api/stock (adjust qty)
+- src/types/index.ts — StockAdjustment + StockAdjustInput types added
+- src/app/(app)/stock/page.tsx — owner stock overview: summary strip (total/low/out), search, All/Low tabs, product list with colour-coded qty badges
+- src/app/(app)/stock/[id]/page.tsx — adjust stock form: Add/Remove mode toggle, quick amounts (+10/24/48/100), projected qty preview, reason dropdown, clamping warning
+- Fixed pre-existing formatCurrency → formatZAR in CartItem.tsx, CartSummary.tsx, sale/complete/page.tsx
+
 ### Phase 7: Offline Support — COMPLETE
 What was built:
 - src/lib/offline/db.ts — IndexedDB via `idb`: enqueueSale, listPendingSales, removePendingSale, countPendingSales
@@ -290,7 +300,7 @@ What was built:
 
 ## Current File Tree
 
-_Last updated: Phase 7 complete_
+_Last updated: Phase 8 complete_
 
 ```
 spaza shop/
@@ -331,6 +341,9 @@ spaza shop/
 │   │   │   │   └── complete/page.tsx  # Sale confirmation screen
 │   │   │   ├── stock-take/
 │   │   │   │   └── page.tsx        # Count products, enter real qty, save
+│   │   │   ├── stock/
+│   │   │   │   ├── page.tsx        # Stock overview: summary strip, search, All/Low tabs
+│   │   │   │   └── [id]/page.tsx   # Adjust stock form (Add/Remove mode, quick amounts)
 │   │   │   ├── products/
 │   │   │   │   ├── page.tsx        # Searchable product list (owner only)
 │   │   │   │   ├── new/page.tsx    # Add product form
@@ -347,6 +360,8 @@ spaza shop/
 │   │       │   └── [id]/route.ts          # GET by id, PATCH, DELETE
 │   │       ├── sales/
 │   │       │   └── route.ts               # POST — complete a sale
+│   │       ├── stock/
+│   │       │   └── route.ts               # GET list with low_stock flag, POST adjust qty
 │   │       ├── stock-take/
 │   │       │   └── route.ts               # POST — save stock take
 │   │       └── tellers/
@@ -382,7 +397,8 @@ spaza shop/
 │   │   │   ├── products.ts         # Product CRUD helpers
 │   │   │   ├── tellers.ts          # Teller query helpers
 │   │   │   ├── sales.ts            # completeSale (insert + stock deduction)
-│   │   │   └── stock-take.ts       # saveStockTake (audit + update stock_qty)
+│   │   │   ├── stock-take.ts       # saveStockTake (audit + update stock_qty)
+│   │   │   └── stock.ts            # listProductsWithStock + adjustStock (Phase 8)
 │   │   ├── offline/
 │   │   │   ├── db.ts               # IndexedDB via idb (enqueue/list/remove/count)
 │   │   │   └── sync.ts             # syncPendingSales (retry queue → server)
@@ -396,7 +412,8 @@ spaza shop/
 ├── supabase/
 │   └── migrations/
 │       ├── 001_initial_schema.sql
-│       └── 002_decrement_stock.sql  # decrement_stock(p_product_id, p_qty) RPC
+│       ├── 002_decrement_stock.sql  # decrement_stock(p_product_id, p_qty) RPC
+│       └── 003_stock_adjustments.sql  # stock_adjustments audit table (Phase 8)
 ├── tasks/
 │   ├── todo.md
 │   └── lessons.md

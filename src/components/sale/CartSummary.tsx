@@ -1,4 +1,4 @@
-import { formatCurrency } from '@/lib/utils/currency'
+import { formatZAR } from '@/lib/utils/currency'
 
 interface CartSummaryProps {
   total: number
@@ -18,7 +18,7 @@ export function CartSummary({ total, itemCount, onCompleteSale, isSubmitting }: 
           <p className="text-xs text-gray-400">
             {itemCount} item{itemCount !== 1 ? 's' : ''}
           </p>
-          <p className="text-xl font-bold text-gray-900">{formatCurrency(total)}</p>
+          <p className="text-xl font-bold text-gray-900">{formatZAR(total)}</p>
         </div>
 
         <button

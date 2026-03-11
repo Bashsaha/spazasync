@@ -1,4 +1,4 @@
-import { formatCurrency } from '@/lib/utils/currency'
+import { formatZAR } from '@/lib/utils/currency'
 import type { CartItem as CartItemType } from '@/types'
 
 interface CartItemProps {
@@ -23,7 +23,7 @@ export function CartItem({ item, onRemove, onUpdateQty }: CartItemProps) {
       {/* product info */}
       <div className="flex-1 min-w-0">
         <p className="font-medium text-gray-900 truncate text-sm">{product.name}</p>
-        <p className="text-xs text-gray-400">{formatCurrency(product.price)} each</p>
+        <p className="text-xs text-gray-400">{formatZAR(product.price)} each</p>
       </div>
 
       {/* qty controls */}
@@ -47,7 +47,7 @@ export function CartItem({ item, onRemove, onUpdateQty }: CartItemProps) {
 
       {/* subtotal */}
       <span className="w-20 text-right font-semibold text-gray-900 text-sm">
-        {formatCurrency(subtotal)}
+        {formatZAR(subtotal)}
       </span>
     </div>
   )

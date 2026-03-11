@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Suspense } from 'react'
-import { formatCurrency } from '@/lib/utils/currency'
+import { formatZAR } from '@/lib/utils/currency'
 
 function SaleCompleteContent() {
   const searchParams = useSearchParams()
@@ -36,7 +36,7 @@ function SaleCompleteContent() {
         <p className="text-gray-500 text-sm mb-2">Total charged</p>
       )}
 
-      <p className="text-4xl font-bold text-gray-900 mb-10">{formatCurrency(total)}</p>
+      <p className="text-4xl font-bold text-gray-900 mb-10">{formatZAR(total)}</p>
 
       <button
         onClick={() => router.push('/sale')}
