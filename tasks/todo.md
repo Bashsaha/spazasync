@@ -94,3 +94,15 @@ Teller management complete. Owner adds teller (name + password) → Supabase aut
 
 ### Review
 Full sale flow implemented. Owner/teller scans barcode → product looked up by barcode → added to cart; unknown barcode triggers NewProductModal quick-create. Cart shows items with qty controls. Complete Sale calls POST /api/sales → inserts sale + items → decrements stock via decrement_stock RPC. Redirects to /sale/complete showing total. Stock deduction is atomic per-product (CHECK constraint prevents negative stock). Ready for Phase 6.
+
+---
+
+## Phase 6: Stock Take — COMPLETE ✓
+
+- [x] src/lib/db/stock-take.ts — saveStockTake: batch-fetch qty_before, batch-insert audit rows, update each product's stock_qty
+- [x] src/app/api/stock-take/route.ts — POST /api/stock-take with Zod validation
+- [x] src/app/(app)/stock-take/page.tsx — owner sees all products, enters real qty, changed rows highlighted, sticky Save button
+- [x] Glob scan → CLAUDE.md updated → Phase 6 checked off
+
+### Review
+Stock take complete. Owner opens /stock-take → sees all products with current stock → types actual counted qty for each (blanks skipped) → saves. DB records stock_take_entries (before + after) for audit trail and updates products.stock_qty. Changed rows highlighted in orange on the form. Success screen shows count of updated products. Ready for Phase 7.

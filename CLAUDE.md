@@ -188,7 +188,7 @@ At the start of every session:
 - [x] Phase 3: Product Catalogue
 - [x] Phase 4: Teller Management
 - [x] Phase 5: Barcode Scanner + Sale Flow
-- [ ] Phase 6: Stock Take
+- [x] Phase 6: Stock Take
 - [ ] Phase 7: Offline Support
 - [ ] Phase 8: Stock Management
 - [ ] Phase 9: WhatsApp Summaries
@@ -263,11 +263,17 @@ What was built:
 - src/app/(app)/sale/page.tsx — full implementation: scan → cart → complete flow
 - src/app/(app)/sale/complete/page.tsx — sale confirmation screen with New Sale button
 
+### Phase 6: Stock Take — COMPLETE
+What was built:
+- src/lib/db/stock-take.ts — saveStockTake: batch-fetch qty_before, batch-insert audit rows, update stock_qty per product
+- src/app/api/stock-take/route.ts — POST /api/stock-take with Zod validation
+- src/app/(app)/stock-take/page.tsx — owner counts each product, enters real qty; changed rows highlighted in orange; sticky Save button shows count; success screen after submit
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 5 complete_
+_Last updated: Phase 6 complete_
 
 ```
 spaza shop/
@@ -302,6 +308,8 @@ spaza shop/
 │   │   │   ├── sale/
 │   │   │   │   ├── page.tsx        # Full sale flow: scan → cart → complete
 │   │   │   │   └── complete/page.tsx  # Sale confirmation screen
+│   │   │   ├── stock-take/
+│   │   │   │   └── page.tsx        # Count products, enter real qty, save
 │   │   │   ├── products/
 │   │   │   │   ├── page.tsx        # Searchable product list (owner only)
 │   │   │   │   ├── new/page.tsx    # Add product form
@@ -318,6 +326,8 @@ spaza shop/
 │   │       │   └── [id]/route.ts          # GET by id, PATCH, DELETE
 │   │       ├── sales/
 │   │       │   └── route.ts               # POST — complete a sale
+│   │       ├── stock-take/
+│   │       │   └── route.ts               # POST — save stock take
 │   │       └── tellers/
 │   │           ├── route.ts               # GET list, POST create
 │   │           ├── me/route.ts            # GET own teller record
@@ -345,7 +355,8 @@ spaza shop/
 │   │   ├── db/
 │   │   │   ├── products.ts         # Product CRUD helpers
 │   │   │   ├── tellers.ts          # Teller query helpers
-│   │   │   └── sales.ts            # completeSale (insert + stock deduction)
+│   │   │   ├── sales.ts            # completeSale (insert + stock deduction)
+│   │   │   └── stock-take.ts       # saveStockTake (audit + update stock_qty)
 │   │   ├── validation/
 │   │   │   └── schemas.ts          # All Zod schemas (all phases)
 │   │   └── utils/
