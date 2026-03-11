@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { OfflineSyncProvider } from '@/components/OfflineSyncProvider'
 
 /**
  * App shell layout — wraps all authenticated app routes.
@@ -16,7 +17,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {children}
+      <OfflineSyncProvider>
+        {children}
+      </OfflineSyncProvider>
     </div>
   )
 }

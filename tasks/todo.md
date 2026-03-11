@@ -106,3 +106,23 @@ Full sale flow implemented. Owner/teller scans barcode → product looked up by 
 
 ### Review
 Stock take complete. Owner opens /stock-take → sees all products with current stock → types actual counted qty for each (blanks skipped) → saves. DB records stock_take_entries (before + after) for audit trail and updates products.stock_qty. Changed rows highlighted in orange on the form. Success screen shows count of updated products. Ready for Phase 7.
+
+---
+
+## Phase 7: Offline Support — COMPLETE ✓
+
+- [x] src/lib/offline/db.ts — IndexedDB via idb (enqueue, list, remove, count pending sales)
+- [x] src/lib/offline/sync.ts — syncPendingSales: POST each queued sale, remove on 201/409
+- [x] src/hooks/useOnlineStatus.ts — online/offline via native events
+- [x] src/hooks/useOfflineSync.ts — auto-sync on reconnect, visibilitychange + offlinequeue event
+- [x] src/components/OfflineBanner.tsx — top banner (amber=offline, blue=syncing)
+- [x] src/components/OfflineSyncProvider.tsx — client wrapper in (app)/layout
+- [x] src/components/ServiceWorkerRegistrar.tsx — registers /sw.js from root layout
+- [x] public/manifest.json — PWA manifest
+- [x] public/sw.js — cache-first (static), stale-while-revalidate (/api/products), network-first (pages)
+- [x] public/icons/icon.svg + icon-maskable.svg — SVG app icons
+- [x] Updated 4 existing files (layouts, sale page, sale complete page)
+- [x] Glob scan → CLAUDE.md updated → Phase 7 checked off
+
+### Review
+Offline support complete. When offline: sale queued to IndexedDB, banner shown, /sale/complete shows "Sale Saved" message. When back online: auto-sync fires, pending sales POSTed to /api/sales (offline_id deduplicates). SW caches /api/products stale-while-revalidate so barcode scanning works offline. App is installable as PWA (manifest + SW). Ready for Phase 8.

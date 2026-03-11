@@ -1,0 +1,24 @@
+{
+  "name": "SpazaSync",
+  "short_name": "SpazaSync",
+  "description": "Sales and stock management for your spaza shop",
+  "start_url": "/sale",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f9fafb",
+  "theme_color": "#f97316",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

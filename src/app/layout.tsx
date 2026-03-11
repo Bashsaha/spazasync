@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar'
 
 export const metadata: Metadata = {
   title: 'SpazaSync',
@@ -23,7 +24,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="antialiased bg-gray-50 text-gray-900">{children}</body>
+      <body className="antialiased bg-gray-50 text-gray-900">
+        <ServiceWorkerRegistrar />
+        {children}
+      </body>
     </html>
   )
 }

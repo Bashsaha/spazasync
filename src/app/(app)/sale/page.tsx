@@ -4,15 +4,19 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useActiveTeller } from '@/hooks/useActiveTeller'
 import { useCart } from '@/hooks/useCart'
+import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import { TellerSelector } from '@/components/sale/TellerSelector'
 import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
 import { CartItem } from '@/components/sale/CartItem'
 import { CartSummary } from '@/components/sale/CartSummary'
 import { NewProductModal } from '@/components/sale/NewProductModal'
+import { enqueueSale } from '@/lib/offline/db'
+import { createClient } from '@/lib/supabase/client'
 import type { Product } from '@/types'
 
 export default function SalePage() {
   const router = useRouter()
+  const isOnline = useOnlineStatus()
   const { activeTeller, setActiveTeller, clearActiveTeller, isLoading, role } = useActiveTeller()
   const { items, total, addItem, removeItem, updateQty, clearCart } = useCart()
 
@@ -24,17 +28,23 @@ export default function SalePage() {
   // ── Barcode scan handler ───────────────────────────────────────────────────
 
   async function handleScan(barcode: string) {
-    const res = await fetch(`/api/products?barcode=${encodeURIComponent(barcode)}`)
-    if (!res.ok) {
+    // The SW caches /api/products responses so this works offline too
+    try {
+      const res = await fetch(`/api/products?barcode=${encodeURIComponent(barcode)}`)
+      if (!res.ok) {
+        setUnknownBarcode(barcode)
+        return
+      }
+      const products = (await res.json()) as Product[]
+      if (products.length === 0) {
+        setUnknownBarcode(barcode)
+        return
+      }
+      addItem(products[0])
+    } catch {
+      // Network failed and SW has no cached match for this barcode
       setUnknownBarcode(barcode)
-      return
     }
-    const products = (await res.json()) as Product[]
-    if (products.length === 0) {
-      setUnknownBarcode(barcode)
-      return
-    }
-    addItem(products[0])
   }
 
   function handleNewProductCreated(product: Product) {
@@ -47,7 +57,39 @@ export default function SalePage() {
   async function handleCompleteSale() {
     setSubmitError(null)
     setIsSubmitting(true)
+
     try {
+      // ── Offline path: queue locally and sync later ─────────────────────────
+      if (!isOnline) {
+        const supabase = createClient()
+        const { data: { session } } = await supabase.auth.getSession()
+        const shopId = (session?.user.app_metadata?.shop_id as string) ?? ''
+
+        await enqueueSale({
+          offline_id: crypto.randomUUID(),
+          shop_id: shopId,
+          teller_id: activeTeller?.id ?? null,
+          total,
+          items: items.map((i) => ({
+            product_id: i.product.id,
+            barcode: i.product.barcode,
+            quantity: i.quantity,
+            unit_price: i.product.price,
+            subtotal: i.subtotal,
+          })),
+          queued_at: new Date().toISOString(),
+          retry_count: 0,
+        })
+
+        // Notify the OfflineSyncProvider at layout level to refresh its count
+        window.dispatchEvent(new Event('offlinequeue'))
+
+        clearCart()
+        router.push(`/sale/complete?total=${encodeURIComponent(total.toFixed(2))}&offline=1`)
+        return
+      }
+
+      // ── Online path: POST directly ─────────────────────────────────────────
       const res = await fetch('/api/sales', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,7 +112,7 @@ export default function SalePage() {
       clearCart()
       router.push(`/sale/complete?total=${encodeURIComponent(total.toFixed(2))}`)
     } catch {
-      setSubmitError('Network error. Check your connection and try again.')
+      setSubmitError('Something went wrong. Try again.')
     } finally {
       setIsSubmitting(false)
     }

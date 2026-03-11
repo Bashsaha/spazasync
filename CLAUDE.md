@@ -189,7 +189,7 @@ At the start of every session:
 - [x] Phase 4: Teller Management
 - [x] Phase 5: Barcode Scanner + Sale Flow
 - [x] Phase 6: Stock Take
-- [ ] Phase 7: Offline Support
+- [x] Phase 7: Offline Support
 - [ ] Phase 8: Stock Management
 - [ ] Phase 9: WhatsApp Summaries
 - [ ] Phase 10: Dashboard
@@ -269,11 +269,28 @@ What was built:
 - src/app/api/stock-take/route.ts — POST /api/stock-take with Zod validation
 - src/app/(app)/stock-take/page.tsx — owner counts each product, enters real qty; changed rows highlighted in orange; sticky Save button shows count; success screen after submit
 
+### Phase 7: Offline Support — COMPLETE
+What was built:
+- src/lib/offline/db.ts — IndexedDB via `idb`: enqueueSale, listPendingSales, removePendingSale, countPendingSales
+- src/lib/offline/sync.ts — syncPendingSales: retry each queued sale via POST /api/sales; removes on 201 or 409 (dedup)
+- src/hooks/useOnlineStatus.ts — tracks navigator.onLine with online/offline events
+- src/hooks/useOfflineSync.ts — auto-syncs on reconnect; listens for visibilitychange + custom 'offlinequeue' event
+- src/components/OfflineBanner.tsx — top banner: amber=offline, blue=syncing; hidden when online with no pending
+- src/components/OfflineSyncProvider.tsx — client wrapper inserted into (app)/layout; owns sync state
+- src/components/ServiceWorkerRegistrar.tsx — registers /sw.js from root layout (client component)
+- public/manifest.json — PWA manifest (name, icons, start_url=/sale, standalone)
+- public/sw.js — service worker: cache-first for /_next/static/, stale-while-revalidate for /api/products, network-first for pages
+- public/icons/icon.svg + icon-maskable.svg — SVG app icons
+- Updated src/app/layout.tsx — adds ServiceWorkerRegistrar
+- Updated src/app/(app)/layout.tsx — wraps children in OfflineSyncProvider
+- Updated src/app/(app)/sale/page.tsx — offline path: queue to IndexedDB, dispatch 'offlinequeue' event, redirect with &offline=1
+- Updated src/app/(app)/sale/complete/page.tsx — shows "Sale Saved" + offline explanation when ?offline=1
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 6 complete_
+_Last updated: Phase 7 complete_
 
 ```
 spaza shop/
@@ -291,7 +308,11 @@ spaza shop/
 ├── .env.local.example
 ├── public/
 │   ├── file.svg, globe.svg, next.svg, vercel.svg, window.svg
-│   (manifest.json + sw.js + icons/ added in Phase 7)
+│   ├── manifest.json               # PWA manifest
+│   ├── sw.js                       # Service worker (cache strategies)
+│   └── icons/
+│       ├── icon.svg                # App icon
+│       └── icon-maskable.svg       # Maskable variant
 ├── src/
 │   ├── middleware.ts               # Auth guard + role-based routing
 │   ├── app/
@@ -338,13 +359,18 @@ spaza shop/
 │   │   │   ├── CartItem.tsx               # Cart row with qty +/− controls
 │   │   │   ├── CartSummary.tsx            # Sticky total + Complete Sale button
 │   │   │   └── NewProductModal.tsx        # Quick-create for unknown barcodes
-│   │   └── scanner/
-│   │       ├── BarcodeScanner.tsx         # Full-screen camera overlay
-│   │       └── ScannerOverlay.tsx         # Targeting reticle
+│   │   ├── scanner/
+│   │   │   ├── BarcodeScanner.tsx         # Full-screen camera overlay
+│   │   │   └── ScannerOverlay.tsx         # Targeting reticle
+│   │   ├── OfflineBanner.tsx              # Amber/blue top banner (offline / syncing)
+│   │   ├── OfflineSyncProvider.tsx        # Client wrapper; owns sync state
+│   │   └── ServiceWorkerRegistrar.tsx     # Registers /sw.js on mount
 │   ├── hooks/
 │   │   ├── useActiveTeller.ts             # Active teller state (owner=pick, teller=auto)
 │   │   ├── useCart.ts                     # Cart state (add/remove/updateQty/clear)
-│   │   └── useScanner.ts                  # @zxing/browser wrapper
+│   │   ├── useScanner.ts                  # @zxing/browser wrapper
+│   │   ├── useOnlineStatus.ts             # Tracks navigator.onLine
+│   │   └── useOfflineSync.ts              # Auto-sync on reconnect + pending count
 │   ├── lib/
 │   │   ├── supabase/
 │   │   │   ├── client.ts           # Browser client
@@ -357,6 +383,9 @@ spaza shop/
 │   │   │   ├── tellers.ts          # Teller query helpers
 │   │   │   ├── sales.ts            # completeSale (insert + stock deduction)
 │   │   │   └── stock-take.ts       # saveStockTake (audit + update stock_qty)
+│   │   ├── offline/
+│   │   │   ├── db.ts               # IndexedDB via idb (enqueue/list/remove/count)
+│   │   │   └── sync.ts             # syncPendingSales (retry queue → server)
 │   │   ├── validation/
 │   │   │   └── schemas.ts          # All Zod schemas (all phases)
 │   │   └── utils/
