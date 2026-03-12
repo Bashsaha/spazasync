@@ -161,3 +161,21 @@ Stock management complete. Owner opens /stock → sees all products ordered by l
 
 ### Review
 WhatsApp summaries complete. Nightly cron (22:00 SAST) fetches all shops with a WhatsApp number, generates a daily sales recap + low-stock warnings per shop, and sends via Twilio. Shop scoping is doubly enforced: admin client queries explicitly filter by shop.id, and the loop sends each message to that shop's own whatsapp_number only. Dashboard now shows today's revenue, sale count, teller count, and a tappable low-stock alert card. Ready for Phase 10.
+
+---
+
+## Phase 10: Dashboard — COMPLETE ✓
+
+- [x] recharts installed
+- [x] src/types/index.ts — WeeklyDataPoint + RecentSale + TopProduct types
+- [x] src/lib/db/reports.ts — getWeeklySalesForShop, getRecentSalesForShop, getTopProductsThisWeek
+- [x] src/lib/validation/schemas.ts — updateShopSettingsSchema
+- [x] src/components/dashboard/WeeklySalesChart.tsx — bar chart client component
+- [x] src/app/api/settings/route.ts — GET + PATCH (admin client + ownership check)
+- [x] src/app/(app)/settings/page.tsx — owner settings form
+- [x] src/app/(app)/dashboard/page.tsx — full dashboard with all sections; plain English throughout
+- [x] 0 TypeScript errors, 25/25 tests passing
+- [x] Glob scan → CLAUDE.md updated → Phase 10 checked off
+
+### Review
+Full dashboard complete. Owner opens /dashboard → sees today's money/sales/tellers summary, low-stock alert (if any), 7-day bar chart, top 5 products sold this week, 10 most recent sales, and nav cards including new Settings link. All text uses plain South African English (no jargon). Settings page lets owner update shop name, WhatsApp number, and low-stock alert threshold; shop code is shown read-only. Ready for Phase 11.

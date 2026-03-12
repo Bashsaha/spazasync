@@ -192,7 +192,7 @@ At the start of every session:
 - [x] Phase 7: Offline Support
 - [x] Phase 8: Stock Management
 - [x] Phase 9: WhatsApp Summaries
-- [ ] Phase 10: Dashboard
+- [x] Phase 10: Dashboard
 - [ ] Phase 11: Polish & Hardening
 - [ ] Phase 12: Testing & Deployment
 
@@ -291,6 +291,17 @@ What was built:
 - tests/unit/whatsapp-format.test.ts — 9 tests for message formatter
 - src/lib/utils/date.ts — fixed cron time comment (20:00 UTC = 22:00 SAST)
 
+### Phase 10: Dashboard — COMPLETE
+What was built:
+- recharts v3 installed
+- src/types/index.ts — WeeklyDataPoint + RecentSale + TopProduct types added
+- src/lib/db/reports.ts — extended with getWeeklySalesForShop, getRecentSalesForShop, getTopProductsThisWeek
+- src/lib/validation/schemas.ts — updateShopSettingsSchema added
+- src/components/dashboard/WeeklySalesChart.tsx — client component; bar chart of last 7 days' revenue
+- src/app/api/settings/route.ts — GET + PATCH shop settings (owner-only, admin client with ownership check)
+- src/app/(app)/settings/page.tsx — settings form: shop name, WhatsApp number, low-stock threshold
+- src/app/(app)/dashboard/page.tsx — full dashboard: today summary, low-stock alert, weekly chart, top products this week, latest sales list, settings nav card; all plain English labels
+
 ### Phase 7: Offline Support — COMPLETE
 What was built:
 - src/lib/offline/db.ts — IndexedDB via `idb`: enqueueSale, listPendingSales, removePendingSale, countPendingSales
@@ -312,7 +323,7 @@ What was built:
 
 ## Current File Tree
 
-_Last updated: Phase 9 complete_
+_Last updated: Phase 10 complete_
 
 ```
 spaza shop/
@@ -347,7 +358,8 @@ spaza shop/
 │   │   │   └── onboarding/page.tsx # 2-step: account → shop setup
 │   │   ├── (app)/
 │   │   │   ├── layout.tsx          # Authenticated shell
-│   │   │   ├── dashboard/page.tsx  # Dashboard (today summary strip + low-stock alert + nav cards)
+│   │   │   ├── dashboard/page.tsx  # Full dashboard: today summary, weekly chart, top products, latest sales, nav
+│   │   │   ├── settings/page.tsx   # Owner settings: shop name, WhatsApp number, low-stock threshold
 │   │   │   ├── sale/
 │   │   │   │   ├── page.tsx        # Full sale flow: scan → cart → complete
 │   │   │   │   └── complete/page.tsx  # Sale confirmation screen
@@ -378,6 +390,8 @@ spaza shop/
 │   │       │   └── route.ts               # POST — save stock take
 │   │       ├── cron/
 │   │       │   └── daily-summary/route.ts # GET — 22:00 SAST daily; sends WhatsApp summaries
+│   │       ├── settings/
+│   │       │   └── route.ts               # GET + PATCH shop settings (owner only)
 │   │       └── tellers/
 │   │           ├── route.ts               # GET list, POST create
 │   │           ├── me/route.ts            # GET own teller record
@@ -391,6 +405,8 @@ spaza shop/
 │   │   ├── scanner/
 │   │   │   ├── BarcodeScanner.tsx         # Full-screen camera overlay
 │   │   │   └── ScannerOverlay.tsx         # Targeting reticle
+│   │   ├── dashboard/
+│   │   │   └── WeeklySalesChart.tsx       # Client component; bar chart of last 7 days (recharts)
 │   │   ├── OfflineBanner.tsx              # Amber/blue top banner (offline / syncing)
 │   │   ├── OfflineSyncProvider.tsx        # Client wrapper; owns sync state
 │   │   └── ServiceWorkerRegistrar.tsx     # Registers /sw.js on mount

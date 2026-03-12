@@ -97,3 +97,21 @@ export const stockAdjustSchema = z.object({
   qty_delta: z.number().int(),  // positive = add stock, negative = remove
   reason: z.string().max(200).optional(),
 })
+
+// ============================================================
+// Shop settings
+// ============================================================
+
+export const updateShopSettingsSchema = z.object({
+  name: z.string().min(1, 'Shop name is required').max(100),
+  whatsapp_number: z
+    .string()
+    .regex(/^\+\d{7,15}$/, 'Enter a number like +27821234567')
+    .nullable()
+    .optional(),
+  low_stock_threshold: z
+    .number()
+    .int()
+    .min(1, 'Must be at least 1')
+    .max(9999),
+})

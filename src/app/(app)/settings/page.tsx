@@ -1,0 +1,165 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+
+interface ShopSettings {
+  id: string
+  name: string
+  code: string
+  whatsapp_number: string | null
+  low_stock_threshold: number
+}
+
+export default function SettingsPage() {
+  const [settings, setSettings] = useState<ShopSettings | null>(null)
+  const [name, setName] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')
+  const [threshold, setThreshold] = useState(5)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then((r) => r.json())
+      .then((data: ShopSettings) => {
+        setSettings(data)
+        setName(data.name)
+        setWhatsapp(data.whatsapp_number ?? '')
+        setThreshold(data.low_stock_threshold)
+      })
+      .catch(() => setMessage({ type: 'err', text: 'Could not load settings.' }))
+      .finally(() => setLoading(false))
+  }, [])
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    setMessage(null)
+
+    const res = await fetch('/api/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name.trim(),
+        whatsapp_number: whatsapp.trim() || null,
+        low_stock_threshold: threshold,
+      }),
+    })
+
+    setSaving(false)
+
+    if (res.ok) {
+      const updated: ShopSettings = await res.json()
+      setSettings(updated)
+      setMessage({ type: 'ok', text: 'Settings saved!' })
+    } else {
+      const err = await res.json().catch(() => ({}))
+      setMessage({ type: 'err', text: (err as { error?: string }).error ?? 'Could not save. Try again.' })
+    }
+  }
+
+  if (loading) {
+    return (
+      <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+        <p className="text-gray-400 text-sm">Loading…</p>
+      </main>
+    )
+  }
+
+  return (
+    <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+      <a href="/dashboard" className="text-sm text-orange-500 mb-6 inline-block">
+        ← Back
+      </a>
+
+      <h1 className="text-2xl font-bold text-gray-900 mb-1">Settings</h1>
+      <p className="text-sm text-gray-400 mb-8">Update your shop details</p>
+
+      {/* Shop code — read only */}
+      <div className="bg-gray-50 rounded-2xl px-4 py-3 mb-6 flex items-center justify-between">
+        <div>
+          <p className="text-xs text-gray-400">Your shop code</p>
+          <p className="font-mono font-bold text-orange-500 text-lg">{settings?.code}</p>
+        </div>
+        <p className="text-xs text-gray-300 text-right max-w-[140px]">
+          Tellers use this to log in. It cannot be changed.
+        </p>
+      </div>
+
+      <form onSubmit={handleSave} className="space-y-5">
+        {/* Shop name */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Shop name
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            maxLength={100}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-400"
+            placeholder="e.g. Cape Town Corner Shop"
+          />
+        </div>
+
+        {/* WhatsApp number */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Your WhatsApp number
+          </label>
+          <p className="text-xs text-gray-400 mb-2">
+            We send your daily sales report here. Leave blank to turn off reports.
+          </p>
+          <input
+            type="tel"
+            value={whatsapp}
+            onChange={(e) => setWhatsapp(e.target.value)}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-400"
+            placeholder="+27821234567"
+          />
+        </div>
+
+        {/* Low stock threshold */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Warn me when a product has fewer than
+          </label>
+          <div className="flex items-center gap-3">
+            <input
+              type="number"
+              value={threshold}
+              onChange={(e) => setThreshold(Math.max(1, parseInt(e.target.value) || 1))}
+              min={1}
+              max={9999}
+              className="w-24 border border-gray-200 rounded-xl px-4 py-3 text-sm text-center focus:outline-none focus:border-orange-400"
+            />
+            <span className="text-sm text-gray-500">left in stock</span>
+          </div>
+        </div>
+
+        {/* Feedback message */}
+        {message && (
+          <p
+            className={`text-sm rounded-xl px-4 py-3 ${
+              message.type === 'ok'
+                ? 'bg-green-50 text-green-700'
+                : 'bg-red-50 text-red-700'
+            }`}
+          >
+            {message.text}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          disabled={saving}
+          className="w-full bg-orange-500 text-white font-semibold rounded-2xl py-4 text-base active:bg-orange-600 disabled:opacity-50"
+        >
+          {saving ? 'Saving…' : 'Save settings'}
+        </button>
+      </form>
+    </main>
+  )
+}

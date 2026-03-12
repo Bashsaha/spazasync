@@ -1,7 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { getDailySalesForShop, getLowStockForShop } from '@/lib/db/reports'
+import {
+  getDailySalesForShop,
+  getLowStockForShop,
+  getWeeklySalesForShop,
+  getRecentSalesForShop,
+  getTopProductsThisWeek,
+} from '@/lib/db/reports'
 import { formatZAR } from '@/lib/utils/currency'
+import { formatSAST } from '@/lib/utils/date'
+import { WeeklySalesChart } from '@/components/dashboard/WeeklySalesChart'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -11,7 +19,6 @@ export default async function DashboardPage() {
 
   if (!user) redirect('/login')
 
-  // Get shop info
   const { data: shopUser } = await supabase
     .from('shop_users')
     .select('role, shops(id, name, code, low_stock_threshold)')
@@ -28,19 +35,26 @@ export default async function DashboardPage() {
   const shopName = shop?.name ?? 'Your Shop'
   const shopCode = shop?.code ?? ''
 
-  // Fetch today's summary + low stock in parallel
+  // Fetch all dashboard data in parallel — all best-effort
   let summary = { salesCount: 0, totalRevenue: 0, topItems: [] as { name: string; totalQty: number }[], tellerCount: 0 }
   let lowStock: { name: string; stock_qty: number }[] = []
+  let weeklyData = [] as Awaited<ReturnType<typeof getWeeklySalesForShop>>
+  let recentSales = [] as Awaited<ReturnType<typeof getRecentSalesForShop>>
+  let topProducts = [] as Awaited<ReturnType<typeof getTopProductsThisWeek>>
 
   if (shop?.id) {
-    try {
-      ;[summary, lowStock] = await Promise.all([
-        getDailySalesForShop(shop.id),
-        getLowStockForShop(shop.id, shop.low_stock_threshold),
-      ])
-    } catch {
-      // Summary is best-effort — don't crash the dashboard
-    }
+    const results = await Promise.allSettled([
+      getDailySalesForShop(shop.id),
+      getLowStockForShop(shop.id, shop.low_stock_threshold),
+      getWeeklySalesForShop(shop.id),
+      getRecentSalesForShop(shop.id, 10),
+      getTopProductsThisWeek(shop.id, 5),
+    ])
+    if (results[0].status === 'fulfilled') summary = results[0].value
+    if (results[1].status === 'fulfilled') lowStock = results[1].value
+    if (results[2].status === 'fulfilled') weeklyData = results[2].value
+    if (results[3].status === 'fulfilled') recentSales = results[3].value
+    if (results[4].status === 'fulfilled') topProducts = results[4].value
   }
 
   const outOfStock = lowStock.filter((p) => p.stock_qty === 0)
@@ -56,27 +70,27 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* Today's summary strip */}
-      <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 mb-6">
+      {/* Today's summary */}
+      <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 mb-4">
         <p className="text-xs font-semibold text-orange-400 uppercase tracking-wide mb-3">
           Today
         </p>
         <div className="flex gap-4">
           <div className="flex-1">
             <p className="text-2xl font-bold text-gray-900">{formatZAR(summary.totalRevenue)}</p>
-            <p className="text-xs text-gray-400 mt-0.5">Revenue</p>
+            <p className="text-xs text-gray-400 mt-0.5">made</p>
           </div>
           <div className="flex-1">
             <p className="text-2xl font-bold text-gray-900">{summary.salesCount}</p>
             <p className="text-xs text-gray-400 mt-0.5">
-              {summary.salesCount === 1 ? 'Sale' : 'Sales'}
+              {summary.salesCount === 1 ? 'sale' : 'sales'}
             </p>
           </div>
           {summary.tellerCount > 0 && (
             <div className="flex-1">
               <p className="text-2xl font-bold text-gray-900">{summary.tellerCount}</p>
               <p className="text-xs text-gray-400 mt-0.5">
-                {summary.tellerCount === 1 ? 'Teller' : 'Tellers'}
+                {summary.tellerCount === 1 ? 'teller' : 'tellers'}
               </p>
             </div>
           )}
@@ -87,12 +101,12 @@ export default async function DashboardPage() {
       {lowStock.length > 0 && (
         <a
           href="/stock?tab=low"
-          className="block bg-red-50 border border-red-100 rounded-2xl p-4 mb-6"
+          className="block bg-red-50 border border-red-100 rounded-2xl p-4 mb-4"
         >
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm font-semibold text-red-700 mb-1">
-                ⚠️ Stock Alert
+                ⚠️ Stock running low
               </p>
               {outOfStock.length > 0 && (
                 <p className="text-xs text-red-600">
@@ -101,7 +115,7 @@ export default async function DashboardPage() {
               )}
               {lowOnly.length > 0 && (
                 <p className="text-xs text-orange-600">
-                  {lowOnly.length} item{lowOnly.length !== 1 ? 's' : ''} running low
+                  {lowOnly.length} item{lowOnly.length !== 1 ? 's' : ''} almost out
                 </p>
               )}
               <ul className="mt-2 space-y-0.5">
@@ -121,6 +135,66 @@ export default async function DashboardPage() {
             <span className="text-gray-300 text-lg">›</span>
           </div>
         </a>
+      )}
+
+      {/* This week chart */}
+      <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
+          This week
+        </p>
+        <WeeklySalesChart data={weeklyData} />
+      </div>
+
+      {/* What sold most this week */}
+      {topProducts.length > 0 && (
+        <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
+            What sold most this week
+          </p>
+          <ol className="space-y-2">
+            {topProducts.map((p, i) => (
+              <li key={p.name} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-300 w-4">{i + 1}.</span>
+                  <span className="text-sm text-gray-800">{p.name}</span>
+                </div>
+                <span className="text-xs text-gray-400">
+                  {p.totalQty} sold
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {/* Latest sales */}
+      {recentSales.length > 0 && (
+        <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
+            Latest sales
+          </p>
+          <ul className="divide-y divide-gray-50">
+            {recentSales.map((sale) => (
+              <li key={sale.id} className="flex items-center justify-between py-2 first:pt-0 last:pb-0">
+                <div>
+                  <p className="text-sm text-gray-800 font-medium">{formatZAR(sale.total)}</p>
+                  <p className="text-xs text-gray-400">
+                    {sale.teller_name ?? '—'} · {formatSAST(sale.completed_at, 'HH:mm')}
+                  </p>
+                </div>
+                <span className="text-xs text-gray-300">
+                  {formatSAST(sale.completed_at, 'd MMM')}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {recentSales.length === 0 && summary.salesCount === 0 && (
+        <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4 text-center">
+          <p className="text-sm text-gray-400">No sales yet — tap &ldquo;Start a Sale&rdquo; below to begin!</p>
+        </div>
       )}
 
       {/* Nav cards */}
@@ -152,8 +226,8 @@ export default async function DashboardPage() {
           className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:bg-gray-50"
         >
           <div>
-            <p className="font-bold text-gray-900">Stock Take</p>
-            <p className="text-gray-400 text-sm">Count and update your stock</p>
+            <p className="font-bold text-gray-900">Count Stock</p>
+            <p className="text-gray-400 text-sm">Go through your products and update the numbers</p>
           </div>
           <span className="text-3xl">📋</span>
         </a>
@@ -164,7 +238,7 @@ export default async function DashboardPage() {
         >
           <div>
             <p className="font-bold text-gray-900">Products</p>
-            <p className="text-gray-400 text-sm">Manage your product list</p>
+            <p className="text-gray-400 text-sm">Add or change the products you sell</p>
           </div>
           <span className="text-3xl">🏷️</span>
         </a>
@@ -174,10 +248,21 @@ export default async function DashboardPage() {
           className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:bg-gray-50"
         >
           <div>
-            <p className="font-bold text-gray-900">Tellers</p>
-            <p className="text-gray-400 text-sm">Manage staff who use the till</p>
+            <p className="font-bold text-gray-900">Staff</p>
+            <p className="text-gray-400 text-sm">Manage the people who use the till</p>
           </div>
           <span className="text-3xl">👤</span>
+        </a>
+
+        <a
+          href="/settings"
+          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:bg-gray-50"
+        >
+          <div>
+            <p className="font-bold text-gray-900">Settings</p>
+            <p className="text-gray-400 text-sm">Change your shop name, WhatsApp number and more</p>
+          </div>
+          <span className="text-3xl">⚙️</span>
         </a>
       </div>
     </main>

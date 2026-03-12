@@ -167,6 +167,26 @@ export interface LowStockItem {
   stock_qty: number
 }
 
+export interface WeeklyDataPoint {
+  label: string        // short day name, e.g. "Mon"
+  date: string         // yyyy-MM-dd
+  revenue: number
+  salesCount: number
+}
+
+export interface RecentSale {
+  id: string
+  total: number
+  completed_at: string
+  teller_name: string | null
+}
+
+export interface TopProduct {
+  name: string
+  totalQty: number
+  totalRevenue: number
+}
+
 // --- Auth session context ---
 
 export interface SessionUser {
