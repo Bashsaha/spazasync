@@ -193,7 +193,7 @@ At the start of every session:
 - [x] Phase 8: Stock Management
 - [x] Phase 9: WhatsApp Summaries
 - [x] Phase 10: Dashboard
-- [ ] Phase 11: Polish & Hardening
+- [x] Phase 11: Polish & Hardening
 - [ ] Phase 12: Testing & Deployment
 
 ### Phase 1: Project Bootstrap — COMPLETE
@@ -319,11 +319,36 @@ What was built:
 - Updated src/app/(app)/sale/page.tsx — offline path: queue to IndexedDB, dispatch 'offlinequeue' event, redirect with &offline=1
 - Updated src/app/(app)/sale/complete/page.tsx — shows "Sale Saved" + offline explanation when ?offline=1
 
+### Phase 11: Polish & Hardening — COMPLETE
+What was built:
+- src/app/error.tsx — global React error boundary (wraps html/body; "Try again" button with autoFocus)
+- src/app/not-found.tsx — 404 page with link back to Dashboard
+- src/app/(app)/error.tsx — app-segment error boundary (inherits app layout context)
+- src/components/Skeleton.tsx — shared animated skeleton primitive used across loading states
+- src/app/(app)/dashboard/loading.tsx — skeleton loader for dashboard (streamed by Next.js)
+- src/app/(app)/tellers/loading.tsx — skeleton loader for tellers list
+- src/app/(app)/stock/loading.tsx — skeleton loader for stock overview
+- src/lib/utils/rateLimit.ts — in-memory rate limiter (10/60s on teller-login; 3/60s on onboarding)
+- src/components/ConfirmModal.tsx — bottom-sheet confirm dialog; replaces browser confirm()/alert()
+- src/components/Toast.tsx — toast notification system with ToastProvider context + auto-dismiss
+- src/hooks/useToast.ts — standalone toast hook (ToastProvider is the primary integration point)
+- src/components/BottomNav.tsx — 5-tab owner bottom navigation; tellers excluded; active tab highlighted
+- Updated src/app/(app)/layout.tsx — adds ToastProvider + BottomNav; passes role from JWT
+- Updated src/app/(app)/tellers/page.tsx — ConfirmModal replaces confirm()/alert(); Skeleton inline loader
+- Updated src/components/sale/CartSummary.tsx — fixed pb-safe-bottom → env(safe-area-inset-bottom)
+- Updated src/app/layout.tsx — added viewportFit: 'cover' to viewport export
+- Updated src/app/(app)/stock/page.tsx — added aria-label to search input
+- Updated src/app/(app)/stock-take/page.tsx — added aria-label={`Count for ${p.name}`} to count inputs
+- Updated src/app/api/auth/teller-login/route.ts — rate limiter applied
+- Updated src/app/api/onboarding/route.ts — rate limiter applied
+- Updated vercel.json — security headers: X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy
+- 0 TypeScript errors, 25/25 tests passing
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 10 complete_
+_Last updated: Phase 11 complete_
 
 ```
 spaza shop/
@@ -349,7 +374,9 @@ spaza shop/
 ├── src/
 │   ├── middleware.ts               # Auth guard + role-based routing
 │   ├── app/
-│   │   ├── layout.tsx              # Root layout (PWA meta, viewport)
+│   │   ├── layout.tsx              # Root layout (PWA meta, viewport, viewportFit=cover)
+│   │   ├── error.tsx               # Global error boundary (Phase 11)
+│   │   ├── not-found.tsx           # 404 page (Phase 11)
 │   │   ├── page.tsx                # Root redirect logic
 │   │   ├── globals.css
 │   │   ├── favicon.ico
@@ -357,8 +384,10 @@ spaza shop/
 │   │   │   ├── login/page.tsx      # Owner + Teller login tabs
 │   │   │   └── onboarding/page.tsx # 2-step: account → shop setup
 │   │   ├── (app)/
-│   │   │   ├── layout.tsx          # Authenticated shell
+│   │   │   ├── layout.tsx          # Authenticated shell (ToastProvider + BottomNav)
+│   │   │   ├── error.tsx           # App-segment error boundary (Phase 11)
 │   │   │   ├── dashboard/page.tsx  # Full dashboard: today summary, weekly chart, top products, latest sales, nav
+│   │   │   ├── dashboard/loading.tsx  # Skeleton loader for dashboard
 │   │   │   ├── settings/page.tsx   # Owner settings: shop name, WhatsApp number, low-stock threshold
 │   │   │   ├── sale/
 │   │   │   │   ├── page.tsx        # Full sale flow: scan → cart → complete
@@ -367,13 +396,15 @@ spaza shop/
 │   │   │   │   └── page.tsx        # Count products, enter real qty, save
 │   │   │   ├── stock/
 │   │   │   │   ├── page.tsx        # Stock overview: summary strip, search, All/Low tabs
+│   │   │   │   ├── loading.tsx     # Skeleton loader for stock list
 │   │   │   │   └── [id]/page.tsx   # Adjust stock form (Add/Remove mode, quick amounts)
 │   │   │   ├── products/
 │   │   │   │   ├── page.tsx        # Searchable product list (owner only)
 │   │   │   │   ├── new/page.tsx    # Add product form
 │   │   │   │   └── [id]/page.tsx   # Edit/delete product form
 │   │   │   └── tellers/
-│   │   │       ├── page.tsx        # Teller list with remove
+│   │   │       ├── page.tsx        # Teller list with remove (ConfirmModal, Skeleton)
+│   │   │       ├── loading.tsx     # Skeleton loader for tellers list
 │   │   │       └── new/page.tsx    # Add teller form
 │   │   └── api/
 │   │       ├── auth/
@@ -407,6 +438,10 @@ spaza shop/
 │   │   │   └── ScannerOverlay.tsx         # Targeting reticle
 │   │   ├── dashboard/
 │   │   │   └── WeeklySalesChart.tsx       # Client component; bar chart of last 7 days (recharts)
+│   │   ├── BottomNav.tsx                  # Owner bottom navigation bar (5 tabs)
+│   │   ├── ConfirmModal.tsx               # Bottom-sheet confirm dialog (replaces browser confirm())
+│   │   ├── Skeleton.tsx                   # Animated skeleton primitive for loading states
+│   │   ├── Toast.tsx                      # Toast notification system + ToastProvider context
 │   │   ├── OfflineBanner.tsx              # Amber/blue top banner (offline / syncing)
 │   │   ├── OfflineSyncProvider.tsx        # Client wrapper; owns sync state
 │   │   └── ServiceWorkerRegistrar.tsx     # Registers /sw.js on mount
@@ -415,7 +450,8 @@ spaza shop/
 │   │   ├── useCart.ts                     # Cart state (add/remove/updateQty/clear)
 │   │   ├── useScanner.ts                  # @zxing/browser wrapper
 │   │   ├── useOnlineStatus.ts             # Tracks navigator.onLine
-│   │   └── useOfflineSync.ts              # Auto-sync on reconnect + pending count
+│   │   ├── useOfflineSync.ts              # Auto-sync on reconnect + pending count
+│   │   └── useToast.ts                    # (legacy standalone hook — Toast.tsx context is used)
 │   ├── lib/
 │   │   ├── supabase/
 │   │   │   ├── client.ts           # Browser client
@@ -440,7 +476,8 @@ spaza shop/
 │   │   │   └── schemas.ts          # All Zod schemas (all phases)
 │   │   └── utils/
 │   │       ├── currency.ts
-│   │       └── date.ts
+│   │       ├── date.ts
+│   │       └── rateLimit.ts    # In-memory rate limiter for API routes (Phase 11)
 │   └── types/
 │       └── index.ts
 ├── supabase/

@@ -179,3 +179,27 @@ WhatsApp summaries complete. Nightly cron (22:00 SAST) fetches all shops with a 
 
 ### Review
 Full dashboard complete. Owner opens /dashboard → sees today's money/sales/tellers summary, low-stock alert (if any), 7-day bar chart, top 5 products sold this week, 10 most recent sales, and nav cards including new Settings link. All text uses plain South African English (no jargon). Settings page lets owner update shop name, WhatsApp number, and low-stock alert threshold; shop code is shown read-only. Ready for Phase 11.
+
+---
+
+## Phase 11: Polish & Hardening — COMPLETE ✓
+
+- [x] src/app/error.tsx + src/app/not-found.tsx + src/app/(app)/error.tsx — error boundaries and 404 page
+- [x] src/components/Skeleton.tsx — shared skeleton primitive
+- [x] src/app/(app)/dashboard/loading.tsx + tellers/loading.tsx + stock/loading.tsx — skeleton loaders
+- [x] src/lib/utils/rateLimit.ts — in-memory rate limiter
+- [x] Apply rate limit to /api/auth/teller-login (10/60s) and /api/onboarding (3/60s)
+- [x] src/components/ConfirmModal.tsx — bottom-sheet confirm modal
+- [x] Updated tellers/page.tsx — ConfirmModal replaces confirm()/alert(); inline Skeleton loader
+- [x] src/components/Toast.tsx + src/hooks/useToast.ts — toast system
+- [x] src/components/BottomNav.tsx — 5-tab owner bottom nav
+- [x] Updated src/app/(app)/layout.tsx — ToastProvider + BottomNav + role prop
+- [x] Fixed CartSummary.tsx safe-area inset (pb-safe-bottom → env(safe-area-inset-bottom))
+- [x] Added viewportFit: 'cover' to root layout viewport export
+- [x] Added aria-label to stock search input and stock-take count inputs
+- [x] Added security headers to vercel.json
+- [x] 0 TypeScript errors, 25/25 tests passing
+- [x] Glob scan → CLAUDE.md updated → Phase 11 checked off
+
+### Review
+Polish & Hardening complete. App now has proper error boundaries (no more blank white crashes), animated skeleton loaders on all data-heavy pages, a native-feeling bottom navigation bar for owners, a styled ConfirmModal replacing all browser confirm()/alert() dialogs, toast notifications wired in via context, a rate-limited login and onboarding endpoint, corrected safe-area insets for phones with home indicators, accessibility labels on all interactive inputs, and security headers on every response. 0 TypeScript errors, 25/25 tests passing. Ready for Phase 12.

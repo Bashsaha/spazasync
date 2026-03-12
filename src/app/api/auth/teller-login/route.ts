@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { buildTellerEmail } from '@/lib/auth/teller'
+import { checkRateLimit } from '@/lib/utils/rateLimit'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -19,6 +20,14 @@ const schema = z.object({
  * the session cookie is set correctly by @supabase/ssr.
  */
 export async function POST(request: Request) {
+  const { limited } = checkRateLimit(request, { limit: 10, windowSecs: 60 })
+  if (limited) {
+    return NextResponse.json(
+      { error: 'Too many attempts. Please wait a minute and try again.' },
+      { status: 429, headers: { 'Retry-After': '60' } },
+    )
+  }
+
   let body: unknown
   try {
     body = await request.json()

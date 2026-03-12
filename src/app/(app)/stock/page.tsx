@@ -85,6 +85,7 @@ export default function StockPage() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Search products…"
+        aria-label="Search products"
         className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400 mb-3"
       />
 

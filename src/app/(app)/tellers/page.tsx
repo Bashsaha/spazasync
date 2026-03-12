@@ -3,11 +3,15 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { Teller } from '@/types'
+import { Skeleton } from '@/components/Skeleton'
+import { ConfirmModal } from '@/components/ConfirmModal'
 
 export default function TellersPage() {
   const [tellers, setTellers] = useState<Teller[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [pendingRemove, setPendingRemove] = useState<Teller | null>(null)
+  const [removing, setRemoving] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -25,15 +29,18 @@ export default function TellersPage() {
 
   useEffect(() => { load() }, [])
 
-  async function handleDeactivate(id: string, name: string) {
-    if (!confirm(`Remove ${name} from your tellers?`)) return
-    const res = await fetch(`/api/tellers/${id}`, { method: 'PATCH' })
+  async function confirmDeactivate() {
+    if (!pendingRemove) return
+    setRemoving(true)
+    const res = await fetch(`/api/tellers/${pendingRemove.id}`, { method: 'PATCH' })
     if (res.ok) {
-      setTellers((prev) => prev.filter((t) => t.id !== id))
+      setTellers((prev) => prev.filter((t) => t.id !== pendingRemove.id))
     } else {
       const data = await res.json()
-      alert(data.error ?? 'Could not remove teller.')
+      setError(data.error ?? 'Could not remove teller.')
     }
+    setPendingRemove(null)
+    setRemoving(false)
   }
 
   return (
@@ -56,7 +63,11 @@ export default function TellersPage() {
       {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
       {loading ? (
-        <p className="text-gray-400 text-sm">Loading…</p>
+        <div className="space-y-2">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-16 rounded-2xl" />
+          ))}
+        </div>
       ) : tellers.length === 0 ? (
         <p className="text-center text-gray-400 text-sm mt-12">
           No tellers yet. Tap + Add to create one.
@@ -75,14 +86,25 @@ export default function TellersPage() {
                 </p>
               </div>
               <button
-                onClick={() => handleDeactivate(t.id, t.name)}
-                className="text-xs text-red-400 font-semibold active:text-red-600 px-2 py-1"
+                onClick={() => setPendingRemove(t)}
+                disabled={removing}
+                className="text-xs text-red-400 font-semibold active:text-red-600 px-2 py-1 disabled:opacity-50"
               >
                 Remove
               </button>
             </li>
           ))}
         </ul>
+      )}
+
+      {pendingRemove && (
+        <ConfirmModal
+          message={`Remove ${pendingRemove.name} from your tellers?`}
+          confirmLabel="Remove"
+          isDestructive
+          onConfirm={confirmDeactivate}
+          onCancel={() => setPendingRemove(null)}
+        />
       )}
     </main>
   )

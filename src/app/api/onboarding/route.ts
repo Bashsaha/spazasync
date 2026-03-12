@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { setOwnerMetadata } from '@/lib/auth/teller'
 import { onboardingSchema } from '@/lib/validation/schemas'
+import { checkRateLimit } from '@/lib/utils/rateLimit'
 
 /**
  * POST /api/onboarding
@@ -12,6 +13,14 @@ import { onboardingSchema } from '@/lib/validation/schemas'
  * Also sets app_metadata on the auth user so middleware can read their role.
  */
 export async function POST(request: Request) {
+  const { limited } = checkRateLimit(request, { limit: 3, windowSecs: 60 })
+  if (limited) {
+    return NextResponse.json(
+      { error: 'Too many attempts. Please wait a minute and try again.' },
+      { status: 429, headers: { 'Retry-After': '60' } },
+    )
+  }
+
   let body: unknown
   try {
     body = await request.json()

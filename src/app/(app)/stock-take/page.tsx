@@ -175,6 +175,7 @@ export default function StockTakePage() {
                       placeholder="—"
                       value={inputVal}
                       onChange={(e) => handleCount(p.id, e.target.value)}
+                      aria-label={`Count for ${p.name}`}
                       className={`w-16 text-center border rounded-xl py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-400 ${
                         isChanged
                           ? 'border-orange-400 text-orange-700 bg-white'

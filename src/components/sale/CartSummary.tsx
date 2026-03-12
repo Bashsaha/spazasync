@@ -13,7 +13,7 @@ interface CartSummaryProps {
 export function CartSummary({ total, itemCount, onCompleteSale, isSubmitting }: CartSummaryProps) {
   return (
     <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 shadow-lg">
-      <div className="max-w-lg mx-auto flex items-center gap-4 px-4 py-3 pb-safe-bottom">
+      <div className="max-w-lg mx-auto flex items-center gap-4 px-4 py-3" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
         <div className="flex-shrink-0">
           <p className="text-xs text-gray-400">
             {itemCount} item{itemCount !== 1 ? 's' : ''}
