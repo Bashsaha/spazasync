@@ -153,6 +153,20 @@ export interface StockAdjustInput {
   reason?: string
 }
 
+// --- Reporting / WhatsApp summaries ---
+
+export interface DailySummaryData {
+  salesCount: number
+  totalRevenue: number
+  topItems: Array<{ name: string; totalQty: number }>
+  tellerCount: number
+}
+
+export interface LowStockItem {
+  name: string
+  stock_qty: number
+}
+
 // --- Auth session context ---
 
 export interface SessionUser {

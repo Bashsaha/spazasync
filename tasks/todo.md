@@ -143,3 +143,21 @@ Offline support complete. When offline: sale queued to IndexedDB, banner shown, 
 
 ### Review
 Stock management complete. Owner opens /stock → sees all products ordered by lowest stock first, with summary strip (total/low/out). Taps any product → /stock/[id] → chooses Add or Remove mode → enters qty (or uses quick-add buttons: +10/24/48/100) → optional reason → saves. Stock clamped to ≥0. Every adjustment creates an audit row in stock_adjustments. A stock take prompt appears if 3+ products are out of stock. Ready for Phase 9.
+
+---
+
+## Phase 9: WhatsApp Summaries — COMPLETE ✓
+
+- [x] vercel.json — single cron at 0 20 * * * (22:00 SAST); removed separate low-stock cron
+- [x] src/types/index.ts — DailySummaryData + LowStockItem types
+- [x] src/lib/whatsapp/client.ts — Twilio client factory + sendWhatsApp()
+- [x] src/lib/whatsapp/format.ts — formatDailySummary() pure formatter
+- [x] src/lib/db/reports.ts — getDailySalesForShop + getLowStockForShop (admin client, explicit shop_id)
+- [x] src/app/api/cron/daily-summary/route.ts — iterates all shops, per-shop error isolation
+- [x] src/app/(app)/dashboard/page.tsx — today revenue/sales/tellers strip + low-stock alert widget
+- [x] tests/unit/whatsapp-format.test.ts — 9 new tests (25/25 total passing)
+- [x] 0 TypeScript errors, 25/25 tests passing
+- [x] Glob scan → CLAUDE.md updated → Phase 9 checked off
+
+### Review
+WhatsApp summaries complete. Nightly cron (22:00 SAST) fetches all shops with a WhatsApp number, generates a daily sales recap + low-stock warnings per shop, and sends via Twilio. Shop scoping is doubly enforced: admin client queries explicitly filter by shop.id, and the loop sends each message to that shop's own whatsapp_number only. Dashboard now shows today's revenue, sale count, teller count, and a tappable low-stock alert card. Ready for Phase 10.

@@ -1,7 +1,7 @@
 /**
  * Date/time utilities for SpazaSync.
  * All user-facing times are shown in SAST (Africa/Johannesburg, UTC+2).
- * Cron jobs fire at 18:00 UTC = 20:00 SAST.
+ * Cron jobs fire at 20:00 UTC = 22:00 SAST.
  */
 
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz'

@@ -191,7 +191,7 @@ At the start of every session:
 - [x] Phase 6: Stock Take
 - [x] Phase 7: Offline Support
 - [x] Phase 8: Stock Management
-- [ ] Phase 9: WhatsApp Summaries
+- [x] Phase 9: WhatsApp Summaries
 - [ ] Phase 10: Dashboard
 - [ ] Phase 11: Polish & Hardening
 - [ ] Phase 12: Testing & Deployment
@@ -279,6 +279,18 @@ What was built:
 - src/app/(app)/stock/[id]/page.tsx — adjust stock form: Add/Remove mode toggle, quick amounts (+10/24/48/100), projected qty preview, reason dropdown, clamping warning
 - Fixed pre-existing formatCurrency → formatZAR in CartItem.tsx, CartSummary.tsx, sale/complete/page.tsx
 
+### Phase 9: WhatsApp Summaries — COMPLETE
+What was built:
+- src/lib/whatsapp/client.ts — Twilio client factory + sendWhatsApp(to, body)
+- src/lib/whatsapp/format.ts — formatDailySummary: pure function, generates plain-text WhatsApp message
+- src/lib/db/reports.ts — getDailySalesForShop + getLowStockForShop (admin client, explicit shop_id filtering)
+- src/app/api/cron/daily-summary/route.ts — GET cron handler; fires 20:00 UTC (22:00 SAST); iterates all shops with WhatsApp numbers; per-shop errors isolated
+- src/types/index.ts — DailySummaryData + LowStockItem types added
+- src/app/(app)/dashboard/page.tsx — today's revenue/sales/tellers strip + low-stock alert widget (server component, no extra API route)
+- vercel.json — single cron entry at 0 20 * * * (removed separate low-stock cron)
+- tests/unit/whatsapp-format.test.ts — 9 tests for message formatter
+- src/lib/utils/date.ts — fixed cron time comment (20:00 UTC = 22:00 SAST)
+
 ### Phase 7: Offline Support — COMPLETE
 What was built:
 - src/lib/offline/db.ts — IndexedDB via `idb`: enqueueSale, listPendingSales, removePendingSale, countPendingSales
@@ -300,7 +312,7 @@ What was built:
 
 ## Current File Tree
 
-_Last updated: Phase 8 complete_
+_Last updated: Phase 9 complete_
 
 ```
 spaza shop/
@@ -335,7 +347,7 @@ spaza shop/
 │   │   │   └── onboarding/page.tsx # 2-step: account → shop setup
 │   │   ├── (app)/
 │   │   │   ├── layout.tsx          # Authenticated shell
-│   │   │   ├── dashboard/page.tsx  # Dashboard (nav cards, Phase 10 full)
+│   │   │   ├── dashboard/page.tsx  # Dashboard (today summary strip + low-stock alert + nav cards)
 │   │   │   ├── sale/
 │   │   │   │   ├── page.tsx        # Full sale flow: scan → cart → complete
 │   │   │   │   └── complete/page.tsx  # Sale confirmation screen
@@ -364,6 +376,8 @@ spaza shop/
 │   │       │   └── route.ts               # GET list with low_stock flag, POST adjust qty
 │   │       ├── stock-take/
 │   │       │   └── route.ts               # POST — save stock take
+│   │       ├── cron/
+│   │       │   └── daily-summary/route.ts # GET — 22:00 SAST daily; sends WhatsApp summaries
 │   │       └── tellers/
 │   │           ├── route.ts               # GET list, POST create
 │   │           ├── me/route.ts            # GET own teller record
@@ -398,10 +412,14 @@ spaza shop/
 │   │   │   ├── tellers.ts          # Teller query helpers
 │   │   │   ├── sales.ts            # completeSale (insert + stock deduction)
 │   │   │   ├── stock-take.ts       # saveStockTake (audit + update stock_qty)
-│   │   │   └── stock.ts            # listProductsWithStock + adjustStock (Phase 8)
+│   │   │   ├── stock.ts            # listProductsWithStock + adjustStock (Phase 8)
+│   │   │   └── reports.ts          # getDailySalesForShop + getLowStockForShop (Phase 9)
 │   │   ├── offline/
 │   │   │   ├── db.ts               # IndexedDB via idb (enqueue/list/remove/count)
 │   │   │   └── sync.ts             # syncPendingSales (retry queue → server)
+│   │   ├── whatsapp/
+│   │   │   ├── client.ts           # Twilio client factory + sendWhatsApp()
+│   │   │   └── format.ts           # formatDailySummary() — pure text formatter
 │   │   ├── validation/
 │   │   │   └── schemas.ts          # All Zod schemas (all phases)
 │   │   └── utils/
