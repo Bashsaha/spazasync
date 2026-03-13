@@ -131,6 +131,8 @@ CRON_SECRET=
 - Point at logs, errors, failing tests — then resolve them
 - Zero context switching required from the user
 - Go fix failing CI tests without being told how
+- **After fixing any bug: add an entry to `tasks/bugs.md`** with symptom, root cause, fix, and a prevention rule. This is mandatory — not optional.
+- Before touching auth/routing/middleware/API routes, read `tasks/bugs.md` and apply all listed prevention rules.
 
 ---
 
@@ -177,7 +179,8 @@ At the start of every session:
 2. Note which phases are complete (Living Scope below)
 3. Note the current real file structure (File Tree below)
 4. Review tasks/lessons.md
-5. Pick up from where the project left off
+5. **Read tasks/bugs.md** — mandatory before touching auth, routing, API routes, or middleware. Apply all prevention rules listed there.
+6. Pick up from where the project left off
 
 ---
 
@@ -354,6 +357,10 @@ What was built:
 - tests/unit/security.test.ts — 15 tests verifying schemas reject injection strings, malformed UUIDs, type coercions
 - README.md — full deployment guide: setup, env vars, Supabase migrations, Vercel deploy, security checklist
 - 0 TypeScript errors, 113/113 tests passing, production build successful
+- BUG-001: `/onboarding` added to PUBLIC_ROUTES — "Create your shop" was bouncing to login
+- BUG-002: Created `src/app/auth/callback/route.ts` — Supabase email confirmation caused localhost 404
+- BUG-003: Added `email-sent` step to onboarding state machine — email confirmation now shows on-page screen
+- tasks/bugs.md — new bug tracker; CLAUDE.md updated to mandate reading it at session start
 
 ---
 
@@ -391,9 +398,11 @@ spaza shop/
 │   │   ├── page.tsx                # Root redirect logic
 │   │   ├── globals.css
 │   │   ├── favicon.ico
+│   │   ├── auth/
+│   │   │   └── callback/route.ts   # Supabase email confirmation handler (exchanges code → session)
 │   │   ├── (auth)/
 │   │   │   ├── login/page.tsx      # Owner + Teller login tabs
-│   │   │   └── onboarding/page.tsx # 2-step: account → shop setup
+│   │   │   └── onboarding/page.tsx # 2-step: account → shop setup (email-sent state for confirmation)
 │   │   ├── (app)/
 │   │   │   ├── layout.tsx          # Authenticated shell (ToastProvider + BottomNav)
 │   │   │   ├── error.tsx           # App-segment error boundary (Phase 11)
@@ -498,7 +507,8 @@ spaza shop/
 │       └── 003_stock_adjustments.sql  # stock_adjustments audit table (Phase 8)
 ├── tasks/
 │   ├── todo.md
-│   └── lessons.md
+│   ├── lessons.md
+│   └── bugs.md                     # Bug tracker — read at every session start; update on every fix
 └── tests/
     └── unit/
         ├── currency.test.ts        # 16 tests — formatZAR, parsePrice, calcSubtotal, calcTotal

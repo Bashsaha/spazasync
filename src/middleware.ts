@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Routes that don't require authentication
-const PUBLIC_ROUTES = ['/login', '/api/auth/teller-login']
+const PUBLIC_ROUTES = ['/login', '/onboarding', '/auth/callback', '/api/auth/teller-login', '/api/onboarding']
 
 // Only the sale route is accessible to tellers
 const TELLER_ALLOWED_ROUTES = ['/sale']

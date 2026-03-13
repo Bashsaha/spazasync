@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const [step, setStep] = useState<'signup' | 'setup'>('signup')
+  const [step, setStep] = useState<'signup' | 'email-sent' | 'setup'>('signup')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [shopName, setShopName] = useState('')
@@ -34,13 +34,13 @@ export default function OnboardingPage() {
       return
     }
 
-    // Sign in immediately (some Supabase projects auto-confirm)
+    // Try signing in immediately (works if Supabase auto-confirms emails)
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
     if (!signInError) {
       setStep('setup')
     } else {
-      setError('Account created — please check your email to confirm it, then sign in.')
-      router.push('/login')
+      // Email confirmation required — show the "check your email" screen
+      setStep('email-sent')
     }
     setLoading(false)
   }
@@ -88,12 +88,30 @@ export default function OnboardingPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-orange-500">SpazaSync</h1>
           <p className="text-gray-500 mt-1 text-sm">
-            {step === 'signup' ? 'Create your owner account' : 'Set up your shop'}
+            {step === 'signup' ? 'Create your owner account' : step === 'email-sent' ? 'Almost there!' : 'Set up your shop'}
           </p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          {step === 'signup' ? (
+          {step === 'email-sent' ? (
+            <div className="text-center space-y-4 py-2">
+              <div className="text-5xl">📧</div>
+              <h2 className="text-lg font-bold text-gray-900">Check your email</h2>
+              <p className="text-gray-600 text-sm">
+                We sent a confirmation link to <strong>{email}</strong>.
+                Click the link in the email, then come back here and sign in.
+              </p>
+              <p className="text-gray-400 text-xs">
+                Can&apos;t find it? Check your spam folder.
+              </p>
+              <a
+                href="/login"
+                className="block w-full bg-orange-500 text-white font-semibold py-3 rounded-xl hover:bg-orange-600 transition-colors text-base text-center mt-4"
+              >
+                Go to sign in
+              </a>
+            </div>
+          ) : step === 'signup' ? (
             <SignupForm
               email={email}
               setEmail={setEmail}
