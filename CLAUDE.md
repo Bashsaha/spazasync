@@ -194,7 +194,7 @@ At the start of every session:
 - [x] Phase 9: WhatsApp Summaries
 - [x] Phase 10: Dashboard
 - [x] Phase 11: Polish & Hardening
-- [ ] Phase 12: Testing & Deployment
+- [x] Phase 12: Testing & Deployment
 
 ### Phase 1: Project Bootstrap — COMPLETE
 What was built:
@@ -344,11 +344,22 @@ What was built:
 - Updated vercel.json — security headers: X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy
 - 0 TypeScript errors, 25/25 tests passing
 
+### Phase 12: Testing & Deployment — COMPLETE
+What was built:
+- Fixed security gap: `/api/sales` and `/api/stock-take` were missing auth checks — both now validate session via `supabase.auth.getUser()` before processing
+- Added `Content-Security-Policy` header to vercel.json (all existing headers retained)
+- tests/unit/validation.test.ts — 49 tests covering all 10 Zod schemas (happy + rejection paths)
+- tests/unit/date.test.ts — 17 tests for SAST timezone helpers (formatSAST, startOfTodaySAST, isToday, etc.)
+- tests/unit/rate-limit.test.ts — 7 tests for in-memory rate limiter (window reset, per-IP tracking, fake timers)
+- tests/unit/security.test.ts — 15 tests verifying schemas reject injection strings, malformed UUIDs, type coercions
+- README.md — full deployment guide: setup, env vars, Supabase migrations, Vercel deploy, security checklist
+- 0 TypeScript errors, 113/113 tests passing, production build successful
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 11 complete_
+_Last updated: Phase 12 complete_
 
 ```
 spaza shop/
@@ -490,5 +501,10 @@ spaza shop/
 │   └── lessons.md
 └── tests/
     └── unit/
-        └── currency.test.ts        # 16 tests passing
+        ├── currency.test.ts        # 16 tests — formatZAR, parsePrice, calcSubtotal, calcTotal
+        ├── whatsapp-format.test.ts # 9 tests  — formatDailySummary
+        ├── validation.test.ts      # 49 tests — all 10 Zod schemas (Phase 12)
+        ├── date.test.ts            # 17 tests — SAST timezone helpers (Phase 12)
+        ├── rate-limit.test.ts      # 7 tests  — in-memory rate limiter (Phase 12)
+        └── security.test.ts        # 15 tests — schema rejection of malformed input (Phase 12)
 ```

@@ -203,3 +203,22 @@ Full dashboard complete. Owner opens /dashboard → sees today's money/sales/tel
 
 ### Review
 Polish & Hardening complete. App now has proper error boundaries (no more blank white crashes), animated skeleton loaders on all data-heavy pages, a native-feeling bottom navigation bar for owners, a styled ConfirmModal replacing all browser confirm()/alert() dialogs, toast notifications wired in via context, a rate-limited login and onboarding endpoint, corrected safe-area insets for phones with home indicators, accessibility labels on all interactive inputs, and security headers on every response. 0 TypeScript errors, 25/25 tests passing. Ready for Phase 12.
+
+---
+
+## Phase 12: Testing & Deployment — COMPLETE ✓
+
+- [x] Security audit: fixed missing auth check on /api/sales (unauthenticated POST was possible)
+- [x] Security audit: fixed missing auth check on /api/stock-take
+- [x] Added Content-Security-Policy header to vercel.json
+- [x] tests/unit/validation.test.ts — 49 tests covering all 10 Zod schemas
+- [x] tests/unit/date.test.ts — 17 tests for SAST timezone helpers
+- [x] tests/unit/rate-limit.test.ts — 7 tests for in-memory rate limiter (vi.useFakeTimers)
+- [x] tests/unit/security.test.ts — 15 tests verifying schema rejection of malicious input
+- [x] npm test → 113/113 passing
+- [x] npm run build → 0 TypeScript errors, production build successful
+- [x] README.md — full deployment guide + security checklist
+- [x] Glob scan → CLAUDE.md updated → Phase 12 checked off
+
+### Review
+Testing & Deployment complete. Found and fixed two critical security gaps (missing auth on /api/sales and /api/stock-take). Added Content-Security-Policy header. Expanded test suite from 25 to 113 tests across 6 files — all pure functions, validation schemas, date utilities, and rate limiter are now covered. Production build passes cleanly. README contains full Vercel deployment steps, environment variable table, Supabase migration instructions, and a security checklist. SpazaSync is production-ready.
