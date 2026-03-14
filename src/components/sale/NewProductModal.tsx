@@ -89,7 +89,7 @@ export function NewProductModal({ barcode, onCreated, onDismiss }: NewProductMod
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Coca-Cola 500ml"
               autoFocus
-              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -106,7 +106,7 @@ export function NewProductModal({ barcode, onCreated, onDismiss }: NewProductMod
                 step="0.01"
                 min="0.01"
                 inputMode="decimal"
-                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="flex-1">
@@ -120,7 +120,7 @@ export function NewProductModal({ barcode, onCreated, onDismiss }: NewProductMod
                 placeholder="0"
                 min="0"
                 inputMode="numeric"
-                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -136,7 +136,7 @@ export function NewProductModal({ barcode, onCreated, onDismiss }: NewProductMod
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 bg-orange-500 text-white py-3 rounded-xl font-semibold active:bg-orange-600 disabled:opacity-50"
+              className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-semibold active:bg-blue-700 disabled:opacity-50"
             >
               {isLoading ? 'Saving…' : 'Add & Scan'}
             </button>

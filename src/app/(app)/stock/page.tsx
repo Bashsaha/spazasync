@@ -86,7 +86,7 @@ export default function StockPage() {
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Search products…"
         aria-label="Search products"
-        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400 mb-3"
+        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
       />
 
       {/* Tabs */}
@@ -97,7 +97,7 @@ export default function StockPage() {
             onClick={() => setTab(t)}
             className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
               tab === t
-                ? 'bg-orange-500 text-white'
+                ? 'bg-blue-600 text-white'
                 : 'bg-white border border-gray-200 text-gray-600 active:bg-gray-50'
             }`}
           >
@@ -149,7 +149,7 @@ export default function StockPage() {
                     >
                       {p.stock_qty}
                     </span>
-                    <span className="text-xs text-orange-500 font-semibold">Adjust →</span>
+                    <span className="text-xs text-blue-600 font-semibold">Adjust →</span>
                   </div>
                 </Link>
               </li>
@@ -160,14 +160,14 @@ export default function StockPage() {
 
       {/* Stock take prompt if many out of stock */}
       {!loading && !error && outCount >= 3 && (
-        <div className="mt-6 bg-orange-50 border border-orange-200 rounded-2xl p-4 text-sm text-orange-800">
+        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-2xl p-4 text-sm text-blue-800">
           <p className="font-semibold mb-1">{outCount} products out of stock</p>
-          <p className="text-orange-700 mb-3">
+          <p className="text-blue-800 mb-3">
             Run a stock take to reconcile your full inventory count.
           </p>
           <Link
             href="/stock-take"
-            className="inline-block bg-orange-500 text-white text-sm font-semibold px-4 py-2 rounded-xl active:bg-orange-600"
+            className="inline-block bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-xl active:bg-blue-700"
           >
             Run stock take
           </Link>

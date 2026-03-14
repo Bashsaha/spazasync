@@ -40,7 +40,7 @@ function SaleCompleteContent() {
 
       <button
         onClick={() => router.push('/sale')}
-        className="w-full max-w-xs bg-orange-500 text-white font-semibold py-4 rounded-2xl active:bg-orange-600 text-base"
+        className="w-full max-w-xs bg-blue-600 text-white font-semibold py-4 rounded-2xl active:bg-blue-700 text-base"
       >
         New Sale
       </button>

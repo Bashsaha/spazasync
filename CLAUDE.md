@@ -14,7 +14,7 @@ SpazaSync is a mobile-first PWA for South African spaza shop and small retail ow
 
 | Layer | Choice |
 |---|---|
-| Framework | Next.js 14, App Router, TypeScript strict mode |
+| Framework | Next.js 16, App Router, TypeScript strict mode |
 | Styling | Tailwind CSS |
 | Database + Auth | Supabase (PostgreSQL, RLS, Supabase Auth) |
 | Messaging | Twilio WhatsApp Business API |
@@ -38,7 +38,7 @@ SpazaSync is a mobile-first PWA for South African spaza shop and small retail ow
 - Logs in with: **shop code + display name + password**
 - Synthetic email under the hood: `{name-slug}@shop-{shop-code}.spazasync.app`
 - Password created by owner; teller receives it out-of-band
-- Sees: **only the sale page** — middleware locks all other routes
+- Sees: **only the sale page** — proxy.ts locks all other routes
 - Auto-selected as the active teller (no TellerSelector shown)
 - No cross-shop data visibility (RLS + synthetic email scoping)
 
@@ -198,6 +198,7 @@ At the start of every session:
 - [x] Phase 10: Dashboard
 - [x] Phase 11: Polish & Hardening
 - [x] Phase 12: Testing & Deployment
+- [x] Phase 13: QA Fixes & UX Improvements
 
 ### Phase 1: Project Bootstrap — COMPLETE
 What was built:
@@ -362,11 +363,25 @@ What was built:
 - BUG-003: Added `email-sent` step to onboarding state machine — email confirmation now shows on-page screen
 - tasks/bugs.md — new bug tracker; CLAUDE.md updated to mandate reading it at session start
 
+### Phase 13: QA Fixes & UX Improvements — COMPLETE
+What was built:
+- src/proxy.ts — replaces src/middleware.ts (Next.js 16 renamed middleware convention to proxy); added onboarding guard for users without roles
+- next.config.ts — added turbopack.root to fix workspace root inference
+- src/app/globals.css — removed dark mode CSS that caused invisible input text
+- src/hooks/useOnlineStatus.ts — fixed hydration mismatch (initialize as true, read navigator.onLine in useEffect)
+- Color scheme: changed all orange Tailwind classes to royal blue across 25+ files; theme-color #f97316 → #2563eb
+- src/components/sale/ProductPicker.tsx — new manual product picker (bottom-sheet with debounced search)
+- src/app/(app)/sale/page.tsx — added "Add Manually" button alongside "Scan"; integrates ProductPicker
+- Product barcode now optional: src/types/index.ts (barcode: string | null), src/lib/validation/schemas.ts, src/lib/db/products.ts, product forms updated
+- supabase/migrations/004_optional_barcode.sql — ALTER barcode DROP NOT NULL; partial unique index on (shop_id, barcode) WHERE barcode IS NOT NULL
+- BUG-004 through BUG-010 logged in tasks/bugs.md
+- Deleted src/middleware.ts (replaced by proxy.ts)
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 12 complete_
+_Last updated: Phase 13 complete_
 
 ```
 spaza shop/
@@ -390,7 +405,7 @@ spaza shop/
 │       ├── icon.svg                # App icon
 │       └── icon-maskable.svg       # Maskable variant
 ├── src/
-│   ├── middleware.ts               # Auth guard + role-based routing
+│   ├── proxy.ts                    # Auth guard + role-based routing (Next.js 16 proxy convention)
 │   ├── app/
 │   │   ├── layout.tsx              # Root layout (PWA meta, viewport, viewportFit=cover)
 │   │   ├── error.tsx               # Global error boundary (Phase 11)
@@ -452,7 +467,8 @@ spaza shop/
 │   │   │   ├── TellerSelector.tsx         # Teller picker for owners
 │   │   │   ├── CartItem.tsx               # Cart row with qty +/− controls
 │   │   │   ├── CartSummary.tsx            # Sticky total + Complete Sale button
-│   │   │   └── NewProductModal.tsx        # Quick-create for unknown barcodes
+│   │   │   ├── NewProductModal.tsx        # Quick-create for unknown barcodes
+│   │   │   └── ProductPicker.tsx          # Manual product picker (bottom-sheet with search)
 │   │   ├── scanner/
 │   │   │   ├── BarcodeScanner.tsx         # Full-screen camera overlay
 │   │   │   └── ScannerOverlay.tsx         # Targeting reticle
@@ -504,7 +520,8 @@ spaza shop/
 │   └── migrations/
 │       ├── 001_initial_schema.sql
 │       ├── 002_decrement_stock.sql  # decrement_stock(p_product_id, p_qty) RPC
-│       └── 003_stock_adjustments.sql  # stock_adjustments audit table (Phase 8)
+│       ├── 003_stock_adjustments.sql  # stock_adjustments audit table (Phase 8)
+│       └── 004_optional_barcode.sql  # barcode nullable + partial unique index (Phase 13)
 ├── tasks/
 │   ├── todo.md
 │   ├── lessons.md

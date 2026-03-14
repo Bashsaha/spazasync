@@ -18,7 +18,7 @@ export default function NewProductPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          barcode: form.barcode.trim(),
+          barcode: form.barcode.trim() || null,
           name: form.name.trim(),
           price: parseFloat(form.price),
           stock_qty: parseInt(form.stock_qty, 10) || 0,
@@ -48,13 +48,14 @@ export default function NewProductPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Barcode</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Barcode <span className="text-gray-400 font-normal">(optional)</span>
+          </label>
           <input
             value={form.barcode}
             onChange={(e) => setForm((f) => ({ ...f, barcode: e.target.value }))}
             placeholder="e.g. 6001234567890"
-            required
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -65,7 +66,7 @@ export default function NewProductPage() {
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             placeholder="e.g. Simba Chips 120g"
             required
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -80,7 +81,7 @@ export default function NewProductPage() {
             onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
             placeholder="e.g. 9.99"
             required
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -92,7 +93,7 @@ export default function NewProductPage() {
             min="0"
             value={form.stock_qty}
             onChange={(e) => setForm((f) => ({ ...f, stock_qty: e.target.value }))}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -101,7 +102,7 @@ export default function NewProductPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl active:bg-orange-600 disabled:opacity-50 min-h-[48px]"
+          className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 min-h-[48px]"
         >
           {loading ? 'Saving…' : 'Add Product'}
         </button>

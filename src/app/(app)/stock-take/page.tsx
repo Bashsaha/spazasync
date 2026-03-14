@@ -79,7 +79,7 @@ export default function StockTakePage() {
         </p>
         <button
           onClick={() => router.push('/dashboard')}
-          className="w-full max-w-xs bg-orange-500 text-white font-semibold py-4 rounded-2xl active:bg-orange-600"
+          className="w-full max-w-xs bg-blue-600 text-white font-semibold py-4 rounded-2xl active:bg-blue-700"
         >
           Back to Dashboard
         </button>
@@ -125,7 +125,7 @@ export default function StockTakePage() {
         ) : products.length === 0 ? (
           <div className="text-center mt-16">
             <p className="text-gray-400 text-sm">No products yet.</p>
-            <Link href="/products/new" className="text-orange-500 text-sm mt-2 inline-block">
+            <Link href="/products/new" className="text-blue-600 text-sm mt-2 inline-block">
               Add your first product →
             </Link>
           </div>
@@ -150,7 +150,7 @@ export default function StockTakePage() {
                     key={p.id}
                     className={`flex items-center gap-2 px-4 py-3 ${
                       idx !== products.length - 1 ? 'border-b border-gray-100' : ''
-                    } ${isChanged ? 'bg-orange-50' : ''}`}
+                    } ${isChanged ? 'bg-blue-50' : ''}`}
                   >
                     {/* product info */}
                     <div className="flex-1 min-w-0">
@@ -176,9 +176,9 @@ export default function StockTakePage() {
                       value={inputVal}
                       onChange={(e) => handleCount(p.id, e.target.value)}
                       aria-label={`Count for ${p.name}`}
-                      className={`w-16 text-center border rounded-xl py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-400 ${
+                      className={`w-16 text-center border rounded-xl py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                         isChanged
-                          ? 'border-orange-400 text-orange-700 bg-white'
+                          ? 'border-blue-500 text-blue-800 bg-white'
                           : 'border-gray-200 text-gray-900'
                       }`}
                     />
@@ -198,7 +198,7 @@ export default function StockTakePage() {
               type="submit"
               form="stock-take-form"
               disabled={isSubmitting || countedItems === 0}
-              className="w-full bg-orange-500 text-white font-semibold py-4 rounded-2xl active:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-blue-600 text-white font-semibold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting
                 ? 'Saving…'

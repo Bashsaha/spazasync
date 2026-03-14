@@ -30,7 +30,7 @@ function CustomTooltip({
   return (
     <div className="bg-white border border-gray-100 rounded-xl px-3 py-2 shadow-sm text-xs">
       <p className="font-semibold text-gray-700">{label}</p>
-      <p className="text-orange-600">R {Number(revenue).toFixed(2)}</p>
+      <p className="text-blue-700">R {Number(revenue).toFixed(2)}</p>
       <p className="text-gray-400">{salesCount} {salesCount === 1 ? 'sale' : 'sales'}</p>
     </div>
   )
@@ -62,8 +62,8 @@ export function WeeklySalesChart({ data }: { data: WeeklyDataPoint[] }) {
           tickLine={false}
           tickFormatter={(v: number) => (v >= 1000 ? `R${(v / 1000).toFixed(0)}k` : `R${v}`)}
         />
-        <Tooltip content={<CustomTooltip />} cursor={{ fill: '#fff7ed' }} />
-        <Bar dataKey="revenue" fill="#f97316" radius={[4, 4, 0, 0]} maxBarSize={36} />
+        <Tooltip content={<CustomTooltip />} cursor={{ fill: '#eff6ff' }} />
+        <Bar dataKey="revenue" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={36} />
       </BarChart>
     </ResponsiveContainer>
   )

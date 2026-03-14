@@ -41,7 +41,7 @@ export const onboardingSchema = z.object({
 // ============================================================
 
 export const createProductSchema = z.object({
-  barcode: z.string().min(1, 'Barcode is required').max(50),
+  barcode: z.string().max(50).nullable().optional().transform((v) => v?.trim() || null),
   name: z.string().min(1, 'Product name is required').max(200),
   price: z.number().positive('Price must be greater than zero'),
   stock_qty: z.number().int().min(0).default(0),

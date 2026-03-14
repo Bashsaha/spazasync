@@ -8,10 +8,10 @@ const PUBLIC_ROUTES = ['/login', '/onboarding', '/auth/callback', '/api/auth/tel
 // Only the sale route is accessible to tellers
 const TELLER_ALLOWED_ROUTES = ['/sale']
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Skip middleware for Next.js internals and static files
+  // Skip proxy for Next.js internals and static files
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon') ||
@@ -61,6 +61,8 @@ export async function middleware(request: NextRequest) {
   // If they're on a public route (e.g. /login), redirect away
   if (isPublic) {
     const role = user.app_metadata?.role as string | undefined
+    // Don't redirect away from onboarding pages/API if they haven't set up their shop yet
+    if ((pathname.startsWith('/onboarding') || pathname.startsWith('/api/onboarding')) && !role) return supabaseResponse
     const dest = role === 'teller' ? '/sale' : '/dashboard'
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = dest

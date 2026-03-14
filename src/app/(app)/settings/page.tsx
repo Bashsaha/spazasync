@@ -69,7 +69,7 @@ export default function SettingsPage() {
 
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
-      <a href="/dashboard" className="text-sm text-orange-500 mb-6 inline-block">
+      <a href="/dashboard" className="text-sm text-blue-600 mb-6 inline-block">
         ← Back
       </a>
 
@@ -80,7 +80,7 @@ export default function SettingsPage() {
       <div className="bg-gray-50 rounded-2xl px-4 py-3 mb-6 flex items-center justify-between">
         <div>
           <p className="text-xs text-gray-400">Your shop code</p>
-          <p className="font-mono font-bold text-orange-500 text-lg">{settings?.code}</p>
+          <p className="font-mono font-bold text-blue-600 text-lg">{settings?.code}</p>
         </div>
         <p className="text-xs text-gray-300 text-right max-w-[140px]">
           Tellers use this to log in. It cannot be changed.
@@ -99,7 +99,7 @@ export default function SettingsPage() {
             onChange={(e) => setName(e.target.value)}
             required
             maxLength={100}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-400"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
             placeholder="e.g. Cape Town Corner Shop"
           />
         </div>
@@ -116,7 +116,7 @@ export default function SettingsPage() {
             type="tel"
             value={whatsapp}
             onChange={(e) => setWhatsapp(e.target.value)}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-400"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
             placeholder="+27821234567"
           />
         </div>
@@ -133,7 +133,7 @@ export default function SettingsPage() {
               onChange={(e) => setThreshold(Math.max(1, parseInt(e.target.value) || 1))}
               min={1}
               max={9999}
-              className="w-24 border border-gray-200 rounded-xl px-4 py-3 text-sm text-center focus:outline-none focus:border-orange-400"
+              className="w-24 border border-gray-200 rounded-xl px-4 py-3 text-sm text-center focus:outline-none focus:border-blue-500"
             />
             <span className="text-sm text-gray-500">left in stock</span>
           </div>
@@ -155,7 +155,7 @@ export default function SettingsPage() {
         <button
           type="submit"
           disabled={saving}
-          className="w-full bg-orange-500 text-white font-semibold rounded-2xl py-4 text-base active:bg-orange-600 disabled:opacity-50"
+          className="w-full bg-blue-600 text-white font-semibold rounded-2xl py-4 text-base active:bg-blue-700 disabled:opacity-50"
         >
           {saving ? 'Saving…' : 'Save settings'}
         </button>

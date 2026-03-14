@@ -27,7 +27,7 @@ export async function getProductByBarcode(barcode: string): Promise<Product | nu
 
 /** Create a new product. shop_id is derived from the user's JWT app_metadata. */
 export async function createProduct(input: {
-  barcode: string
+  barcode: string | null
   name: string
   price: number
   stock_qty: number

@@ -95,7 +95,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         <h1 className="text-2xl font-bold text-gray-900">Edit Product</h1>
       </div>
 
-      <p className="text-xs text-gray-400 font-mono mb-6">Barcode: {product.barcode}</p>
+      <p className="text-xs text-gray-400 font-mono mb-6">
+        {product.barcode ? `Barcode: ${product.barcode}` : 'No barcode'}
+      </p>
 
       <form onSubmit={handleSave} className="space-y-4">
         <div>
@@ -104,7 +106,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             required
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -118,7 +120,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             value={form.price}
             onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
             required
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -131,7 +133,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             value={form.stock_qty}
             onChange={(e) => setForm((f) => ({ ...f, stock_qty: e.target.value }))}
             required
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -140,7 +142,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl active:bg-orange-600 disabled:opacity-50 min-h-[48px]"
+          className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 min-h-[48px]"
         >
           {loading ? 'Saving…' : 'Save Changes'}
         </button>

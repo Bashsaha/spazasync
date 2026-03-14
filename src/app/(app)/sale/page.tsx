@@ -10,6 +10,7 @@ import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
 import { CartItem } from '@/components/sale/CartItem'
 import { CartSummary } from '@/components/sale/CartSummary'
 import { NewProductModal } from '@/components/sale/NewProductModal'
+import { ProductPicker } from '@/components/sale/ProductPicker'
 import { enqueueSale } from '@/lib/offline/db'
 import { createClient } from '@/lib/supabase/client'
 import type { Product } from '@/types'
@@ -21,6 +22,7 @@ export default function SalePage() {
   const { items, total, addItem, removeItem, updateQty, clearCart } = useCart()
 
   const [isScannerOpen, setIsScannerOpen] = useState(false)
+  const [isPickerOpen, setIsPickerOpen] = useState(false)
   const [unknownBarcode, setUnknownBarcode] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -151,7 +153,7 @@ export default function SalePage() {
           {role === 'owner' && (
             <button
               onClick={clearActiveTeller}
-              className="text-xs text-orange-500 font-semibold active:text-orange-700"
+              className="text-xs text-blue-600 font-semibold active:text-blue-800"
             >
               Change teller
             </button>
@@ -172,20 +174,29 @@ export default function SalePage() {
           </div>
         )}
 
-        {/* scan button */}
-        <button
-          onClick={() => setIsScannerOpen(true)}
-          className="w-full flex items-center justify-center gap-3 bg-orange-500 text-white font-semibold py-4 rounded-2xl active:bg-orange-600 text-base mb-6"
-        >
-          <span className="text-xl">📷</span>
-          Scan Barcode
-        </button>
+        {/* action buttons */}
+        <div className="flex gap-3 mb-6">
+          <button
+            onClick={() => setIsScannerOpen(true)}
+            className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold py-4 rounded-2xl active:bg-blue-700 text-base"
+          >
+            <span className="text-lg">📷</span>
+            Scan
+          </button>
+          <button
+            onClick={() => setIsPickerOpen(true)}
+            className="flex-1 flex items-center justify-center gap-2 border-2 border-blue-600 text-blue-600 font-semibold py-4 rounded-2xl active:bg-blue-50 text-base"
+          >
+            <span className="text-lg">📋</span>
+            Add Manually
+          </button>
+        </div>
 
         {/* cart */}
         {items.length === 0 ? (
           <div className="text-center mt-16">
             <p className="text-4xl mb-3">🛒</p>
-            <p className="text-gray-400 text-sm">No items yet. Tap Scan Barcode to start.</p>
+            <p className="text-gray-400 text-sm">No items yet. Scan a barcode or add manually.</p>
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-sm px-4">
@@ -212,6 +223,11 @@ export default function SalePage() {
       {/* full-screen scanner overlay */}
       {isScannerOpen && (
         <BarcodeScanner onScan={handleScan} onClose={() => setIsScannerOpen(false)} />
+      )}
+
+      {/* manual product picker */}
+      {isPickerOpen && (
+        <ProductPicker onSelect={addItem} onClose={() => setIsPickerOpen(false)} />
       )}
 
       {/* bottom-sheet: unknown barcode → quick-create product */}

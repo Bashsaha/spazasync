@@ -99,7 +99,7 @@ export default function StockAdjustPage() {
               setReason('')
               setProduct((p) => (p ? { ...p, stock_qty: resultQty } : p))
             }}
-            className="bg-orange-500 text-white font-semibold py-3 rounded-2xl active:bg-orange-600"
+            className="bg-blue-600 text-white font-semibold py-3 rounded-2xl active:bg-blue-700"
           >
             Adjust again
           </button>
@@ -180,7 +180,7 @@ export default function StockAdjustPage() {
                     onClick={() => setAmount(String(q))}
                     className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-colors ${
                       amount === String(q)
-                        ? 'bg-orange-500 text-white border-orange-500'
+                        ? 'bg-blue-600 text-white border-blue-600'
                         : 'bg-white border-gray-200 text-gray-700 active:bg-gray-50'
                     }`}
                   >
@@ -201,7 +201,7 @@ export default function StockAdjustPage() {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="Enter amount…"
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -231,7 +231,7 @@ export default function StockAdjustPage() {
               <select
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select a reason…</option>
                 {REASONS.map((r) => (
@@ -249,7 +249,7 @@ export default function StockAdjustPage() {
             <button
               type="submit"
               disabled={saving || !validAmount}
-              className="w-full bg-orange-500 text-white font-semibold py-4 rounded-2xl text-base active:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-blue-600 text-white font-semibold py-4 rounded-2xl text-base active:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving
                 ? 'Saving…'

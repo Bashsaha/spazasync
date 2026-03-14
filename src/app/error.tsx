@@ -25,7 +25,7 @@ export default function GlobalError({
           <button
             onClick={reset}
             autoFocus
-            className="bg-orange-500 text-white font-semibold px-6 py-3 rounded-xl active:bg-orange-600"
+            className="bg-blue-600 text-white font-semibold px-6 py-3 rounded-xl active:bg-blue-700"
           >
             Try again
           </button>

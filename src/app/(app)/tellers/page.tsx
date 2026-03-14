@@ -54,7 +54,7 @@ export default function TellersPage() {
         </div>
         <Link
           href="/tellers/new"
-          className="bg-orange-500 text-white text-sm font-semibold px-4 py-2 rounded-xl active:bg-orange-600"
+          className="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-xl active:bg-blue-700"
         >
           + Add
         </Link>

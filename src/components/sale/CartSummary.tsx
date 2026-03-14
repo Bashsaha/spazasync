@@ -24,7 +24,7 @@ export function CartSummary({ total, itemCount, onCompleteSale, isSubmitting }: 
         <button
           onClick={onCompleteSale}
           disabled={isSubmitting || itemCount === 0}
-          className="flex-1 bg-orange-500 text-white font-semibold py-3 rounded-xl active:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-base"
+          className="flex-1 bg-blue-600 text-white font-semibold py-3 rounded-xl active:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-base"
         >
           {isSubmitting ? 'Processing…' : 'Complete Sale'}
         </button>

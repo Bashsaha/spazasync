@@ -34,7 +34,7 @@ export function ConfirmModal({
             className={`w-full py-3 rounded-xl font-semibold text-white ${
               isDestructive
                 ? 'bg-red-500 active:bg-red-600'
-                : 'bg-orange-500 active:bg-orange-600'
+                : 'bg-blue-600 active:bg-blue-700'
             }`}
           >
             {confirmLabel}

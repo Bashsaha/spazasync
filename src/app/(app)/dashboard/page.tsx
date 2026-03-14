@@ -66,13 +66,13 @@ export default async function DashboardPage() {
         <h1 className="text-2xl font-bold text-gray-900">{shopName}</h1>
         <p className="text-sm text-gray-400 mt-0.5">
           Shop code:{' '}
-          <span className="font-mono font-semibold text-orange-500">{shopCode}</span>
+          <span className="font-mono font-semibold text-blue-600">{shopCode}</span>
         </p>
       </div>
 
       {/* Today's summary */}
-      <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 mb-4">
-        <p className="text-xs font-semibold text-orange-400 uppercase tracking-wide mb-3">
+      <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-4">
+        <p className="text-xs font-semibold text-blue-500 uppercase tracking-wide mb-3">
           Today
         </p>
         <div className="flex gap-4">
@@ -114,7 +114,7 @@ export default async function DashboardPage() {
                 </p>
               )}
               {lowOnly.length > 0 && (
-                <p className="text-xs text-orange-600">
+                <p className="text-xs text-blue-700">
                   {lowOnly.length} item{lowOnly.length !== 1 ? 's' : ''} almost out
                 </p>
               )}
@@ -122,7 +122,7 @@ export default async function DashboardPage() {
                 {lowStock.slice(0, 4).map((item) => (
                   <li key={item.name} className="text-xs text-gray-600">
                     • {item.name}{' '}
-                    <span className={item.stock_qty === 0 ? 'text-red-600 font-semibold' : 'text-orange-500'}>
+                    <span className={item.stock_qty === 0 ? 'text-red-600 font-semibold' : 'text-blue-600'}>
                       {item.stock_qty === 0 ? '(out)' : `(${item.stock_qty} left)`}
                     </span>
                   </li>
@@ -201,11 +201,11 @@ export default async function DashboardPage() {
       <div className="space-y-3">
         <a
           href="/sale"
-          className="flex items-center justify-between bg-orange-500 text-white rounded-2xl p-5 shadow-sm active:bg-orange-600"
+          className="flex items-center justify-between bg-blue-600 text-white rounded-2xl p-5 shadow-sm active:bg-blue-700"
         >
           <div>
             <p className="font-bold text-lg">Start a Sale</p>
-            <p className="text-orange-100 text-sm">Scan products and record a sale</p>
+            <p className="text-blue-100 text-sm">Scan products and record a sale</p>
           </div>
           <span className="text-3xl">🛒</span>
         </a>

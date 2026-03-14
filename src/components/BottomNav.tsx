@@ -50,12 +50,12 @@ export function BottomNav({ role }: BottomNavProps) {
               key={item.href}
               href={item.href}
               className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 min-h-[56px] min-w-[56px] transition-colors ${
-                isActive ? 'text-orange-500' : 'text-gray-400 active:text-orange-400'
+                isActive ? 'text-blue-600' : 'text-gray-400 active:text-blue-500'
               }`}
               aria-current={isActive ? 'page' : undefined}
             >
               <span className="text-xl leading-none">{item.icon}</span>
-              <span className={`text-[10px] font-semibold ${isActive ? 'text-orange-500' : 'text-gray-400'}`}>
+              <span className={`text-[10px] font-semibold ${isActive ? 'text-blue-600' : 'text-gray-400'}`}>
                 {item.label}
               </span>
             </Link>

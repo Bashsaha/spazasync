@@ -16,7 +16,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo / App name */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-orange-500">SpazaSync</h1>
+          <h1 className="text-3xl font-bold text-blue-600">SpazaSync</h1>
           <p className="text-gray-500 mt-1 text-sm">Your shop, in your pocket</p>
         </div>
 
@@ -26,7 +26,7 @@ export default function LoginPage() {
             onClick={() => setTab('owner')}
             className={`flex-1 py-3 text-sm font-semibold transition-colors ${
               tab === 'owner'
-                ? 'bg-orange-500 text-white'
+                ? 'bg-blue-600 text-white'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -36,7 +36,7 @@ export default function LoginPage() {
             onClick={() => setTab('teller')}
             className={`flex-1 py-3 text-sm font-semibold transition-colors ${
               tab === 'teller'
-                ? 'bg-orange-500 text-white'
+                ? 'bg-blue-600 text-white'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -92,7 +92,7 @@ function OwnerLoginForm({ onSuccess }: { onSuccess: () => void }) {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="your@email.com"
           required
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 text-base"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
         />
       </div>
       <div>
@@ -103,7 +103,7 @@ function OwnerLoginForm({ onSuccess }: { onSuccess: () => void }) {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••"
           required
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-400 text-base"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
         />
       </div>
 
@@ -114,14 +114,14 @@ function OwnerLoginForm({ onSuccess }: { onSuccess: () => void }) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-orange-500 text-white font-semibold py-3 rounded-xl hover:bg-orange-600 active:bg-orange-700 transition-colors disabled:opacity-50 text-base min-h-[48px]"
+        className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors disabled:opacity-50 text-base min-h-[48px]"
       >
         {loading ? 'Signing in…' : 'Sign in'}
       </button>
 
       <p className="text-center text-sm text-gray-500">
         New here?{' '}
-        <a href="/onboarding" className="text-orange-500 font-medium">
+        <a href="/onboarding" className="text-blue-600 font-medium">
           Create your shop
         </a>
       </p>
@@ -190,7 +190,7 @@ function TellerLoginForm({ onSuccess }: { onSuccess: () => void }) {
           placeholder="e.g. CAPE99"
           required
           maxLength={10}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 text-base uppercase tracking-wider"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base uppercase tracking-wider"
         />
         <p className="text-xs text-gray-400 mt-1">Ask your shop owner for this code</p>
       </div>
@@ -202,7 +202,7 @@ function TellerLoginForm({ onSuccess }: { onSuccess: () => void }) {
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Maria"
           required
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 text-base"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
         />
       </div>
       <div>
@@ -213,7 +213,7 @@ function TellerLoginForm({ onSuccess }: { onSuccess: () => void }) {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••"
           required
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-400 text-base"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
         />
         <p className="text-xs text-gray-400 mt-1">Your owner set this password for you</p>
       </div>
@@ -225,7 +225,7 @@ function TellerLoginForm({ onSuccess }: { onSuccess: () => void }) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-orange-500 text-white font-semibold py-3 rounded-xl hover:bg-orange-600 active:bg-orange-700 transition-colors disabled:opacity-50 text-base min-h-[48px]"
+        className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors disabled:opacity-50 text-base min-h-[48px]"
       >
         {loading ? 'Signing in…' : 'Sign in'}
       </button>

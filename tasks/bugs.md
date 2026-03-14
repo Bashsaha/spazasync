@@ -38,6 +38,46 @@ Also added `/auth/callback` to `PUBLIC_ROUTES` in middleware so the route is rea
 
 ---
 
+## BUG-008: Redirect loop — authenticated user with no role bounces between /onboarding and /dashboard
+**Symptom:** Browser shows "redirected too many times" when a user has an auth session but hasn't completed onboarding.
+**Root cause:** Proxy redirected any authenticated user away from public routes (including `/onboarding`) to `/dashboard`. Then at `/dashboard`, seeing no role, it redirected back to `/onboarding`. Infinite loop.
+**Fix:** Added a guard in proxy.ts — if the user is on `/onboarding` and has no role, pass through instead of redirecting away.
+**Prevention rule:** Never redirect an authenticated-but-incomplete user away from the page they need to complete setup. Public routes that serve post-signup flows (onboarding, email-sent) must check for this state before bouncing the user.
+
+---
+
+## BUG-009: POST /api/onboarding redirected away — shop setup silently fails
+**Symptom:** Step 2 of onboarding (shop setup) hangs on "Creating your shop..." and nothing is saved to Supabase tables.
+**Root cause:** Proxy guard for onboarding only matched `pathname.startsWith('/onboarding')` but the API call goes to `/api/onboarding`. An authenticated user with no role hitting `/api/onboarding` was redirected to `/dashboard` instead of being allowed through.
+**Fix:** Extended the proxy guard to also match `/api/onboarding`: `pathname.startsWith('/onboarding') || pathname.startsWith('/api/onboarding')`.
+**Prevention rule:** When adding a guard exception for a page route, always check if there's a corresponding `/api/` route that also needs the exception. Page routes and their API counterparts must be treated as a pair.
+
+---
+
+## BUG-010: Hydration mismatch on sale page — OfflineBanner differs between server and client
+**Symptom:** React error "Hydration failed because the server rendered HTML didn't match the client" on `/sale`. Server renders `<main>`, client renders `<div className="bg-amber-500...">` (OfflineBanner).
+**Root cause:** `useOnlineStatus` initialized `useState` with `navigator.onLine` — on the server, `navigator` is undefined so it defaults to `true` (banner hidden). On the client, `navigator.onLine` can be `false` (banner shown), causing a mismatch.
+**Fix:** Always initialize `useState(true)` and read the real `navigator.onLine` value in `useEffect` after hydration.
+**Prevention rule:** Never use browser-only APIs (`navigator`, `window`, `document`, `localStorage`) in `useState` initializers. Always default to a server-safe value and sync in `useEffect`.
+
+---
+
+## BUG-006: middleware.ts deprecated in Next.js 16 — site fails to load
+**Symptom:** Dev server starts but localhost fails to open; warning "The 'middleware' file convention is deprecated. Please use 'proxy' instead."
+**Root cause:** Next.js 16 renamed the middleware file convention from `middleware.ts` to `proxy.ts` and the exported function from `middleware` to `proxy`.
+**Fix:** Created `src/proxy.ts` with the auth guard logic and `export async function proxy(...)`. Deleted `src/middleware.ts`.
+**Prevention rule:** In Next.js 16+, auth/routing guards must live in `src/proxy.ts` not `src/middleware.ts`. Never create a new `middleware.ts` file.
+
+---
+
+## BUG-007: Next.js infers wrong workspace root — stray package.json in parent folder breaks module resolution
+**Symptom:** Dev server warns about wrong workspace root. Pages fail to load with "Can't resolve 'tailwindcss'" error. Browser shows infinite reload loop because CSS/pages can't compile.
+**Root cause:** A stray `package.json`, `package-lock.json`, and `node_modules/` from an old project ("emergent-frontend") existed in `C:\Users\Gaming PC\`. Next.js/enhanced-resolve used that `package.json` as the description file and searched for modules in the wrong `node_modules/`, failing to find `tailwindcss` and other project deps.
+**Fix:** Deleted the stray `package.json`, `package-lock.json`, and `node_modules/` from `C:\Users\Gaming PC\`. Also added `turbopack.root` in `next.config.ts` as an extra safeguard.
+**Prevention rule:** Never place a `package.json` in a parent directory of any Node project. If module resolution fails with wrong paths, check all ancestor directories for stray `package.json` files.
+
+---
+
 ## BUG-005: /api/stock-take missing authentication check
 **Symptom:** Same as BUG-004 — POST /api/stock-take had no auth check.
 **Root cause:** Auth check omitted during initial implementation.

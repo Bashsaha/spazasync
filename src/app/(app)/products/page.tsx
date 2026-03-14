@@ -29,7 +29,7 @@ export default async function ProductsPage({
         </div>
         <Link
           href="/products/new"
-          className="bg-orange-500 text-white text-sm font-semibold px-4 py-2 rounded-xl active:bg-orange-600"
+          className="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-xl active:bg-blue-700"
         >
           + Add
         </Link>
@@ -40,7 +40,7 @@ export default async function ProductsPage({
           name="search"
           defaultValue={search}
           placeholder="Search by name or barcode…"
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </form>
 
@@ -58,7 +58,7 @@ export default async function ProductsPage({
               >
                 <div className="min-w-0">
                   <p className="font-semibold text-gray-900 truncate">{p.name}</p>
-                  <p className="text-xs text-gray-400 font-mono mt-0.5">{p.barcode}</p>
+                  <p className="text-xs text-gray-400 font-mono mt-0.5">{p.barcode || 'No barcode'}</p>
                 </div>
                 <div className="text-right ml-4 shrink-0">
                   <p className="font-bold text-gray-900">{formatZAR(p.price)}</p>

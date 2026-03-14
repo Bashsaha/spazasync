@@ -35,7 +35,7 @@ export interface Teller {
 export interface Product {
   id: string
   shop_id: string
-  barcode: string
+  barcode: string | null
   name: string
   price: number   // stored as NUMERIC, parsed as number (ZAR rands)
   stock_qty: number
