@@ -190,23 +190,26 @@ NEXT_PUBLIC_APP_URL=
 - At the start of every new session, read this file fully before taking any action — mandatory, not optional
 
 ### Phase Completion Protocol
-At the end of every phase, before marking it complete:
-1. Glob scan the project root
-2. Compare against the file tree below
-3. Update the file tree to match reality
-4. Check off the completed phase in the Living Scope section
-5. Add a "What was built" note under the phase entry
+At the end of every phase, before marking it complete — execute EVERY step, in order, no skipping:
+1. **Glob scan** the project root — actually run the Glob tool, don't guess from memory
+2. **Compare** against the file tree below — diff what's on disk vs what CLAUDE.md says
+3. **Update** the file tree to match reality
+4. **Check off** the completed phase in the Living Scope section
+5. **Add a "What was built"** note under the phase entry
 6. **Commit to GitHub** — stage all new/modified files, commit with message `feat: Phase N — <short description>`, push to `main`
-7. Only then mark the todo item as complete
+7. **Output a completion confirmation** to the user listing each step done. Example: "Phase completion checklist: Glob scanned, file tree updated (added X files), Living Scope checked off, commit abc1234 pushed." This proves the protocol was followed.
+8. Only then mark the todo item as complete
+9. **STOP.** Do not start the next phase. Wait for user to say go.
 
 ### Session Start Protocol
 At the start of every session:
-1. Read this file fully — mandatory
+1. Read this file fully — mandatory (not skim — READ)
 2. Note which phases are complete (Living Scope below)
 3. Note the current real file structure (File Tree below)
 4. Review tasks/lessons.md
 5. **Read tasks/bugs.md** — mandatory before touching auth, routing, API routes, or middleware. Apply all prevention rules listed there.
 6. Pick up from where the project left off
+7. **Output a checklist acknowledgment** to the user confirming steps 1-6 were done. Example: "Session start checklist: read CLAUDE.md, noted Phase X complete, reviewed lessons.md (N lessons), read bugs.md (N bugs), picking up at Phase Y." This is not optional — it proves the protocol was followed, not skimmed.
 
 ---
 
