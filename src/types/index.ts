@@ -4,7 +4,9 @@
 
 // --- Database row types ---
 
-export type UserRole = 'owner' | 'teller'
+export type UserRole = 'owner' | 'teller' | 'admin'
+
+export type SubscriptionStatus = 'trialing' | 'active' | 'cancelled' | 'expired' | 'manual_override'
 
 export interface Shop {
   id: string
@@ -12,7 +14,19 @@ export interface Shop {
   code: string
   whatsapp_number: string | null
   low_stock_threshold: number
+  subscription_status: SubscriptionStatus
+  trial_ends_at: string | null
+  subscription_ends_at: string | null
+  access_granted: boolean
+  admin_notes: string | null
   created_at: string
+}
+
+export interface SubscriptionInfo {
+  status: SubscriptionStatus
+  trialEndsAt: string | null
+  subscriptionEndsAt: string | null
+  daysRemaining: number | null
 }
 
 export interface ShopUser {
@@ -195,4 +209,38 @@ export interface SessionUser {
   role: UserRole
   shop_id: string
   teller_id: string | null   // set if role === 'teller'; used to auto-select on sale page
+}
+
+// --- Admin dashboard ---
+
+export interface AdminPayment {
+  id: string
+  shop_id: string
+  amount: number
+  method: 'eft' | 'cash' | 'card' | 'other'
+  reference: string | null
+  notes: string | null
+  recorded_by: string
+  recorded_at: string
+}
+
+export interface AdminShopListItem {
+  id: string
+  name: string
+  code: string
+  whatsapp_number: string | null
+  subscription_status: SubscriptionStatus
+  access_granted: boolean
+  created_at: string
+  owner_email: string | null
+  last_payment_at: string | null
+}
+
+export interface AdminOverviewStats {
+  totalShops: number
+  activeShops: number
+  trialingShops: number
+  expiredShops: number
+  manualOverrideShops: number
+  recentSignUps: number
 }

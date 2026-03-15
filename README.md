@@ -26,7 +26,7 @@ A mobile-first PWA for South African spaza shop and small retail owners. Scan ba
 | Messaging | Twilio WhatsApp Business API |
 | Deployment | Vercel + Vercel Cron Jobs |
 | Validation | Zod |
-| Testing | Vitest (113 tests) |
+| Testing | Vitest (125 tests) |
 
 ---
 
@@ -50,12 +50,15 @@ Fill in all values — see the [Environment Variables](#environment-variables) s
 
 ### 3. Run Supabase migrations
 
-In your Supabase project dashboard → SQL Editor, run the three migrations in order:
+In your Supabase project dashboard → SQL Editor, run all migrations in order:
 
 ```
 supabase/migrations/001_initial_schema.sql
 supabase/migrations/002_decrement_stock.sql
 supabase/migrations/003_stock_adjustments.sql
+supabase/migrations/004_optional_barcode.sql
+supabase/migrations/005_subscriptions.sql
+supabase/migrations/006_admin_dashboard.sql
 ```
 
 ### 4. Start the dev server

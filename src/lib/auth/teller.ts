@@ -51,6 +51,16 @@ export async function provisionTellerAccount(
   const admin = createAdminClient()
   const syntheticEmail = buildTellerEmail(tellerName, shopCode)
 
+  // Fetch shop's current subscription status so teller inherits it
+  const { data: shop } = await admin
+    .from('shops')
+    .select('subscription_status, trial_ends_at, subscription_ends_at')
+    .eq('id', shopId)
+    .single()
+
+  const subStatus = shop?.subscription_status || 'trialing'
+  const subUntil = (subStatus === 'trialing' ? shop?.trial_ends_at : shop?.subscription_ends_at) || ''
+
   const { data, error } = await admin.auth.admin.createUser({
     email: syntheticEmail,
     password,
@@ -58,6 +68,8 @@ export async function provisionTellerAccount(
     app_metadata: {
       role: 'teller',
       shop_id: shopId,
+      sub_status: subStatus,
+      sub_until: subUntil,
     },
   })
 
@@ -70,15 +82,54 @@ export async function provisionTellerAccount(
  * Update an existing auth user's app_metadata.
  * Used after owner completes onboarding to embed their role in the JWT.
  */
-export async function setOwnerMetadata(userId: string, shopId: string): Promise<void> {
+export async function setOwnerMetadata(
+  userId: string,
+  shopId: string,
+  subscription?: { sub_status: string; sub_until: string },
+): Promise<void> {
   const admin = createAdminClient()
 
   const { error } = await admin.auth.admin.updateUserById(userId, {
     app_metadata: {
       role: 'owner',
       shop_id: shopId,
+      ...(subscription || {}),
     },
   })
 
   if (error) throw new Error(`Failed to set owner metadata: ${error.message}`)
+}
+
+/**
+ * Update app_metadata subscription fields for ALL users in a shop.
+ * Called by ITN webhook, expire cron, and admin access toggle to sync state.
+ */
+export async function updateShopUsersSubscription(
+  shopId: string,
+  subStatus: string,
+  subUntil: string,
+  accessGranted?: boolean,
+): Promise<void> {
+  const admin = createAdminClient()
+
+  const { data: shopUsers } = await admin
+    .from('shop_users')
+    .select('user_id')
+    .eq('shop_id', shopId)
+
+  if (!shopUsers) return
+
+  for (const su of shopUsers) {
+    try {
+      const metadata: Record<string, unknown> = { sub_status: subStatus, sub_until: subUntil }
+      if (accessGranted !== undefined) {
+        metadata.access_granted = accessGranted
+      }
+      await admin.auth.admin.updateUserById(su.user_id, {
+        app_metadata: metadata,
+      })
+    } catch (err) {
+      console.error(`Failed to update subscription metadata for user ${su.user_id}:`, err)
+    }
+  }
 }

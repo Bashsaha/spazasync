@@ -13,4 +13,18 @@ _Update this file after every user correction. Write rules that prevent the same
 
 ---
 
+## Session 2
+
+### Lesson 2: Never auto-start the next phase
+**What happened:** After completing Phase 1, immediately started Phase 2 without waiting for user approval.
+**Fix:** Added "Phase Gating" rule to CLAUDE.md Workflow Orchestration Rules.
+**Rule:** After completing ANY phase: (1) update CLAUDE.md with what was built, (2) STOP and WAIT for the user to explicitly say "start phase N" or "go". Never auto-continue.
+
+### Lesson 3: Read CLAUDE.md rules before acting
+**What happened:** Skipped plan mode and started coding directly on a multi-phase task, violating CLAUDE.md workflow rules.
+**Fix:** Always read CLAUDE.md at session start. Enter plan mode for any task with 3+ steps.
+**Rule:** The workflow rules in CLAUDE.md are not optional. Follow them exactly.
+
+---
+
 _Add new lessons here as they occur._

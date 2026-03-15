@@ -42,6 +42,14 @@ SpazaSync is a mobile-first PWA for South African spaza shop and small retail ow
 - Auto-selected as the active teller (no TellerSelector shown)
 - No cross-shop data visibility (RLS + synthetic email scoping)
 
+### Admin
+- Logs in with: **email + password** (same Supabase email auth)
+- Promoted via CLI script: `npx tsx scripts/set-admin.ts user@example.com`
+- Sees: **only /admin/* routes** — platform-level dashboard for managing all stores
+- Does NOT belong to any shop — no shop_users row, no RLS access
+- Skips subscription gate entirely
+- All admin data access via service role (admin) client
+
 ### Shop Code
 - Short identifier chosen by owner at onboarding (e.g. `CAPE99`, `MLUNGU01`)
 - Stored in `shops.code` — globally unique, 6–10 chars, uppercase alphanumeric
@@ -49,34 +57,40 @@ SpazaSync is a mobile-first PWA for South African spaza shop and small retail ow
 
 ### Access Matrix
 
-| Route | Owner | Teller |
-|---|---|---|
-| /dashboard | ✓ | ✗ |
-| /sale | ✓ | ✓ |
-| /stock-take | ✓ | ✗ |
-| /products | ✓ | ✗ |
-| /stock | ✓ | ✗ |
-| /tellers | ✓ | ✗ |
-| /settings | ✓ | ✗ |
+| Route | Owner | Teller | Admin |
+|---|---|---|---|
+| /dashboard | ✓ | ✗ | ✗ |
+| /sale | ✓ | ✓ | ✗ |
+| /stock-take | ✓ | ✗ | ✗ |
+| /products | ✓ | ✗ | ✗ |
+| /stock | ✓ | ✗ | ✗ |
+| /tellers | ✓ | ✗ | ✗ |
+| /settings | ✓ | ✗ | ✗ |
+| /admin/* | ✗ | ✗ | ✓ |
 
 ---
 
 ## Database Schema
 
 ### Tables
-- `shops` — id, name, code (unique), whatsapp_number, low_stock_threshold
+- `shops` — id, name, code (unique), whatsapp_number, low_stock_threshold, subscription_status, trial_ends_at, subscription_ends_at, payfast_token, access_granted, admin_notes, created_at
 - `shop_users` — maps auth users to shops with role (owner | teller)
 - `tellers` — named teller entries; optional link to auth user_id; name unique per shop
-- `products` — barcode, name, price, stock_qty; unique(shop_id, barcode)
-- `sales` — total, teller_id, completed_at, offline_id for dedup
+- `products` — barcode (nullable), name, price, stock_qty; unique(shop_id, barcode) where barcode IS NOT NULL
+- `sales` — total, teller_id, completed_at, offline_id for dedup, synced_at
 - `sale_items` — product_id, quantity, unit_price, subtotal
 - `stock_take_entries` — product_id, qty_before, qty_after, teller_id, taken_at
+- `stock_adjustments` — product_id, qty_before, qty_after, delta, reason, adjusted_by, adjusted_at
+- `admin_payments` — shop_id, amount, method (eft/cash/card/other), reference, notes, recorded_by, recorded_at (no RLS — admin client only)
 
 ### RLS helpers
 - `user_in_shop(shop_id)` — SECURITY DEFINER function
 - `user_is_owner(shop_id)` — SECURITY DEFINER function
 
-All tables have RLS enabled. Every query is shop-scoped.
+### SQL functions
+- `decrement_stock(p_product_id, p_qty)` — atomically decrement stock, clamp to 0
+
+All shop-scoped tables have RLS enabled. `admin_payments` has no RLS (accessed only via service role client).
 
 ---
 
@@ -90,6 +104,12 @@ TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=
 TWILIO_WHATSAPP_FROM=
 CRON_SECRET=
+PAYFAST_MERCHANT_ID=
+PAYFAST_MERCHANT_KEY=
+PAYFAST_PASSPHRASE=
+PAYFAST_SANDBOX=true
+SUBSCRIPTION_PRICE_ZAR=349.99
+NEXT_PUBLIC_APP_URL=
 ```
 
 ---
@@ -101,6 +121,12 @@ CRON_SECRET=
 - If something goes sideways, STOP and re-plan immediately — don't keep pushing
 - Use plan mode for verification steps, not just building
 - Write detailed specs upfront to reduce ambiguity
+
+### 1b. Phase Gating (CRITICAL)
+- **NEVER auto-start the next phase.** After completing a phase, STOP.
+- Update CLAUDE.md with what was built in that phase (file tree, Living Scope, phase notes).
+- Then WAIT for the user to explicitly say "start phase N" or "go" before continuing.
+- This applies to ALL multi-phase work — no exceptions.
 
 ### 2. Subagent Strategy
 - Use subagents liberally to keep main context window clean
@@ -199,6 +225,11 @@ At the start of every session:
 - [x] Phase 11: Polish & Hardening
 - [x] Phase 12: Testing & Deployment
 - [x] Phase 13: QA Fixes & UX Improvements
+- [x] Phase 14: Subscription & Payment (PayFast)
+- [x] Phase 15a: Admin Dashboard — Role Infrastructure
+- [ ] Phase 15b: Admin Dashboard — Pages & API Routes
+- [ ] Phase 15c: Admin Dashboard — Subscription & Access Logic
+- [ ] Phase 15d: Admin Dashboard — Hardening & Polish
 
 ### Phase 1: Project Bootstrap — COMPLETE
 What was built:
@@ -377,11 +408,46 @@ What was built:
 - BUG-004 through BUG-010 logged in tasks/bugs.md
 - Deleted src/middleware.ts (replaced by proxy.ts)
 
+### Phase 14: Subscription & Payment (PayFast) — COMPLETE
+What was built:
+- supabase/migrations/005_subscriptions.sql — ALTER shops: add subscription_status, trial_ends_at, subscription_ends_at, payfast_token
+- src/lib/payfast/index.ts — PayFast helpers: generateSignature, buildCheckoutParams, validateITN, isPayFastIP
+- src/app/api/subscribe/checkout/route.ts — POST: generates PayFast checkout params for form POST redirect
+- src/app/api/subscribe/notify/route.ts — POST: PayFast ITN webhook (validates signature + IP, updates subscription status, syncs all shop users' JWT metadata)
+- src/app/api/subscribe/status/route.ts — GET: returns subscription status + days remaining
+- src/app/(app)/subscribe/page.tsx — Subscribe page UI: pricing card (R349.99/month), PayFast checkout, success/cancel states
+- src/app/api/cron/expire-subscriptions/route.ts — Daily cron (02:00 SAST): expires overdue trials and cancelled subscriptions
+- Updated src/proxy.ts — subscription gate: redirects expired shops to /subscribe; /api/subscribe/notify added to PUBLIC_ROUTES
+- Updated src/app/api/onboarding/route.ts — auto-grants 7-day trial (subscription_status='trialing', trial_ends_at) on shop creation
+- Updated src/lib/auth/teller.ts — tellers inherit shop's sub_status; added updateShopUsersSubscription helper
+- Updated src/types/index.ts — SubscriptionStatus type, SubscriptionInfo interface, extended Shop interface
+- Updated src/app/(app)/settings/page.tsx — subscription status card (badge + days remaining + link to /subscribe)
+- Updated src/app/api/settings/route.ts — includes subscription columns in GET select
+- Updated src/app/(app)/dashboard/page.tsx — trial/subscription expiry warning banner (< 3 days remaining)
+- Updated vercel.json — expire-subscriptions cron, PayFast in CSP connect-src + form-action
+- Updated .env.local.example — PayFast env vars (PAYFAST_MERCHANT_ID, PAYFAST_MERCHANT_KEY, PAYFAST_PASSPHRASE, PAYFAST_SANDBOX, SUBSCRIPTION_PRICE_ZAR, NEXT_PUBLIC_APP_URL)
+- tests/unit/payfast.test.ts — 12 tests: signature generation, checkout params, IP validation, expiry logic
+- Fixed pre-existing TS errors: barcode null safety in sale/page.tsx and stock/page.tsx
+- Fixed pre-existing test: validation.test.ts barcode test updated for optional barcode (Phase 13)
+- 0 TypeScript errors, 125/125 tests passing
+
+### Phase 15a: Admin Dashboard — Role Infrastructure — COMPLETE
+What was built:
+- supabase/migrations/006_admin_dashboard.sql — ALTER shops: add access_granted, admin_notes; expand subscription_status CHECK to include 'manual_override'; CREATE TABLE admin_payments
+- scripts/set-admin.ts — CLI script to promote any user to admin role (npx tsx scripts/set-admin.ts user@example.com)
+- src/lib/auth/admin-guard.ts — requireAdmin() helper for server-side admin verification in API routes
+- Updated src/types/index.ts — 'admin' added to UserRole; 'manual_override' added to SubscriptionStatus; access_granted + admin_notes added to Shop; AdminPayment, AdminShopListItem, AdminOverviewStats interfaces
+- Updated src/proxy.ts — ADMIN_ROUTES block (non-admins redirected away from /admin/*); admin users skip subscription gate; authenticated admins redirect to /admin from public routes; access_granted check added to subscription gate
+- Updated src/lib/auth/teller.ts — updateShopUsersSubscription now syncs access_granted to JWT metadata
+- Updated src/lib/validation/schemas.ts — adminManualPaymentSchema, adminToggleAccessSchema, adminUpdateNotesSchema, adminStoreListQuerySchema
+- Updated src/components/BottomNav.tsx — returns null for admin role
+- 0 TypeScript errors, 125/125 tests passing
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 13 complete_
+_Last updated: Phase 15a complete_
 
 ```
 spaza shop/
@@ -423,7 +489,8 @@ spaza shop/
 │   │   │   ├── error.tsx           # App-segment error boundary (Phase 11)
 │   │   │   ├── dashboard/page.tsx  # Full dashboard: today summary, weekly chart, top products, latest sales, nav
 │   │   │   ├── dashboard/loading.tsx  # Skeleton loader for dashboard
-│   │   │   ├── settings/page.tsx   # Owner settings: shop name, WhatsApp number, low-stock threshold
+│   │   │   ├── settings/page.tsx   # Owner settings: shop name, WhatsApp number, low-stock threshold, subscription status
+│   │   │   ├── subscribe/page.tsx # Subscription page: pricing, PayFast checkout, success/cancel states
 │   │   │   ├── sale/
 │   │   │   │   ├── page.tsx        # Full sale flow: scan → cart → complete
 │   │   │   │   └── complete/page.tsx  # Sale confirmation screen
@@ -454,8 +521,13 @@ spaza shop/
 │   │       │   └── route.ts               # GET list with low_stock flag, POST adjust qty
 │   │       ├── stock-take/
 │   │       │   └── route.ts               # POST — save stock take
+│   │       ├── subscribe/
+│   │       │   ├── checkout/route.ts      # POST — generates PayFast checkout params
+│   │       │   ├── notify/route.ts        # POST — PayFast ITN webhook handler
+│   │       │   └── status/route.ts        # GET — subscription status + days remaining
 │   │       ├── cron/
-│   │       │   └── daily-summary/route.ts # GET — 22:00 SAST daily; sends WhatsApp summaries
+│   │       │   ├── daily-summary/route.ts # GET — 22:00 SAST daily; sends WhatsApp summaries
+│   │       │   └── expire-subscriptions/route.ts # GET — 02:00 SAST daily; expires overdue trials/subs
 │   │       ├── settings/
 │   │       │   └── route.ts               # GET + PATCH shop settings (owner only)
 │   │       └── tellers/
@@ -494,7 +566,10 @@ spaza shop/
 │   │   │   ├── server.ts           # Server client (with cookies)
 │   │   │   └── admin.ts            # Service role client
 │   │   ├── auth/
-│   │   │   └── teller.ts           # Synthetic email + provisioning
+│   │   │   ├── teller.ts           # Synthetic email + provisioning + updateShopUsersSubscription
+│   │   │   └── admin-guard.ts      # requireAdmin() — server-side admin auth verification (Phase 15a)
+│   │   ├── payfast/
+│   │   │   └── index.ts            # PayFast: signature, checkout params, ITN validation (Phase 14)
 │   │   ├── db/
 │   │   │   ├── products.ts         # Product CRUD helpers
 │   │   │   ├── tellers.ts          # Teller query helpers
@@ -521,7 +596,11 @@ spaza shop/
 │       ├── 001_initial_schema.sql
 │       ├── 002_decrement_stock.sql  # decrement_stock(p_product_id, p_qty) RPC
 │       ├── 003_stock_adjustments.sql  # stock_adjustments audit table (Phase 8)
-│       └── 004_optional_barcode.sql  # barcode nullable + partial unique index (Phase 13)
+│       ├── 004_optional_barcode.sql  # barcode nullable + partial unique index (Phase 13)
+│       ├── 005_subscriptions.sql    # subscription_status, trial_ends_at, subscription_ends_at, payfast_token (Phase 14)
+│       └── 006_admin_dashboard.sql  # access_granted, admin_notes, admin_payments table, manual_override status (Phase 15a)
+├── scripts/
+│   └── set-admin.ts                # CLI: npx tsx scripts/set-admin.ts <email> — promotes user to admin (Phase 15a)
 ├── tasks/
 │   ├── todo.md
 │   ├── lessons.md
@@ -533,5 +612,6 @@ spaza shop/
         ├── validation.test.ts      # 49 tests — all 10 Zod schemas (Phase 12)
         ├── date.test.ts            # 17 tests — SAST timezone helpers (Phase 12)
         ├── rate-limit.test.ts      # 7 tests  — in-memory rate limiter (Phase 12)
-        └── security.test.ts        # 15 tests — schema rejection of malformed input (Phase 12)
+        ├── security.test.ts        # 15 tests — schema rejection of malformed input (Phase 12)
+        └── payfast.test.ts         # 12 tests — PayFast signature, checkout params, IP validation, expiry logic (Phase 14)
 ```

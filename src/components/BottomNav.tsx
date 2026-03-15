@@ -29,8 +29,8 @@ export function BottomNav({ role }: BottomNavProps) {
   const pathname = usePathname()
   const items = role === 'teller' ? tellerNav : ownerNav
 
-  // Tellers only have one nav item — no need for a nav bar
-  if (role === 'teller') return null
+  // Tellers and admins don't use the bottom nav
+  if (role === 'teller' || role === 'admin') return null
 
   return (
     <nav

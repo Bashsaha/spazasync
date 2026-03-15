@@ -115,3 +115,33 @@ export const updateShopSettingsSchema = z.object({
     .min(1, 'Must be at least 1')
     .max(9999),
 })
+
+// ============================================================
+// Admin
+// ============================================================
+
+export const adminManualPaymentSchema = z.object({
+  shop_id: z.string().uuid(),
+  amount: z.number().positive('Amount must be greater than zero'),
+  method: z.enum(['eft', 'cash', 'card', 'other']),
+  reference: z.string().max(200).optional(),
+  notes: z.string().max(500).optional(),
+  activate_subscription: z.boolean().default(false),
+})
+
+export const adminToggleAccessSchema = z.object({
+  shop_id: z.string().uuid(),
+  access_granted: z.boolean(),
+})
+
+export const adminUpdateNotesSchema = z.object({
+  shop_id: z.string().uuid(),
+  admin_notes: z.string().max(2000),
+})
+
+export const adminStoreListQuerySchema = z.object({
+  search: z.string().max(100).optional(),
+  status: z.enum(['trialing', 'active', 'cancelled', 'expired', 'manual_override']).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+})

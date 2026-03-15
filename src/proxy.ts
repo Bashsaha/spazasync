@@ -3,10 +3,16 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Routes that don't require authentication
-const PUBLIC_ROUTES = ['/login', '/onboarding', '/auth/callback', '/api/auth/teller-login', '/api/onboarding']
+const PUBLIC_ROUTES = ['/login', '/onboarding', '/auth/callback', '/api/auth/teller-login', '/api/onboarding', '/api/subscribe/notify']
 
 // Only the sale route is accessible to tellers
 const TELLER_ALLOWED_ROUTES = ['/sale']
+
+// Routes accessible even when subscription is expired
+const SUBSCRIPTION_EXEMPT = ['/subscribe', '/api/subscribe', '/settings', '/api/settings']
+
+// Admin-only routes
+const ADMIN_ROUTES = ['/admin', '/api/admin']
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -63,7 +69,7 @@ export async function proxy(request: NextRequest) {
     const role = user.app_metadata?.role as string | undefined
     // Don't redirect away from onboarding pages/API if they haven't set up their shop yet
     if ((pathname.startsWith('/onboarding') || pathname.startsWith('/api/onboarding')) && !role) return supabaseResponse
-    const dest = role === 'teller' ? '/sale' : '/dashboard'
+    const dest = role === 'admin' ? '/admin' : role === 'teller' ? '/sale' : '/dashboard'
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = dest
     return NextResponse.redirect(redirectUrl)
@@ -85,6 +91,36 @@ export async function proxy(request: NextRequest) {
       const saleUrl = request.nextUrl.clone()
       saleUrl.pathname = '/sale'
       return NextResponse.redirect(saleUrl)
+    }
+  }
+
+  // ── Admin route enforcement ──────────────────────────────
+  const isAdminRoute = ADMIN_ROUTES.some((r) => pathname.startsWith(r))
+  if (isAdminRoute && role !== 'admin') {
+    const dashUrl = request.nextUrl.clone()
+    dashUrl.pathname = role === 'teller' ? '/sale' : '/dashboard'
+    return NextResponse.redirect(dashUrl)
+  }
+
+  // Admin users skip subscription gate — they don't belong to a shop
+  if (role === 'admin') return supabaseResponse
+
+  // ── Subscription gate ────────────────────────────────────
+  // Check sub_status and sub_until from JWT metadata (zero DB queries)
+  const isExempt = SUBSCRIPTION_EXEMPT.some((r) => pathname.startsWith(r))
+  if (role && !isExempt) {
+    const subStatus = user.app_metadata?.sub_status as string | undefined
+    const subUntil = user.app_metadata?.sub_until as string | undefined
+    const accessGranted = user.app_metadata?.access_granted as boolean | undefined
+
+    const isExpired =
+      subStatus === 'expired' ||
+      (subUntil && new Date(subUntil) < new Date())
+
+    if (isExpired && !accessGranted) {
+      const subUrl = request.nextUrl.clone()
+      subUrl.pathname = '/subscribe'
+      return NextResponse.redirect(subUrl)
     }
   }
 
