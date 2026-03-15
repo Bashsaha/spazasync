@@ -25,6 +25,11 @@ _Update this file after every user correction. Write rules that prevent the same
 **Fix:** Always read CLAUDE.md at session start. Enter plan mode for any task with 3+ steps.
 **Rule:** The workflow rules in CLAUDE.md are not optional. Follow them exactly.
 
+### Lesson 4: Follow EVERY step of every protocol — not just the ones you remember
+**What happened:** Failed to follow Session Start Protocol (didn't read CLAUDE.md fully, didn't review lessons.md, didn't read bugs.md before touching auth/routing). Failed to follow Phase Completion Protocol step 1 (didn't run Glob scan before updating file tree — just manually added files from memory). Failed to commit at the right time (should commit as part of phase completion, not as an afterthought when user points it out).
+**Fix:** Treat protocols as checklists. Execute every numbered step in order. Don't skip steps because you think you already know what's there.
+**Rule:** At session start: execute Session Start Protocol steps 1-6 in order. At phase end: execute Phase Completion Protocol steps 1-7 in order. If a step says "Glob scan" — run the Glob scan. If it says "read bugs.md" — read bugs.md. No shortcuts.
+
 ---
 
 _Add new lessons here as they occur._
