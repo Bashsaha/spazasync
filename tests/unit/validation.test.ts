@@ -168,9 +168,12 @@ describe('createProductSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('rejects empty barcode', () => {
+  it('transforms empty barcode to null', () => {
     const result = createProductSchema.safeParse({ barcode: '', name: 'Test', price: 5, stock_qty: 0 })
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.barcode).toBeNull()
+    }
   })
 })
 

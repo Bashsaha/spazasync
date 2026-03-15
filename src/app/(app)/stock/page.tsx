@@ -33,7 +33,7 @@ export default function StockPage() {
     const matchesSearch =
       !search ||
       p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.barcode.includes(search)
+      (p.barcode?.includes(search) ?? false)
     return matchesTab && matchesSearch
   })
 

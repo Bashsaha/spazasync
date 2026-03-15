@@ -21,7 +21,7 @@ export default async function DashboardPage() {
 
   const { data: shopUser } = await supabase
     .from('shop_users')
-    .select('role, shops(id, name, code, low_stock_threshold)')
+    .select('role, shops(id, name, code, low_stock_threshold, subscription_status, trial_ends_at, subscription_ends_at)')
     .eq('user_id', user.id)
     .single()
 
@@ -30,6 +30,9 @@ export default async function DashboardPage() {
     name: string
     code: string
     low_stock_threshold: number
+    subscription_status: string
+    trial_ends_at: string | null
+    subscription_ends_at: string | null
   } | null
 
   const shopName = shop?.name ?? 'Your Shop'
@@ -69,6 +72,34 @@ export default async function DashboardPage() {
           <span className="font-mono font-semibold text-blue-600">{shopCode}</span>
         </p>
       </div>
+
+      {/* Subscription warning banner */}
+      {(() => {
+        const endDate = shop?.subscription_status === 'trialing'
+          ? shop?.trial_ends_at
+          : shop?.subscription_status === 'cancelled'
+            ? shop?.subscription_ends_at
+            : null
+        if (!endDate) return null
+        const daysLeft = Math.max(0, Math.ceil((new Date(endDate).getTime() - Date.now()) / (24 * 60 * 60 * 1000)))
+        if (daysLeft > 3) return null
+        const label = shop?.subscription_status === 'trialing' ? 'free trial' : 'subscription'
+        return (
+          <a
+            href="/subscribe"
+            className="block bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4"
+          >
+            <p className="text-sm font-semibold text-amber-800">
+              {daysLeft === 0
+                ? `Your ${label} has ended.`
+                : `Your ${label} ends in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}.`}
+            </p>
+            <p className="text-xs text-amber-600 mt-1">
+              Tap here to subscribe and keep using SpazaSync.
+            </p>
+          </a>
+        )
+      })()}
 
       {/* Today's summary */}
       <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-4">

@@ -74,7 +74,7 @@ export default function SalePage() {
           total,
           items: items.map((i) => ({
             product_id: i.product.id,
-            barcode: i.product.barcode,
+            barcode: i.product.barcode ?? '',
             quantity: i.quantity,
             unit_price: i.product.price,
             subtotal: i.subtotal,

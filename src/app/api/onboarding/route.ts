@@ -63,12 +63,16 @@ export async function POST(request: Request) {
   const admin = createAdminClient()
 
   // 1. Create the shop
+  const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+
   const { data: shop, error: shopError } = await admin
     .from('shops')
     .insert({
       name: shopName,
       code: shopCode,
       whatsapp_number: whatsappNumber || null,
+      subscription_status: 'trialing',
+      trial_ends_at: trialEndsAt,
     })
     .select('id')
     .single()
@@ -104,9 +108,12 @@ export async function POST(request: Request) {
     active: true,
   })
 
-  // 4. Set app_metadata so middleware knows this user is an owner
+  // 4. Set app_metadata so middleware knows this user is an owner + trial status
   try {
-    await setOwnerMetadata(user.id, shop.id)
+    await setOwnerMetadata(user.id, shop.id, {
+      sub_status: 'trialing',
+      sub_until: trialEndsAt,
+    })
   } catch {
     // Not fatal — they can still use the app; middleware falls back to DB check
   }

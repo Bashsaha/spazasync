@@ -25,7 +25,7 @@ export async function GET() {
   const supabase = await createClient()
   const { data: shop, error } = await supabase
     .from('shops')
-    .select('id, name, code, whatsapp_number, low_stock_threshold')
+    .select('id, name, code, whatsapp_number, low_stock_threshold, subscription_status, trial_ends_at, subscription_ends_at')
     .eq('id', ctx.shopId)
     .single()
 

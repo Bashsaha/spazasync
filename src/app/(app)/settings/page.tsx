@@ -8,6 +8,9 @@ interface ShopSettings {
   code: string
   whatsapp_number: string | null
   low_stock_threshold: number
+  subscription_status: string | null
+  trial_ends_at: string | null
+  subscription_ends_at: string | null
 }
 
 export default function SettingsPage() {
@@ -75,6 +78,62 @@ export default function SettingsPage() {
 
       <h1 className="text-2xl font-bold text-gray-900 mb-1">Settings</h1>
       <p className="text-sm text-gray-400 mb-8">Update your shop details</p>
+
+      {/* Subscription status */}
+      {settings?.subscription_status && (
+        <a
+          href="/subscribe"
+          className="block bg-white border border-gray-100 rounded-2xl px-4 py-3 mb-4"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-gray-400 mb-1">Subscription</p>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    settings.subscription_status === 'active'
+                      ? 'bg-green-100 text-green-700'
+                      : settings.subscription_status === 'trialing'
+                        ? 'bg-blue-100 text-blue-700'
+                        : settings.subscription_status === 'cancelled'
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-red-100 text-red-700'
+                  }`}
+                >
+                  {settings.subscription_status === 'trialing'
+                    ? 'Free Trial'
+                    : settings.subscription_status === 'active'
+                      ? 'Active'
+                      : settings.subscription_status === 'cancelled'
+                        ? 'Cancelled'
+                        : 'Expired'}
+                </span>
+                {(() => {
+                  const endDate =
+                    settings.subscription_status === 'trialing'
+                      ? settings.trial_ends_at
+                      : settings.subscription_ends_at
+                  if (!endDate) return null
+                  const days = Math.max(0, Math.ceil((new Date(endDate).getTime() - Date.now()) / (24 * 60 * 60 * 1000)))
+                  if (settings.subscription_status === 'active') {
+                    return (
+                      <span className="text-xs text-gray-400">
+                        Renews {new Date(endDate).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
+                      </span>
+                    )
+                  }
+                  return (
+                    <span className="text-xs text-gray-400">
+                      {days} day{days !== 1 ? 's' : ''} left
+                    </span>
+                  )
+                })()}
+              </div>
+            </div>
+            <span className="text-gray-300 text-lg">›</span>
+          </div>
+        </a>
+      )}
 
       {/* Shop code — read only */}
       <div className="bg-gray-50 rounded-2xl px-4 py-3 mb-6 flex items-center justify-between">
