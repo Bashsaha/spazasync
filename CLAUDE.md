@@ -181,6 +181,41 @@ NEXT_PUBLIC_APP_URL=
 
 ---
 
+## Git Safety Rules (CRITICAL — NO EXCEPTIONS)
+
+### NEVER allowed — under any circumstances, even if asked:
+- `git push --force` or `git push -f` (overwrites remote history — can destroy the entire codebase)
+- `git reset --hard` on any branch that has been pushed
+- `git branch -D main` or `git branch -D master` (deleting the main branch)
+- `git clean -fd` or `git clean -fx` (permanently deletes untracked files)
+- `rm -rf .git` (destroys the entire repo)
+- Deleting or overwriting the remote repository via `gh repo delete` or any GitHub API call
+- `git checkout .` or `git restore .` on a broad scope (discards all uncommitted work)
+- Any command that batch-deletes files, branches, or commits without explicit user review of EACH item
+
+### ALWAYS allowed:
+- `git add` (staging files)
+- `git commit` (creating new commits — never amend unless user explicitly asks)
+- `git push` (normal push to remote — no force flags)
+- `git status`, `git log`, `git diff` (read-only inspection)
+- `git branch <name>` (creating new branches)
+- `git checkout <branch>` or `git switch <branch>` (switching branches)
+- `git stash` / `git stash pop` (temporary storage)
+
+### Requires EXPLICIT user confirmation before running:
+- `git reset` of any kind (explain what will happen first)
+- `git rebase` (explain what will happen first)
+- Deleting any branch (`git branch -d`)
+- Any `gh` command that modifies the remote (creating PRs is fine, deleting things is not)
+
+### Defensive habits:
+- Before any destructive git operation, run `git log --oneline -5` and `git status` and show the output to the user
+- If unsure whether a command is safe, ASK the user first
+- Prefer creating new commits over amending or rebasing
+- Never run a command you found online without understanding exactly what it does
+
+---
+
 ## Living Project Awareness Rules (CRITICAL)
 
 ### File Structure Awareness
