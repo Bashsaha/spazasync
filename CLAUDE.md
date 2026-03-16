@@ -265,7 +265,7 @@ At the start of every session:
 - [x] Phase 13: QA Fixes & UX Improvements
 - [x] Phase 14: Subscription & Payment (PayFast)
 - [x] Phase 15a: Admin Dashboard — Role Infrastructure
-- [ ] Phase 15b: Admin Dashboard — Pages & API Routes
+- [x] Phase 15b: Admin Dashboard — Pages & API Routes
 - [ ] Phase 15c: Admin Dashboard — Subscription & Access Logic
 - [ ] Phase 15d: Admin Dashboard — Hardening & Polish
 
@@ -481,11 +481,29 @@ What was built:
 - Updated src/components/BottomNav.tsx — returns null for admin role
 - 0 TypeScript errors, 125/125 tests passing
 
+### Phase 15b: Admin Dashboard — Pages & API Routes — COMPLETE
+What was built:
+- src/lib/db/admin.ts — 6 admin DB helpers: getOverviewStats, listShops, getShopDetail, recordManualPayment, toggleShopAccess, updateShopNotes
+- src/components/admin/AdminNav.tsx — client component: top nav (Overview | Shops), active link highlighting, sign-out
+- src/app/api/admin/overview/route.ts — GET: aggregate stats (total/active/trialing/expired/manual/recent signups)
+- src/app/api/admin/shops/route.ts — GET: paginated shop list with search and status filter
+- src/app/api/admin/shops/[id]/route.ts — GET: full shop detail (owner email, payments, counts)
+- src/app/api/admin/shops/[id]/payments/route.ts — POST: record manual payment, optionally activate subscription
+- src/app/api/admin/shops/[id]/access/route.ts — PATCH: toggle access_granted, sync JWT metadata
+- src/app/api/admin/shops/[id]/notes/route.ts — PATCH: update admin notes
+- src/app/(app)/admin/layout.tsx — admin layout with AdminNav + wider max-w-4xl
+- src/app/(app)/admin/page.tsx — server component: overview dashboard with 6 stat cards
+- src/app/(app)/admin/shops/page.tsx — client component: shop list with search, status filter, pagination
+- src/app/(app)/admin/shops/[id]/page.tsx — client component: shop detail with access toggle, admin notes, payment recording, payment history
+- src/app/(app)/admin/loading.tsx + shops/loading.tsx — skeleton loaders
+- Fixed pre-existing issue: installed missing dotenv dev dependency for scripts/set-admin.ts
+- 0 TypeScript errors, 125/125 tests passing
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 15a complete_
+_Last updated: Phase 15b complete_
 
 ```
 spaza shop/
@@ -542,10 +560,18 @@ spaza shop/
 │   │   │   │   ├── page.tsx        # Searchable product list (owner only)
 │   │   │   │   ├── new/page.tsx    # Add product form
 │   │   │   │   └── [id]/page.tsx   # Edit/delete product form
-│   │   │   └── tellers/
-│   │   │       ├── page.tsx        # Teller list with remove (ConfirmModal, Skeleton)
-│   │   │       ├── loading.tsx     # Skeleton loader for tellers list
-│   │   │       └── new/page.tsx    # Add teller form
+│   │   │   ├── tellers/
+│   │   │   │   ├── page.tsx        # Teller list with remove (ConfirmModal, Skeleton)
+│   │   │   │   ├── loading.tsx     # Skeleton loader for tellers list
+│   │   │   │   └── new/page.tsx    # Add teller form
+│   │   │   └── admin/
+│   │   │       ├── layout.tsx      # Admin layout (AdminNav + max-w-4xl)
+│   │   │       ├── loading.tsx     # Skeleton loader for admin overview
+│   │   │       ├── page.tsx        # Admin overview: 6 stat cards + link to shops
+│   │   │       └── shops/
+│   │   │           ├── loading.tsx     # Skeleton loader for shop list
+│   │   │           ├── page.tsx        # Shop list: search, status filter, pagination
+│   │   │           └── [id]/page.tsx   # Shop detail: info, access toggle, notes, payments
 │   │   └── api/
 │   │       ├── auth/
 │   │       │   └── teller-login/route.ts  # Returns synthetic email
@@ -566,6 +592,15 @@ spaza shop/
 │   │       ├── cron/
 │   │       │   ├── daily-summary/route.ts # GET — 22:00 SAST daily; sends WhatsApp summaries
 │   │       │   └── expire-subscriptions/route.ts # GET — 02:00 SAST daily; expires overdue trials/subs
+│   │       ├── admin/
+│   │       │   ├── overview/route.ts      # GET — admin aggregate stats
+│   │       │   └── shops/
+│   │       │       ├── route.ts           # GET — paginated shop list with search/filter
+│   │       │       └── [id]/
+│   │       │           ├── route.ts       # GET — full shop detail
+│   │       │           ├── payments/route.ts  # POST — record manual payment
+│   │       │           ├── access/route.ts    # PATCH — toggle access_granted
+│   │       │           └── notes/route.ts     # PATCH — update admin notes
 │   │       ├── settings/
 │   │       │   └── route.ts               # GET + PATCH shop settings (owner only)
 │   │       └── tellers/
@@ -582,6 +617,8 @@ spaza shop/
 │   │   ├── scanner/
 │   │   │   ├── BarcodeScanner.tsx         # Full-screen camera overlay
 │   │   │   └── ScannerOverlay.tsx         # Targeting reticle
+│   │   ├── admin/
+│   │   │   └── AdminNav.tsx               # Admin top nav: Overview | Shops + sign out (Phase 15b)
 │   │   ├── dashboard/
 │   │   │   └── WeeklySalesChart.tsx       # Client component; bar chart of last 7 days (recharts)
 │   │   ├── BottomNav.tsx                  # Owner bottom navigation bar (5 tabs)
@@ -614,7 +651,8 @@ spaza shop/
 │   │   │   ├── sales.ts            # completeSale (insert + stock deduction)
 │   │   │   ├── stock-take.ts       # saveStockTake (audit + update stock_qty)
 │   │   │   ├── stock.ts            # listProductsWithStock + adjustStock (Phase 8)
-│   │   │   └── reports.ts          # getDailySalesForShop + getLowStockForShop (Phase 9)
+│   │   │   ├── reports.ts          # getDailySalesForShop + getLowStockForShop (Phase 9)
+│   │   │   └── admin.ts            # Admin DB helpers: overview stats, list/detail shops, payments, access, notes (Phase 15b)
 │   │   ├── offline/
 │   │   │   ├── db.ts               # IndexedDB via idb (enqueue/list/remove/count)
 │   │   │   └── sync.ts             # syncPendingSales (retry queue → server)

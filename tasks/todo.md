@@ -222,3 +222,27 @@ Polish & Hardening complete. App now has proper error boundaries (no more blank 
 
 ### Review
 Testing & Deployment complete. Found and fixed two critical security gaps (missing auth on /api/sales and /api/stock-take). Added Content-Security-Policy header. Expanded test suite from 25 to 113 tests across 6 files — all pure functions, validation schemas, date utilities, and rate limiter are now covered. Production build passes cleanly. README contains full Vercel deployment steps, environment variable table, Supabase migration instructions, and a security checklist. SpazaSync is production-ready.
+
+---
+
+## Phase 15b: Admin Dashboard — Pages & API Routes — COMPLETE ✓
+
+- [x] src/lib/db/admin.ts — 6 admin DB helpers (overview stats, list/detail shops, payments, access toggle, notes)
+- [x] src/components/admin/AdminNav.tsx — admin top nav (Overview | Shops + sign out)
+- [x] src/app/api/admin/overview/route.ts — GET aggregate stats
+- [x] src/app/api/admin/shops/route.ts — GET paginated shop list with search/status filter
+- [x] src/app/api/admin/shops/[id]/route.ts — GET full shop detail
+- [x] src/app/api/admin/shops/[id]/payments/route.ts — POST record manual payment
+- [x] src/app/api/admin/shops/[id]/access/route.ts — PATCH toggle access_granted
+- [x] src/app/api/admin/shops/[id]/notes/route.ts — PATCH update admin notes
+- [x] src/app/(app)/admin/layout.tsx — admin layout (AdminNav + max-w-4xl)
+- [x] src/app/(app)/admin/loading.tsx + shops/loading.tsx — skeleton loaders
+- [x] src/app/(app)/admin/page.tsx — overview dashboard (6 stat cards)
+- [x] src/app/(app)/admin/shops/page.tsx — shop list (search, filter, pagination)
+- [x] src/app/(app)/admin/shops/[id]/page.tsx — shop detail (info, access toggle, notes, payments)
+- [x] Fixed pre-existing: installed missing dotenv dev dependency
+- [x] 0 TypeScript errors, 125/125 tests passing, build succeeds
+- [x] Glob scan → CLAUDE.md updated → Phase 15b checked off
+
+### Review
+Admin dashboard pages and API routes complete. 14 new files created. Admin overview shows aggregate stats (total/active/trialing/expired/manual override/new this week). Shop list supports search by name/code, status filter, and pagination. Shop detail shows full info + quick stats + access toggle + admin notes + payment recording with optional subscription activation. All API routes use requireAdmin() guard + admin client (service role, no RLS). JWT metadata synced on access toggle and payment activation via updateShopUsersSubscription().

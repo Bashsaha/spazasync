@@ -1,0 +1,60 @@
+'use client'
+
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+
+const navLinks = [
+  { href: '/admin', label: 'Overview' },
+  { href: '/admin/shops', label: 'Shops' },
+]
+
+export default function AdminNav() {
+  const pathname = usePathname()
+  const router = useRouter()
+
+  async function handleSignOut() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
+
+  return (
+    <header className="sticky top-0 z-40 bg-white border-b border-gray-200">
+      <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <span className="text-sm font-bold text-gray-900 tracking-tight">
+            SpazaSync Admin
+          </span>
+          <nav className="flex gap-1">
+            {navLinks.map((link) => {
+              const isActive =
+                link.href === '/admin'
+                  ? pathname === '/admin'
+                  : pathname.startsWith(link.href)
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    isActive
+                      ? 'bg-blue-50 text-blue-700 font-semibold'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              )
+            })}
+          </nav>
+        </div>
+        <button
+          onClick={handleSignOut}
+          className="text-sm text-gray-400 hover:text-gray-700 transition-colors"
+        >
+          Sign out
+        </button>
+      </div>
+    </header>
+  )
+}
