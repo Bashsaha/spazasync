@@ -145,3 +145,10 @@ export const adminStoreListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 })
+
+export const adminUpdateSubscriptionSchema = z.object({
+  shop_id: z.string().uuid(),
+  subscription_status: z.enum(['trialing', 'active', 'cancelled', 'expired', 'manual_override']),
+  subscription_ends_at: z.string().datetime().optional(),
+  trial_ends_at: z.string().datetime().optional(),
+})

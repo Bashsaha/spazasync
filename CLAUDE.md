@@ -266,7 +266,7 @@ At the start of every session:
 - [x] Phase 14: Subscription & Payment (PayFast)
 - [x] Phase 15a: Admin Dashboard — Role Infrastructure
 - [x] Phase 15b: Admin Dashboard — Pages & API Routes
-- [ ] Phase 15c: Admin Dashboard — Subscription & Access Logic
+- [x] Phase 15c: Admin Dashboard — Subscription & Access Logic
 - [ ] Phase 15d: Admin Dashboard — Hardening & Polish
 
 ### Phase 1: Project Bootstrap — COMPLETE
@@ -499,11 +499,20 @@ What was built:
 - Fixed pre-existing issue: installed missing dotenv dev dependency for scripts/set-admin.ts
 - 0 TypeScript errors, 125/125 tests passing
 
+### Phase 15c: Admin Dashboard — Subscription & Access Logic — COMPLETE
+What was built:
+- src/lib/validation/schemas.ts — added adminUpdateSubscriptionSchema (status + optional end dates)
+- src/lib/db/admin.ts — added updateShopSubscription(): updates status + dates, syncs JWT metadata, auto-revokes access on expire
+- src/app/api/admin/shops/[id]/subscription/route.ts — NEW: PATCH endpoint for admin to directly change subscription status and end dates
+- src/app/api/cron/expire-subscriptions/route.ts — FIXED: now also expires manual_override shops when subscription_ends_at passes; sets access_granted=false on expiry
+- src/app/(app)/admin/shops/[id]/page.tsx — UPDATED: subscription management UI with status dropdown, end date picker, and "Update Subscription" button
+- 0 TypeScript errors, 125/125 tests passing
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 15b complete_
+_Last updated: Phase 15c complete_
 
 ```
 spaza shop/
@@ -600,7 +609,8 @@ spaza shop/
 │   │       │           ├── route.ts       # GET — full shop detail
 │   │       │           ├── payments/route.ts  # POST — record manual payment
 │   │       │           ├── access/route.ts    # PATCH — toggle access_granted
-│   │       │           └── notes/route.ts     # PATCH — update admin notes
+│   │       │           ├── notes/route.ts     # PATCH — update admin notes
+│   │       │           └── subscription/route.ts # PATCH — update subscription status + end dates (Phase 15c)
 │   │       ├── settings/
 │   │       │   └── route.ts               # GET + PATCH shop settings (owner only)
 │   │       └── tellers/

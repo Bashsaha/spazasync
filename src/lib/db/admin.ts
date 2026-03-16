@@ -249,6 +249,48 @@ export async function toggleShopAccess(shopId: string, accessGranted: boolean): 
 }
 
 /**
+ * Directly update a shop's subscription status and end dates.
+ * Syncs JWT metadata for all shop users.
+ */
+export async function updateShopSubscription(
+  shopId: string,
+  status: SubscriptionStatus,
+  subscriptionEndsAt?: string,
+  trialEndsAt?: string,
+): Promise<void> {
+  const admin = createAdminClient()
+
+  const update: Record<string, unknown> = { subscription_status: status }
+
+  if (subscriptionEndsAt !== undefined) {
+    update.subscription_ends_at = subscriptionEndsAt
+  }
+  if (trialEndsAt !== undefined) {
+    update.trial_ends_at = trialEndsAt
+  }
+
+  // If expiring, revoke access_granted
+  if (status === 'expired') {
+    update.access_granted = false
+  }
+
+  const { error } = await admin
+    .from('shops')
+    .update(update)
+    .eq('id', shopId)
+
+  if (error) throw error
+
+  // Determine the sub_until value for JWT metadata
+  const subUntil = status === 'trialing'
+    ? (trialEndsAt ?? '')
+    : (subscriptionEndsAt ?? '')
+
+  const accessGranted = status === 'expired' ? false : undefined
+  await updateShopUsersSubscription(shopId, status, subUntil, accessGranted)
+}
+
+/**
  * Update admin notes for a shop.
  */
 export async function updateShopNotes(shopId: string, notes: string): Promise<void> {

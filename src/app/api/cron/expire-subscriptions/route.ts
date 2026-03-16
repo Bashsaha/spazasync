@@ -40,23 +40,36 @@ export async function GET(request: Request) {
     console.error('Failed to fetch expired cancelled:', cancelErr)
   }
 
+  // 3. Expired manual overrides: manual_override + subscription_ends_at < now
+  const { data: expiredManual, error: manualErr } = await admin
+    .from('shops')
+    .select('id')
+    .eq('subscription_status', 'manual_override')
+    .not('subscription_ends_at', 'is', null)
+    .lt('subscription_ends_at', now)
+
+  if (manualErr) {
+    console.error('Failed to fetch expired manual overrides:', manualErr)
+  }
+
   const shopsToExpire = [
     ...(expiredTrials || []),
     ...(expiredCancelled || []),
+    ...(expiredManual || []),
   ]
 
   let expiredCount = 0
 
   for (const shop of shopsToExpire) {
     try {
-      // Update shop status to expired
+      // Update shop status to expired and revoke access
       await admin
         .from('shops')
-        .update({ subscription_status: 'expired' })
+        .update({ subscription_status: 'expired', access_granted: false })
         .eq('id', shop.id)
 
-      // Update all users' JWT metadata
-      await updateShopUsersSubscription(shop.id, 'expired', now)
+      // Update all users' JWT metadata (access_granted = false)
+      await updateShopUsersSubscription(shop.id, 'expired', now, false)
 
       expiredCount++
     } catch (err) {
