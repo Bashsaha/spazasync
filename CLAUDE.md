@@ -267,7 +267,7 @@ At the start of every session:
 - [x] Phase 15a: Admin Dashboard — Role Infrastructure
 - [x] Phase 15b: Admin Dashboard — Pages & API Routes
 - [x] Phase 15c: Admin Dashboard — Subscription & Access Logic
-- [ ] Phase 15d: Admin Dashboard — Hardening & Polish
+- [x] Phase 15d: Admin Dashboard — Hardening & Polish
 
 ### Phase 1: Project Bootstrap — COMPLETE
 What was built:
@@ -508,11 +508,25 @@ What was built:
 - src/app/(app)/admin/shops/[id]/page.tsx — UPDATED: subscription management UI with status dropdown, end date picker, and "Update Subscription" button
 - 0 TypeScript errors, 125/125 tests passing
 
+### Phase 15d: Admin Dashboard — Hardening & Polish — COMPLETE
+What was built:
+- src/lib/db/admin.ts — FIXED: listShops() replaced bulk listUsers (1000 cap) with per-owner getUserById via Promise.allSettled; added shopExists() helper
+- src/lib/utils/statusBadge.ts — NEW: shared subscription status badge color map (extracted from 2 pages)
+- src/app/api/admin/shops/[id]/access/route.ts — UPDATED: added shop existence check (404) + rate limiting (30/60s)
+- src/app/api/admin/shops/[id]/notes/route.ts — UPDATED: added shop existence check (404) + rate limiting (30/60s)
+- src/app/api/admin/shops/[id]/subscription/route.ts — UPDATED: added shop existence check (404) + rate limiting (30/60s)
+- src/app/api/admin/shops/[id]/payments/route.ts — UPDATED: added shop existence check (404) + rate limiting (30/60s)
+- src/app/(app)/admin/shops/page.tsx — UPDATED: uses shared statusBadge; error state with Retry button (replaces infinite spinner)
+- src/app/(app)/admin/shops/[id]/page.tsx — UPDATED: ConfirmModal before access revocation; Toast feedback on all actions; notes char counter (2000 max); uses shared statusBadge; removed inline "Saved" state in favor of toasts
+- src/components/admin/AdminNav.tsx — UPDATED: sign-out error handling with toast feedback
+- tests/unit/admin.test.ts — NEW: 28 tests covering statusBadgeColors, all 5 admin Zod schemas
+- 0 TypeScript errors, 153/153 tests passing
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 15c complete_
+_Last updated: Phase 15d complete_
 
 ```
 spaza shop/
@@ -674,7 +688,8 @@ spaza shop/
 │   │   └── utils/
 │   │       ├── currency.ts
 │   │       ├── date.ts
-│   │       └── rateLimit.ts    # In-memory rate limiter for API routes (Phase 11)
+│   │       ├── rateLimit.ts    # In-memory rate limiter for API routes (Phase 11)
+│   │       └── statusBadge.ts  # Shared subscription status badge colors (Phase 15d)
 │   └── types/
 │       └── index.ts
 ├── supabase/
@@ -699,5 +714,6 @@ spaza shop/
         ├── date.test.ts            # 17 tests — SAST timezone helpers (Phase 12)
         ├── rate-limit.test.ts      # 7 tests  — in-memory rate limiter (Phase 12)
         ├── security.test.ts        # 15 tests — schema rejection of malformed input (Phase 12)
-        └── payfast.test.ts         # 12 tests — PayFast signature, checkout params, IP validation, expiry logic (Phase 14)
+        ├── payfast.test.ts         # 12 tests — PayFast signature, checkout params, IP validation, expiry logic (Phase 14)
+        └── admin.test.ts          # 28 tests — statusBadge, admin Zod schemas (Phase 15d)
 ```

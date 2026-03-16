@@ -246,3 +246,38 @@ Testing & Deployment complete. Found and fixed two critical security gaps (missi
 
 ### Review
 Admin dashboard pages and API routes complete. 14 new files created. Admin overview shows aggregate stats (total/active/trialing/expired/manual override/new this week). Shop list supports search by name/code, status filter, and pagination. Shop detail shows full info + quick stats + access toggle + admin notes + payment recording with optional subscription activation. All API routes use requireAdmin() guard + admin client (service role, no RLS). JWT metadata synced on access toggle and payment activation via updateShopUsersSubscription().
+
+---
+
+## Phase 15c: Admin Dashboard — Subscription & Access Logic — COMPLETE ✓
+
+- [x] Added adminUpdateSubscriptionSchema to validation schemas
+- [x] Added updateShopSubscription() to src/lib/db/admin.ts
+- [x] Created PATCH /api/admin/shops/[id]/subscription route
+- [x] Updated expire cron to handle manual_override expiry + revoke access_granted on expire
+- [x] Updated shop detail page with subscription management UI (status dropdown, date picker, update button)
+- [x] 0 TypeScript errors, 125/125 tests passing, build succeeds
+- [x] Glob scan → CLAUDE.md updated → Phase 15c checked off
+
+### Review
+Admin subscription management complete. Admin can now directly change any shop's subscription status (trialing/active/cancelled/expired/manual_override) and set custom end dates from the shop detail page. The expire cron now handles all three expirable statuses (trialing, cancelled, manual_override) and revokes access_granted on expiry. JWT metadata is synced on every subscription change.
+
+---
+
+## Phase 15d: Admin Dashboard — Hardening & Polish — COMPLETE ✓
+
+- [x] Fixed listShops() user paging bug — replaced bulk listUsers (1000 cap) with per-owner getUserById
+- [x] Added shopExists() helper + 404 checks in all 4 admin mutation API routes
+- [x] Extracted shared statusBadge colors into src/lib/utils/statusBadge.ts
+- [x] Applied rate limiting (30/60s) to all 4 admin mutation routes
+- [x] Added ConfirmModal before access revocation on shop detail page
+- [x] Replaced console.error/inline "Saved" text with Toast feedback on all shop detail actions
+- [x] Added notes character counter (2000 max, color-coded)
+- [x] Added error state with Retry button on shops list page
+- [x] Fixed AdminNav sign-out error handling with toast feedback
+- [x] Created tests/unit/admin.test.ts — 28 tests (statusBadge + 5 admin Zod schemas)
+- [x] 0 TypeScript errors, 153/153 tests passing, build succeeds
+- [x] Glob scan → CLAUDE.md updated → Phase 15d checked off
+
+### Review
+Admin dashboard hardened and polished. Fixed critical scaling bug in owner email resolution (no longer capped at 1000 users). All mutation routes now validate shop existence before operating and are rate-limited. Access revocation requires confirmation dialog. All async actions provide toast feedback. Notes textarea has live character counter. Shop list shows error state with retry instead of infinite spinner. 28 new admin tests added.

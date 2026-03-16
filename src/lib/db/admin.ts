@@ -70,17 +70,17 @@ export async function listShops(opts: {
     .in('shop_id', shopIds)
     .eq('role', 'owner')
 
-  // Build email lookup via auth admin API
-  // NOTE: listUsers has a max of 1000 per page — sufficient for early scale
+  // Build email lookup via per-owner getUserById (scales beyond 1000 users)
   const emailMap = new Map<string, string>()
   if (owners && owners.length > 0) {
-    const ownerUserIds = new Set(owners.map((o) => o.user_id))
-    const { data: authData } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 })
-    if (authData?.users) {
-      for (const u of authData.users) {
-        if (ownerUserIds.has(u.id)) {
-          emailMap.set(u.id, u.email ?? '')
-        }
+    const uniqueUserIds = [...new Set(owners.map((o) => o.user_id))]
+    const results = await Promise.allSettled(
+      uniqueUserIds.map((uid) => admin.auth.admin.getUserById(uid)),
+    )
+    for (let i = 0; i < results.length; i++) {
+      const r = results[i]
+      if (r.status === 'fulfilled' && r.value.data?.user) {
+        emailMap.set(uniqueUserIds[i], r.value.data.user.email ?? '')
       }
     }
   }
@@ -288,6 +288,15 @@ export async function updateShopSubscription(
 
   const accessGranted = status === 'expired' ? false : undefined
   await updateShopUsersSubscription(shopId, status, subUntil, accessGranted)
+}
+
+/**
+ * Check if a shop exists by ID.
+ */
+export async function shopExists(shopId: string): Promise<boolean> {
+  const admin = createAdminClient()
+  const { data } = await admin.from('shops').select('id').eq('id', shopId).maybeSingle()
+  return data !== null
 }
 
 /**

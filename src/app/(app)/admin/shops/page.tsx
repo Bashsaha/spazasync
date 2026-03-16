@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import type { AdminShopListItem, SubscriptionStatus } from '@/types'
+import { statusBadgeColors } from '@/lib/utils/statusBadge'
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: 'All statuses' },
@@ -13,14 +14,6 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: 'manual_override', label: 'Manual Override' },
 ]
 
-const statusBadge: Record<SubscriptionStatus, string> = {
-  trialing: 'bg-blue-100 text-blue-700',
-  active: 'bg-green-100 text-green-700',
-  cancelled: 'bg-gray-100 text-gray-600',
-  expired: 'bg-red-100 text-red-700',
-  manual_override: 'bg-amber-100 text-amber-700',
-}
-
 export default function AdminShopsPage() {
   const router = useRouter()
   const [search, setSearch] = useState('')
@@ -29,10 +22,12 @@ export default function AdminShopsPage() {
   const [shops, setShops] = useState<AdminShopListItem[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const limit = 20
 
   const fetchShops = useCallback(async (s: string, st: string, p: number) => {
     setLoading(true)
+    setError('')
     try {
       const params = new URLSearchParams()
       if (s) params.set('search', s)
@@ -45,9 +40,11 @@ export default function AdminShopsPage() {
         const data = await res.json()
         setShops(data.shops)
         setTotal(data.total)
+      } else {
+        setError('Failed to load shops')
       }
-    } catch (err) {
-      console.error('Failed to fetch shops:', err)
+    } catch {
+      setError('Network error — check your connection')
     } finally {
       setLoading(false)
     }
@@ -96,7 +93,17 @@ export default function AdminShopsPage() {
         </select>
       </div>
 
-      {loading && shops.length === 0 ? (
+      {error && shops.length === 0 ? (
+        <div className="text-center py-16">
+          <p className="text-sm text-red-500 mb-4">{error}</p>
+          <button
+            onClick={() => fetchShops(search, status, page)}
+            className="text-sm font-medium text-blue-600 hover:underline"
+          >
+            Retry
+          </button>
+        </div>
+      ) : loading && shops.length === 0 ? (
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="bg-gray-100 animate-pulse rounded-xl h-20" />
@@ -128,7 +135,7 @@ export default function AdminShopsPage() {
                   )}
                   <span
                     className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      statusBadge[shop.subscription_status] ?? 'bg-gray-100 text-gray-600'
+                      statusBadgeColors[shop.subscription_status] ?? 'bg-gray-100 text-gray-600'
                     }`}
                   >
                     {shop.subscription_status.replace('_', ' ')}

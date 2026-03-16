@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth/admin-guard'
 import { adminUpdateNotesSchema } from '@/lib/validation/schemas'
-import { updateShopNotes } from '@/lib/db/admin'
+import { updateShopNotes, shopExists } from '@/lib/db/admin'
+import { checkRateLimit } from '@/lib/utils/rateLimit'
 
 export async function PATCH(
   request: Request,
@@ -9,6 +10,9 @@ export async function PATCH(
 ) {
   const admin = await requireAdmin()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { limited } = checkRateLimit(request, { limit: 30, windowSecs: 60 })
+  if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
 
   const { id } = await params
 
@@ -25,6 +29,9 @@ export async function PATCH(
   }
 
   try {
+    if (!(await shopExists(id))) {
+      return NextResponse.json({ error: 'Shop not found' }, { status: 404 })
+    }
     await updateShopNotes(id, parsed.data.admin_notes)
     return NextResponse.json({ success: true })
   } catch (err) {

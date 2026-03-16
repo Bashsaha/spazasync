@@ -4,6 +4,9 @@ import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import type { AdminPayment, SubscriptionStatus } from '@/types'
 import { Skeleton } from '@/components/Skeleton'
+import { ConfirmModal } from '@/components/ConfirmModal'
+import { useToast } from '@/components/Toast'
+import { statusBadgeColors } from '@/lib/utils/statusBadge'
 
 interface ShopDetail {
   id: string
@@ -23,17 +26,12 @@ interface ShopDetail {
   recent_sales_count: number
 }
 
-const statusBadge: Record<SubscriptionStatus, string> = {
-  trialing: 'bg-blue-100 text-blue-700',
-  active: 'bg-green-100 text-green-700',
-  cancelled: 'bg-gray-100 text-gray-600',
-  expired: 'bg-red-100 text-red-700',
-  manual_override: 'bg-amber-100 text-amber-700',
-}
+const NOTES_MAX_LENGTH = 2000
 
 export default function AdminShopDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const { addToast } = useToast()
   const [shop, setShop] = useState<ShopDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -41,7 +39,6 @@ export default function AdminShopDetailPage() {
   // Notes state
   const [notes, setNotes] = useState('')
   const [notesSaving, setNotesSaving] = useState(false)
-  const [notesSaved, setNotesSaved] = useState(false)
 
   // Payment form state
   const [payAmount, setPayAmount] = useState('')
@@ -53,12 +50,12 @@ export default function AdminShopDetailPage() {
 
   // Access toggle
   const [accessToggling, setAccessToggling] = useState(false)
+  const [showRevokeConfirm, setShowRevokeConfirm] = useState(false)
 
   // Subscription management state
   const [subStatus, setSubStatus] = useState<SubscriptionStatus>('trialing')
   const [subEndDate, setSubEndDate] = useState('')
   const [subSaving, setSubSaving] = useState(false)
-  const [subSaved, setSubSaved] = useState(false)
 
   const fetchShop = useCallback(async () => {
     setLoading(true)
@@ -73,7 +70,6 @@ export default function AdminShopDetailPage() {
       setShop(data)
       setNotes(data.admin_notes ?? '')
       setSubStatus(data.subscription_status)
-      // Show the relevant end date based on status
       const endDate = data.subscription_status === 'trialing'
         ? data.trial_ends_at
         : data.subscription_ends_at
@@ -89,8 +85,18 @@ export default function AdminShopDetailPage() {
     fetchShop()
   }, [fetchShop])
 
+  function handleAccessClick() {
+    if (!shop) return
+    if (shop.access_granted) {
+      setShowRevokeConfirm(true)
+    } else {
+      handleToggleAccess()
+    }
+  }
+
   async function handleToggleAccess() {
     if (!shop) return
+    setShowRevokeConfirm(false)
     setAccessToggling(true)
     try {
       const res = await fetch(`/api/admin/shops/${id}/access`, {
@@ -100,9 +106,12 @@ export default function AdminShopDetailPage() {
       })
       if (res.ok) {
         setShop({ ...shop, access_granted: !shop.access_granted })
+        addToast(shop.access_granted ? 'Access revoked' : 'Access granted')
+      } else {
+        addToast('Failed to toggle access', 'error')
       }
-    } catch (err) {
-      console.error('Failed to toggle access:', err)
+    } catch {
+      addToast('Network error — could not toggle access', 'error')
     } finally {
       setAccessToggling(false)
     }
@@ -110,7 +119,6 @@ export default function AdminShopDetailPage() {
 
   async function handleUpdateSubscription() {
     setSubSaving(true)
-    setSubSaved(false)
     try {
       const body: Record<string, unknown> = { subscription_status: subStatus }
       if (subEndDate) {
@@ -127,12 +135,13 @@ export default function AdminShopDetailPage() {
         body: JSON.stringify(body),
       })
       if (res.ok) {
-        setSubSaved(true)
-        setTimeout(() => setSubSaved(false), 2000)
+        addToast('Subscription updated')
         await fetchShop()
+      } else {
+        addToast('Failed to update subscription', 'error')
       }
-    } catch (err) {
-      console.error('Failed to update subscription:', err)
+    } catch {
+      addToast('Network error — could not update subscription', 'error')
     } finally {
       setSubSaving(false)
     }
@@ -140,7 +149,6 @@ export default function AdminShopDetailPage() {
 
   async function handleSaveNotes() {
     setNotesSaving(true)
-    setNotesSaved(false)
     try {
       const res = await fetch(`/api/admin/shops/${id}/notes`, {
         method: 'PATCH',
@@ -148,11 +156,12 @@ export default function AdminShopDetailPage() {
         body: JSON.stringify({ admin_notes: notes }),
       })
       if (res.ok) {
-        setNotesSaved(true)
-        setTimeout(() => setNotesSaved(false), 2000)
+        addToast('Notes saved')
+      } else {
+        addToast('Failed to save notes', 'error')
       }
-    } catch (err) {
-      console.error('Failed to save notes:', err)
+    } catch {
+      addToast('Network error — could not save notes', 'error')
     } finally {
       setNotesSaving(false)
     }
@@ -174,14 +183,17 @@ export default function AdminShopDetailPage() {
         }),
       })
       if (res.ok) {
+        addToast('Payment recorded')
         setPayAmount('')
         setPayRef('')
         setPayNotes('')
         setPayActivate(false)
         await fetchShop()
+      } else {
+        addToast('Failed to record payment', 'error')
       }
-    } catch (err) {
-      console.error('Failed to record payment:', err)
+    } catch {
+      addToast('Network error — could not record payment', 'error')
     } finally {
       setPaySubmitting(false)
     }
@@ -212,8 +224,26 @@ export default function AdminShopDetailPage() {
     )
   }
 
+  const notesCountColor =
+    notes.length >= NOTES_MAX_LENGTH
+      ? 'text-red-500'
+      : notes.length >= 1900
+      ? 'text-amber-500'
+      : 'text-gray-400'
+
   return (
     <div className="space-y-6">
+      {/* Revoke access confirmation */}
+      {showRevokeConfirm && (
+        <ConfirmModal
+          message={`Revoke access for ${shop.name}? The owner will be locked out immediately.`}
+          confirmLabel="Revoke Access"
+          isDestructive
+          onConfirm={handleToggleAccess}
+          onCancel={() => setShowRevokeConfirm(false)}
+        />
+      )}
+
       {/* Back link */}
       <button
         onClick={() => router.push('/admin/shops')}
@@ -257,13 +287,13 @@ export default function AdminShopDetailPage() {
         <div className="flex items-center justify-between mb-4">
           <span
             className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-              statusBadge[shop.subscription_status] ?? 'bg-gray-100 text-gray-600'
+              statusBadgeColors[shop.subscription_status] ?? 'bg-gray-100 text-gray-600'
             }`}
           >
             {shop.subscription_status.replace('_', ' ')}
           </span>
           <button
-            onClick={handleToggleAccess}
+            onClick={handleAccessClick}
             disabled={accessToggling}
             className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
               shop.access_granted
@@ -306,18 +336,13 @@ export default function AdminShopDetailPage() {
               />
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleUpdateSubscription}
-              disabled={subSaving}
-              className="text-sm font-medium bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-            >
-              {subSaving ? 'Updating...' : 'Update Subscription'}
-            </button>
-            {subSaved && (
-              <span className="text-xs text-green-600">Updated</span>
-            )}
-          </div>
+          <button
+            onClick={handleUpdateSubscription}
+            disabled={subSaving}
+            className="text-sm font-medium bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          >
+            {subSaving ? 'Updating...' : 'Update Subscription'}
+          </button>
         </div>
       </div>
 
@@ -328,11 +353,15 @@ export default function AdminShopDetailPage() {
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={4}
+          maxLength={NOTES_MAX_LENGTH}
           className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
           placeholder="Internal notes about this shop..."
           aria-label="Admin notes"
         />
-        <div className="flex items-center gap-3 mt-2">
+        <div className="flex items-center justify-between mt-2">
+          <span className={`text-xs ${notesCountColor}`}>
+            {notes.length}/{NOTES_MAX_LENGTH}
+          </span>
           <button
             onClick={handleSaveNotes}
             disabled={notesSaving}
@@ -340,9 +369,6 @@ export default function AdminShopDetailPage() {
           >
             {notesSaving ? 'Saving...' : 'Save Notes'}
           </button>
-          {notesSaved && (
-            <span className="text-xs text-green-600">Saved</span>
-          )}
         </div>
       </div>
 

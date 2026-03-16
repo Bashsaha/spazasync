@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/Toast'
 
 const navLinks = [
   { href: '/admin', label: 'Overview' },
@@ -12,11 +13,20 @@ const navLinks = [
 export default function AdminNav() {
   const pathname = usePathname()
   const router = useRouter()
+  const { addToast } = useToast()
 
   async function handleSignOut() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/login')
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        addToast('Sign out failed', 'error')
+        return
+      }
+      router.push('/login')
+    } catch {
+      addToast('Sign out failed', 'error')
+    }
   }
 
   return (
