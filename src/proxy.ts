@@ -102,7 +102,9 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(dashUrl)
   }
 
-  // Admin users skip subscription gate — they don't belong to a shop
+  // Admin users skip subscription gate.
+  // Dual-role admins (with shop_id) can also access shop pages — API routes
+  // read shop_id from JWT metadata and RLS uses their shop_users row.
   if (role === 'admin') return supabaseResponse
 
   // ── Subscription gate ────────────────────────────────────

@@ -57,15 +57,15 @@ SpazaSync is a mobile-first PWA for South African spaza shop and small retail ow
 
 ### Access Matrix
 
-| Route | Owner | Teller | Admin |
+| Route | Owner | Teller | Admin (dual-role) |
 |---|---|---|---|
-| /dashboard | ✓ | ✗ | ✗ |
-| /sale | ✓ | ✓ | ✗ |
-| /stock-take | ✓ | ✗ | ✗ |
-| /products | ✓ | ✗ | ✗ |
-| /stock | ✓ | ✗ | ✗ |
-| /tellers | ✓ | ✗ | ✗ |
-| /settings | ✓ | ✗ | ✗ |
+| /dashboard | ✓ | ✗ | ✓ (if linked to shop) |
+| /sale | ✓ | ✓ | ✓ (if linked to shop) |
+| /stock-take | ✓ | ✗ | ✓ (if linked to shop) |
+| /products | ✓ | ✗ | ✓ (if linked to shop) |
+| /stock | ✓ | ✗ | ✓ (if linked to shop) |
+| /tellers | ✓ | ✗ | ✓ (if linked to shop) |
+| /settings | ✓ | ✗ | ✓ (if linked to shop) |
 | /admin/* | ✗ | ✗ | ✓ |
 
 ---
@@ -268,6 +268,7 @@ At the start of every session:
 - [x] Phase 15b: Admin Dashboard — Pages & API Routes
 - [x] Phase 15c: Admin Dashboard — Subscription & Access Logic
 - [x] Phase 15d: Admin Dashboard — Hardening & Polish
+- [x] Phase 15e: Admin Dual-Role — Shop Access for Admins
 
 ### Phase 1: Project Bootstrap — COMPLETE
 What was built:
@@ -520,6 +521,17 @@ What was built:
 - src/app/(app)/admin/shops/[id]/page.tsx — UPDATED: ConfirmModal before access revocation; Toast feedback on all actions; notes char counter (2000 max); uses shared statusBadge; removed inline "Saved" state in favor of toasts
 - src/components/admin/AdminNav.tsx — UPDATED: sign-out error handling with toast feedback
 - tests/unit/admin.test.ts — NEW: 28 tests covering statusBadgeColors, all 5 admin Zod schemas
+- 0 TypeScript errors, 153/153 tests passing
+
+### Phase 15e: Admin Dual-Role — Shop Access for Admins — COMPLETE
+What was built:
+- scripts/set-admin.ts — UPDATED: explicit metadata merge preserves shop_id on promotion; logs dual-role vs admin-only status
+- src/components/BottomNav.tsx — UPDATED: accepts hasShop prop; dual-role admins see 5 owner tabs + Admin tab
+- src/app/(app)/layout.tsx — UPDATED: reads shop_id from metadata, passes hasShop to BottomNav
+- src/components/admin/AdminNav.tsx — UPDATED: accepts hasShop prop; shows "My Shop" link to /dashboard
+- src/app/(app)/admin/layout.tsx — UPDATED: async server component, reads user session, passes hasShop to AdminNav
+- src/proxy.ts — UPDATED: clarifying comment for dual-role admin access (no functional change)
+- CLAUDE.md Access Matrix updated to reflect admin dual-role access
 - 0 TypeScript errors, 153/153 tests passing
 
 ---

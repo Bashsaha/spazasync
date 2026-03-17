@@ -13,6 +13,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!user) redirect('/login')
 
   const role = (user.app_metadata?.role as string) ?? 'owner'
+  const shopId = user.app_metadata?.shop_id as string | undefined
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -20,7 +21,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <OfflineSyncProvider>
           {children}
         </OfflineSyncProvider>
-        <BottomNav role={role} />
+        <BottomNav role={role} hasShop={!!shopId} />
       </ToastProvider>
     </div>
   )

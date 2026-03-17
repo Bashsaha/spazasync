@@ -47,9 +47,12 @@ async function main() {
     process.exit(1)
   }
 
-  // Set role to admin in app_metadata
+  const existingMeta = user.app_metadata ?? {}
+  const shopId = existingMeta.shop_id as string | undefined
+
+  // Explicitly merge to preserve shop_id and other metadata
   const { error: updateErr } = await admin.auth.admin.updateUserById(user.id, {
-    app_metadata: { role: 'admin' },
+    app_metadata: { ...existingMeta, role: 'admin' },
   })
 
   if (updateErr) {
@@ -58,6 +61,11 @@ async function main() {
   }
 
   console.log(`Successfully set ${email} (${user.id}) as admin.`)
+  if (shopId) {
+    console.log(`  shop_id: ${shopId} — dual-role access (admin + shop owner)`)
+  } else {
+    console.log(`  No shop linked — admin-only (no shop access)`)
+  }
 }
 
 main()

@@ -10,7 +10,7 @@ const navLinks = [
   { href: '/admin/shops', label: 'Shops' },
 ]
 
-export default function AdminNav() {
+export default function AdminNav({ hasShop }: { hasShop?: boolean }) {
   const pathname = usePathname()
   const router = useRouter()
   const { addToast } = useToast()
@@ -58,12 +58,22 @@ export default function AdminNav() {
             })}
           </nav>
         </div>
-        <button
-          onClick={handleSignOut}
-          className="text-sm text-gray-400 hover:text-gray-700 transition-colors"
-        >
-          Sign out
-        </button>
+        <div className="flex items-center gap-4">
+          {hasShop && (
+            <Link
+              href="/dashboard"
+              className="px-3 py-1.5 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+            >
+              My Shop &rarr;
+            </Link>
+          )}
+          <button
+            onClick={handleSignOut}
+            className="text-sm text-gray-400 hover:text-gray-700 transition-colors"
+          >
+            Sign out
+          </button>
+        </div>
       </div>
     </header>
   )

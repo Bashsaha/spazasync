@@ -21,16 +21,25 @@ const tellerNav: NavItem[] = [
   { href: '/sale', label: 'Sale', icon: '🧾' },
 ]
 
+const adminNav: NavItem[] = [
+  ...ownerNav,
+  { href: '/admin', label: 'Admin', icon: '⚙️' },
+]
+
 interface BottomNavProps {
   role: string
+  hasShop?: boolean
 }
 
-export function BottomNav({ role }: BottomNavProps) {
+export function BottomNav({ role, hasShop }: BottomNavProps) {
   const pathname = usePathname()
-  const items = role === 'teller' ? tellerNav : ownerNav
 
-  // Tellers and admins don't use the bottom nav
-  if (role === 'teller' || role === 'admin') return null
+  // Tellers only see sale tab
+  if (role === 'teller') return null
+  // Admin without a shop has no bottom nav (uses AdminNav instead)
+  if (role === 'admin' && !hasShop) return null
+
+  const items = role === 'admin' ? adminNav : ownerNav
 
   return (
     <nav
