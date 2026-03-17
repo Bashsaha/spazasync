@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createProductSchema } from '@/lib/validation/schemas'
+import { getCatalogEntry } from '@/lib/db/catalog'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -13,15 +14,40 @@ export async function GET(request: Request) {
   } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  // Barcode lookup: check shop products first, then fall back to shared catalog
+  if (barcode) {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('barcode', barcode)
+      .order('name')
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    if (data && data.length > 0) {
+      return NextResponse.json({ products: data })
+    }
+
+    // Not in shop's products — check shared catalog for a name suggestion
+    try {
+      const catalogHit = await getCatalogEntry(supabase, barcode)
+      return NextResponse.json({
+        products: [],
+        catalog_suggestion: catalogHit ?? undefined,
+      })
+    } catch {
+      return NextResponse.json({ products: [] })
+    }
+  }
+
+  // Search or list all — no catalog fallback needed
   const base = supabase.from('products').select('*').order('name')
-  const { data, error } = barcode
-    ? await base.eq('barcode', barcode)
-    : search
-      ? await base.or(`name.ilike.%${search}%,barcode.ilike.%${search}%`)
-      : await base
+  const { data, error } = search
+    ? await base.or(`name.ilike.%${search}%,barcode.ilike.%${search}%`)
+    : await base
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data)
+  return NextResponse.json({ products: data })
 }
 
 export async function POST(request: Request) {

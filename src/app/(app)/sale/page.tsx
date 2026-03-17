@@ -24,6 +24,7 @@ export default function SalePage() {
   const [isScannerOpen, setIsScannerOpen] = useState(false)
   const [isPickerOpen, setIsPickerOpen] = useState(false)
   const [unknownBarcode, setUnknownBarcode] = useState<string | null>(null)
+  const [catalogSuggestion, setCatalogSuggestion] = useState<{ barcode: string; name: string } | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
@@ -34,23 +35,29 @@ export default function SalePage() {
     try {
       const res = await fetch(`/api/products?barcode=${encodeURIComponent(barcode)}`)
       if (!res.ok) {
+        setCatalogSuggestion(null)
         setUnknownBarcode(barcode)
         return
       }
-      const products = (await res.json()) as Product[]
-      if (products.length === 0) {
-        setUnknownBarcode(barcode)
+      const json = await res.json()
+      const products = (json.products ?? json) as Product[]
+      if (products.length > 0) {
+        addItem(products[0])
         return
       }
-      addItem(products[0])
+      // No shop product — check if catalog had a suggestion
+      setCatalogSuggestion(json.catalog_suggestion ?? null)
+      setUnknownBarcode(barcode)
     } catch {
       // Network failed and SW has no cached match for this barcode
+      setCatalogSuggestion(null)
       setUnknownBarcode(barcode)
     }
   }
 
   function handleNewProductCreated(product: Product) {
     setUnknownBarcode(null)
+    setCatalogSuggestion(null)
     addItem(product)
   }
 
@@ -234,8 +241,9 @@ export default function SalePage() {
       {unknownBarcode && (
         <NewProductModal
           barcode={unknownBarcode}
+          suggestedName={catalogSuggestion?.name ?? null}
           onCreated={handleNewProductCreated}
-          onDismiss={() => setUnknownBarcode(null)}
+          onDismiss={() => { setUnknownBarcode(null); setCatalogSuggestion(null) }}
         />
       )}
     </>

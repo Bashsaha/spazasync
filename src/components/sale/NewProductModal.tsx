@@ -6,6 +6,8 @@ import type { Product } from '@/types'
 interface NewProductModalProps {
   /** The barcode that was scanned but not found in the catalogue. */
   barcode: string
+  /** Pre-filled name from the shared barcode catalog (if matched). */
+  suggestedName?: string | null
   /** Called with the newly created product so it can be added to the cart. */
   onCreated: (product: Product) => void
   /** Called when the user cancels without creating anything. */
@@ -16,8 +18,8 @@ interface NewProductModalProps {
  * Bottom-sheet modal shown when a scanned barcode has no matching product.
  * Lets the owner quick-create the product so the sale can continue.
  */
-export function NewProductModal({ barcode, onCreated, onDismiss }: NewProductModalProps) {
-  const [name, setName] = useState('')
+export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }: NewProductModalProps) {
+  const [name, setName] = useState(suggestedName ?? '')
   const [price, setPrice] = useState('')
   const [stock, setStock] = useState('0')
   const [isLoading, setIsLoading] = useState(false)
@@ -72,7 +74,9 @@ export function NewProductModal({ barcode, onCreated, onDismiss }: NewProductMod
         <h2 className="text-lg font-bold text-gray-900 mb-0.5">New Product</h2>
         <p className="text-sm text-gray-500 mb-5">
           Barcode <span className="font-mono text-gray-700">{barcode}</span> not in your catalogue.
-          Fill in the details to add it.
+          {suggestedName
+            ? ' We found a matching name — just set your price.'
+            : ' Fill in the details to add it.'}
         </p>
 
         {error && (

@@ -23,7 +23,10 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
           ? `/api/products?search=${encodeURIComponent(search.trim())}`
           : '/api/products'
         const res = await fetch(url, { signal: controller.signal })
-        if (res.ok) setProducts(await res.json())
+        if (res.ok) {
+          const json = await res.json()
+          setProducts(json.products ?? json)
+        }
       } catch {
         // ignore abort errors
       } finally {

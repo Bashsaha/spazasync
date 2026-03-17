@@ -17,7 +17,7 @@ export default function StockTakePage() {
   useEffect(() => {
     fetch('/api/products')
       .then((r) => r.json())
-      .then((data) => setProducts(data as Product[]))
+      .then((data) => setProducts((data.products ?? data) as Product[]))
       .catch(() => setError('Could not load products. Please refresh.'))
       .finally(() => setIsLoading(false))
   }, [])

@@ -45,10 +45,10 @@ SpazaSync is a mobile-first PWA for South African spaza shop and small retail ow
 ### Admin
 - Logs in with: **email + password** (same Supabase email auth)
 - Promoted via CLI script: `npx tsx scripts/set-admin.ts user@example.com`
-- Sees: **only /admin/* routes** — platform-level dashboard for managing all stores
-- Does NOT belong to any shop — no shop_users row, no RLS access
+- Sees: `/admin/*` routes — platform-level dashboard for managing all stores
+- **Dual-role (Phase 15e):** if promoted from an existing owner, retains `shop_id` and can access all shop pages too
 - Skips subscription gate entirely
-- All admin data access via service role (admin) client
+- Admin-only data access via service role (admin) client; shop data via RLS (if linked to a shop)
 
 ### Shop Code
 - Short identifier chosen by owner at onboarding (e.g. `CAPE99`, `MLUNGU01`)
@@ -271,6 +271,7 @@ At the start of every session:
 - [x] Phase 15d: Admin Dashboard — Hardening & Polish
 - [x] Phase 15e: Admin Dual-Role — Shop Access for Admins
 - [x] Phase 16a: Shared Barcode Catalog — Database + Backend Foundation
+- [x] Phase 16b: Shared Barcode Catalog — Scan Flow Integration
 
 ### Phase 1: Project Bootstrap — COMPLETE
 What was built:
@@ -544,11 +545,21 @@ What was built:
 - src/lib/db/catalog.ts — NEW: getCatalogEntry (user client), listCatalogEntries, createCatalogEntry, updateCatalogEntry, deleteCatalogEntry (admin client)
 - 0 TypeScript errors, 153/153 tests passing
 
+### Phase 16b: Shared Barcode Catalog — Scan Flow Integration — COMPLETE
+What was built:
+- src/app/api/products/route.ts — UPDATED: GET with ?barcode= now falls back to barcode_catalog if shop product not found; response shape changed from Product[] to { products: Product[], catalog_suggestion?: { barcode, name } }
+- src/app/(app)/sale/page.tsx — UPDATED: handleScan parses new response shape, passes catalogSuggestion to NewProductModal
+- src/components/sale/NewProductModal.tsx — UPDATED: accepts suggestedName prop, pre-fills name field, shows hint text when catalog matched
+- src/components/sale/ProductPicker.tsx — UPDATED: handles new response shape (json.products ?? json)
+- src/app/(app)/stock-take/page.tsx — UPDATED: handles new response shape (data.products ?? data)
+- CLAUDE.md Admin section updated to reflect dual-role (Phase 15e); file tree header fixed
+- 0 TypeScript errors, 153/153 tests passing
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 15d complete_
+_Last updated: Phase 16b complete_
 
 ```
 spaza shop/
