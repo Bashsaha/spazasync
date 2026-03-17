@@ -146,6 +146,22 @@ export const adminStoreListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
 })
 
+// ============================================================
+// Admin — Barcode Catalog
+// ============================================================
+
+export const adminCatalogEntrySchema = z.object({
+  barcode: z.string().min(1, 'Barcode is required').max(50),
+  name: z.string().min(1, 'Product name is required').max(200),
+  category: z.string().max(100).optional().transform((v) => v?.trim() || null),
+})
+
+export const adminCatalogSearchSchema = z.object({
+  search: z.string().max(100).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+})
+
 export const adminUpdateSubscriptionSchema = z.object({
   shop_id: z.string().uuid(),
   subscription_status: z.enum(['trialing', 'active', 'cancelled', 'expired', 'manual_override']),

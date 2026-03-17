@@ -211,6 +211,17 @@ export interface SessionUser {
   teller_id: string | null   // set if role === 'teller'; used to auto-select on sale page
 }
 
+// --- Shared barcode catalog ---
+
+export interface BarcodeCatalogEntry {
+  id: string
+  barcode: string
+  name: string
+  category: string | null
+  created_at: string
+  updated_at: string
+}
+
 // --- Admin dashboard ---
 
 export interface AdminPayment {

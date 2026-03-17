@@ -82,6 +82,7 @@ SpazaSync is a mobile-first PWA for South African spaza shop and small retail ow
 - `stock_take_entries` — product_id, qty_before, qty_after, teller_id, taken_at
 - `stock_adjustments` — product_id, qty_before, qty_after, delta, reason, adjusted_by, adjusted_at
 - `admin_payments` — shop_id, amount, method (eft/cash/card/other), reference, notes, recorded_by, recorded_at (no RLS — admin client only)
+- `barcode_catalog` — barcode (unique), name, category; RLS SELECT for all, writes via admin client only (Phase 16a)
 
 ### RLS helpers
 - `user_in_shop(shop_id)` — SECURITY DEFINER function
@@ -269,6 +270,7 @@ At the start of every session:
 - [x] Phase 15c: Admin Dashboard — Subscription & Access Logic
 - [x] Phase 15d: Admin Dashboard — Hardening & Polish
 - [x] Phase 15e: Admin Dual-Role — Shop Access for Admins
+- [x] Phase 16a: Shared Barcode Catalog — Database + Backend Foundation
 
 ### Phase 1: Project Bootstrap — COMPLETE
 What was built:
@@ -534,6 +536,14 @@ What was built:
 - CLAUDE.md Access Matrix updated to reflect admin dual-role access
 - 0 TypeScript errors, 153/153 tests passing
 
+### Phase 16a: Shared Barcode Catalog — Database + Backend Foundation — COMPLETE
+What was built:
+- supabase/migrations/007_barcode_catalog.sql — NEW: barcode_catalog table (barcode, name, category), RLS SELECT for all, no write policies (admin-only via service role)
+- src/types/index.ts — UPDATED: added BarcodeCatalogEntry interface
+- src/lib/validation/schemas.ts — UPDATED: added adminCatalogEntrySchema + adminCatalogSearchSchema
+- src/lib/db/catalog.ts — NEW: getCatalogEntry (user client), listCatalogEntries, createCatalogEntry, updateCatalogEntry, deleteCatalogEntry (admin client)
+- 0 TypeScript errors, 153/153 tests passing
+
 ---
 
 ## Current File Tree
@@ -688,7 +698,8 @@ spaza shop/
 │   │   │   ├── stock-take.ts       # saveStockTake (audit + update stock_qty)
 │   │   │   ├── stock.ts            # listProductsWithStock + adjustStock (Phase 8)
 │   │   │   ├── reports.ts          # getDailySalesForShop + getLowStockForShop (Phase 9)
-│   │   │   └── admin.ts            # Admin DB helpers: overview stats, list/detail shops, payments, access, notes (Phase 15b)
+│   │   │   ├── admin.ts            # Admin DB helpers: overview stats, list/detail shops, payments, access, notes (Phase 15b)
+│   │   │   └── catalog.ts          # Shared barcode catalog: getCatalogEntry + admin CRUD (Phase 16a)
 │   │   ├── offline/
 │   │   │   ├── db.ts               # IndexedDB via idb (enqueue/list/remove/count)
 │   │   │   └── sync.ts             # syncPendingSales (retry queue → server)
@@ -711,7 +722,8 @@ spaza shop/
 │       ├── 003_stock_adjustments.sql  # stock_adjustments audit table (Phase 8)
 │       ├── 004_optional_barcode.sql  # barcode nullable + partial unique index (Phase 13)
 │       ├── 005_subscriptions.sql    # subscription_status, trial_ends_at, subscription_ends_at, payfast_token (Phase 14)
-│       └── 006_admin_dashboard.sql  # access_granted, admin_notes, admin_payments table, manual_override status (Phase 15a)
+│       ├── 006_admin_dashboard.sql  # access_granted, admin_notes, admin_payments table, manual_override status (Phase 15a)
+│       └── 007_barcode_catalog.sql  # barcode_catalog table — shared product name lookup (Phase 16a)
 ├── scripts/
 │   └── set-admin.ts                # CLI: npx tsx scripts/set-admin.ts <email> — promotes user to admin (Phase 15a)
 ├── tasks/
