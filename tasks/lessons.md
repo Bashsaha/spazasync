@@ -32,4 +32,13 @@ _Update this file after every user correction. Write rules that prevent the same
 
 ---
 
+## Session 3
+
+### Lesson 5: Figure out the next phase from context — don't ask
+**What happened:** After completing Phase 16b, asked the user "what should the next phase be?" instead of reading the codebase state and figuring it out. Phase 16a built admin CRUD functions (list/create/update/delete catalog entries) with no UI — the obvious next step was Phase 16c: Admin Catalog Management UI.
+**Fix:** Before asking "what's next?", check what was built in the previous phases. Look for backend code without corresponding UI, or features referenced in CLAUDE.md that have no implementation yet.
+**Rule:** When determining the next phase: (1) read what the last phase built, (2) identify gaps (backend without UI, referenced but unbuilt features), (3) propose the next phase confidently. Don't dump a menu of options — figure it out.
+
+---
+
 _Add new lessons here as they occur._

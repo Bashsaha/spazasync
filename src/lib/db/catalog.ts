@@ -52,6 +52,24 @@ export async function listCatalogEntries(opts: {
 }
 
 /**
+ * Get a single catalog entry by ID (admin).
+ */
+export async function getCatalogEntryById(
+  id: string,
+): Promise<BarcodeCatalogEntry | null> {
+  const admin = createAdminClient()
+
+  const { data, error } = await admin
+    .from('barcode_catalog')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (error) throw error
+  return data as BarcodeCatalogEntry | null
+}
+
+/**
  * Create a new catalog entry.
  */
 export async function createCatalogEntry(

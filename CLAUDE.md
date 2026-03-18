@@ -272,6 +272,8 @@ At the start of every session:
 - [x] Phase 15e: Admin Dual-Role — Shop Access for Admins
 - [x] Phase 16a: Shared Barcode Catalog — Database + Backend Foundation
 - [x] Phase 16b: Shared Barcode Catalog — Scan Flow Integration
+- [x] Phase 16c: Shared Barcode Catalog — Admin Management UI
+- [ ] Phase 16d: Shared Barcode Catalog — Admin Bulk Import
 
 ### Phase 1: Project Bootstrap — COMPLETE
 What was built:
@@ -555,11 +557,25 @@ What was built:
 - CLAUDE.md Admin section updated to reflect dual-role (Phase 15e); file tree header fixed
 - 0 TypeScript errors, 153/153 tests passing
 
+### Phase 16c: Shared Barcode Catalog — Admin Management UI — COMPLETE
+What was built:
+- src/lib/db/catalog.ts — UPDATED: added getCatalogEntryById() for admin single-entry lookup
+- src/components/admin/AdminNav.tsx — UPDATED: added "Catalog" nav link
+- src/app/api/admin/catalog/route.ts — NEW: GET (list with search/pagination) + POST (create, 409 on duplicate barcode)
+- src/app/api/admin/catalog/[id]/route.ts — NEW: GET (single entry), PATCH (update name/category), DELETE
+- src/app/(app)/admin/catalog/page.tsx — NEW: catalog list with search, pagination, "Add Entry" button
+- src/app/(app)/admin/catalog/new/page.tsx — NEW: add entry form (barcode, name, category)
+- src/app/(app)/admin/catalog/[id]/page.tsx — NEW: edit/delete entry (barcode read-only, ConfirmModal on delete)
+- src/app/(app)/admin/catalog/loading.tsx — NEW: skeleton loader
+- All mutation API routes use requireAdmin() + checkRateLimit(30/60s) + schema validation
+- Shops cannot write to the catalog — admin-only via service role client
+- 0 TypeScript errors, 153/153 tests passing, production build succeeds
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 16b complete_
+_Last updated: Phase 16c complete_
 
 ```
 spaza shop/
@@ -624,10 +640,15 @@ spaza shop/
 │   │   │       ├── layout.tsx      # Admin layout (AdminNav + max-w-4xl)
 │   │   │       ├── loading.tsx     # Skeleton loader for admin overview
 │   │   │       ├── page.tsx        # Admin overview: 6 stat cards + link to shops
-│   │   │       └── shops/
-│   │   │           ├── loading.tsx     # Skeleton loader for shop list
-│   │   │           ├── page.tsx        # Shop list: search, status filter, pagination
-│   │   │           └── [id]/page.tsx   # Shop detail: info, access toggle, notes, payments
+│   │   │       ├── shops/
+│   │   │       │   ├── loading.tsx     # Skeleton loader for shop list
+│   │   │       │   ├── page.tsx        # Shop list: search, status filter, pagination
+│   │   │       │   └── [id]/page.tsx   # Shop detail: info, access toggle, notes, payments
+│   │   │       └── catalog/
+│   │   │           ├── loading.tsx     # Skeleton loader for catalog list (Phase 16c)
+│   │   │           ├── page.tsx        # Catalog list: search, pagination (Phase 16c)
+│   │   │           ├── new/page.tsx    # Add catalog entry form (Phase 16c)
+│   │   │           └── [id]/page.tsx   # Edit/delete catalog entry (Phase 16c)
 │   │   └── api/
 │   │       ├── auth/
 │   │       │   └── teller-login/route.ts  # Returns synthetic email
@@ -650,6 +671,9 @@ spaza shop/
 │   │       │   └── expire-subscriptions/route.ts # GET — 02:00 SAST daily; expires overdue trials/subs
 │   │       ├── admin/
 │   │       │   ├── overview/route.ts      # GET — admin aggregate stats
+│   │       │   ├── catalog/
+│   │       │   │   ├── route.ts           # GET — list catalog, POST — create entry (Phase 16c)
+│   │       │   │   └── [id]/route.ts      # GET — single entry, PATCH — update, DELETE (Phase 16c)
 │   │       │   └── shops/
 │   │       │       ├── route.ts           # GET — paginated shop list with search/filter
 │   │       │       └── [id]/
@@ -675,7 +699,7 @@ spaza shop/
 │   │   │   ├── BarcodeScanner.tsx         # Full-screen camera overlay
 │   │   │   └── ScannerOverlay.tsx         # Targeting reticle
 │   │   ├── admin/
-│   │   │   └── AdminNav.tsx               # Admin top nav: Overview | Shops + sign out (Phase 15b)
+│   │   │   └── AdminNav.tsx               # Admin top nav: Overview | Shops | Catalog + sign out (Phase 15b, 16c)
 │   │   ├── dashboard/
 │   │   │   └── WeeklySalesChart.tsx       # Client component; bar chart of last 7 days (recharts)
 │   │   ├── BottomNav.tsx                  # Owner bottom navigation bar (5 tabs)
@@ -710,7 +734,7 @@ spaza shop/
 │   │   │   ├── stock.ts            # listProductsWithStock + adjustStock (Phase 8)
 │   │   │   ├── reports.ts          # getDailySalesForShop + getLowStockForShop (Phase 9)
 │   │   │   ├── admin.ts            # Admin DB helpers: overview stats, list/detail shops, payments, access, notes (Phase 15b)
-│   │   │   └── catalog.ts          # Shared barcode catalog: getCatalogEntry + admin CRUD (Phase 16a)
+│   │   │   └── catalog.ts          # Shared barcode catalog: getCatalogEntry, getCatalogEntryById + admin CRUD (Phase 16a, 16c)
 │   │   ├── offline/
 │   │   │   ├── db.ts               # IndexedDB via idb (enqueue/list/remove/count)
 │   │   │   └── sync.ts             # syncPendingSales (retry queue → server)
