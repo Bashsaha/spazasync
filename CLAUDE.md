@@ -273,7 +273,7 @@ At the start of every session:
 - [x] Phase 16a: Shared Barcode Catalog — Database + Backend Foundation
 - [x] Phase 16b: Shared Barcode Catalog — Scan Flow Integration
 - [x] Phase 16c: Shared Barcode Catalog — Admin Management UI
-- [ ] Phase 16d: Shared Barcode Catalog — Admin Bulk Import
+- [x] Phase 16d: Shared Barcode Catalog — Pre-Live Database Seed
 
 ### Phase 1: Project Bootstrap — COMPLETE
 What was built:
@@ -571,6 +571,16 @@ What was built:
 - Shops cannot write to the catalog — admin-only via service role client
 - 0 TypeScript errors, 153/153 tests passing, production build succeeds
 
+### Phase 16d: Shared Barcode Catalog — Pre-Live Database Seed — COMPLETE
+What was built:
+- data/sa-products.csv — 100 common South African products with real EAN-13 barcodes (600/601 prefix), sourced from Open Food Facts SA database
+- scripts/seed-catalog.ts — CLI seed script: reads CSV, validates rows, batch upserts into barcode_catalog via Supabase admin client (ON CONFLICT DO NOTHING)
+- Categories: Beverages, Snacks, Dairy, Bread, Condiments, Cereals, Spreads, Canned Food, Cooking Oil, Confectionery, Tea, Pasta
+- Run with: `npx tsx scripts/seed-catalog.ts` (defaults to data/sa-products.csv)
+- Idempotent: safe to re-run, duplicates silently skipped
+- No app code changes, no new dependencies, no UI changes
+- 0 TypeScript errors, 153/153 tests passing, production build succeeds
+
 ---
 
 ## Current File Tree
@@ -759,8 +769,11 @@ spaza shop/
 │       ├── 005_subscriptions.sql    # subscription_status, trial_ends_at, subscription_ends_at, payfast_token (Phase 14)
 │       ├── 006_admin_dashboard.sql  # access_granted, admin_notes, admin_payments table, manual_override status (Phase 15a)
 │       └── 007_barcode_catalog.sql  # barcode_catalog table — shared product name lookup (Phase 16a)
+├── data/
+│   └── sa-products.csv             # 100 common SA products with EAN-13 barcodes for catalog seeding (Phase 16d)
 ├── scripts/
-│   └── set-admin.ts                # CLI: npx tsx scripts/set-admin.ts <email> — promotes user to admin (Phase 15a)
+│   ├── set-admin.ts                # CLI: npx tsx scripts/set-admin.ts <email> — promotes user to admin (Phase 15a)
+│   └── seed-catalog.ts             # CLI: npx tsx scripts/seed-catalog.ts [csv] — seeds barcode_catalog table (Phase 16d)
 ├── tasks/
 │   ├── todo.md
 │   ├── lessons.md
