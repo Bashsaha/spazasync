@@ -8,6 +8,8 @@ interface ShopSettings {
   code: string
   whatsapp_number: string | null
   low_stock_threshold: number
+  registration_number: string | null
+  location: string | null
   subscription_status: string | null
   trial_ends_at: string | null
   subscription_ends_at: string | null
@@ -18,6 +20,8 @@ export default function SettingsPage() {
   const [name, setName] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
   const [threshold, setThreshold] = useState(5)
+  const [regNumber, setRegNumber] = useState('')
+  const [location, setLocation] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
@@ -30,6 +34,8 @@ export default function SettingsPage() {
         setName(data.name)
         setWhatsapp(data.whatsapp_number ?? '')
         setThreshold(data.low_stock_threshold)
+        setRegNumber(data.registration_number ?? '')
+        setLocation(data.location ?? '')
       })
       .catch(() => setMessage({ type: 'err', text: 'Could not load settings.' }))
       .finally(() => setLoading(false))
@@ -47,6 +53,8 @@ export default function SettingsPage() {
         name: name.trim(),
         whatsapp_number: whatsapp.trim() || null,
         low_stock_threshold: threshold,
+        registration_number: regNumber.trim() || null,
+        location: location.trim() || null,
       }),
     })
 
@@ -161,6 +169,42 @@ export default function SettingsPage() {
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
             placeholder="e.g. Cape Town Corner Shop"
           />
+        </div>
+
+        {/* Registration number */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Registration number <span className="text-gray-400 font-normal">(optional)</span>
+          </label>
+          <input
+            type="text"
+            value={regNumber}
+            onChange={(e) => setRegNumber(e.target.value)}
+            maxLength={100}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
+            placeholder="e.g. CIPC or municipal reg number"
+          />
+          <p className="text-xs text-gray-400 mt-1">
+            Your CIPC or municipal registration number. Shows on compliance reports.
+          </p>
+        </div>
+
+        {/* Location */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Location <span className="text-gray-400 font-normal">(optional)</span>
+          </label>
+          <input
+            type="text"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            maxLength={200}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
+            placeholder="e.g. 12 Main Rd, Khayelitsha, Cape Town"
+          />
+          <p className="text-xs text-gray-400 mt-1">
+            Your shop address. Shows on compliance reports.
+          </p>
         </div>
 
         {/* WhatsApp number */}

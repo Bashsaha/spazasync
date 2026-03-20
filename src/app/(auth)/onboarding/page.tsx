@@ -6,13 +6,15 @@ import { createClient } from '@/lib/supabase/client'
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const [step, setStep] = useState<'signup' | 'email-sent' | 'setup'>('signup')
+  const [step, setStep] = useState<'signup' | 'email-sent' | 'setup' | 'done'>('signup')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [shopName, setShopName] = useState('')
-  const [shopCode, setShopCode] = useState('')
   const [ownerName, setOwnerName] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
+  const [registrationNumber, setRegistrationNumber] = useState('')
+  const [location, setLocation] = useState('')
+  const [generatedCode, setGeneratedCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -50,20 +52,15 @@ export default function OnboardingPage() {
     setError('')
     setLoading(true)
 
-    if (shopCode.length < 6 || !/^[A-Z0-9]+$/.test(shopCode)) {
-      setError('Shop code must be 6–10 letters and numbers only, e.g. CAPE99')
-      setLoading(false)
-      return
-    }
-
     const res = await fetch('/api/onboarding', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         shopName,
-        shopCode: shopCode.toUpperCase(),
         ownerName,
         whatsappNumber: whatsapp || undefined,
+        registrationNumber: registrationNumber || undefined,
+        location: location || undefined,
       }),
     })
 
@@ -75,10 +72,17 @@ export default function OnboardingPage() {
       return
     }
 
+    // Show the generated shop code before redirecting
+    setGeneratedCode(data.shopCode)
+    setStep('done')
+    setLoading(false)
+
     // Refresh the session to pick up the new app_metadata role
     const supabase = createClient()
     await supabase.auth.refreshSession()
+  }
 
+  function handleContinueToDashboard() {
     router.push('/dashboard')
   }
 
@@ -88,7 +92,7 @@ export default function OnboardingPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-blue-600">SpazaSync</h1>
           <p className="text-gray-500 mt-1 text-sm">
-            {step === 'signup' ? 'Create your owner account' : step === 'email-sent' ? 'Almost there!' : 'Set up your shop'}
+            {step === 'signup' ? 'Create your owner account' : step === 'email-sent' ? 'Almost there!' : step === 'done' ? 'You\'re all set!' : 'Set up your shop'}
           </p>
         </div>
 
@@ -111,6 +115,24 @@ export default function OnboardingPage() {
                 Go to sign in
               </a>
             </div>
+          ) : step === 'done' ? (
+            <div className="text-center space-y-4 py-2">
+              <div className="text-5xl">🎉</div>
+              <h2 className="text-lg font-bold text-gray-900">Shop created!</h2>
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <p className="text-sm text-gray-600 mb-1">Your shop code is</p>
+                <p className="text-3xl font-bold text-blue-600 tracking-wider">{generatedCode}</p>
+                <p className="text-xs text-gray-500 mt-2">
+                  Your tellers use this code to log in. You can find it in Settings anytime.
+                </p>
+              </div>
+              <button
+                onClick={handleContinueToDashboard}
+                className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition-colors text-base min-h-[48px]"
+              >
+                Go to my dashboard
+              </button>
+            </div>
           ) : step === 'signup' ? (
             <SignupForm
               email={email}
@@ -125,12 +147,14 @@ export default function OnboardingPage() {
             <ShopSetupForm
               shopName={shopName}
               setShopName={setShopName}
-              shopCode={shopCode}
-              setShopCode={setShopCode}
               ownerName={ownerName}
               setOwnerName={setOwnerName}
               whatsapp={whatsapp}
               setWhatsapp={setWhatsapp}
+              registrationNumber={registrationNumber}
+              setRegistrationNumber={setRegistrationNumber}
+              location={location}
+              setLocation={setLocation}
               error={error}
               loading={loading}
               onSubmit={handleSetup}
@@ -203,14 +227,17 @@ function SignupForm({
 // ── Step 2: Shop setup ───────────────────────────────────────
 
 function ShopSetupForm({
-  shopName, setShopName, shopCode, setShopCode,
+  shopName, setShopName,
   ownerName, setOwnerName, whatsapp, setWhatsapp,
+  registrationNumber, setRegistrationNumber,
+  location, setLocation,
   error, loading, onSubmit,
 }: {
   shopName: string; setShopName: (v: string) => void
-  shopCode: string; setShopCode: (v: string) => void
   ownerName: string; setOwnerName: (v: string) => void
   whatsapp: string; setWhatsapp: (v: string) => void
+  registrationNumber: string; setRegistrationNumber: (v: string) => void
+  location: string; setLocation: (v: string) => void
   error: string; loading: boolean; onSubmit: (e: React.FormEvent) => void
 }) {
   return (
@@ -230,22 +257,6 @@ function ShopSetupForm({
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Shop code</label>
-        <input
-          type="text"
-          value={shopCode}
-          onChange={(e) => setShopCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-          placeholder="e.g. MLUNGU01"
-          required
-          minLength={6}
-          maxLength={10}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base uppercase tracking-wider"
-        />
-        <p className="text-xs text-gray-400 mt-1">
-          Your tellers use this code to log in. 6–10 letters and numbers.
-        </p>
-      </div>
-      <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Your name</label>
         <input
           type="text"
@@ -257,6 +268,36 @@ function ShopSetupForm({
         />
         <p className="text-xs text-gray-400 mt-1">
           This is how you appear in the teller list when you serve customers yourself.
+        </p>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Registration number <span className="text-gray-400 font-normal">(optional)</span>
+        </label>
+        <input
+          type="text"
+          value={registrationNumber}
+          onChange={(e) => setRegistrationNumber(e.target.value)}
+          placeholder="e.g. CIPC or municipal reg number"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+        />
+        <p className="text-xs text-gray-400 mt-1">
+          You can add this later in Settings.
+        </p>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Location <span className="text-gray-400 font-normal">(optional)</span>
+        </label>
+        <input
+          type="text"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          placeholder="e.g. 12 Main Rd, Khayelitsha, Cape Town"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+        />
+        <p className="text-xs text-gray-400 mt-1">
+          You can add this later in Settings.
         </p>
       </div>
       <div>

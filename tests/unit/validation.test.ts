@@ -83,7 +83,6 @@ describe('tellerLoginSchema', () => {
 describe('onboardingSchema', () => {
   const validBase = {
     shopName: 'Cape Town Spaza',
-    shopCode: 'CAPE99',
     ownerName: 'Thabo',
     whatsappNumber: '+27821234567',
   }
@@ -91,12 +90,6 @@ describe('onboardingSchema', () => {
   it('accepts a valid full onboarding object', () => {
     const result = onboardingSchema.safeParse(validBase)
     expect(result.success).toBe(true)
-  })
-
-  it('transforms shopCode to uppercase', () => {
-    const result = onboardingSchema.safeParse({ ...validBase, shopCode: 'cape99' })
-    expect(result.success).toBe(true)
-    if (result.success) expect(result.data.shopCode).toBe('CAPE99')
   })
 
   it('allows missing whatsappNumber', () => {
@@ -115,18 +108,42 @@ describe('onboardingSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('rejects shopCode with spaces', () => {
-    const result = onboardingSchema.safeParse({ ...validBase, shopCode: 'CAPE 9' })
-    expect(result.success).toBe(false)
-  })
-
-  it('rejects shopCode shorter than 6 chars', () => {
-    const result = onboardingSchema.safeParse({ ...validBase, shopCode: 'ABC' })
-    expect(result.success).toBe(false)
-  })
-
   it('rejects empty shopName', () => {
     const result = onboardingSchema.safeParse({ ...validBase, shopName: '' })
+    expect(result.success).toBe(false)
+  })
+
+  it('accepts optional registrationNumber and location', () => {
+    const result = onboardingSchema.safeParse({
+      ...validBase,
+      registrationNumber: 'REG-2025-001',
+      location: '12 Main Rd, Khayelitsha',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('allows empty strings for registrationNumber and location', () => {
+    const result = onboardingSchema.safeParse({
+      ...validBase,
+      registrationNumber: '',
+      location: '',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects registrationNumber longer than 100 chars', () => {
+    const result = onboardingSchema.safeParse({
+      ...validBase,
+      registrationNumber: 'A'.repeat(101),
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects location longer than 200 chars', () => {
+    const result = onboardingSchema.safeParse({
+      ...validBase,
+      location: 'A'.repeat(201),
+    })
     expect(result.success).toBe(false)
   })
 })
@@ -397,6 +414,35 @@ describe('updateShopSettingsSchema', () => {
       name: 'My Shop',
       whatsapp_number: '0821234567',
       low_stock_threshold: 5,
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('accepts optional registration_number and location', () => {
+    const result = updateShopSettingsSchema.safeParse({
+      name: 'My Shop',
+      low_stock_threshold: 5,
+      registration_number: 'REG-123',
+      location: '12 Main Rd, Cape Town',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('accepts null registration_number and location', () => {
+    const result = updateShopSettingsSchema.safeParse({
+      name: 'My Shop',
+      low_stock_threshold: 5,
+      registration_number: null,
+      location: null,
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects registration_number longer than 100 chars', () => {
+    const result = updateShopSettingsSchema.safeParse({
+      name: 'My Shop',
+      low_stock_threshold: 5,
+      registration_number: 'A'.repeat(101),
     })
     expect(result.success).toBe(false)
   })

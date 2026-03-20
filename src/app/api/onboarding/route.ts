@@ -6,11 +6,42 @@ import { onboardingSchema } from '@/lib/validation/schemas'
 import { checkRateLimit } from '@/lib/utils/rateLimit'
 
 /**
+ * Auto-generate a short, unique shop code from the shop name.
+ * Format: first 4 alpha chars (uppercase, padded with X) + 2 random digits.
+ * Retries up to 5 times on uniqueness collision.
+ */
+async function generateShopCode(
+  shopName: string,
+  admin: ReturnType<typeof createAdminClient>,
+): Promise<string> {
+  const alpha = shopName.replace(/[^A-Za-z]/g, '').toUpperCase()
+  const prefix = (alpha + 'XXXX').slice(0, 4)
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const suffix = String(Math.floor(Math.random() * 100)).padStart(2, '0')
+    const code = prefix + suffix
+
+    const { data } = await admin
+      .from('shops')
+      .select('id')
+      .eq('code', code)
+      .maybeSingle()
+
+    if (!data) return code
+  }
+
+  // Fallback: extend suffix to 4 digits for guaranteed uniqueness
+  const suffix = String(Math.floor(Math.random() * 10000)).padStart(4, '0')
+  return prefix + suffix
+}
+
+/**
  * POST /api/onboarding
- * Body: { shopName, shopCode, ownerName, whatsappNumber? }
+ * Body: { shopName, ownerName, whatsappNumber?, registrationNumber?, location? }
  *
- * Creates the shop, maps the owner to it, and adds the owner as a teller entry.
- * Also sets app_metadata on the auth user so middleware can read their role.
+ * Creates the shop (with auto-generated code), maps the owner to it,
+ * and adds the owner as a teller entry.
+ * Also sets app_metadata on the auth user so proxy can read their role.
  */
 export async function POST(request: Request) {
   const { limited } = checkRateLimit(request, { limit: 3, windowSecs: 60 })
@@ -34,7 +65,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: firstError }, { status: 400 })
   }
 
-  const { shopName, shopCode, ownerName, whatsappNumber } = parsed.data
+  const { shopName, ownerName, whatsappNumber, registrationNumber, location } = parsed.data
 
   // Get the authenticated user from their session
   const supabase = await createClient()
@@ -62,7 +93,10 @@ export async function POST(request: Request) {
   // Use admin client for inserts (RLS blocks new rows before shop_users exists)
   const admin = createAdminClient()
 
-  // 1. Create the shop
+  // 1. Auto-generate a unique shop code
+  const shopCode = await generateShopCode(shopName, admin)
+
+  // 2. Create the shop
   const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
 
   const { data: shop, error: shopError } = await admin
@@ -71,6 +105,8 @@ export async function POST(request: Request) {
       name: shopName,
       code: shopCode,
       whatsapp_number: whatsappNumber || null,
+      registration_number: registrationNumber || null,
+      location: location || null,
       subscription_status: 'trialing',
       trial_ends_at: trialEndsAt,
     })
@@ -80,14 +116,14 @@ export async function POST(request: Request) {
   if (shopError) {
     if (shopError.code === '23505') {
       return NextResponse.json(
-        { error: 'That shop code is already taken. Try a different one.' },
+        { error: 'Could not generate a unique shop code. Please try again.' },
         { status: 409 },
       )
     }
     return NextResponse.json({ error: 'Failed to create shop.' }, { status: 500 })
   }
 
-  // 2. Create shop_users row (owner)
+  // 3. Create shop_users row (owner)
   const { error: shopUserError } = await admin.from('shop_users').insert({
     shop_id: shop.id,
     user_id: user.id,
@@ -100,7 +136,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to set up your account.' }, { status: 500 })
   }
 
-  // 3. Create a tellers entry for the owner (so they can select themselves on sale page)
+  // 4. Create a tellers entry for the owner (so they can select themselves on sale page)
   await admin.from('tellers').insert({
     shop_id: shop.id,
     name: ownerName,
@@ -108,14 +144,14 @@ export async function POST(request: Request) {
     active: true,
   })
 
-  // 4. Set app_metadata so middleware knows this user is an owner + trial status
+  // 5. Set app_metadata so proxy knows this user is an owner + trial status
   try {
     await setOwnerMetadata(user.id, shop.id, {
       sub_status: 'trialing',
       sub_until: trialEndsAt,
     })
   } catch {
-    // Not fatal — they can still use the app; middleware falls back to DB check
+    // Not fatal — they can still use the app; proxy falls back to DB check
   }
 
   return NextResponse.json({ shopId: shop.id, shopCode })

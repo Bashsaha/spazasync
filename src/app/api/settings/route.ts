@@ -25,7 +25,7 @@ export async function GET() {
   const supabase = await createClient()
   const { data: shop, error } = await supabase
     .from('shops')
-    .select('id, name, code, whatsapp_number, low_stock_threshold, subscription_status, trial_ends_at, subscription_ends_at')
+    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, subscription_status, trial_ends_at, subscription_ends_at')
     .eq('id', ctx.shopId)
     .single()
 
@@ -74,13 +74,19 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Only the shop owner can change settings' }, { status: 403 })
   }
 
-  const { name, whatsapp_number, low_stock_threshold } = parsed.data
+  const { name, whatsapp_number, low_stock_threshold, registration_number, location } = parsed.data
 
   const { data: updated, error } = await admin
     .from('shops')
-    .update({ name, whatsapp_number: whatsapp_number ?? null, low_stock_threshold })
+    .update({
+      name,
+      whatsapp_number: whatsapp_number ?? null,
+      low_stock_threshold,
+      registration_number: registration_number ?? null,
+      location: location ?? null,
+    })
     .eq('id', ctx.shopId)
-    .select('id, name, code, whatsapp_number, low_stock_threshold')
+    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location')
     .single()
 
   if (error) {

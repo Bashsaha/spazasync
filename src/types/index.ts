@@ -14,6 +14,8 @@ export interface Shop {
   code: string
   whatsapp_number: string | null
   low_stock_threshold: number
+  registration_number: string | null
+  location: string | null
   subscription_status: SubscriptionStatus
   trial_ends_at: string | null
   subscription_ends_at: string | null

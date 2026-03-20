@@ -274,6 +274,7 @@ At the start of every session:
 - [x] Phase 16b: Shared Barcode Catalog — Scan Flow Integration
 - [x] Phase 16c: Shared Barcode Catalog — Admin Management UI
 - [x] Phase 16d: Shared Barcode Catalog — Pre-Live Database Seed
+- [x] Phase 17a: Compliance — Onboarding + Shop Field Improvements
 
 ### Phase 1: Project Bootstrap — COMPLETE
 What was built:
@@ -581,11 +582,23 @@ What was built:
 - No app code changes, no new dependencies, no UI changes
 - 0 TypeScript errors, 153/153 tests passing, production build succeeds
 
+### Phase 17a: Compliance — Onboarding + Shop Field Improvements — COMPLETE
+What was built:
+- supabase/migrations/008_shop_fields.sql — NEW: ALTER shops ADD registration_number (TEXT), location (TEXT) — both nullable
+- src/types/index.ts — UPDATED: Shop interface gains registration_number + location fields
+- src/lib/validation/schemas.ts — UPDATED: onboardingSchema removes shopCode (now auto-generated), adds optional registrationNumber + location; updateShopSettingsSchema adds optional registration_number + location
+- src/app/api/onboarding/route.ts — UPDATED: auto-generates shop code from name (first 4 alpha chars + 2 random digits, retry on collision); inserts registration_number + location; returns generated code
+- src/app/(auth)/onboarding/page.tsx — UPDATED: removed shop code input; added optional Registration Number + Location fields; new "done" step shows generated code before redirecting
+- src/app/api/settings/route.ts — UPDATED: GET + PATCH include registration_number + location columns
+- src/app/(app)/settings/page.tsx — UPDATED: added Registration Number + Location input fields with helper text
+- tests/unit/validation.test.ts — UPDATED: onboarding tests rewritten (no shopCode), added registration_number/location tests for both schemas
+- 0 TypeScript errors, 53/53 validation tests passing (total test count adjusts: removed 3 shopCode tests, added 5 new field tests)
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 16c complete_
+_Last updated: Phase 17a complete_
 
 ```
 spaza shop/
@@ -768,7 +781,8 @@ spaza shop/
 │       ├── 004_optional_barcode.sql  # barcode nullable + partial unique index (Phase 13)
 │       ├── 005_subscriptions.sql    # subscription_status, trial_ends_at, subscription_ends_at, payfast_token (Phase 14)
 │       ├── 006_admin_dashboard.sql  # access_granted, admin_notes, admin_payments table, manual_override status (Phase 15a)
-│       └── 007_barcode_catalog.sql  # barcode_catalog table — shared product name lookup (Phase 16a)
+│       ├── 007_barcode_catalog.sql  # barcode_catalog table — shared product name lookup (Phase 16a)
+│       └── 008_shop_fields.sql     # registration_number + location columns on shops (Phase 17a)
 ├── data/
 │   └── sa-products.csv             # 100 common SA products with EAN-13 barcodes for catalog seeding (Phase 16d)
 ├── scripts/

@@ -22,18 +22,14 @@ export const tellerLoginSchema = z.object({
 
 export const onboardingSchema = z.object({
   shopName: z.string().min(1, 'Enter your shop name').max(100),
-  shopCode: z
-    .string()
-    .min(6, 'Shop code must be 6–10 characters')
-    .max(10, 'Shop code must be 6–10 characters')
-    .regex(/^[A-Z0-9]+$/i, 'Only letters and numbers allowed')
-    .transform((s) => s.toUpperCase()),
   ownerName: z.string().min(1, 'Enter your name').max(100),
   whatsappNumber: z
     .string()
     .regex(/^\+27\d{9}$/, 'Enter a valid SA number, e.g. +27821234567')
     .optional()
     .or(z.literal('')),
+  registrationNumber: z.string().max(100).optional().or(z.literal('')),
+  location: z.string().max(200).optional().or(z.literal('')),
 })
 
 // ============================================================
@@ -114,6 +110,8 @@ export const updateShopSettingsSchema = z.object({
     .int()
     .min(1, 'Must be at least 1')
     .max(9999),
+  registration_number: z.string().max(100).nullable().optional(),
+  location: z.string().max(200).nullable().optional(),
 })
 
 // ============================================================
