@@ -275,6 +275,11 @@ At the start of every session:
 - [x] Phase 16c: Shared Barcode Catalog — Admin Management UI
 - [x] Phase 16d: Shared Barcode Catalog — Pre-Live Database Seed
 - [x] Phase 17a: Compliance — Onboarding + Shop Field Improvements
+- [ ] Phase 17b: Compliance — Product Expiry Date Tracking (Batch System)
+- [ ] Phase 17c: Compliance — Report PDF Download
+- [ ] Phase 17d: Compliance — WhatsApp Expiry Warning
+
+**Phase 17 context:** South Africa mandated spaza shop compliance (R638). Inspectors check registration, stock records, and expiry date monitoring. Phase 17 adds: (a) registration number + location fields + auto-generated shop codes, (b) per-batch expiry date tracking with FEFO deduction during sales, (c) one-button PDF compliance report (shop info, current inventory, expiry register, 30-day stock movement), (d) expiry warning line in existing daily WhatsApp summary. Implementation order: 17a → 17b → 17d → 17c. Full plan at `.claude/plans/fluffy-orbiting-sonnet.md`.
 
 ### Phase 1: Project Bootstrap — COMPLETE
 What was built:
