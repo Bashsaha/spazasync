@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { listProductsWithStock, adjustStock } from '@/lib/db/stock'
+import { getExpiryStats, listExpiringProducts } from '@/lib/db/batches'
 import { stockAdjustSchema } from '@/lib/validation/schemas'
 
-/** GET /api/stock?search= — list products with stock levels */
+/** GET /api/stock?search=&expiring=1 — list products with stock levels (or expiring products) */
 export async function GET(request: Request) {
   const supabase = await createClient()
   const {
@@ -11,12 +12,32 @@ export async function GET(request: Request) {
   } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const shopId = user.app_metadata?.shop_id as string | undefined
+  if (!shopId) return NextResponse.json({ error: 'No shop' }, { status: 403 })
+
   const { searchParams } = new URL(request.url)
+
+  // If ?expiring=1, return expiring products list
+  if (searchParams.get('expiring') === '1') {
+    try {
+      const expiringProducts = await listExpiringProducts(shopId)
+      return NextResponse.json({ expiring_products: expiringProducts })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      return NextResponse.json({ error: message }, { status: 500 })
+    }
+  }
+
   const search = searchParams.get('search') ?? undefined
 
   try {
     const result = await listProductsWithStock(search)
-    return NextResponse.json(result)
+    // Also fetch expiry count for the summary strip
+    const stats = await getExpiryStats(shopId)
+    return NextResponse.json({
+      ...result,
+      expiring_count: stats.expiringProducts + stats.expiredProducts,
+    })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     return NextResponse.json({ error: message }, { status: 500 })

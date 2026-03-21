@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
-import type { Product } from '@/types'
+import type { Product, ProductBatch } from '@/types'
 import { formatZAR } from '@/lib/utils/currency'
+import { ConfirmModal } from '@/components/ConfirmModal'
 
 type Mode = 'add' | 'remove'
 
@@ -17,6 +18,28 @@ const REASONS = [
   'Counting correction',
   'Other',
 ]
+
+/** Classify a batch by its expiry date relative to today. */
+function expiryStatus(expiryDate: string): 'expired' | 'soon' | 'ok' {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const exp = new Date(expiryDate + 'T00:00:00')
+  if (exp < today) return 'expired'
+  const diff = (exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+  return diff <= 7 ? 'soon' : 'ok'
+}
+
+function expiryBadge(status: 'expired' | 'soon' | 'ok') {
+  if (status === 'expired') return 'bg-red-100 text-red-700'
+  if (status === 'soon') return 'bg-amber-100 text-amber-700'
+  return 'bg-green-100 text-green-700'
+}
+
+function expiryLabel(status: 'expired' | 'soon' | 'ok') {
+  if (status === 'expired') return 'Expired'
+  if (status === 'soon') return 'Expiring soon'
+  return 'OK'
+}
 
 export default function StockAdjustPage() {
   const router = useRouter()
@@ -32,11 +55,29 @@ export default function StockAdjustPage() {
   const [done, setDone] = useState(false)
   const [resultQty, setResultQty] = useState(0)
 
+  // Batch state
+  const [batches, setBatches] = useState<ProductBatch[]>([])
+  const [showAddBatch, setShowAddBatch] = useState(false)
+  const [batchDate, setBatchDate] = useState('')
+  const [batchQty, setBatchQty] = useState('')
+  const [batchSaving, setBatchSaving] = useState(false)
+  const [batchError, setBatchError] = useState('')
+  const [discardingId, setDiscardingId] = useState<string | null>(null)
+
   useEffect(() => {
     fetch(`/api/products/${params.id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((data: Product) => setProduct(data))
       .catch(() => setLoadError('Product not found.'))
+  }, [params.id])
+
+  // Load batches
+  useEffect(() => {
+    if (!params.id) return
+    fetch(`/api/batches?product_id=${params.id}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: ProductBatch[]) => setBatches(data))
+      .catch(() => {})
   }, [params.id])
 
   const parsedAmount = parseInt(amount, 10)
@@ -80,6 +121,56 @@ export default function StockAdjustPage() {
 
     setSaving(false)
   }
+
+  async function handleAddBatch(e: React.FormEvent) {
+    e.preventDefault()
+    if (!product) return
+    const qty = parseInt(batchQty, 10)
+    if (!batchDate || isNaN(qty) || qty < 1) return
+
+    setBatchSaving(true)
+    setBatchError('')
+
+    const res = await fetch('/api/batches', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        product_id: product.id,
+        expiry_date: batchDate,
+        quantity: qty,
+      }),
+    })
+
+    if (res.ok) {
+      const newBatch: ProductBatch = await res.json()
+      setBatches((prev) => [...prev, newBatch].sort((a, b) => a.expiry_date.localeCompare(b.expiry_date)))
+      setProduct((p) => (p ? { ...p, stock_qty: p.stock_qty + qty } : p))
+      setBatchDate('')
+      setBatchQty('')
+      setShowAddBatch(false)
+    } else {
+      const body = await res.json().catch(() => ({}))
+      setBatchError(body?.error ?? 'Could not add batch.')
+    }
+
+    setBatchSaving(false)
+  }
+
+  async function handleDiscardBatch(batchId: string) {
+    const batch = batches.find((b) => b.id === batchId)
+    if (!batch) return
+
+    const res = await fetch(`/api/batches/${batchId}`, { method: 'DELETE' })
+
+    if (res.ok) {
+      setBatches((prev) => prev.filter((b) => b.id !== batchId))
+      setProduct((p) => (p ? { ...p, stock_qty: Math.max(0, p.stock_qty - batch.quantity) } : p))
+    }
+    setDiscardingId(null)
+  }
+
+  const batchTotal = batches.reduce((sum, b) => sum + b.quantity, 0)
+  const untrackedQty = product ? Math.max(0, product.stock_qty - batchTotal) : 0
 
   /* ── Success screen ── */
   if (done && product) {
@@ -258,6 +349,125 @@ export default function StockAdjustPage() {
                 : `Remove ${validAmount ? parsedAmount : '…'} units`}
             </button>
           </form>
+
+          {/* ── Expiry Batches Section ── */}
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-bold text-gray-900">Expiry Batches</h2>
+              <button
+                type="button"
+                onClick={() => setShowAddBatch(!showAddBatch)}
+                className="text-sm font-semibold text-blue-600 active:text-blue-700"
+              >
+                {showAddBatch ? 'Cancel' : '+ Add batch'}
+              </button>
+            </div>
+
+            {/* Add batch form */}
+            {showAddBatch && (
+              <form onSubmit={handleAddBatch} className="bg-blue-50 rounded-xl p-4 mb-4 space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Expiry date
+                  </label>
+                  <input
+                    type="date"
+                    value={batchDate}
+                    onChange={(e) => setBatchDate(e.target.value)}
+                    required
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Quantity
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={batchQty}
+                    onChange={(e) => setBatchQty(e.target.value)}
+                    placeholder="How many units in this batch?"
+                    required
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                {batchError && (
+                  <p className="text-red-600 text-sm">{batchError}</p>
+                )}
+                <button
+                  type="submit"
+                  disabled={batchSaving || !batchDate || !batchQty}
+                  className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl text-sm active:bg-blue-700 disabled:opacity-50"
+                >
+                  {batchSaving ? 'Adding…' : 'Add batch'}
+                </button>
+                <p className="text-xs text-gray-500">
+                  Adding a batch also adds the quantity to your total stock.
+                </p>
+              </form>
+            )}
+
+            {/* Batch list */}
+            {batches.length === 0 ? (
+              <p className="text-sm text-gray-400">
+                No expiry batches tracked for this product. Tap &quot;+ Add batch&quot; to start tracking expiry dates.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {batches.map((b) => {
+                  const status = expiryStatus(b.expiry_date)
+                  return (
+                    <div
+                      key={b.id}
+                      className="bg-white rounded-xl border border-gray-100 p-3 flex items-center justify-between"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {new Date(b.expiry_date + 'T00:00:00').toLocaleDateString('en-ZA', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${expiryBadge(status)}`}>
+                            {expiryLabel(status)}
+                          </span>
+                          <span className="text-xs text-gray-500">{b.quantity} units</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setDiscardingId(b.id)}
+                        className="text-xs font-semibold text-red-500 active:text-red-700 px-3 py-1"
+                      >
+                        Discard
+                      </button>
+                    </div>
+                  )
+                })}
+
+                {/* Untracked stock note */}
+                {untrackedQty > 0 && (
+                  <p className="text-xs text-gray-400 mt-2">
+                    {untrackedQty} unit{untrackedQty !== 1 ? 's' : ''} have no expiry date tracked.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Discard confirm modal */}
+          {discardingId && (
+            <ConfirmModal
+              message="Discard this batch? The stock quantity will be reduced."
+              confirmLabel="Discard"
+              isDestructive
+              onConfirm={() => handleDiscardBatch(discardingId)}
+              onCancel={() => setDiscardingId(null)}
+            />
+          )}
         </>
       )}
     </main>

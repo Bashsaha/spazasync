@@ -73,20 +73,18 @@ describe('stockAdjustSchema security', () => {
 })
 
 describe('onboardingSchema security', () => {
-  it('rejects shopCode with SQL special characters', () => {
+  it('rejects shopName that is empty', () => {
     const result = onboardingSchema.safeParse({
-      shopName: 'Test',
-      shopCode: "SHOP'; --",
+      shopName: '',
       ownerName: 'Owner',
     })
     expect(result.success).toBe(false)
   })
 
-  it('rejects shopCode with hyphens', () => {
+  it('rejects ownerName that is empty', () => {
     const result = onboardingSchema.safeParse({
       shopName: 'Test',
-      shopCode: 'SHOP-01',
-      ownerName: 'Owner',
+      ownerName: '',
     })
     expect(result.success).toBe(false)
   })
@@ -94,7 +92,6 @@ describe('onboardingSchema security', () => {
   it('rejects whatsappNumber without country code prefix', () => {
     const result = onboardingSchema.safeParse({
       shopName: 'Test',
-      shopCode: 'SHOP01',
       ownerName: 'Owner',
       whatsappNumber: '0821234567',
     })
@@ -104,7 +101,6 @@ describe('onboardingSchema security', () => {
   it('rejects extremely long shopName', () => {
     const result = onboardingSchema.safeParse({
       shopName: 'A'.repeat(101),
-      shopCode: 'SHOP01',
       ownerName: 'Owner',
     })
     expect(result.success).toBe(false)

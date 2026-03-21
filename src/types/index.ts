@@ -213,6 +213,23 @@ export interface SessionUser {
   teller_id: string | null   // set if role === 'teller'; used to auto-select on sale page
 }
 
+// --- Product batches (expiry tracking) ---
+
+export interface ProductBatch {
+  id: string
+  shop_id: string
+  product_id: string
+  expiry_date: string   // DATE as YYYY-MM-DD
+  quantity: number
+  created_at: string
+}
+
+export interface AddBatchInput {
+  product_id: string
+  expiry_date: string   // YYYY-MM-DD
+  quantity: number
+}
+
 // --- Shared barcode catalog ---
 
 export interface BarcodeCatalogEntry {

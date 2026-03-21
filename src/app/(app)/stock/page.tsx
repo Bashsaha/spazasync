@@ -4,7 +4,17 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { ProductWithStock } from '@/lib/db/stock'
 
-type Tab = 'all' | 'low'
+type Tab = 'all' | 'low' | 'expiring'
+
+interface ExpiringProduct {
+  product_id: string
+  product_name: string
+  barcode: string | null
+  stock_qty: number
+  expired_qty: number
+  expiring_soon_qty: number
+  earliest_expiry: string | null
+}
 
 export default function StockPage() {
   const [products, setProducts] = useState<ProductWithStock[]>([])
@@ -14,12 +24,18 @@ export default function StockPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  // Expiry data (loaded lazily when tab selected)
+  const [expiringProducts, setExpiringProducts] = useState<ExpiringProduct[]>([])
+  const [expiryCount, setExpiryCount] = useState(0)
+  const [expiryLoaded, setExpiryLoaded] = useState(false)
+
   useEffect(() => {
     fetch('/api/stock')
       .then((r) => r.json())
-      .then((data: { products: ProductWithStock[]; threshold: number }) => {
+      .then((data: { products: ProductWithStock[]; threshold: number; expiring_count?: number }) => {
         setProducts(data.products ?? [])
         setThreshold(data.threshold ?? 5)
+        setExpiryCount(data.expiring_count ?? 0)
         setLoading(false)
       })
       .catch(() => {
@@ -28,8 +44,20 @@ export default function StockPage() {
       })
   }, [])
 
+  // Load expiring products when switching to the Expiring tab
+  useEffect(() => {
+    if (tab !== 'expiring' || expiryLoaded) return
+    fetch('/api/stock?expiring=1')
+      .then((r) => r.json())
+      .then((data: { expiring_products: ExpiringProduct[] }) => {
+        setExpiringProducts(data.expiring_products ?? [])
+        setExpiryLoaded(true)
+      })
+      .catch(() => {})
+  }, [tab, expiryLoaded])
+
   const filtered = products.filter((p) => {
-    const matchesTab = tab === 'all' || p.low_stock
+    const matchesTab = tab === 'all' || (tab === 'low' && p.low_stock)
     const matchesSearch =
       !search ||
       p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -52,7 +80,7 @@ export default function StockPage() {
 
       {/* Summary strip */}
       {!loading && !error && (
-        <div className="grid grid-cols-3 gap-3 mb-5">
+        <div className="grid grid-cols-4 gap-2 mb-5">
           <div className="bg-white rounded-2xl p-3 border border-gray-100 text-center shadow-sm">
             <p className="text-xl font-bold text-gray-900">{products.length}</p>
             <p className="text-xs text-gray-500 mt-0.5">Products</p>
@@ -65,7 +93,7 @@ export default function StockPage() {
             <p className={`text-xl font-bold ${lowCount > 0 ? 'text-amber-600' : 'text-gray-900'}`}>
               {lowCount}
             </p>
-            <p className="text-xs text-gray-500 mt-0.5">Low stock</p>
+            <p className="text-xs text-gray-500 mt-0.5">Low</p>
           </div>
           <div
             className={`rounded-2xl p-3 border text-center shadow-sm ${
@@ -75,7 +103,17 @@ export default function StockPage() {
             <p className={`text-xl font-bold ${outCount > 0 ? 'text-red-600' : 'text-gray-900'}`}>
               {outCount}
             </p>
-            <p className="text-xs text-gray-500 mt-0.5">Out of stock</p>
+            <p className="text-xs text-gray-500 mt-0.5">Out</p>
+          </div>
+          <div
+            className={`rounded-2xl p-3 border text-center shadow-sm ${
+              expiryCount > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-100'
+            }`}
+          >
+            <p className={`text-xl font-bold ${expiryCount > 0 ? 'text-amber-600' : 'text-gray-900'}`}>
+              {expiryCount}
+            </p>
+            <p className="text-xs text-gray-500 mt-0.5">Expiring</p>
           </div>
         </div>
       )}
@@ -91,17 +129,17 @@ export default function StockPage() {
 
       {/* Tabs */}
       <div className="flex gap-2 mb-4">
-        {(['all', 'low'] as Tab[]).map((t) => (
+        {(['all', 'low', 'expiring'] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+            className={`px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
               tab === t
                 ? 'bg-blue-600 text-white'
                 : 'bg-white border border-gray-200 text-gray-600 active:bg-gray-50'
             }`}
           >
-            {t === 'all' ? 'All products' : `Low stock (${lowCount})`}
+            {t === 'all' ? 'All' : t === 'low' ? `Low (${lowCount})` : `Expiring (${expiryCount})`}
           </button>
         ))}
       </div>
@@ -115,13 +153,56 @@ export default function StockPage() {
         <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4 mb-4">{error}</div>
       )}
 
-      {!loading && !error && filtered.length === 0 && (
+      {/* Expiring tab */}
+      {!loading && !error && tab === 'expiring' && (
+        <>
+          {expiringProducts.length === 0 && expiryLoaded && (
+            <p className="text-center text-gray-400 text-sm mt-12">
+              No products expiring soon — great job!
+            </p>
+          )}
+          {expiringProducts.length > 0 && (
+            <ul className="space-y-2">
+              {expiringProducts.map((ep) => (
+                <li key={ep.product_id}>
+                  <Link
+                    href={`/stock/${ep.product_id}`}
+                    className="flex items-center justify-between bg-white rounded-2xl p-4 border border-gray-100 shadow-sm active:bg-gray-50"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-semibold text-gray-900 truncate">{ep.product_name}</p>
+                      {ep.barcode && (
+                        <p className="text-xs text-gray-400 font-mono mt-0.5">{ep.barcode}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 ml-4 shrink-0">
+                      {ep.expired_qty > 0 && (
+                        <span className="text-xs font-bold px-2 py-1 rounded-lg bg-red-100 text-red-700">
+                          {ep.expired_qty} expired
+                        </span>
+                      )}
+                      {ep.expiring_soon_qty > 0 && (
+                        <span className="text-xs font-bold px-2 py-1 rounded-lg bg-amber-100 text-amber-700">
+                          {ep.expiring_soon_qty} soon
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
+
+      {/* All / Low tabs */}
+      {!loading && !error && tab !== 'expiring' && filtered.length === 0 && (
         <p className="text-center text-gray-400 text-sm mt-12">
           {tab === 'low' ? 'No low-stock items — great job!' : 'No products found.'}
         </p>
       )}
 
-      {!loading && !error && filtered.length > 0 && (
+      {!loading && !error && tab !== 'expiring' && filtered.length > 0 && (
         <ul className="space-y-2">
           {filtered.map((p) => {
             const isOut = p.stock_qty === 0

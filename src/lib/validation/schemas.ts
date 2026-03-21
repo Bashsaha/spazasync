@@ -115,6 +115,16 @@ export const updateShopSettingsSchema = z.object({
 })
 
 // ============================================================
+// Product batches (expiry tracking)
+// ============================================================
+
+export const addBatchSchema = z.object({
+  product_id: z.string().uuid(),
+  expiry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use date format YYYY-MM-DD'),
+  quantity: z.number().int().positive('Quantity must be at least 1'),
+})
+
+// ============================================================
 // Admin
 // ============================================================
 

@@ -275,7 +275,7 @@ At the start of every session:
 - [x] Phase 16c: Shared Barcode Catalog — Admin Management UI
 - [x] Phase 16d: Shared Barcode Catalog — Pre-Live Database Seed
 - [x] Phase 17a: Compliance — Onboarding + Shop Field Improvements
-- [ ] Phase 17b: Compliance — Product Expiry Date Tracking (Batch System)
+- [x] Phase 17b: Compliance — Product Expiry Date Tracking (Batch System)
 - [ ] Phase 17c: Compliance — Report PDF Download
 - [ ] Phase 17d: Compliance — WhatsApp Expiry Warning
 
@@ -599,11 +599,27 @@ What was built:
 - tests/unit/validation.test.ts — UPDATED: onboarding tests rewritten (no shopCode), added registration_number/location tests for both schemas
 - 0 TypeScript errors, 53/53 validation tests passing (total test count adjusts: removed 3 shopCode tests, added 5 new field tests)
 
+### Phase 17b: Compliance — Product Expiry Date Tracking (Batch System) — COMPLETE
+What was built:
+- supabase/migrations/009_product_batches.sql — NEW: product_batches table (id, shop_id, product_id, expiry_date, quantity), RLS via user_in_shop, decrement_stock_fefo SQL function (FEFO batch consumption)
+- src/types/index.ts — UPDATED: added ProductBatch + AddBatchInput interfaces
+- src/lib/validation/schemas.ts — UPDATED: added addBatchSchema (product_id, expiry_date YYYY-MM-DD, quantity)
+- src/lib/db/batches.ts — NEW: listBatchesForProduct, addBatch (insert + increment stock), removeBatch (discard + decrement stock), getExpiryStats, listExpiringProducts
+- src/lib/db/sales.ts — UPDATED: swapped decrement_stock → decrement_stock_fefo RPC (FEFO deduction is transparent to sale flow)
+- src/app/api/batches/route.ts — NEW: GET (list batches for product), POST (add batch with expiry)
+- src/app/api/batches/[id]/route.ts — NEW: DELETE (discard batch, decrement stock)
+- src/app/api/stock/route.ts — UPDATED: returns expiring_count in GET response; ?expiring=1 returns expiring products list
+- src/app/(app)/stock/[id]/page.tsx — UPDATED: added Expiry Batches section (batch list with color-coded status, add batch form, discard with confirmation)
+- src/app/(app)/stock/page.tsx — UPDATED: added 4th summary card (Expiring count), 3rd tab (Expiring) with expired/expiring-soon product list
+- tests/unit/batches.test.ts — NEW: 14 tests for addBatchSchema validation (format, boundaries, rejections)
+- tests/unit/security.test.ts — FIXED: 2 pre-existing failures from Phase 17a shopCode removal (tests updated to test empty shopName/ownerName instead)
+- 0 TypeScript errors, 171/171 tests passing, production build succeeds
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 17a complete_
+_Last updated: Phase 17b complete_
 
 ```
 spaza shop/
@@ -685,9 +701,12 @@ spaza shop/
 │   │       │   ├── route.ts               # GET list, POST create
 │   │       │   └── [id]/route.ts          # GET by id, PATCH, DELETE
 │   │       ├── sales/
-│   │       │   └── route.ts               # POST — complete a sale
+│   │       │   └── route.ts               # POST — complete a sale (uses decrement_stock_fefo)
+│   │       ├── batches/
+│   │       │   ├── route.ts               # GET list batches for product, POST add batch (Phase 17b)
+│   │       │   └── [id]/route.ts          # DELETE — discard batch (Phase 17b)
 │   │       ├── stock/
-│   │       │   └── route.ts               # GET list with low_stock flag, POST adjust qty
+│   │       │   └── route.ts               # GET list with low_stock flag + expiry count, POST adjust qty
 │   │       ├── stock-take/
 │   │       │   └── route.ts               # POST — save stock take
 │   │       ├── subscribe/
@@ -762,7 +781,8 @@ spaza shop/
 │   │   │   ├── stock.ts            # listProductsWithStock + adjustStock (Phase 8)
 │   │   │   ├── reports.ts          # getDailySalesForShop + getLowStockForShop (Phase 9)
 │   │   │   ├── admin.ts            # Admin DB helpers: overview stats, list/detail shops, payments, access, notes (Phase 15b)
-│   │   │   └── catalog.ts          # Shared barcode catalog: getCatalogEntry, getCatalogEntryById + admin CRUD (Phase 16a, 16c)
+│   │   │   ├── catalog.ts          # Shared barcode catalog: getCatalogEntry, getCatalogEntryById + admin CRUD (Phase 16a, 16c)
+│   │   │   └── batches.ts          # Product batch CRUD + expiry stats (Phase 17b)
 │   │   ├── offline/
 │   │   │   ├── db.ts               # IndexedDB via idb (enqueue/list/remove/count)
 │   │   │   └── sync.ts             # syncPendingSales (retry queue → server)
@@ -787,7 +807,8 @@ spaza shop/
 │       ├── 005_subscriptions.sql    # subscription_status, trial_ends_at, subscription_ends_at, payfast_token (Phase 14)
 │       ├── 006_admin_dashboard.sql  # access_granted, admin_notes, admin_payments table, manual_override status (Phase 15a)
 │       ├── 007_barcode_catalog.sql  # barcode_catalog table — shared product name lookup (Phase 16a)
-│       └── 008_shop_fields.sql     # registration_number + location columns on shops (Phase 17a)
+│       ├── 008_shop_fields.sql     # registration_number + location columns on shops (Phase 17a)
+│       └── 009_product_batches.sql # product_batches table + decrement_stock_fefo function (Phase 17b)
 ├── data/
 │   └── sa-products.csv             # 100 common SA products with EAN-13 barcodes for catalog seeding (Phase 16d)
 ├── scripts/
@@ -806,5 +827,6 @@ spaza shop/
         ├── rate-limit.test.ts      # 7 tests  — in-memory rate limiter (Phase 12)
         ├── security.test.ts        # 15 tests — schema rejection of malformed input (Phase 12)
         ├── payfast.test.ts         # 12 tests — PayFast signature, checkout params, IP validation, expiry logic (Phase 14)
-        └── admin.test.ts          # 28 tests — statusBadge, admin Zod schemas (Phase 15d)
+        ├── admin.test.ts          # 28 tests — statusBadge, admin Zod schemas (Phase 15d)
+        └── batches.test.ts        # 14 tests — addBatchSchema validation (Phase 17b)
 ```
