@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { getDailySalesForShop, getLowStockForShop } from '@/lib/db/reports'
+import { getDailySalesForShop, getLowStockForShop, getExpiringProductsForShop } from '@/lib/db/reports'
 import { formatDailySummary } from '@/lib/whatsapp/format'
 import { sendWhatsApp } from '@/lib/whatsapp/client'
 
@@ -41,12 +41,13 @@ export async function GET(request: Request) {
     try {
       // All queries in getDailySalesForShop + getLowStockForShop are explicitly
       // scoped to shop.id — no cross-shop data leakage is possible.
-      const [summary, lowStock] = await Promise.all([
+      const [summary, lowStock, expiringProducts] = await Promise.all([
         getDailySalesForShop(shop.id, today),
         getLowStockForShop(shop.id, shop.low_stock_threshold),
+        getExpiringProductsForShop(shop.id),
       ])
 
-      const message = formatDailySummary(shop.name, summary, lowStock, today)
+      const message = formatDailySummary(shop.name, summary, lowStock, expiringProducts, today)
 
       await sendWhatsApp(shop.whatsapp_number, message)
       sent++

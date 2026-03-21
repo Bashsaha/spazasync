@@ -277,7 +277,7 @@ At the start of every session:
 - [x] Phase 17a: Compliance — Onboarding + Shop Field Improvements
 - [x] Phase 17b: Compliance — Product Expiry Date Tracking (Batch System)
 - [ ] Phase 17c: Compliance — Report PDF Download
-- [ ] Phase 17d: Compliance — WhatsApp Expiry Warning
+- [x] Phase 17d: Compliance — WhatsApp Expiry Warning
 
 **Phase 17 context:** South Africa mandated spaza shop compliance (R638). Inspectors check registration, stock records, and expiry date monitoring. Phase 17 adds: (a) registration number + location fields + auto-generated shop codes, (b) per-batch expiry date tracking with FEFO deduction during sales, (c) one-button PDF compliance report (shop info, current inventory, expiry register, 30-day stock movement), (d) expiry warning line in existing daily WhatsApp summary. Implementation order: 17a → 17b → 17d → 17c. Full plan at `.claude/plans/fluffy-orbiting-sonnet.md`.
 
@@ -615,11 +615,20 @@ What was built:
 - tests/unit/security.test.ts — FIXED: 2 pre-existing failures from Phase 17a shopCode removal (tests updated to test empty shopName/ownerName instead)
 - 0 TypeScript errors, 171/171 tests passing, production build succeeds
 
+### Phase 17d: Compliance — WhatsApp Expiry Warning — COMPLETE
+What was built:
+- src/types/index.ts — UPDATED: added ExpiringProductAlert interface (name, expired_qty, expiring_soon_qty, earliest_expiry)
+- src/lib/db/reports.ts — UPDATED: added getExpiringProductsForShop() — admin client query for expired/expiring-soon batches per shop
+- src/lib/whatsapp/format.ts — UPDATED: formatDailySummary() accepts optional expiringProducts param; renders ⏰ Expiry alert section with expired counts, expiring-soon counts, and earliest expiry dates
+- src/app/api/cron/daily-summary/route.ts — UPDATED: calls getExpiringProductsForShop() in parallel with existing queries; passes results to formatter
+- tests/unit/whatsapp-format.test.ts — UPDATED: 14 tests (9 existing updated for new param + 5 new expiry tests)
+- 0 TypeScript errors, 176/176 tests passing, production build succeeds
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 17b complete_
+_Last updated: Phase 17d complete_
 
 ```
 spaza shop/
@@ -821,7 +830,7 @@ spaza shop/
 └── tests/
     └── unit/
         ├── currency.test.ts        # 16 tests — formatZAR, parsePrice, calcSubtotal, calcTotal
-        ├── whatsapp-format.test.ts # 9 tests  — formatDailySummary
+        ├── whatsapp-format.test.ts # 14 tests — formatDailySummary + expiry alerts (Phase 17d)
         ├── validation.test.ts      # 49 tests — all 10 Zod schemas (Phase 12)
         ├── date.test.ts            # 17 tests — SAST timezone helpers (Phase 12)
         ├── rate-limit.test.ts      # 7 tests  — in-memory rate limiter (Phase 12)

@@ -266,6 +266,13 @@ export interface AdminShopListItem {
   last_payment_at: string | null
 }
 
+export interface ExpiringProductAlert {
+  name: string
+  expired_qty: number
+  expiring_soon_qty: number
+  earliest_expiry: string // YYYY-MM-DD
+}
+
 export interface AdminOverviewStats {
   totalShops: number
   activeShops: number

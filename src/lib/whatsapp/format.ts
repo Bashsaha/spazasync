@@ -1,5 +1,6 @@
-import type { DailySummaryData, LowStockItem } from '@/types'
-import { formatInTimeZone } from 'date-fns-tz'
+import type { DailySummaryData, LowStockItem, ExpiringProductAlert } from '@/types'
+import { formatInTimeZone, toZonedTime } from 'date-fns-tz'
+import { format as formatDate } from 'date-fns'
 import { SAST_TZ } from '@/lib/utils/date'
 
 function formatRand(amount: number): string {
@@ -14,6 +15,7 @@ export function formatDailySummary(
   shopName: string,
   data: DailySummaryData,
   lowStock: LowStockItem[],
+  expiringProducts: ExpiringProductAlert[] = [],
   date: Date = new Date(),
 ): string {
   const dateStr = formatInTimeZone(date, SAST_TZ, 'EEEE, d MMM yyyy')
@@ -49,6 +51,25 @@ export function formatDailySummary(
       } else {
         lines.push(`  • ${item.name} — ${item.stock_qty} left`)
       }
+    }
+  }
+
+  if (expiringProducts.length > 0) {
+    lines.push('')
+    lines.push(`⏰ Expiry alert (${expiringProducts.length} item${expiringProducts.length !== 1 ? 's' : ''}):`)
+    for (const item of expiringProducts) {
+      const parts: string[] = []
+      if (item.expired_qty > 0) {
+        parts.push(`${item.expired_qty} expired`)
+      }
+      if (item.expiring_soon_qty > 0) {
+        // Format earliest_expiry as "d MMM" (e.g. "25 Mar")
+        const expiryDate = new Date(item.earliest_expiry + 'T00:00:00+02:00')
+        const zonedDate = toZonedTime(expiryDate, SAST_TZ)
+        const dateLabel = formatDate(zonedDate, 'd MMM')
+        parts.push(`${item.expiring_soon_qty} expiring (earliest: ${dateLabel})`)
+      }
+      lines.push(`  • ${item.name} — ${parts.join(', ')}`)
     }
   }
 

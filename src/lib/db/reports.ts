@@ -2,7 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { formatInTimeZone } from 'date-fns-tz'
 import { subDays } from 'date-fns'
 import { SAST_TZ } from '@/lib/utils/date'
-import type { DailySummaryData, LowStockItem, WeeklyDataPoint, RecentSale, TopProduct } from '@/types'
+import type { DailySummaryData, LowStockItem, WeeklyDataPoint, RecentSale, TopProduct, ExpiringProductAlert } from '@/types'
 
 /**
  * Returns ISO boundaries for a given date in SAST (Africa/Johannesburg, UTC+2).
@@ -241,4 +241,76 @@ export async function getLowStockForShop(
   if (error) throw error
 
   return (data ?? []).map((p) => ({ name: p.name, stock_qty: p.stock_qty }))
+}
+
+/**
+ * Get products with expired or expiring-soon batches for a single shop.
+ * Uses the admin client — no auth needed; scoped by shopId.
+ * "Expiring soon" = expiry_date between today and today + 7 days (inclusive).
+ */
+export async function getExpiringProductsForShop(
+  shopId: string,
+): Promise<ExpiringProductAlert[]> {
+  const admin = createAdminClient()
+
+  const today = formatInTimeZone(new Date(), SAST_TZ, 'yyyy-MM-dd')
+  const sevenDaysFromNow = new Date()
+  sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7)
+  const soonDate = formatInTimeZone(sevenDaysFromNow, SAST_TZ, 'yyyy-MM-dd')
+
+  // Get all non-zero batches that are expired or expiring within 7 days
+  const { data: batches, error } = await admin
+    .from('product_batches')
+    .select('product_id, expiry_date, quantity')
+    .eq('shop_id', shopId)
+    .gt('quantity', 0)
+    .lte('expiry_date', soonDate)
+    .order('expiry_date', { ascending: true })
+
+  if (error) throw error
+  if (!batches || batches.length === 0) return []
+
+  // Group by product_id
+  const productMap = new Map<
+    string,
+    { expired_qty: number; expiring_soon_qty: number; earliest_expiry: string }
+  >()
+
+  for (const b of batches) {
+    const entry = productMap.get(b.product_id) ?? {
+      expired_qty: 0,
+      expiring_soon_qty: 0,
+      earliest_expiry: b.expiry_date,
+    }
+    if (b.expiry_date < today) {
+      entry.expired_qty += b.quantity
+    } else {
+      entry.expiring_soon_qty += b.quantity
+    }
+    if (b.expiry_date < entry.earliest_expiry) {
+      entry.earliest_expiry = b.expiry_date
+    }
+    productMap.set(b.product_id, entry)
+  }
+
+  // Fetch product names
+  const productIds = Array.from(productMap.keys())
+  const { data: products } = await admin
+    .from('products')
+    .select('id, name')
+    .in('id', productIds)
+
+  // Build result sorted by earliest_expiry ASC
+  const result: ExpiringProductAlert[] = (products ?? []).map((p) => {
+    const stats = productMap.get(p.id)!
+    return {
+      name: p.name,
+      expired_qty: stats.expired_qty,
+      expiring_soon_qty: stats.expiring_soon_qty,
+      earliest_expiry: stats.earliest_expiry,
+    }
+  })
+
+  result.sort((a, b) => a.earliest_expiry.localeCompare(b.earliest_expiry))
+  return result
 }
