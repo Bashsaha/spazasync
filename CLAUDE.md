@@ -276,7 +276,7 @@ At the start of every session:
 - [x] Phase 16d: Shared Barcode Catalog — Pre-Live Database Seed
 - [x] Phase 17a: Compliance — Onboarding + Shop Field Improvements
 - [x] Phase 17b: Compliance — Product Expiry Date Tracking (Batch System)
-- [ ] Phase 17c: Compliance — Report PDF Download
+- [x] Phase 17c: Compliance — Report PDF Download
 - [x] Phase 17d: Compliance — WhatsApp Expiry Warning
 
 **Phase 17 context:** South Africa mandated spaza shop compliance (R638). Inspectors check registration, stock records, and expiry date monitoring. Phase 17 adds: (a) registration number + location fields + auto-generated shop codes, (b) per-batch expiry date tracking with FEFO deduction during sales, (c) one-button PDF compliance report (shop info, current inventory, expiry register, 30-day stock movement), (d) expiry warning line in existing daily WhatsApp summary. Implementation order: 17a → 17b → 17d → 17c. Full plan at `.claude/plans/fluffy-orbiting-sonnet.md`.
@@ -615,6 +615,15 @@ What was built:
 - tests/unit/security.test.ts — FIXED: 2 pre-existing failures from Phase 17a shopCode removal (tests updated to test empty shopName/ownerName instead)
 - 0 TypeScript errors, 171/171 tests passing, production build succeeds
 
+### Phase 17c: Compliance — Report PDF Download — COMPLETE
+What was built:
+- jspdf + jspdf-autotable installed as dependencies
+- src/types/index.ts — UPDATED: added StockMovementEntry interface (date, product_name, type, delta, reason)
+- src/lib/db/compliance-report.ts — NEW: getComplianceReportData() fetches shop info, inventory, expiry batches, and 30-day stock movement (adjustments + sales) in parallel via authenticated client
+- src/app/api/reports/compliance-pdf/route.ts — NEW: GET handler generates A4 PDF with jspdf; 3 sections (Current Inventory table, Expiry Register with color-coded status, 30-day Stock Movement); auth check + owner/admin role guard; returns application/pdf blob
+- src/app/(app)/settings/page.tsx — UPDATED: added Compliance Report card with "Download Compliance Report" button between shop code section and the settings form; handles loading state and errors
+- 0 TypeScript errors, 176/176 tests passing, production build succeeds
+
 ### Phase 17d: Compliance — WhatsApp Expiry Warning — COMPLETE
 What was built:
 - src/types/index.ts — UPDATED: added ExpiringProductAlert interface (name, expired_qty, expiring_soon_qty, earliest_expiry)
@@ -628,7 +637,7 @@ What was built:
 
 ## Current File Tree
 
-_Last updated: Phase 17d complete_
+_Last updated: Phase 17c complete_
 
 ```
 spaza shop/
@@ -738,6 +747,8 @@ spaza shop/
 │   │       │           ├── access/route.ts    # PATCH — toggle access_granted
 │   │       │           ├── notes/route.ts     # PATCH — update admin notes
 │   │       │           └── subscription/route.ts # PATCH — update subscription status + end dates (Phase 15c)
+│   │       ├── reports/
+│   │       │   └── compliance-pdf/route.ts # GET — generates compliance PDF (Phase 17c)
 │   │       ├── settings/
 │   │       │   └── route.ts               # GET + PATCH shop settings (owner only)
 │   │       └── tellers/
@@ -791,7 +802,8 @@ spaza shop/
 │   │   │   ├── reports.ts          # getDailySalesForShop + getLowStockForShop (Phase 9)
 │   │   │   ├── admin.ts            # Admin DB helpers: overview stats, list/detail shops, payments, access, notes (Phase 15b)
 │   │   │   ├── catalog.ts          # Shared barcode catalog: getCatalogEntry, getCatalogEntryById + admin CRUD (Phase 16a, 16c)
-│   │   │   └── batches.ts          # Product batch CRUD + expiry stats (Phase 17b)
+│   │   │   ├── batches.ts          # Product batch CRUD + expiry stats (Phase 17b)
+│   │   │   └── compliance-report.ts # getComplianceReportData — fetches all data for PDF report (Phase 17c)
 │   │   ├── offline/
 │   │   │   ├── db.ts               # IndexedDB via idb (enqueue/list/remove/count)
 │   │   │   └── sync.ts             # syncPendingSales (retry queue → server)

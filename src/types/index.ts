@@ -266,6 +266,14 @@ export interface AdminShopListItem {
   last_payment_at: string | null
 }
 
+export interface StockMovementEntry {
+  date: string // YYYY-MM-DD
+  product_name: string
+  type: 'sale' | 'adjustment'
+  delta: number
+  reason: string | null
+}
+
 export interface ExpiringProductAlert {
   name: string
   expired_qty: number

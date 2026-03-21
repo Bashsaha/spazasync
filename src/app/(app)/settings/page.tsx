@@ -24,6 +24,7 @@ export default function SettingsPage() {
   const [location, setLocation] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [downloading, setDownloading] = useState(false)
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
   useEffect(() => {
@@ -67,6 +68,31 @@ export default function SettingsPage() {
     } else {
       const err = await res.json().catch(() => ({}))
       setMessage({ type: 'err', text: (err as { error?: string }).error ?? 'Could not save. Try again.' })
+    }
+  }
+
+  async function handleDownloadReport() {
+    setDownloading(true)
+    try {
+      const res = await fetch('/api/reports/compliance-pdf')
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        setMessage({ type: 'err', text: (err as { error?: string }).error ?? 'Could not generate report.' })
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = res.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1] ?? 'compliance-report.pdf'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch {
+      setMessage({ type: 'err', text: 'Could not download report. Try again.' })
+    } finally {
+      setDownloading(false)
     }
   }
 
@@ -152,6 +178,22 @@ export default function SettingsPage() {
         <p className="text-xs text-gray-300 text-right max-w-[140px]">
           Tellers use this to log in. It cannot be changed.
         </p>
+      </div>
+
+      {/* Compliance report download */}
+      <div className="bg-white border border-gray-100 rounded-2xl px-4 py-4 mb-6">
+        <p className="text-sm font-medium text-gray-700 mb-1">Compliance Report</p>
+        <p className="text-xs text-gray-400 mb-3">
+          Download a PDF with your shop info, inventory, expiry register, and 30-day stock movement. Ready for inspector visits.
+        </p>
+        <button
+          type="button"
+          onClick={handleDownloadReport}
+          disabled={downloading}
+          className="w-full bg-blue-600 text-white font-semibold rounded-xl py-3 text-sm active:bg-blue-700 disabled:opacity-50"
+        >
+          {downloading ? 'Generating report…' : 'Download Compliance Report'}
+        </button>
       </div>
 
       <form onSubmit={handleSave} className="space-y-5">
