@@ -22,8 +22,12 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
   const [name, setName] = useState(suggestedName ?? '')
   const [price, setPrice] = useState('')
   const [stock, setStock] = useState('0')
+  const [expiryDate, setExpiryDate] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const stockQty = parseInt(stock, 10) || 0
+  const hasExpiry = expiryDate !== '' && stockQty > 0
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -48,7 +52,7 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
           barcode,
           name: name.trim(),
           price: priceNum,
-          stock_qty: parseInt(stock, 10) || 0,
+          stock_qty: hasExpiry ? 0 : stockQty,
         }),
       })
 
@@ -56,6 +60,20 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
       if (!res.ok) {
         setError(json.error ?? 'Could not create product. Try again.')
         return
+      }
+
+      // If expiry date provided, create a batch (which adds the stock)
+      if (hasExpiry) {
+        await fetch('/api/batches', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            product_id: json.id,
+            expiry_date: expiryDate,
+            quantity: stockQty,
+          }),
+        })
+        // If batch fails, product is still created — user can add expiry later
       }
 
       onCreated(json as Product)
@@ -128,6 +146,22 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
               />
             </div>
           </div>
+
+          {stockQty > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Expiry date <span className="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <input
+                type="date"
+                value={expiryDate}
+                onChange={(e) => setExpiryDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-xs text-gray-400 mt-1">When does this stock expire?</p>
+            </div>
+          )}
 
           <div className="flex gap-3 pt-2">
             <button

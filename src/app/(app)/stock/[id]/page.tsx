@@ -55,6 +55,9 @@ export default function StockAdjustPage() {
   const [done, setDone] = useState(false)
   const [resultQty, setResultQty] = useState(0)
 
+  // Expiry date for "Add stock" mode
+  const [addExpiryDate, setAddExpiryDate] = useState('')
+
   // Batch state
   const [batches, setBatches] = useState<ProductBatch[]>([])
   const [showAddBatch, setShowAddBatch] = useState(false)
@@ -97,6 +100,32 @@ export default function StockAdjustPage() {
     if (!product || !validAmount) return
     setSaving(true)
     setSaveError('')
+
+    // When adding stock with an expiry date, use the batch API instead
+    if (mode === 'add' && addExpiryDate) {
+      const res = await fetch('/api/batches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_id: product.id,
+          expiry_date: addExpiryDate,
+          quantity: parsedAmount,
+        }),
+      })
+
+      if (res.ok) {
+        const newBatch: ProductBatch = await res.json()
+        setBatches((prev) => [...prev, newBatch].sort((a, b) => a.expiry_date.localeCompare(b.expiry_date)))
+        setResultQty(product.stock_qty + parsedAmount)
+        setDone(true)
+      } else {
+        const body = await res.json().catch(() => ({}))
+        setSaveError(body?.error ?? 'Could not save. Please try again.')
+      }
+
+      setSaving(false)
+      return
+    }
 
     const delta = mode === 'add' ? parsedAmount : -parsedAmount
 
@@ -150,7 +179,7 @@ export default function StockAdjustPage() {
       setShowAddBatch(false)
     } else {
       const body = await res.json().catch(() => ({}))
-      setBatchError(body?.error ?? 'Could not add batch.')
+      setBatchError(body?.error ?? 'Could not add. Please try again.')
     }
 
     setBatchSaving(false)
@@ -188,6 +217,7 @@ export default function StockAdjustPage() {
               setDone(false)
               setAmount('')
               setReason('')
+              setAddExpiryDate('')
               setProduct((p) => (p ? { ...p, stock_qty: resultQty } : p))
             }}
             className="bg-blue-600 text-white font-semibold py-3 rounded-2xl active:bg-blue-700"
@@ -246,7 +276,7 @@ export default function StockAdjustPage() {
                 <button
                   key={m}
                   type="button"
-                  onClick={() => setMode(m)}
+                  onClick={() => { setMode(m); if (m === 'remove') setAddExpiryDate('') }}
                   className={`flex-1 py-3 rounded-2xl text-sm font-semibold transition-colors ${
                     mode === m
                       ? m === 'add'
@@ -333,6 +363,23 @@ export default function StockAdjustPage() {
               </select>
             </div>
 
+            {/* Expiry date (only when adding stock) */}
+            {mode === 'add' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Expiry date <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  type="date"
+                  value={addExpiryDate}
+                  onChange={(e) => setAddExpiryDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-xs text-gray-400 mt-1">When does this new stock expire?</p>
+              </div>
+            )}
+
             {saveError && (
               <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4">{saveError}</div>
             )}
@@ -353,13 +400,13 @@ export default function StockAdjustPage() {
           {/* ── Expiry Batches Section ── */}
           <div className="mt-8">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-bold text-gray-900">Expiry Batches</h2>
+              <h2 className="text-lg font-bold text-gray-900">Expiry Dates</h2>
               <button
                 type="button"
                 onClick={() => setShowAddBatch(!showAddBatch)}
                 className="text-sm font-semibold text-blue-600 active:text-blue-700"
               >
-                {showAddBatch ? 'Cancel' : '+ Add batch'}
+                {showAddBatch ? 'Cancel' : '+ Add expiry date'}
               </button>
             </div>
 
@@ -387,7 +434,7 @@ export default function StockAdjustPage() {
                     min="1"
                     value={batchQty}
                     onChange={(e) => setBatchQty(e.target.value)}
-                    placeholder="How many units in this batch?"
+                    placeholder="How many units with this expiry date?"
                     required
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -400,10 +447,10 @@ export default function StockAdjustPage() {
                   disabled={batchSaving || !batchDate || !batchQty}
                   className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl text-sm active:bg-blue-700 disabled:opacity-50"
                 >
-                  {batchSaving ? 'Adding…' : 'Add batch'}
+                  {batchSaving ? 'Adding…' : 'Add'}
                 </button>
                 <p className="text-xs text-gray-500">
-                  Adding a batch also adds the quantity to your total stock.
+                  This also adds the quantity to your total stock.
                 </p>
               </form>
             )}
@@ -411,7 +458,7 @@ export default function StockAdjustPage() {
             {/* Batch list */}
             {batches.length === 0 ? (
               <p className="text-sm text-gray-400">
-                No expiry batches tracked for this product. Tap &quot;+ Add batch&quot; to start tracking expiry dates.
+                No expiry dates tracked for this product. Tap &quot;+ Add expiry date&quot; to start tracking.
               </p>
             ) : (
               <div className="space-y-2">
@@ -442,7 +489,7 @@ export default function StockAdjustPage() {
                         onClick={() => setDiscardingId(b.id)}
                         className="text-xs font-semibold text-red-500 active:text-red-700 px-3 py-1"
                       >
-                        Discard
+                        Remove
                       </button>
                     </div>
                   )
@@ -451,7 +498,7 @@ export default function StockAdjustPage() {
                 {/* Untracked stock note */}
                 {untrackedQty > 0 && (
                   <p className="text-xs text-gray-400 mt-2">
-                    {untrackedQty} unit{untrackedQty !== 1 ? 's' : ''} have no expiry date tracked.
+                    {untrackedQty} unit{untrackedQty !== 1 ? 's' : ''} have no expiry date set.
                   </p>
                 )}
               </div>
@@ -461,8 +508,8 @@ export default function StockAdjustPage() {
           {/* Discard confirm modal */}
           {discardingId && (
             <ConfirmModal
-              message="Discard this batch? The stock quantity will be reduced."
-              confirmLabel="Discard"
+              message="Remove this stock? The quantity will be reduced from your total."
+              confirmLabel="Remove"
               isDestructive
               onConfirm={() => handleDiscardBatch(discardingId)}
               onCancel={() => setDiscardingId(null)}

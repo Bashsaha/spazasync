@@ -278,6 +278,7 @@ At the start of every session:
 - [x] Phase 17b: Compliance — Product Expiry Date Tracking (Batch System)
 - [x] Phase 17c: Compliance — Report PDF Download
 - [x] Phase 17d: Compliance — WhatsApp Expiry Warning
+- [x] Phase 18: Expiry Date UX — Make It Obvious & Plain English
 
 **Phase 17 context:** South Africa mandated spaza shop compliance (R638). Inspectors check registration, stock records, and expiry date monitoring. Phase 17 adds: (a) registration number + location fields + auto-generated shop codes, (b) per-batch expiry date tracking with FEFO deduction during sales, (c) one-button PDF compliance report (shop info, current inventory, expiry register, 30-day stock movement), (d) expiry warning line in existing daily WhatsApp summary. Implementation order: 17a → 17b → 17d → 17c. Full plan at `.claude/plans/fluffy-orbiting-sonnet.md`.
 
@@ -633,11 +634,19 @@ What was built:
 - tests/unit/whatsapp-format.test.ts — UPDATED: 14 tests (9 existing updated for new param + 5 new expiry tests)
 - 0 TypeScript errors, 176/176 tests passing, production build succeeds
 
+### Phase 18: Expiry Date UX — Make It Obvious & Plain English — COMPLETE
+What was built:
+- src/app/(app)/stock/[id]/page.tsx — UPDATED: renamed all jargon ("Expiry Batches" → "Expiry Dates", "Discard" → "Remove", "Add batch" → "Add expiry date", etc.); added optional expiry date field to "Add stock" mode (uses POST /api/batches instead of POST /api/stock when expiry date is provided, so stock is both incremented and expiry-tracked in one step)
+- src/app/(app)/products/new/page.tsx — UPDATED: added optional expiry date field (appears when opening stock > 0); two-step creation: product created with stock_qty=0, then batch created (which auto-increments stock), avoiding double-counting
+- src/components/sale/NewProductModal.tsx — UPDATED: added optional expiry date field to scan-create modal (same two-step pattern as product creation form)
+- No API routes, DB helpers, schemas, migrations, or tests changed — purely frontend UX improvements
+- 0 TypeScript errors, 176/176 tests passing
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 17c complete_
+_Last updated: Phase 18 complete_
 
 ```
 spaza shop/

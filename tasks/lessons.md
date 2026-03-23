@@ -41,4 +41,13 @@ _Update this file after every user correction. Write rules that prevent the same
 
 ---
 
+## Session 4
+
+### Lesson 6: Read the Living Scope BEFORE proposing next phases
+**What happened:** After Phase 17a, proposed a "Sales History" phase as 17b — but CLAUDE.md already had Phase 17b through 17d defined in the Living Scope with a clear implementation order (17a → 17b → 17d → 17c) and context about SA compliance (R638). Started implementing the wrong phase, had to revert all changes.
+**Fix:** Always read the Living Scope section fully — it may already define upcoming phases. Only propose new phases if the Living Scope has no unchecked entries.
+**Rule:** Before proposing or starting ANY next phase: (1) read the Living Scope for unchecked phases, (2) if unchecked phases exist, follow them in order, (3) only invent new phases if ALL Living Scope items are checked off.
+
+---
+
 _Add new lessons here as they occur._

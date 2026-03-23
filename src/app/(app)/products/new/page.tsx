@@ -6,8 +6,12 @@ import { useRouter } from 'next/navigation'
 export default function NewProductPage() {
   const router = useRouter()
   const [form, setForm] = useState({ barcode: '', name: '', price: '', stock_qty: '0' })
+  const [expiryDate, setExpiryDate] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const stockQty = parseInt(form.stock_qty, 10) || 0
+  const hasExpiry = expiryDate !== '' && stockQty > 0
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -21,7 +25,7 @@ export default function NewProductPage() {
           barcode: form.barcode.trim() || null,
           name: form.name.trim(),
           price: parseFloat(form.price),
-          stock_qty: parseInt(form.stock_qty, 10) || 0,
+          stock_qty: hasExpiry ? 0 : stockQty,
         }),
       })
       const data = await res.json()
@@ -29,6 +33,23 @@ export default function NewProductPage() {
         setError(data.error ?? 'Something went wrong')
         return
       }
+
+      // If expiry date provided, create a batch (which adds the stock)
+      if (hasExpiry) {
+        const batchRes = await fetch('/api/batches', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            product_id: data.id,
+            expiry_date: expiryDate,
+            quantity: stockQty,
+          }),
+        })
+        if (!batchRes.ok) {
+          setError('Product saved, but could not set the expiry date. You can add it from the Stock page.')
+        }
+      }
+
       router.push('/products')
     } catch {
       setError('Something went wrong. Try again.')
@@ -96,6 +117,22 @@ export default function NewProductPage() {
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+
+        {stockQty > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Expiry date <span className="text-gray-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="date"
+              value={expiryDate}
+              onChange={(e) => setExpiryDate(e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-xs text-gray-400 mt-1">When does this stock expire?</p>
+          </div>
+        )}
 
         {error && <p className="text-red-600 text-sm">{error}</p>}
 
