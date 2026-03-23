@@ -76,7 +76,8 @@ SpazaSync is a mobile-first PWA for South African spaza shop and small retail ow
 - `shops` — id, name, code (unique), whatsapp_number, low_stock_threshold, subscription_status, trial_ends_at, subscription_ends_at, payfast_token, access_granted, admin_notes, created_at
 - `shop_users` — maps auth users to shops with role (owner | teller)
 - `tellers` — named teller entries; optional link to auth user_id; name unique per shop
-- `products` — barcode (nullable), name, price, stock_qty; unique(shop_id, barcode) where barcode IS NOT NULL
+- `products` — barcode (nullable), name, price, stock_qty; unique(shop_id, barcode) where barcode IS NOT NULL; unique(shop_id, LOWER(name)) case-insensitive
+- `product_batches` — product_id, expiry_date, quantity; tracks per-batch expiry dates with FEFO deduction
 - `sales` — total, teller_id, completed_at, offline_id for dedup, synced_at
 - `sale_items` — product_id, quantity, unit_price, subtotal
 - `stock_take_entries` — product_id, qty_before, qty_after, teller_id, taken_at
@@ -90,6 +91,7 @@ SpazaSync is a mobile-first PWA for South African spaza shop and small retail ow
 
 ### SQL functions
 - `decrement_stock(p_product_id, p_qty)` — atomically decrement stock, clamp to 0
+- `decrement_stock_fefo(p_product_id, p_qty)` — FEFO batch consumption: deducts from earliest-expiring batches first
 
 All shop-scoped tables have RLS enabled. `admin_payments` has no RLS (accessed only via service role client).
 
@@ -784,7 +786,7 @@ spaza shop/
 │   │   │   ├── TellerSelector.tsx         # Teller picker for owners
 │   │   │   ├── CartItem.tsx               # Cart row with qty +/− controls
 │   │   │   ├── CartSummary.tsx            # Sticky total + Complete Sale button
-│   │   │   ├── NewProductModal.tsx        # Quick-create for unknown barcodes (multi-expiry dates)
+│   │   │   ├── NewProductModal.tsx        # Quick-create for unknown barcodes (multi-expiry, smart duplicate handling)
 │   │   │   └── ProductPicker.tsx          # Manual product picker (bottom-sheet with search)
 │   │   ├── scanner/
 │   │   │   ├── BarcodeScanner.tsx         # Full-screen camera overlay
