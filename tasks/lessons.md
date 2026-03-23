@@ -50,4 +50,13 @@ _Update this file after every user correction. Write rules that prevent the same
 
 ---
 
+## Session 5
+
+### Lesson 7: READ CLAUDE.md before updating it — check ALL sections, not just the phase notes
+**What happened:** When updating CLAUDE.md after Phase 18b, only added the "What was built" section and file tree entries. Missed updating the Database Schema section (products table missing the new name uniqueness constraint, product_batches table never added, decrement_stock_fefo SQL function missing). User had to call it out.
+**Fix:** Read the entire CLAUDE.md before updating it. Cross-check every section that could be affected: Database Schema (tables, constraints, functions), File Tree, Living Scope, phase notes.
+**Rule:** When updating CLAUDE.md after a phase: (1) read the full file first, (2) check Database Schema section for any new tables/constraints/functions, (3) check File Tree for new/changed files, (4) check Living Scope for phase checkbox, (5) add "What was built" notes. Don't just add the obvious parts — scan every section.
+
+---
+
 _Add new lessons here as they occur._
