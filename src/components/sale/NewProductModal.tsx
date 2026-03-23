@@ -2,6 +2,12 @@
 
 import { useState } from 'react'
 import type { Product } from '@/types'
+import { ExpiryEntryList } from '@/components/ExpiryEntryList'
+
+interface ExpiryEntry {
+  expiry_date: string
+  quantity: string
+}
 
 interface NewProductModalProps {
   /** The barcode that was scanned but not found in the catalogue. */
@@ -22,12 +28,17 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
   const [name, setName] = useState(suggestedName ?? '')
   const [price, setPrice] = useState('')
   const [stock, setStock] = useState('0')
-  const [expiryDate, setExpiryDate] = useState('')
+  const [trackExpiry, setTrackExpiry] = useState(false)
+  const [expiryEntries, setExpiryEntries] = useState<ExpiryEntry[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const stockQty = parseInt(stock, 10) || 0
-  const hasExpiry = expiryDate !== '' && stockQty > 0
+
+  const validEntries = expiryEntries.filter(
+    (e) => e.expiry_date && parseInt(e.quantity, 10) > 0,
+  )
+  const hasExpiry = trackExpiry && validEntries.length > 0 && stockQty > 0
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -62,18 +73,20 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
         return
       }
 
-      // If expiry date provided, create a batch (which adds the stock)
+      // If expiry dates provided, create a batch for each one
       if (hasExpiry) {
-        await fetch('/api/batches', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            product_id: json.id,
-            expiry_date: expiryDate,
-            quantity: stockQty,
-          }),
-        })
-        // If batch fails, product is still created — user can add expiry later
+        for (const entry of validEntries) {
+          await fetch('/api/batches', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              product_id: json.id,
+              expiry_date: entry.expiry_date,
+              quantity: parseInt(entry.quantity, 10),
+            }),
+          })
+          // If batch fails, product is still created — user can add expiry later
+        }
       }
 
       onCreated(json as Product)
@@ -88,7 +101,7 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
     /* backdrop */
     <div className="fixed inset-0 z-50 bg-black/60 flex items-end">
       {/* sheet */}
-      <div className="bg-white w-full rounded-t-2xl px-6 pt-6 pb-10">
+      <div className="bg-white w-full rounded-t-2xl px-6 pt-6 pb-10 max-h-[85vh] overflow-y-auto">
         <h2 className="text-lg font-bold text-gray-900 mb-0.5">New Product</h2>
         <p className="text-sm text-gray-500 mb-5">
           Barcode <span className="font-mono text-gray-700">{barcode}</span> not in your catalogue.
@@ -148,18 +161,29 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
           </div>
 
           {stockQty > 0 && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Expiry date <span className="text-gray-400 font-normal">(optional)</span>
+            <div className="space-y-3">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={trackExpiry}
+                  onChange={(e) => {
+                    setTrackExpiry(e.target.checked)
+                    if (e.target.checked && expiryEntries.length === 0) {
+                      setExpiryEntries([{ expiry_date: '', quantity: '' }])
+                    }
+                  }}
+                  className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">Do you know the expiry dates?</span>
               </label>
-              <input
-                type="date"
-                value={expiryDate}
-                onChange={(e) => setExpiryDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <p className="text-xs text-gray-400 mt-1">When does this stock expire?</p>
+
+              {trackExpiry && (
+                <ExpiryEntryList
+                  entries={expiryEntries}
+                  onChange={setExpiryEntries}
+                  totalStockQty={stockQty}
+                />
+              )}
             </div>
           )}
 

@@ -6,6 +6,12 @@ import Link from 'next/link'
 import type { Product, ProductBatch } from '@/types'
 import { formatZAR } from '@/lib/utils/currency'
 import { ConfirmModal } from '@/components/ConfirmModal'
+import { ExpiryEntryList } from '@/components/ExpiryEntryList'
+
+interface ExpiryEntry {
+  expiry_date: string
+  quantity: string
+}
 
 type Mode = 'add' | 'remove'
 
@@ -55,8 +61,9 @@ export default function StockAdjustPage() {
   const [done, setDone] = useState(false)
   const [resultQty, setResultQty] = useState(0)
 
-  // Expiry date for "Add stock" mode
-  const [addExpiryDate, setAddExpiryDate] = useState('')
+  // Expiry dates for "Add stock" mode
+  const [trackAddExpiry, setTrackAddExpiry] = useState(false)
+  const [addExpiryEntries, setAddExpiryEntries] = useState<ExpiryEntry[]>([])
 
   // Batch state
   const [batches, setBatches] = useState<ProductBatch[]>([])
@@ -101,26 +108,42 @@ export default function StockAdjustPage() {
     setSaving(true)
     setSaveError('')
 
-    // When adding stock with an expiry date, use the batch API instead
-    if (mode === 'add' && addExpiryDate) {
-      const res = await fetch('/api/batches', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          product_id: product.id,
-          expiry_date: addExpiryDate,
-          quantity: parsedAmount,
-        }),
-      })
+    // When adding stock with expiry dates, use the batch API for each entry
+    const validAddEntries = addExpiryEntries.filter(
+      (e) => e.expiry_date && parseInt(e.quantity, 10) > 0,
+    )
+    if (mode === 'add' && trackAddExpiry && validAddEntries.length > 0) {
+      let totalAdded = 0
+      let batchFailed = false
+      for (const entry of validAddEntries) {
+        const qty = parseInt(entry.quantity, 10)
+        const res = await fetch('/api/batches', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            product_id: product.id,
+            expiry_date: entry.expiry_date,
+            quantity: qty,
+          }),
+        })
 
-      if (res.ok) {
-        const newBatch: ProductBatch = await res.json()
-        setBatches((prev) => [...prev, newBatch].sort((a, b) => a.expiry_date.localeCompare(b.expiry_date)))
-        setResultQty(product.stock_qty + parsedAmount)
+        if (res.ok) {
+          const newBatch: ProductBatch = await res.json()
+          setBatches((prev) => [...prev, newBatch].sort((a, b) => a.expiry_date.localeCompare(b.expiry_date)))
+          totalAdded += qty
+        } else {
+          batchFailed = true
+        }
+      }
+
+      if (batchFailed) {
+        setSaveError('Some expiry dates could not be saved. You can add them later.')
+      }
+      if (totalAdded > 0) {
+        setResultQty(product.stock_qty + totalAdded)
         setDone(true)
       } else {
-        const body = await res.json().catch(() => ({}))
-        setSaveError(body?.error ?? 'Could not save. Please try again.')
+        setSaveError('Could not save. Please try again.')
       }
 
       setSaving(false)
@@ -217,7 +240,8 @@ export default function StockAdjustPage() {
               setDone(false)
               setAmount('')
               setReason('')
-              setAddExpiryDate('')
+              setTrackAddExpiry(false)
+              setAddExpiryEntries([])
               setProduct((p) => (p ? { ...p, stock_qty: resultQty } : p))
             }}
             className="bg-blue-600 text-white font-semibold py-3 rounded-2xl active:bg-blue-700"
@@ -276,7 +300,7 @@ export default function StockAdjustPage() {
                 <button
                   key={m}
                   type="button"
-                  onClick={() => { setMode(m); if (m === 'remove') setAddExpiryDate('') }}
+                  onClick={() => { setMode(m); if (m === 'remove') { setTrackAddExpiry(false); setAddExpiryEntries([]) } }}
                   className={`flex-1 py-3 rounded-2xl text-sm font-semibold transition-colors ${
                     mode === m
                       ? m === 'add'
@@ -363,20 +387,31 @@ export default function StockAdjustPage() {
               </select>
             </div>
 
-            {/* Expiry date (only when adding stock) */}
+            {/* Expiry dates (only when adding stock) */}
             {mode === 'add' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Expiry date <span className="text-gray-400 font-normal">(optional)</span>
+              <div className="space-y-3">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={trackAddExpiry}
+                    onChange={(e) => {
+                      setTrackAddExpiry(e.target.checked)
+                      if (e.target.checked && addExpiryEntries.length === 0) {
+                        setAddExpiryEntries([{ expiry_date: '', quantity: '' }])
+                      }
+                    }}
+                    className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Do you know the expiry dates?</span>
                 </label>
-                <input
-                  type="date"
-                  value={addExpiryDate}
-                  onChange={(e) => setAddExpiryDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <p className="text-xs text-gray-400 mt-1">When does this new stock expire?</p>
+
+                {trackAddExpiry && (
+                  <ExpiryEntryList
+                    entries={addExpiryEntries}
+                    onChange={setAddExpiryEntries}
+                    totalStockQty={validAmount ? parsedAmount : 0}
+                  />
+                )}
               </div>
             )}
 

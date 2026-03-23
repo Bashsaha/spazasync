@@ -2,16 +2,28 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ExpiryEntryList } from '@/components/ExpiryEntryList'
+
+interface ExpiryEntry {
+  expiry_date: string
+  quantity: string
+}
 
 export default function NewProductPage() {
   const router = useRouter()
   const [form, setForm] = useState({ barcode: '', name: '', price: '', stock_qty: '0' })
-  const [expiryDate, setExpiryDate] = useState('')
+  const [trackExpiry, setTrackExpiry] = useState(false)
+  const [expiryEntries, setExpiryEntries] = useState<ExpiryEntry[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   const stockQty = parseInt(form.stock_qty, 10) || 0
-  const hasExpiry = expiryDate !== '' && stockQty > 0
+
+  // Valid entries: have both a date and a positive quantity
+  const validEntries = expiryEntries.filter(
+    (e) => e.expiry_date && parseInt(e.quantity, 10) > 0,
+  )
+  const hasExpiry = trackExpiry && validEntries.length > 0 && stockQty > 0
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -34,19 +46,25 @@ export default function NewProductPage() {
         return
       }
 
-      // If expiry date provided, create a batch (which adds the stock)
+      // If expiry dates provided, create a batch for each one
       if (hasExpiry) {
-        const batchRes = await fetch('/api/batches', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            product_id: data.id,
-            expiry_date: expiryDate,
-            quantity: stockQty,
-          }),
-        })
-        if (!batchRes.ok) {
-          setError('Product saved, but could not set the expiry date. You can add it from the Stock page.')
+        let batchFailed = false
+        for (const entry of validEntries) {
+          const batchRes = await fetch('/api/batches', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              product_id: data.id,
+              expiry_date: entry.expiry_date,
+              quantity: parseInt(entry.quantity, 10),
+            }),
+          })
+          if (!batchRes.ok) batchFailed = true
+        }
+        if (batchFailed) {
+          setError(
+            'Product saved but we couldn\'t save some expiry dates. You can add them later from the Stock page.',
+          )
         }
       }
 
@@ -119,18 +137,29 @@ export default function NewProductPage() {
         </div>
 
         {stockQty > 0 && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Expiry date <span className="text-gray-400 font-normal">(optional)</span>
+          <div className="space-y-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={trackExpiry}
+                onChange={(e) => {
+                  setTrackExpiry(e.target.checked)
+                  if (e.target.checked && expiryEntries.length === 0) {
+                    setExpiryEntries([{ expiry_date: '', quantity: '' }])
+                  }
+                }}
+                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">Do you know the expiry dates?</span>
             </label>
-            <input
-              type="date"
-              value={expiryDate}
-              onChange={(e) => setExpiryDate(e.target.value)}
-              min={new Date().toISOString().split('T')[0]}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <p className="text-xs text-gray-400 mt-1">When does this stock expire?</p>
+
+            {trackExpiry && (
+              <ExpiryEntryList
+                entries={expiryEntries}
+                onChange={setExpiryEntries}
+                totalStockQty={stockQty}
+              />
+            )}
           </div>
         )}
 

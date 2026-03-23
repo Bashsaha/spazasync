@@ -52,7 +52,23 @@ export async function PATCH(
     .select()
     .single()
 
-  if (error || !data)
+  if (error) {
+    if (error.code === '23505') {
+      const msg = (error.message ?? '').toLowerCase()
+      if (msg.includes('name')) {
+        return NextResponse.json(
+          { error: 'You already have a product called that' },
+          { status: 409 },
+        )
+      }
+      return NextResponse.json(
+        { error: 'A product with that barcode already exists' },
+        { status: 409 },
+      )
+    }
+    return NextResponse.json({ error: 'Product not found or update failed' }, { status: 404 })
+  }
+  if (!data)
     return NextResponse.json({ error: 'Product not found or update failed' }, { status: 404 })
   return NextResponse.json(data)
 }

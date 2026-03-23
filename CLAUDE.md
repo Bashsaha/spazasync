@@ -279,6 +279,9 @@ At the start of every session:
 - [x] Phase 17c: Compliance — Report PDF Download
 - [x] Phase 17d: Compliance — WhatsApp Expiry Warning
 - [x] Phase 18: Expiry Date UX — Make It Obvious & Plain English
+- [x] Phase 18b: Multiple Expiry Dates on Product Creation + Product Name Uniqueness
+
+**Phase 18b context:** Single expiry date field is too limiting — owners receive stock with multiple expiry dates (e.g., 10 milks exp. March 30, 10 milks exp. April 15). Replace single field with repeatable date+qty entries in all 3 creation flows. Also add unique constraint on product names per shop to prevent duplicates. Full plan at `.claude/plans/peppy-floating-starlight.md`.
 
 **Phase 17 context:** South Africa mandated spaza shop compliance (R638). Inspectors check registration, stock records, and expiry date monitoring. Phase 17 adds: (a) registration number + location fields + auto-generated shop codes, (b) per-batch expiry date tracking with FEFO deduction during sales, (c) one-button PDF compliance report (shop info, current inventory, expiry register, 30-day stock movement), (d) expiry warning line in existing daily WhatsApp summary. Implementation order: 17a → 17b → 17d → 17c. Full plan at `.claude/plans/fluffy-orbiting-sonnet.md`.
 
@@ -642,11 +645,23 @@ What was built:
 - No API routes, DB helpers, schemas, migrations, or tests changed — purely frontend UX improvements
 - 0 TypeScript errors, 176/176 tests passing
 
+### Phase 18b: Multiple Expiry Dates on Product Creation + Product Name Uniqueness — COMPLETE
+What was built:
+- supabase/migrations/010_product_name_unique.sql — NEW: case-insensitive unique index on (shop_id, LOWER(name)) to prevent duplicate product names per shop
+- src/components/ExpiryEntryList.tsx — NEW: shared reusable component for repeatable expiry date + quantity rows; plain English labels ("When does it expire?", "How many?"); summary feedback ("You've entered X out of Y units")
+- src/app/api/products/route.ts — UPDATED: POST handler now distinguishes name vs barcode duplicates in 23505 error; returns "You already have a product called that" for name conflicts
+- src/app/api/products/[id]/route.ts — UPDATED: PATCH handler now catches 23505 errors for name duplicates on rename
+- src/app/(app)/products/new/page.tsx — UPDATED: replaced single expiry date field with "Do you know the expiry dates?" checkbox + ExpiryEntryList; loops through entries creating batches after product creation
+- src/components/sale/NewProductModal.tsx — UPDATED: same multi-expiry pattern as product form; bottom sheet scrolls with max-h-[85vh]
+- src/app/(app)/stock/[id]/page.tsx — UPDATED: replaced single expiry date field in "Add stock" mode with checkbox + ExpiryEntryList; loops through entries calling batch API for each
+- No changes to: schemas, batch API, batch DB helpers, types, or existing tests
+- 0 TypeScript errors, 176/176 tests passing, production build succeeds
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 18 complete_
+_Last updated: Phase 18b complete_
 
 ```
 spaza shop/
@@ -698,10 +713,10 @@ spaza shop/
 │   │   │   ├── stock/
 │   │   │   │   ├── page.tsx        # Stock overview: summary strip, search, All/Low tabs
 │   │   │   │   ├── loading.tsx     # Skeleton loader for stock list
-│   │   │   │   └── [id]/page.tsx   # Adjust stock form (Add/Remove mode, quick amounts)
+│   │   │   │   └── [id]/page.tsx   # Adjust stock form (Add/Remove mode, multi-expiry in add mode)
 │   │   │   ├── products/
 │   │   │   │   ├── page.tsx        # Searchable product list (owner only)
-│   │   │   │   ├── new/page.tsx    # Add product form
+│   │   │   │   ├── new/page.tsx    # Add product form (multi-expiry dates)
 │   │   │   │   └── [id]/page.tsx   # Edit/delete product form
 │   │   │   ├── tellers/
 │   │   │   │   ├── page.tsx        # Teller list with remove (ConfirmModal, Skeleton)
@@ -769,7 +784,7 @@ spaza shop/
 │   │   │   ├── TellerSelector.tsx         # Teller picker for owners
 │   │   │   ├── CartItem.tsx               # Cart row with qty +/− controls
 │   │   │   ├── CartSummary.tsx            # Sticky total + Complete Sale button
-│   │   │   ├── NewProductModal.tsx        # Quick-create for unknown barcodes
+│   │   │   ├── NewProductModal.tsx        # Quick-create for unknown barcodes (multi-expiry dates)
 │   │   │   └── ProductPicker.tsx          # Manual product picker (bottom-sheet with search)
 │   │   ├── scanner/
 │   │   │   ├── BarcodeScanner.tsx         # Full-screen camera overlay
@@ -778,6 +793,7 @@ spaza shop/
 │   │   │   └── AdminNav.tsx               # Admin top nav: Overview | Shops | Catalog + sign out (Phase 15b, 16c)
 │   │   ├── dashboard/
 │   │   │   └── WeeklySalesChart.tsx       # Client component; bar chart of last 7 days (recharts)
+│   │   ├── ExpiryEntryList.tsx             # Repeatable expiry date + quantity rows (shared component, Phase 18b)
 │   │   ├── BottomNav.tsx                  # Owner bottom navigation bar (5 tabs)
 │   │   ├── ConfirmModal.tsx               # Bottom-sheet confirm dialog (replaces browser confirm())
 │   │   ├── Skeleton.tsx                   # Animated skeleton primitive for loading states
@@ -838,7 +854,8 @@ spaza shop/
 │       ├── 006_admin_dashboard.sql  # access_granted, admin_notes, admin_payments table, manual_override status (Phase 15a)
 │       ├── 007_barcode_catalog.sql  # barcode_catalog table — shared product name lookup (Phase 16a)
 │       ├── 008_shop_fields.sql     # registration_number + location columns on shops (Phase 17a)
-│       └── 009_product_batches.sql # product_batches table + decrement_stock_fefo function (Phase 17b)
+│       ├── 009_product_batches.sql # product_batches table + decrement_stock_fefo function (Phase 17b)
+│       └── 010_product_name_unique.sql # case-insensitive unique index on product names per shop (Phase 18b)
 ├── data/
 │   └── sa-products.csv             # 100 common SA products with EAN-13 barcodes for catalog seeding (Phase 16d)
 ├── scripts/

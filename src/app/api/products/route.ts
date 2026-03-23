@@ -83,6 +83,13 @@ export async function POST(request: Request) {
 
   if (error) {
     if (error.code === '23505') {
+      const msg = (error.message ?? '').toLowerCase()
+      if (msg.includes('name')) {
+        return NextResponse.json(
+          { error: 'You already have a product called that' },
+          { status: 409 },
+        )
+      }
       return NextResponse.json(
         { error: 'A product with that barcode already exists' },
         { status: 409 },
