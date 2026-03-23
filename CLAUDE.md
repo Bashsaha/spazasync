@@ -652,7 +652,7 @@ What was built:
 - src/app/api/products/route.ts — UPDATED: POST handler now distinguishes name vs barcode duplicates in 23505 error; returns "You already have a product called that" for name conflicts
 - src/app/api/products/[id]/route.ts — UPDATED: PATCH handler now catches 23505 errors for name duplicates on rename
 - src/app/(app)/products/new/page.tsx — UPDATED: replaced single expiry date field with "Do you know the expiry dates?" checkbox + ExpiryEntryList; loops through entries creating batches after product creation
-- src/components/sale/NewProductModal.tsx — UPDATED: same multi-expiry pattern as product form; bottom sheet scrolls with max-h-[85vh]
+- src/components/sale/NewProductModal.tsx — UPDATED: same multi-expiry pattern as product form; bottom sheet scrolls with max-h-[85vh]; smart duplicate handling — when scanned barcode matches a catalog name that already exists as a shop product, shows the existing product with "Add to sale" button instead of a dead-end error; silently links the barcode to the existing product if it had none
 - src/app/(app)/stock/[id]/page.tsx — UPDATED: replaced single expiry date field in "Add stock" mode with checkbox + ExpiryEntryList; loops through entries calling batch API for each
 - No changes to: schemas, batch API, batch DB helpers, types, or existing tests
 - 0 TypeScript errors, 176/176 tests passing, production build succeeds
