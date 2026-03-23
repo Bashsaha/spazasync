@@ -33,6 +33,9 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // When a duplicate name is found, store the existing product
+  const [existingProduct, setExistingProduct] = useState<Product | null>(null)
+
   const stockQty = parseInt(stock, 10) || 0
 
   const validEntries = expiryEntries.filter(
@@ -69,6 +72,11 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
 
       const json = await res.json()
       if (!res.ok) {
+        // Name duplicate — try to find the existing product
+        if (res.status === 409 && json.error?.includes('product called that')) {
+          await findExistingProduct(name.trim())
+          return
+        }
         setError(json.error ?? 'Could not create product. Try again.')
         return
       }
@@ -95,6 +103,86 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
     } finally {
       setIsLoading(false)
     }
+  }
+
+  /** Search for an existing product by name and offer to use it instead. */
+  async function findExistingProduct(searchName: string) {
+    try {
+      const res = await fetch(`/api/products?search=${encodeURIComponent(searchName)}`)
+      if (!res.ok) {
+        setError('You already have a product called that.')
+        return
+      }
+      const json = await res.json()
+      const products = (json.products ?? json) as Product[]
+      // Find exact case-insensitive match
+      const match = products.find(
+        (p) => p.name.toLowerCase() === searchName.toLowerCase(),
+      )
+      if (match) {
+        setExistingProduct(match)
+        setError(null)
+        // If existing product has no barcode, silently link this barcode to it
+        if (!match.barcode && barcode) {
+          fetch(`/api/products/${match.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ barcode }),
+          }).catch(() => {}) // silent — not critical
+        }
+      } else {
+        setError('You already have a product called that.')
+      }
+    } catch {
+      setError('You already have a product called that.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  function handleUseExisting() {
+    if (existingProduct) {
+      onCreated(existingProduct)
+    }
+  }
+
+  // ── "Already exists" screen ──
+  if (existingProduct) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/60 flex items-end">
+        <div className="bg-white w-full rounded-t-2xl px-6 pt-6 pb-10">
+          <h2 className="text-lg font-bold text-gray-900 mb-2">Product already exists</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            You already have <span className="font-semibold text-gray-900">{existingProduct.name}</span> in
+            your products. Want to add it to the sale?
+          </p>
+
+          <div className="bg-gray-50 rounded-xl p-4 mb-5">
+            <p className="font-semibold text-gray-900">{existingProduct.name}</p>
+            <p className="text-sm text-gray-500 mt-1">
+              R{existingProduct.price.toFixed(2)} · {existingProduct.stock_qty} in stock
+            </p>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onDismiss}
+              className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-xl font-medium active:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleUseExisting}
+              className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-semibold active:bg-blue-700"
+            >
+              Add to sale
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
