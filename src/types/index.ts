@@ -299,6 +299,18 @@ export interface ExpiryProductDetail {
   batches: BatchDetail[]
 }
 
+// --- Sale batch consumption audit (Phase 19b) ---
+
+export interface SaleBatchConsumption {
+  id: string
+  sale_id: string
+  batch_id: string
+  product_id: string
+  qty_consumed: number
+  expiry_date: string   // DATE as YYYY-MM-DD
+  created_at: string
+}
+
 export interface AdminOverviewStats {
   totalShops: number
   activeShops: number

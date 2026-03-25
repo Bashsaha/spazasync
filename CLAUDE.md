@@ -83,6 +83,7 @@ SpazaSync is a mobile-first PWA for South African spaza shop and small retail ow
 - `stock_take_entries` — product_id, qty_before, qty_after, teller_id, taken_at
 - `stock_adjustments` — product_id, qty_before, qty_after, delta, reason, adjusted_by, adjusted_at
 - `admin_payments` — shop_id, amount, method (eft/cash/card/other), reference, notes, recorded_by, recorded_at (RLS enabled, no policies — service role only)
+- `sale_batch_consumptions` — sale_id, batch_id, product_id, qty_consumed, expiry_date; audit trail for FEFO batch deductions during sales; RLS via sales.shop_id join
 - `barcode_catalog` — barcode (unique), name, category; RLS SELECT for all, writes via admin client only (Phase 16a)
 
 ### RLS helpers
@@ -91,7 +92,7 @@ SpazaSync is a mobile-first PWA for South African spaza shop and small retail ow
 
 ### SQL functions
 - `decrement_stock(p_product_id, p_qty)` — atomically decrement stock, clamp to 0
-- `decrement_stock_fefo(p_product_id, p_qty)` — FEFO batch consumption: deducts from earliest-expiring batches first
+- `decrement_stock_fefo(p_product_id, p_qty, p_sale_id DEFAULT NULL)` — FEFO batch consumption: deducts from earliest-expiring batches first; when p_sale_id provided, records each consumption in sale_batch_consumptions
 
 All tables have RLS enabled. `admin_payments` and `barcode_catalog` writes are service-role-only (no user-facing policies).
 
@@ -289,7 +290,7 @@ At the start of every session:
 - [x] Phase 18: Expiry Date UX — Make It Obvious & Plain English
 - [x] Phase 18b: Multiple Expiry Dates on Product Creation + Product Name Uniqueness
 - [x] Phase 19a: Expiry Management — Dedicated Expiry Page
-- [ ] Phase 19b: Expiry Management — Batch Consumption Tracking on Sales
+- [x] Phase 19b: Expiry Management — Batch Consumption Tracking on Sales
 
 **Phase 19 context:** Expiry dates are buried inside the stock adjustment page (`/stock/[id]`), requiring multiple hops to see them. Owners need a dedicated page showing all expiry-tracked products grouped by urgency (expired → expiring soon → OK) with expandable batch details. Additionally, `decrement_stock_fefo` silently consumes batches during sales with no audit trail — Phase 19b adds a `sale_batch_consumptions` table and modifies the SQL function to record which batches each sale consumed (fully automatic, zero teller burden). The system already knows expiry dates because owners enter them when adding stock; FEFO deduction is pure database logic. Implementation order: 19a first (UI only, no DB changes), then 19b (migration + sale flow). Full plan at `.claude/plans/sorted-prancing-dove.md`.
 
@@ -362,8 +363,9 @@ Renamed middleware.ts → proxy.ts (Next.js 16 convention), fixed dark mode invi
 **18 — Plain English UX:** Renamed all batch jargon to plain English ("Expiry Dates", "Remove", "Add expiry date"). Optional expiry date field added to product creation and scan-create modal. Two-step creation pattern (product first, then batch) avoids double-counting.
 **18b — Multi-Expiry + Name Uniqueness:** `010_product_name_unique.sql` case-insensitive unique index. ExpiryEntryList shared component for repeatable date+qty rows. Multi-expiry in all 3 creation flows (product form, scan modal, stock adjustment). Smart duplicate handling — scan modal shows existing product with "Add to sale" when catalog name matches existing shop product. API returns distinct error messages for name vs barcode duplicates.
 
-### Phase 19a: Expiry Management — Dedicated Expiry Page
-`listAllProductsWithBatches()` DB helper fetches ALL non-zero batches for a shop, groups by product, classifies each batch (expired / expiring soon / OK). New `GET /api/stock/expiry` endpoint. Dedicated `/expiry` page with 3 collapsible urgency sections (red/amber/green), expandable product cards showing individual batch details with plain English date labels ("3 days ago", "In 5 days"), links to `/stock/[id]` for adjustments. Dashboard expiry alert now links to `/expiry`. Stock page Expiring tab has "See all expiry dates →" link. Types: `BatchDetail`, `ExpiryProductDetail` added.
+### Phase 19a–b: Expiry Management (complete group)
+**19a — Dedicated Expiry Page:** `listAllProductsWithBatches()` DB helper, `GET /api/stock/expiry` endpoint, `/expiry` page with 3 collapsible urgency sections (expired/expiring soon/OK), expandable product cards with plain English date labels, links to `/stock/[id]`. Dashboard + stock page link to `/expiry`. Types: `BatchDetail`, `ExpiryProductDetail`.
+**19b — Batch Consumption Tracking:** `011_sale_batch_consumptions.sql` — new `sale_batch_consumptions` audit table (sale_id, batch_id, product_id, qty_consumed, expiry_date). `decrement_stock_fefo` now accepts optional `p_sale_id` and auto-records each batch consumption. `completeSale()` passes `sale.id` to RPC. Type: `SaleBatchConsumption`. Zero teller burden — fully automatic.
 
 **Bug fixes (post-Phase 18b):**
 - BUG-013: Adding stock with partial expiry dates dropped untracked units. Fixed: remainder added via `/api/stock`.
@@ -572,7 +574,8 @@ spaza shop/
 │       ├── 007_barcode_catalog.sql
 │       ├── 008_shop_fields.sql
 │       ├── 009_product_batches.sql
-│       └── 010_product_name_unique.sql
+│       ├── 010_product_name_unique.sql
+│       └── 011_sale_batch_consumptions.sql
 ├── data/
 │   └── sa-products.csv                    # 100 SA products with EAN-13 barcodes
 ├── scripts/

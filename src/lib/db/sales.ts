@@ -54,6 +54,7 @@ export async function completeSale(input: CompleteSaleInput): Promise<Sale> {
     const { error } = await supabase.rpc('decrement_stock_fefo', {
       p_product_id: item.product_id,
       p_qty: item.quantity,
+      p_sale_id: sale.id,
     })
     if (error) throw error
   }
