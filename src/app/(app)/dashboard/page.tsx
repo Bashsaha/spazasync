@@ -6,7 +6,9 @@ import {
   getWeeklySalesForShop,
   getRecentSalesForShop,
   getTopProductsThisWeek,
+  getExpiringProductsForShop,
 } from '@/lib/db/reports'
+import type { ExpiringProductAlert } from '@/types'
 import { formatZAR } from '@/lib/utils/currency'
 import { formatSAST } from '@/lib/utils/date'
 import { WeeklySalesChart } from '@/components/dashboard/WeeklySalesChart'
@@ -44,6 +46,7 @@ export default async function DashboardPage() {
   let weeklyData = [] as Awaited<ReturnType<typeof getWeeklySalesForShop>>
   let recentSales = [] as Awaited<ReturnType<typeof getRecentSalesForShop>>
   let topProducts = [] as Awaited<ReturnType<typeof getTopProductsThisWeek>>
+  let expiringProducts: ExpiringProductAlert[] = []
 
   if (shop?.id) {
     const results = await Promise.allSettled([
@@ -52,12 +55,14 @@ export default async function DashboardPage() {
       getWeeklySalesForShop(shop.id),
       getRecentSalesForShop(shop.id, 10),
       getTopProductsThisWeek(shop.id, 5),
+      getExpiringProductsForShop(shop.id),
     ])
     if (results[0].status === 'fulfilled') summary = results[0].value
     if (results[1].status === 'fulfilled') lowStock = results[1].value
     if (results[2].status === 'fulfilled') weeklyData = results[2].value
     if (results[3].status === 'fulfilled') recentSales = results[3].value
     if (results[4].status === 'fulfilled') topProducts = results[4].value
+    if (results[5].status === 'fulfilled') expiringProducts = results[5].value
   }
 
   const outOfStock = lowStock.filter((p) => p.stock_qty === 0)
@@ -167,6 +172,52 @@ export default async function DashboardPage() {
           </div>
         </a>
       )}
+
+      {/* Expiring products alert */}
+      {expiringProducts.length > 0 && (() => {
+        const expired = expiringProducts.filter((p) => p.expired_qty > 0)
+        const expiringSoon = expiringProducts.filter((p) => p.expiring_soon_qty > 0 && p.expired_qty === 0)
+        return (
+          <a
+            href="/expiry"
+            className="block bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4"
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-semibold text-amber-800 mb-1">
+                  ⏰ Products expiring
+                </p>
+                {expired.length > 0 && (
+                  <p className="text-xs text-red-600">
+                    {expired.length} product{expired.length !== 1 ? 's' : ''} already expired
+                  </p>
+                )}
+                {expiringSoon.length > 0 && (
+                  <p className="text-xs text-amber-700">
+                    {expiringSoon.length} product{expiringSoon.length !== 1 ? 's' : ''} expiring within 7 days
+                  </p>
+                )}
+                <ul className="mt-2 space-y-0.5">
+                  {expiringProducts.slice(0, 4).map((item) => (
+                    <li key={item.name} className="text-xs text-gray-600">
+                      • {item.name}{' '}
+                      <span className={item.expired_qty > 0 ? 'text-red-600 font-semibold' : 'text-amber-600'}>
+                        {item.expired_qty > 0
+                          ? `(${item.expired_qty} expired)`
+                          : `(${item.expiring_soon_qty} expiring)`}
+                      </span>
+                    </li>
+                  ))}
+                  {expiringProducts.length > 4 && (
+                    <li className="text-xs text-gray-400">+{expiringProducts.length - 4} more…</li>
+                  )}
+                </ul>
+              </div>
+              <span className="text-gray-300 text-lg">›</span>
+            </div>
+          </a>
+        )
+      })()}
 
       {/* This week chart */}
       <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">

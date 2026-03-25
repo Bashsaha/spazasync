@@ -288,7 +288,7 @@ At the start of every session:
 - [x] Phase 17d: Compliance — WhatsApp Expiry Warning
 - [x] Phase 18: Expiry Date UX — Make It Obvious & Plain English
 - [x] Phase 18b: Multiple Expiry Dates on Product Creation + Product Name Uniqueness
-- [ ] Phase 19a: Expiry Management — Dedicated Expiry Page
+- [x] Phase 19a: Expiry Management — Dedicated Expiry Page
 - [ ] Phase 19b: Expiry Management — Batch Consumption Tracking on Sales
 
 **Phase 19 context:** Expiry dates are buried inside the stock adjustment page (`/stock/[id]`), requiring multiple hops to see them. Owners need a dedicated page showing all expiry-tracked products grouped by urgency (expired → expiring soon → OK) with expandable batch details. Additionally, `decrement_stock_fefo` silently consumes batches during sales with no audit trail — Phase 19b adds a `sale_batch_consumptions` table and modifies the SQL function to record which batches each sale consumed (fully automatic, zero teller burden). The system already knows expiry dates because owners enter them when adding stock; FEFO deduction is pure database logic. Implementation order: 19a first (UI only, no DB changes), then 19b (migration + sale flow). Full plan at `.claude/plans/sorted-prancing-dove.md`.
@@ -362,6 +362,9 @@ Renamed middleware.ts → proxy.ts (Next.js 16 convention), fixed dark mode invi
 **18 — Plain English UX:** Renamed all batch jargon to plain English ("Expiry Dates", "Remove", "Add expiry date"). Optional expiry date field added to product creation and scan-create modal. Two-step creation pattern (product first, then batch) avoids double-counting.
 **18b — Multi-Expiry + Name Uniqueness:** `010_product_name_unique.sql` case-insensitive unique index. ExpiryEntryList shared component for repeatable date+qty rows. Multi-expiry in all 3 creation flows (product form, scan modal, stock adjustment). Smart duplicate handling — scan modal shows existing product with "Add to sale" when catalog name matches existing shop product. API returns distinct error messages for name vs barcode duplicates.
 
+### Phase 19a: Expiry Management — Dedicated Expiry Page
+`listAllProductsWithBatches()` DB helper fetches ALL non-zero batches for a shop, groups by product, classifies each batch (expired / expiring soon / OK). New `GET /api/stock/expiry` endpoint. Dedicated `/expiry` page with 3 collapsible urgency sections (red/amber/green), expandable product cards showing individual batch details with plain English date labels ("3 days ago", "In 5 days"), links to `/stock/[id]` for adjustments. Dashboard expiry alert now links to `/expiry`. Stock page Expiring tab has "See all expiry dates →" link. Types: `BatchDetail`, `ExpiryProductDetail` added.
+
 **Bug fixes (post-Phase 18b):**
 - BUG-013: Adding stock with partial expiry dates dropped untracked units. Fixed: remainder added via `/api/stock`.
 - BUG-014: BottomNav covered CartSummary's "Complete Sale" button on mobile. Fixed: `aboveNav` prop with z-50.
@@ -418,6 +421,9 @@ spaza shop/
 │   │   │   ├── sale/
 │   │   │   │   ├── page.tsx        # Full sale flow: scan → cart → complete
 │   │   │   │   └── complete/page.tsx
+│   │   │   ├── expiry/
+│   │   │   │   ├── page.tsx        # Dedicated expiry page: grouped by urgency, expandable batches
+│   │   │   │   └── loading.tsx
 │   │   │   ├── stock-take/
 │   │   │   │   └── page.tsx        # Count products, enter real qty, save
 │   │   │   ├── stock/
@@ -458,7 +464,8 @@ spaza shop/
 │   │       │   ├── route.ts               # GET list, POST add batch
 │   │       │   └── [id]/route.ts          # DELETE — discard batch
 │   │       ├── stock/
-│   │       │   └── route.ts               # GET list + expiry count, POST adjust qty
+│   │       │   ├── route.ts               # GET list + expiry count, POST adjust qty
+│   │       │   └── expiry/route.ts        # GET all products with expiry batches, grouped by urgency
 │   │       ├── stock-take/
 │   │       │   └── route.ts
 │   │       ├── subscribe/

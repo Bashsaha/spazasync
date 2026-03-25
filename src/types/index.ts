@@ -281,6 +281,24 @@ export interface ExpiringProductAlert {
   earliest_expiry: string // YYYY-MM-DD
 }
 
+// --- Expiry page (Phase 19a) ---
+
+export interface BatchDetail {
+  id: string
+  expiry_date: string   // YYYY-MM-DD
+  quantity: number
+  status: 'expired' | 'expiring_soon' | 'ok'
+}
+
+export interface ExpiryProductDetail {
+  product_id: string
+  product_name: string
+  barcode: string | null
+  stock_qty: number
+  urgency: 'expired' | 'expiring_soon' | 'ok'
+  batches: BatchDetail[]
+}
+
 export interface AdminOverviewStats {
   totalShops: number
   activeShops: number

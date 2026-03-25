@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import type { ProductBatch, AddBatchInput } from '@/types'
+import type { ProductBatch, AddBatchInput, ExpiryProductDetail, BatchDetail } from '@/types'
 
 /**
  * List non-zero batches for a product, ordered by expiry date (earliest first).
@@ -140,6 +140,97 @@ export async function getExpiryStats(shopId: string): Promise<{
     expiredProducts: expiredProductIds.size,
     expiringProducts: expiringProductIds.size,
   }
+}
+
+/**
+ * List ALL products with expiry-tracked batches for a shop.
+ * Groups products by urgency: expired → expiring soon (≤7 days) → OK.
+ * Each product includes its individual batch details.
+ */
+export async function listAllProductsWithBatches(shopId: string): Promise<ExpiryProductDetail[]> {
+  const supabase = await createClient()
+
+  const today = new Date().toISOString().split('T')[0]
+  const sevenDaysFromNow = new Date()
+  sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7)
+  const soonDate = sevenDaysFromNow.toISOString().split('T')[0]
+
+  // Get ALL non-zero batches for this shop
+  const { data: batches, error } = await supabase
+    .from('product_batches')
+    .select('id, product_id, expiry_date, quantity')
+    .eq('shop_id', shopId)
+    .gt('quantity', 0)
+    .order('expiry_date', { ascending: true })
+
+  if (error) throw error
+  if (!batches || batches.length === 0) return []
+
+  // Group batches by product_id
+  const productMap = new Map<
+    string,
+    { batches: BatchDetail[]; hasExpired: boolean; hasExpiringSoon: boolean }
+  >()
+
+  for (const b of batches) {
+    const entry = productMap.get(b.product_id) ?? {
+      batches: [],
+      hasExpired: false,
+      hasExpiringSoon: false,
+    }
+
+    let status: 'expired' | 'expiring_soon' | 'ok'
+    if (b.expiry_date < today) {
+      status = 'expired'
+      entry.hasExpired = true
+    } else if (b.expiry_date <= soonDate) {
+      status = 'expiring_soon'
+      entry.hasExpiringSoon = true
+    } else {
+      status = 'ok'
+    }
+
+    entry.batches.push({
+      id: b.id,
+      expiry_date: b.expiry_date,
+      quantity: b.quantity,
+      status,
+    })
+
+    productMap.set(b.product_id, entry)
+  }
+
+  // Fetch product details
+  const productIds = Array.from(productMap.keys())
+  const { data: products } = await supabase
+    .from('products')
+    .select('id, name, barcode, stock_qty')
+    .in('id', productIds)
+
+  // Build result with urgency grouping
+  const result: ExpiryProductDetail[] = (products ?? []).map((p) => {
+    const entry = productMap.get(p.id)!
+    const urgency: 'expired' | 'expiring_soon' | 'ok' = entry.hasExpired
+      ? 'expired'
+      : entry.hasExpiringSoon
+      ? 'expiring_soon'
+      : 'ok'
+
+    return {
+      product_id: p.id,
+      product_name: p.name,
+      barcode: p.barcode,
+      stock_qty: p.stock_qty,
+      urgency,
+      batches: entry.batches,
+    }
+  })
+
+  // Sort: expired first, then expiring_soon, then ok
+  const urgencyOrder = { expired: 0, expiring_soon: 1, ok: 2 }
+  result.sort((a, b) => urgencyOrder[a.urgency] - urgencyOrder[b.urgency])
+
+  return result
 }
 
 /**

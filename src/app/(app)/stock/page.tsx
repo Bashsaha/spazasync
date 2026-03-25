@@ -156,8 +156,16 @@ export default function StockPage() {
       {/* Expiring tab */}
       {!loading && !error && tab === 'expiring' && (
         <>
+          <div className="mb-4">
+            <Link
+              href="/expiry"
+              className="inline-flex items-center gap-1 text-sm text-blue-600 font-semibold active:text-blue-700"
+            >
+              See all expiry dates →
+            </Link>
+          </div>
           {expiringProducts.length === 0 && expiryLoaded && (
-            <p className="text-center text-gray-400 text-sm mt-12">
+            <p className="text-center text-gray-400 text-sm mt-8">
               No products expiring soon — great job!
             </p>
           )}
