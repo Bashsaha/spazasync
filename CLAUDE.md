@@ -241,10 +241,17 @@ At the end of every phase, before marking it complete — execute EVERY step, in
 3. **Update** the file tree to match reality
 4. **Check off** the completed phase in the Living Scope section
 5. **Add a "What was built"** note under the phase entry
-6. **Commit to GitHub** — stage all new/modified files, commit with message `feat: Phase N — <short description>`, push to `main`
-7. **Output a completion confirmation** to the user listing each step done. Example: "Phase completion checklist: Glob scanned, file tree updated (added X files), Living Scope checked off, commit abc1234 pushed." This proves the protocol was followed.
-8. Only then mark the todo item as complete
-9. **STOP.** Do not start the next phase. Wait for user to say go.
+6. **Supabase migration check** — if the phase includes a new migration file, output the raw SQL for the user to paste into the Supabase SQL Editor, then verify the migration was applied using the Supabase REST API (see Supabase Access Rules below). Do NOT mark the phase complete until verified.
+7. **Commit to GitHub** — stage all new/modified files, commit with message `feat: Phase N — <short description>`, push to `main`
+8. **Output a completion confirmation** to the user listing each step done. Example: "Phase completion checklist: Glob scanned, file tree updated (added X files), Living Scope checked off, commit abc1234 pushed." This proves the protocol was followed.
+9. Only then mark the todo item as complete
+10. **STOP.** Do not start the next phase. Wait for user to say go.
+
+### Supabase Access Rules
+- **You CAN read** Supabase data via the REST API using the service role key from `.env.local`. Use `curl` with the `apikey` and `Authorization` headers to query tables, check if tables exist, or verify migrations were applied.
+- **You CANNOT write** to Supabase (run migrations, create tables, modify functions). Only the user can do this by pasting SQL into the Supabase SQL Editor.
+- **Migration workflow:** (1) write the `.sql` migration file locally, (2) output the raw SQL to the user so they can paste it into Supabase SQL Editor, (3) after the user confirms or you verify via REST API that the table/function exists, mark the migration as applied.
+- **Verification pattern:** `curl -s "https://<project>.supabase.co/rest/v1/<table>?select=id&limit=0"` with service role headers — returns `[]` if table exists, returns an error if it doesn't.
 
 ### Session Start Protocol
 At the start of every session:
