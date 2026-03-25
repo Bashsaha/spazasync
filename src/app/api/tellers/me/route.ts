@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getShopAuth } from '@/lib/auth/shop-auth'
 
 /**
  * GET /api/tellers/me
@@ -7,11 +7,9 @@ import { createClient } from '@/lib/supabase/server'
  * Used by useActiveTeller hook to auto-select the teller on their own device.
  */
 export async function GET() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await getShopAuth()
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { user, supabase } = auth
 
   const { data, error } = await supabase
     .from('tellers')

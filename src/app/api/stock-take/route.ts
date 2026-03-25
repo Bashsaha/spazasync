@@ -1,32 +1,18 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getShopAuth } from '@/lib/auth/shop-auth'
+import { parseBody } from '@/lib/utils/api'
 import { saveStockTake } from '@/lib/db/stock-take'
 import { stockTakeSchema } from '@/lib/validation/schemas'
 
 export async function POST(request: Request) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await getShopAuth()
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  let body: unknown
-  try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
-  }
-
-  const parsed = stockTakeSchema.safeParse(body)
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? 'Invalid input' },
-      { status: 400 },
-    )
-  }
+  const parsed = await parseBody(request, stockTakeSchema)
+  if (parsed instanceof NextResponse) return parsed
 
   try {
-    const result = await saveStockTake(parsed.data.entries)
+    const result = await saveStockTake(parsed.entries)
     return NextResponse.json(result)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to save stock take'

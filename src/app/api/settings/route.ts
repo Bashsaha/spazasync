@@ -1,32 +1,21 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getShopAuth } from '@/lib/auth/shop-auth'
+import { parseBody } from '@/lib/utils/api'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { updateShopSettingsSchema } from '@/lib/validation/schemas'
-
-async function getAuthContext() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return null
-  const shopId = user.app_metadata?.shop_id as string | undefined
-  if (!shopId) return null
-  return { user, shopId }
-}
 
 /**
  * GET /api/settings
  * Returns the current shop settings for the logged-in owner.
  */
 export async function GET() {
-  const ctx = await getAuthContext()
-  if (!ctx) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await getShopAuth()
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const supabase = await createClient()
-  const { data: shop, error } = await supabase
+  const { data: shop, error } = await auth.supabase
     .from('shops')
     .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, subscription_status, trial_ends_at, subscription_ends_at')
-    .eq('id', ctx.shopId)
+    .eq('id', auth.shopId)
     .single()
 
   if (error || !shop) {
@@ -42,23 +31,11 @@ export async function GET() {
  * Shop code cannot be changed.
  */
 export async function PATCH(request: Request) {
-  const ctx = await getAuthContext()
-  if (!ctx) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await getShopAuth()
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  let body: unknown
-  try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
-  }
-
-  const parsed = updateShopSettingsSchema.safeParse(body)
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? 'Invalid input' },
-      { status: 422 },
-    )
-  }
+  const parsed = await parseBody(request, updateShopSettingsSchema)
+  if (parsed instanceof NextResponse) return parsed
 
   const admin = createAdminClient()
 
@@ -66,15 +43,15 @@ export async function PATCH(request: Request) {
   const { data: shopUser } = await admin
     .from('shop_users')
     .select('role')
-    .eq('user_id', ctx.user.id)
-    .eq('shop_id', ctx.shopId)
+    .eq('user_id', auth.user.id)
+    .eq('shop_id', auth.shopId)
     .single()
 
   if (shopUser?.role !== 'owner') {
     return NextResponse.json({ error: 'Only the shop owner can change settings' }, { status: 403 })
   }
 
-  const { name, whatsapp_number, low_stock_threshold, registration_number, location } = parsed.data
+  const { name, whatsapp_number, low_stock_threshold, registration_number, location } = parsed
 
   const { data: updated, error } = await admin
     .from('shops')
@@ -85,7 +62,7 @@ export async function PATCH(request: Request) {
       registration_number: registration_number ?? null,
       location: location ?? null,
     })
-    .eq('id', ctx.shopId)
+    .eq('id', auth.shopId)
     .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location')
     .single()
 

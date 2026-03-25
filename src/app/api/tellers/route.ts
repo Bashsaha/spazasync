@@ -1,15 +1,14 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getShopAuth } from '@/lib/auth/shop-auth'
+import { parseBody } from '@/lib/utils/api'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createTellerSchema } from '@/lib/validation/schemas'
 import { provisionTellerAccount } from '@/lib/auth/teller'
 
 export async function GET() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await getShopAuth()
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { supabase } = auth
 
   const { data, error } = await supabase
     .from('tellers')
@@ -22,32 +21,15 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  let body: unknown
-  try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
-  }
+  const parsed = await parseBody(request, createTellerSchema)
+  if (parsed instanceof NextResponse) return parsed
 
-  const parsed = createTellerSchema.safeParse(body)
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? 'Invalid input' },
-      { status: 400 },
-    )
-  }
-
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await getShopAuth()
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { user, shopId, supabase } = auth
 
   const role = user.app_metadata?.role as string | undefined
   if (role !== 'owner') return NextResponse.json({ error: 'Only owners can add tellers' }, { status: 403 })
-
-  const shopId = user.app_metadata?.shop_id as string | undefined
-  if (!shopId) return NextResponse.json({ error: 'No shop found' }, { status: 403 })
 
   // Look up shop code (needed for synthetic email)
   const { data: shop, error: shopError } = await supabase
@@ -57,7 +39,7 @@ export async function POST(request: Request) {
     .single()
   if (shopError || !shop) return NextResponse.json({ error: 'Shop not found' }, { status: 500 })
 
-  const { name, password } = parsed.data
+  const { name, password } = parsed
 
   // Check for name conflict before provisioning
   const { data: existing } = await supabase

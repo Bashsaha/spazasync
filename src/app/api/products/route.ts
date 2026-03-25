@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getShopAuth } from '@/lib/auth/shop-auth'
+import { parseBody } from '@/lib/utils/api'
 import { createProductSchema } from '@/lib/validation/schemas'
 import { getCatalogEntry } from '@/lib/db/catalog'
 
@@ -8,11 +9,9 @@ export async function GET(request: Request) {
   const search = searchParams.get('search') ?? ''
   const barcode = searchParams.get('barcode') ?? ''
 
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await getShopAuth()
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { supabase } = auth
 
   // Barcode lookup: check shop products first, then fall back to shared catalog
   if (barcode) {
@@ -51,33 +50,16 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  let body: unknown
-  try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
-  }
+  const parsed = await parseBody(request, createProductSchema)
+  if (parsed instanceof NextResponse) return parsed
 
-  const parsed = createProductSchema.safeParse(body)
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? 'Invalid input' },
-      { status: 400 },
-    )
-  }
-
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const shopId = user.app_metadata?.shop_id as string | undefined
-  if (!shopId) return NextResponse.json({ error: 'No shop found' }, { status: 403 })
+  const auth = await getShopAuth()
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { shopId, supabase } = auth
 
   const { data, error } = await supabase
     .from('products')
-    .insert({ ...parsed.data, shop_id: shopId })
+    .insert({ ...parsed, shop_id: shopId })
     .select()
     .single()
 

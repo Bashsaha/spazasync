@@ -1,32 +1,18 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getShopAuth } from '@/lib/auth/shop-auth'
+import { parseBody } from '@/lib/utils/api'
 import { completeSale } from '@/lib/db/sales'
 import { completeSaleSchema } from '@/lib/validation/schemas'
 
 export async function POST(request: Request) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await getShopAuth()
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  let body: unknown
-  try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
-  }
-
-  const parsed = completeSaleSchema.safeParse(body)
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? 'Invalid input' },
-      { status: 400 },
-    )
-  }
+  const parsed = await parseBody(request, completeSaleSchema)
+  if (parsed instanceof NextResponse) return parsed
 
   try {
-    const sale = await completeSale(parsed.data)
+    const sale = await completeSale(parsed)
     return NextResponse.json(sale, { status: 201 })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to complete sale'

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getShopAuth } from '@/lib/auth/shop-auth'
 import { removeBatch } from '@/lib/db/batches'
 import { checkRateLimit } from '@/lib/utils/rateLimit'
 
@@ -14,11 +14,8 @@ export async function DELETE(
   const { limited } = checkRateLimit(request, { limit: 30, windowSecs: 60 })
   if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
 
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await getShopAuth()
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
 

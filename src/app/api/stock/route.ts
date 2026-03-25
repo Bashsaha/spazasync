@@ -1,19 +1,14 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getShopAuth } from '@/lib/auth/shop-auth'
 import { listProductsWithStock, adjustStock } from '@/lib/db/stock'
 import { getExpiryStats, listExpiringProducts } from '@/lib/db/batches'
 import { stockAdjustSchema } from '@/lib/validation/schemas'
 
 /** GET /api/stock?search=&expiring=1 — list products with stock levels (or expiring products) */
 export async function GET(request: Request) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const shopId = user.app_metadata?.shop_id as string | undefined
-  if (!shopId) return NextResponse.json({ error: 'No shop' }, { status: 403 })
+  const auth = await getShopAuth()
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { shopId } = auth
 
   const { searchParams } = new URL(request.url)
 
@@ -46,11 +41,8 @@ export async function GET(request: Request) {
 
 /** POST /api/stock — adjust stock qty for a product */
 export async function POST(request: Request) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await getShopAuth()
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   let body: unknown
   try {

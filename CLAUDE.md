@@ -73,16 +73,16 @@ SpazaSync is a mobile-first PWA for South African spaza shop and small retail ow
 ## Database Schema
 
 ### Tables
-- `shops` — id, name, code (unique), whatsapp_number, low_stock_threshold, subscription_status, trial_ends_at, subscription_ends_at, payfast_token, access_granted, admin_notes, created_at
+- `shops` — id, name, code (unique), whatsapp_number, low_stock_threshold, subscription_status, trial_ends_at, subscription_ends_at, payfast_token, access_granted, admin_notes, registration_number, location, created_at
 - `shop_users` — maps auth users to shops with role (owner | teller)
 - `tellers` — named teller entries; optional link to auth user_id; name unique per shop
 - `products` — barcode (nullable), name, price, stock_qty; unique(shop_id, barcode) where barcode IS NOT NULL; unique(shop_id, LOWER(name)) case-insensitive
-- `product_batches` — product_id, expiry_date, quantity; tracks per-batch expiry dates with FEFO deduction
+- `product_batches` — shop_id, product_id, expiry_date, quantity; tracks per-batch expiry dates with FEFO deduction; RLS via user_in_shop(shop_id)
 - `sales` — total, teller_id, completed_at, offline_id for dedup, synced_at
 - `sale_items` — product_id, quantity, unit_price, subtotal
 - `stock_take_entries` — product_id, qty_before, qty_after, teller_id, taken_at
 - `stock_adjustments` — product_id, qty_before, qty_after, delta, reason, adjusted_by, adjusted_at
-- `admin_payments` — shop_id, amount, method (eft/cash/card/other), reference, notes, recorded_by, recorded_at (no RLS — admin client only)
+- `admin_payments` — shop_id, amount, method (eft/cash/card/other), reference, notes, recorded_by, recorded_at (RLS enabled, no policies — service role only)
 - `barcode_catalog` — barcode (unique), name, category; RLS SELECT for all, writes via admin client only (Phase 16a)
 
 ### RLS helpers
@@ -93,7 +93,7 @@ SpazaSync is a mobile-first PWA for South African spaza shop and small retail ow
 - `decrement_stock(p_product_id, p_qty)` — atomically decrement stock, clamp to 0
 - `decrement_stock_fefo(p_product_id, p_qty)` — FEFO batch consumption: deducts from earliest-expiring batches first
 
-All shop-scoped tables have RLS enabled. `admin_payments` has no RLS (accessed only via service role client).
+All tables have RLS enabled. `admin_payments` and `barcode_catalog` writes are service-role-only (no user-facing policies).
 
 ---
 
@@ -162,6 +162,12 @@ NEXT_PUBLIC_APP_URL=
 - Go fix failing CI tests without being told how
 - **After fixing any bug: add an entry to `tasks/bugs.md`** with symptom, root cause, fix, and a prevention rule. This is mandatory — not optional.
 - Before touching auth/routing/middleware/API routes, read `tasks/bugs.md` and apply all listed prevention rules.
+
+### 7. Phase Summary Rule (CRITICAL)
+- After an **entire phase group** is fully implemented and verified (e.g., all of Phase 15a–15e, all of Phase 16a–16d, etc.), **summarize the detailed "What was built" notes** into a concise 2–4 line summary per phase.
+- The summary must retain: key files/migrations created, important architectural decisions, and notable bug fixes — but drop per-file NEW/UPDATED annotations and line-by-line details.
+- This prevents CLAUDE.md from growing unboundedly while preserving enough context for future sessions.
+- Individual sub-phases should keep full detail until the entire phase group is complete.
 
 ---
 
@@ -282,388 +288,90 @@ At the start of every session:
 - [x] Phase 17d: Compliance — WhatsApp Expiry Warning
 - [x] Phase 18: Expiry Date UX — Make It Obvious & Plain English
 - [x] Phase 18b: Multiple Expiry Dates on Product Creation + Product Name Uniqueness
+- [ ] Phase 19a: Expiry Management — Dedicated Expiry Page
+- [ ] Phase 19b: Expiry Management — Batch Consumption Tracking on Sales
 
-**Phase 18b context:** Single expiry date field is too limiting — owners receive stock with multiple expiry dates (e.g., 10 milks exp. March 30, 10 milks exp. April 15). Replace single field with repeatable date+qty entries in all 3 creation flows. Also add unique constraint on product names per shop to prevent duplicates. Full plan at `.claude/plans/peppy-floating-starlight.md`.
+**Phase 19 context:** Expiry dates are buried inside the stock adjustment page (`/stock/[id]`), requiring multiple hops to see them. Owners need a dedicated page showing all expiry-tracked products grouped by urgency (expired → expiring soon → OK) with expandable batch details. Additionally, `decrement_stock_fefo` silently consumes batches during sales with no audit trail — Phase 19b adds a `sale_batch_consumptions` table and modifies the SQL function to record which batches each sale consumed (fully automatic, zero teller burden). The system already knows expiry dates because owners enter them when adding stock; FEFO deduction is pure database logic. Implementation order: 19a first (UI only, no DB changes), then 19b (migration + sale flow). Full plan at `.claude/plans/sorted-prancing-dove.md`.
 
-**Phase 17 context:** South Africa mandated spaza shop compliance (R638). Inspectors check registration, stock records, and expiry date monitoring. Phase 17 adds: (a) registration number + location fields + auto-generated shop codes, (b) per-batch expiry date tracking with FEFO deduction during sales, (c) one-button PDF compliance report (shop info, current inventory, expiry register, 30-day stock movement), (d) expiry warning line in existing daily WhatsApp summary. Implementation order: 17a → 17b → 17d → 17c. Full plan at `.claude/plans/fluffy-orbiting-sonnet.md`.
+---
 
-### Phase 1: Project Bootstrap — COMPLETE
-What was built:
-- Next.js 14 project scaffolded (TypeScript, Tailwind, App Router, src/ dir)
-- All runtime and dev dependencies installed
-- Configuration files: next.config.ts, tailwind.config.ts, postcss.config.mjs, tsconfig.json, vitest.config.ts, vercel.json
-- Environment template: .env.local.example
-- Database migration: supabase/migrations/001_initial_schema.sql
-- Core types: src/types/index.ts
-- Utility helpers: src/lib/utils/currency.ts, src/lib/utils/date.ts
-- First unit test: tests/unit/currency.test.ts
-- Task tracking: tasks/todo.md, tasks/lessons.md
+## Completed Phase Summaries
 
-### Phase 2: Auth, Roles & Onboarding — COMPLETE
-What was built:
-- src/lib/supabase/client.ts — browser Supabase client (createBrowserClient)
-- src/lib/supabase/server.ts — server Supabase client with cookie handling
-- src/lib/supabase/admin.ts — service role admin client (bypasses RLS)
-- src/lib/auth/teller.ts — nameToSlug, buildTellerEmail, provisionTellerAccount, setOwnerMetadata
-- src/lib/validation/schemas.ts — all Zod schemas for every phase
-- src/middleware.ts — auth guard + role-based routing (teller→/sale, no role→/onboarding)
-- src/app/page.tsx — root redirect (login/onboarding/dashboard/sale)
-- src/app/layout.tsx — minimal root layout (PWA metadata, viewport, theme colour)
-- src/app/(auth)/login/page.tsx — two-tab login: Owner (email+password) / Teller (code+name+password)
-- src/app/(auth)/onboarding/page.tsx — two-step: create account → setup shop
-- src/app/(app)/layout.tsx — authenticated app shell
-- src/app/(app)/dashboard/page.tsx — dashboard with nav cards (placeholder for Phase 10)
-- src/app/(app)/sale/page.tsx — sale page placeholder (full impl Phase 5)
-- src/app/api/auth/teller-login/route.ts — validates shop+teller, returns synthetic email
-- src/app/api/onboarding/route.ts — creates shop, shop_users, tellers, sets app_metadata
+### Phase 1: Project Bootstrap
+Next.js 14 scaffolded with TypeScript, Tailwind, App Router. Config files, env template, initial DB migration (`001_initial_schema.sql`), core types, currency/date utils, first unit test, task tracking files.
 
-### Phase 3: Product Catalogue — COMPLETE
-What was built:
-- src/lib/db/products.ts — listProducts, getProduct, getProductByBarcode, createProduct, updateProduct, deleteProduct
-- src/app/api/products/route.ts — GET (list + barcode/search filter), POST (create)
-- src/app/api/products/[id]/route.ts — GET (by id), PATCH (update), DELETE
-- src/app/(app)/products/page.tsx — searchable product list (Server Component, owner only)
-- src/app/(app)/products/new/page.tsx — add product form (Client Component)
-- src/app/(app)/products/[id]/page.tsx — edit/delete product form (Client Component)
-- Note: running on Next.js 16 / React 19 — params and searchParams are Promises (awaited throughout)
+### Phase 2: Auth, Roles & Onboarding
+Supabase clients (browser/server/admin), teller provisioning with synthetic emails, Zod validation schemas, auth middleware (role-based routing), login page (owner + teller tabs), onboarding flow (account → shop setup), teller-login API, onboarding API.
 
-### Phase 4: Teller Management — COMPLETE
-What was built:
-- src/lib/db/tellers.ts — listTellers, getMyTellerRecord, deactivateTeller
-- src/app/api/tellers/route.ts — GET list, POST create (provisions auth + teller row + shop_users)
-- src/app/api/tellers/me/route.ts — GET own teller record (used by useActiveTeller hook)
-- src/app/api/tellers/[id]/route.ts — PATCH deactivate
-- src/app/(app)/tellers/page.tsx — teller list with remove (Client Component)
-- src/app/(app)/tellers/new/page.tsx — add teller form (name + password)
-- src/components/sale/TellerSelector.tsx — teller picker shown to owners on sale page
-- src/hooks/useActiveTeller.ts — owner: sessionStorage; teller: auto from /api/tellers/me
-- src/app/(app)/sale/page.tsx — updated: owner sees TellerSelector, teller auto-selected
+### Phase 3: Product Catalogue
+Product CRUD (DB helpers + API routes + UI pages). Searchable product list, add/edit/delete forms. Next.js 16/React 19 async params pattern used throughout.
 
-### Phase 5: Barcode Scanner + Sale Flow — COMPLETE
-What was built:
-- supabase/migrations/002_decrement_stock.sql — decrement_stock(p_product_id, p_qty) SQL function
-- src/hooks/useCart.ts — addItem, removeItem, updateQty, clearCart with subtotal tracking
-- src/hooks/useScanner.ts — wraps @zxing/browser; starts/stops camera; fires onScan once per open
-- src/components/scanner/BarcodeScanner.tsx — full-screen camera overlay; closes after first scan
-- src/components/scanner/ScannerOverlay.tsx — targeting reticle with corner markers
-- src/components/sale/CartItem.tsx — qty +/− controls, remove on decrement to 0
-- src/components/sale/CartSummary.tsx — sticky bottom bar with total + Complete Sale button
-- src/components/sale/NewProductModal.tsx — bottom-sheet quick-create for unknown barcodes
-- src/lib/db/sales.ts — completeSale: insert sale + items, decrement stock via RPC
-- src/app/api/sales/route.ts — POST /api/sales with Zod validation
-- src/app/(app)/sale/page.tsx — full implementation: scan → cart → complete flow
-- src/app/(app)/sale/complete/page.tsx — sale confirmation screen with New Sale button
+### Phase 4: Teller Management
+Teller CRUD (list/create/deactivate), TellerSelector component for owners on sale page, useActiveTeller hook (owner picks, teller auto-selected).
 
-### Phase 6: Stock Take — COMPLETE
-What was built:
-- src/lib/db/stock-take.ts — saveStockTake: batch-fetch qty_before, batch-insert audit rows, update stock_qty per product
-- src/app/api/stock-take/route.ts — POST /api/stock-take with Zod validation
-- src/app/(app)/stock-take/page.tsx — owner counts each product, enters real qty; changed rows highlighted in orange; sticky Save button shows count; success screen after submit
+### Phase 5: Barcode Scanner + Sale Flow
+`002_decrement_stock.sql` migration. useCart/useScanner hooks, BarcodeScanner camera overlay, CartItem/CartSummary components, NewProductModal for unknown barcodes, completeSale DB helper, sales API, full scan → cart → complete flow.
 
-### Phase 8: Stock Management — COMPLETE
-What was built:
-- supabase/migrations/003_stock_adjustments.sql — stock_adjustments audit table with RLS
-- src/lib/db/stock.ts — listProductsWithStock (low_stock flag, sorted by qty ASC), adjustStock (clamp to 0, audit trail)
-- src/app/api/stock/route.ts — GET /api/stock (list with threshold), POST /api/stock (adjust qty)
-- src/types/index.ts — StockAdjustment + StockAdjustInput types added
-- src/app/(app)/stock/page.tsx — owner stock overview: summary strip (total/low/out), search, All/Low tabs, product list with colour-coded qty badges
-- src/app/(app)/stock/[id]/page.tsx — adjust stock form: Add/Remove mode toggle, quick amounts (+10/24/48/100), projected qty preview, reason dropdown, clamping warning
-- Fixed pre-existing formatCurrency → formatZAR in CartItem.tsx, CartSummary.tsx, sale/complete/page.tsx
+### Phase 6: Stock Take
+saveStockTake DB helper (batch audit + stock update), stock-take API, stock take page with real qty entry, change highlighting, success screen.
 
-### Phase 9: WhatsApp Summaries — COMPLETE
-What was built:
-- src/lib/whatsapp/client.ts — Twilio client factory + sendWhatsApp(to, body)
-- src/lib/whatsapp/format.ts — formatDailySummary: pure function, generates plain-text WhatsApp message
-- src/lib/db/reports.ts — getDailySalesForShop + getLowStockForShop (admin client, explicit shop_id filtering)
-- src/app/api/cron/daily-summary/route.ts — GET cron handler; fires 20:00 UTC (22:00 SAST); iterates all shops with WhatsApp numbers; per-shop errors isolated
-- src/types/index.ts — DailySummaryData + LowStockItem types added
-- src/app/(app)/dashboard/page.tsx — today's revenue/sales/tellers strip + low-stock alert widget (server component, no extra API route)
-- vercel.json — single cron entry at 0 20 * * * (removed separate low-stock cron)
-- tests/unit/whatsapp-format.test.ts — 9 tests for message formatter
-- src/lib/utils/date.ts — fixed cron time comment (20:00 UTC = 22:00 SAST)
+### Phase 7: Offline Support
+IndexedDB queue (idb), syncPendingSales retry logic, useOnlineStatus/useOfflineSync hooks, OfflineBanner/OfflineSyncProvider components, service worker (sw.js) with cache strategies, PWA manifest + icons. Sale page queues offline sales to IndexedDB.
 
-### Phase 10: Dashboard — COMPLETE
-What was built:
-- recharts v3 installed
-- src/types/index.ts — WeeklyDataPoint + RecentSale + TopProduct types added
-- src/lib/db/reports.ts — extended with getWeeklySalesForShop, getRecentSalesForShop, getTopProductsThisWeek
-- src/lib/validation/schemas.ts — updateShopSettingsSchema added
-- src/components/dashboard/WeeklySalesChart.tsx — client component; bar chart of last 7 days' revenue
-- src/app/api/settings/route.ts — GET + PATCH shop settings (owner-only, admin client with ownership check)
-- src/app/(app)/settings/page.tsx — settings form: shop name, WhatsApp number, low-stock threshold
-- src/app/(app)/dashboard/page.tsx — full dashboard: today summary, low-stock alert, weekly chart, top products this week, latest sales list, settings nav card; all plain English labels
+### Phase 8: Stock Management
+`003_stock_adjustments.sql` audit table. Stock list with low-stock flags, adjustStock with audit trail, stock overview page (summary strip, search, All/Low tabs), stock adjustment form (Add/Remove toggle, quick amounts, reason dropdown).
 
-### Phase 7: Offline Support — COMPLETE
-What was built:
-- src/lib/offline/db.ts — IndexedDB via `idb`: enqueueSale, listPendingSales, removePendingSale, countPendingSales
-- src/lib/offline/sync.ts — syncPendingSales: retry each queued sale via POST /api/sales; removes on 201 or 409 (dedup)
-- src/hooks/useOnlineStatus.ts — tracks navigator.onLine with online/offline events
-- src/hooks/useOfflineSync.ts — auto-syncs on reconnect; listens for visibilitychange + custom 'offlinequeue' event
-- src/components/OfflineBanner.tsx — top banner: amber=offline, blue=syncing; hidden when online with no pending
-- src/components/OfflineSyncProvider.tsx — client wrapper inserted into (app)/layout; owns sync state
-- src/components/ServiceWorkerRegistrar.tsx — registers /sw.js from root layout (client component)
-- public/manifest.json — PWA manifest (name, icons, start_url=/sale, standalone)
-- public/sw.js — service worker: cache-first for /_next/static/, stale-while-revalidate for /api/products, network-first for pages
-- public/icons/icon.svg + icon-maskable.svg — SVG app icons
-- Updated src/app/layout.tsx — adds ServiceWorkerRegistrar
-- Updated src/app/(app)/layout.tsx — wraps children in OfflineSyncProvider
-- Updated src/app/(app)/sale/page.tsx — offline path: queue to IndexedDB, dispatch 'offlinequeue' event, redirect with &offline=1
-- Updated src/app/(app)/sale/complete/page.tsx — shows "Sale Saved" + offline explanation when ?offline=1
+### Phase 9: WhatsApp Summaries
+Twilio WhatsApp client, formatDailySummary text formatter, daily sales/low-stock report queries, cron handler at 22:00 SAST, dashboard wired with today's revenue/sales strip + low-stock alert. 14 tests for formatter.
 
-### Phase 11: Polish & Hardening — COMPLETE
-What was built:
-- src/app/error.tsx — global React error boundary (wraps html/body; "Try again" button with autoFocus)
-- src/app/not-found.tsx — 404 page with link back to Dashboard
-- src/app/(app)/error.tsx — app-segment error boundary (inherits app layout context)
-- src/components/Skeleton.tsx — shared animated skeleton primitive used across loading states
-- src/app/(app)/dashboard/loading.tsx — skeleton loader for dashboard (streamed by Next.js)
-- src/app/(app)/tellers/loading.tsx — skeleton loader for tellers list
-- src/app/(app)/stock/loading.tsx — skeleton loader for stock overview
-- src/lib/utils/rateLimit.ts — in-memory rate limiter (10/60s on teller-login; 3/60s on onboarding)
-- src/components/ConfirmModal.tsx — bottom-sheet confirm dialog; replaces browser confirm()/alert()
-- src/components/Toast.tsx — toast notification system with ToastProvider context + auto-dismiss
-- src/hooks/useToast.ts — standalone toast hook (ToastProvider is the primary integration point)
-- src/components/BottomNav.tsx — 5-tab owner bottom navigation; tellers excluded; active tab highlighted
-- Updated src/app/(app)/layout.tsx — adds ToastProvider + BottomNav; passes role from JWT
-- Updated src/app/(app)/tellers/page.tsx — ConfirmModal replaces confirm()/alert(); Skeleton inline loader
-- Updated src/components/sale/CartSummary.tsx — fixed pb-safe-bottom → env(safe-area-inset-bottom)
-- Updated src/app/layout.tsx — added viewportFit: 'cover' to viewport export
-- Updated src/app/(app)/stock/page.tsx — added aria-label to search input
-- Updated src/app/(app)/stock-take/page.tsx — added aria-label={`Count for ${p.name}`} to count inputs
-- Updated src/app/api/auth/teller-login/route.ts — rate limiter applied
-- Updated src/app/api/onboarding/route.ts — rate limiter applied
-- Updated vercel.json — security headers: X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy
-- 0 TypeScript errors, 25/25 tests passing
+### Phase 10: Dashboard
+recharts bar chart (weekly sales), settings page (shop name, WhatsApp, threshold), full dashboard with today summary, low-stock alert, weekly chart, top products, latest sales.
 
-### Phase 12: Testing & Deployment — COMPLETE
-What was built:
-- Fixed security gap: `/api/sales` and `/api/stock-take` were missing auth checks — both now validate session via `supabase.auth.getUser()` before processing
-- Added `Content-Security-Policy` header to vercel.json (all existing headers retained)
-- tests/unit/validation.test.ts — 49 tests covering all 10 Zod schemas (happy + rejection paths)
-- tests/unit/date.test.ts — 17 tests for SAST timezone helpers (formatSAST, startOfTodaySAST, isToday, etc.)
-- tests/unit/rate-limit.test.ts — 7 tests for in-memory rate limiter (window reset, per-IP tracking, fake timers)
-- tests/unit/security.test.ts — 15 tests verifying schemas reject injection strings, malformed UUIDs, type coercions
-- README.md — full deployment guide: setup, env vars, Supabase migrations, Vercel deploy, security checklist
-- 0 TypeScript errors, 113/113 tests passing, production build successful
-- BUG-001: `/onboarding` added to PUBLIC_ROUTES — "Create your shop" was bouncing to login
-- BUG-002: Created `src/app/auth/callback/route.ts` — Supabase email confirmation caused localhost 404
-- BUG-003: Added `email-sent` step to onboarding state machine — email confirmation now shows on-page screen
-- tasks/bugs.md — new bug tracker; CLAUDE.md updated to mandate reading it at session start
+### Phase 11: Polish & Hardening
+Error boundaries (global + app segment), Skeleton loader component, loading states for dashboard/tellers/stock, rate limiter (teller-login + onboarding), ConfirmModal/Toast/ToastProvider, BottomNav (5-tab owner nav), security headers in vercel.json, aria-labels for accessibility.
 
-### Phase 13: QA Fixes & UX Improvements — COMPLETE
-What was built:
-- src/proxy.ts — replaces src/middleware.ts (Next.js 16 renamed middleware convention to proxy); added onboarding guard for users without roles
-- next.config.ts — added turbopack.root to fix workspace root inference
-- src/app/globals.css — removed dark mode CSS that caused invisible input text
-- src/hooks/useOnlineStatus.ts — fixed hydration mismatch (initialize as true, read navigator.onLine in useEffect)
-- Color scheme: changed all orange Tailwind classes to royal blue across 25+ files; theme-color #f97316 → #2563eb
-- src/components/sale/ProductPicker.tsx — new manual product picker (bottom-sheet with debounced search)
-- src/app/(app)/sale/page.tsx — added "Add Manually" button alongside "Scan"; integrates ProductPicker
-- Product barcode now optional: src/types/index.ts (barcode: string | null), src/lib/validation/schemas.ts, src/lib/db/products.ts, product forms updated
-- supabase/migrations/004_optional_barcode.sql — ALTER barcode DROP NOT NULL; partial unique index on (shop_id, barcode) WHERE barcode IS NOT NULL
-- BUG-004 through BUG-010 logged in tasks/bugs.md
-- Deleted src/middleware.ts (replaced by proxy.ts)
+### Phase 12: Testing & Deployment
+Auth checks added to `/api/sales` and `/api/stock-take`, CSP header, 4 test suites (validation 49 tests, date 17, rate-limit 7, security 15), README deployment guide. BUG-001 to BUG-003 fixed (onboarding routing, email callback, email-sent state). `tasks/bugs.md` created.
 
-### Phase 14: Subscription & Payment (PayFast) — COMPLETE
-What was built:
-- supabase/migrations/005_subscriptions.sql — ALTER shops: add subscription_status, trial_ends_at, subscription_ends_at, payfast_token
-- src/lib/payfast/index.ts — PayFast helpers: generateSignature, buildCheckoutParams, validateITN, isPayFastIP
-- src/app/api/subscribe/checkout/route.ts — POST: generates PayFast checkout params for form POST redirect
-- src/app/api/subscribe/notify/route.ts — POST: PayFast ITN webhook (validates signature + IP, updates subscription status, syncs all shop users' JWT metadata)
-- src/app/api/subscribe/status/route.ts — GET: returns subscription status + days remaining
-- src/app/(app)/subscribe/page.tsx — Subscribe page UI: pricing card (R349.99/month), PayFast checkout, success/cancel states
-- src/app/api/cron/expire-subscriptions/route.ts — Daily cron (02:00 SAST): expires overdue trials and cancelled subscriptions
-- Updated src/proxy.ts — subscription gate: redirects expired shops to /subscribe; /api/subscribe/notify added to PUBLIC_ROUTES
-- Updated src/app/api/onboarding/route.ts — auto-grants 7-day trial (subscription_status='trialing', trial_ends_at) on shop creation
-- Updated src/lib/auth/teller.ts — tellers inherit shop's sub_status; added updateShopUsersSubscription helper
-- Updated src/types/index.ts — SubscriptionStatus type, SubscriptionInfo interface, extended Shop interface
-- Updated src/app/(app)/settings/page.tsx — subscription status card (badge + days remaining + link to /subscribe)
-- Updated src/app/api/settings/route.ts — includes subscription columns in GET select
-- Updated src/app/(app)/dashboard/page.tsx — trial/subscription expiry warning banner (< 3 days remaining)
-- Updated vercel.json — expire-subscriptions cron, PayFast in CSP connect-src + form-action
-- Updated .env.local.example — PayFast env vars (PAYFAST_MERCHANT_ID, PAYFAST_MERCHANT_KEY, PAYFAST_PASSPHRASE, PAYFAST_SANDBOX, SUBSCRIPTION_PRICE_ZAR, NEXT_PUBLIC_APP_URL)
-- tests/unit/payfast.test.ts — 12 tests: signature generation, checkout params, IP validation, expiry logic
-- Fixed pre-existing TS errors: barcode null safety in sale/page.tsx and stock/page.tsx
-- Fixed pre-existing test: validation.test.ts barcode test updated for optional barcode (Phase 13)
-- 0 TypeScript errors, 125/125 tests passing
+### Phase 13: QA Fixes & UX Improvements
+Renamed middleware.ts → proxy.ts (Next.js 16 convention), fixed dark mode invisible text, hydration mismatch fix, color scheme orange → royal blue, ProductPicker manual search component, barcode made optional (`004_optional_barcode.sql`), BUG-004 to BUG-010 logged.
 
-### Phase 15a: Admin Dashboard — Role Infrastructure — COMPLETE
-What was built:
-- supabase/migrations/006_admin_dashboard.sql — ALTER shops: add access_granted, admin_notes; expand subscription_status CHECK to include 'manual_override'; CREATE TABLE admin_payments
-- scripts/set-admin.ts — CLI script to promote any user to admin role (npx tsx scripts/set-admin.ts user@example.com)
-- src/lib/auth/admin-guard.ts — requireAdmin() helper for server-side admin verification in API routes
-- Updated src/types/index.ts — 'admin' added to UserRole; 'manual_override' added to SubscriptionStatus; access_granted + admin_notes added to Shop; AdminPayment, AdminShopListItem, AdminOverviewStats interfaces
-- Updated src/proxy.ts — ADMIN_ROUTES block (non-admins redirected away from /admin/*); admin users skip subscription gate; authenticated admins redirect to /admin from public routes; access_granted check added to subscription gate
-- Updated src/lib/auth/teller.ts — updateShopUsersSubscription now syncs access_granted to JWT metadata
-- Updated src/lib/validation/schemas.ts — adminManualPaymentSchema, adminToggleAccessSchema, adminUpdateNotesSchema, adminStoreListQuerySchema
-- Updated src/components/BottomNav.tsx — returns null for admin role
-- 0 TypeScript errors, 125/125 tests passing
+### Phase 14: Subscription & Payment (PayFast)
+`005_subscriptions.sql` migration. PayFast integration (signature, checkout, ITN webhook, IP validation), subscribe page (R349.99/month), expire-subscriptions cron (02:00 SAST), 7-day auto-trial on signup, subscription gate in proxy.ts, subscription status in settings/dashboard. 12 PayFast tests.
 
-### Phase 15b: Admin Dashboard — Pages & API Routes — COMPLETE
-What was built:
-- src/lib/db/admin.ts — 6 admin DB helpers: getOverviewStats, listShops, getShopDetail, recordManualPayment, toggleShopAccess, updateShopNotes
-- src/components/admin/AdminNav.tsx — client component: top nav (Overview | Shops), active link highlighting, sign-out
-- src/app/api/admin/overview/route.ts — GET: aggregate stats (total/active/trialing/expired/manual/recent signups)
-- src/app/api/admin/shops/route.ts — GET: paginated shop list with search and status filter
-- src/app/api/admin/shops/[id]/route.ts — GET: full shop detail (owner email, payments, counts)
-- src/app/api/admin/shops/[id]/payments/route.ts — POST: record manual payment, optionally activate subscription
-- src/app/api/admin/shops/[id]/access/route.ts — PATCH: toggle access_granted, sync JWT metadata
-- src/app/api/admin/shops/[id]/notes/route.ts — PATCH: update admin notes
-- src/app/(app)/admin/layout.tsx — admin layout with AdminNav + wider max-w-4xl
-- src/app/(app)/admin/page.tsx — server component: overview dashboard with 6 stat cards
-- src/app/(app)/admin/shops/page.tsx — client component: shop list with search, status filter, pagination
-- src/app/(app)/admin/shops/[id]/page.tsx — client component: shop detail with access toggle, admin notes, payment recording, payment history
-- src/app/(app)/admin/loading.tsx + shops/loading.tsx — skeleton loaders
-- Fixed pre-existing issue: installed missing dotenv dev dependency for scripts/set-admin.ts
-- 0 TypeScript errors, 125/125 tests passing
+### Phase 15a–e: Admin Dashboard (complete group)
+**15a — Role Infrastructure:** `006_admin_dashboard.sql` (access_granted, admin_notes, admin_payments table, manual_override status). set-admin.ts CLI, requireAdmin() guard, admin routing in proxy.ts, BottomNav hides for admin.
+**15b — Pages & API Routes:** Admin DB helpers, AdminNav, 6 API routes (overview, shops list/detail, payments, access toggle, notes), admin pages (overview, shop list, shop detail), skeleton loaders.
+**15c — Subscription & Access Logic:** Admin can update subscription status/dates directly, expire-subscriptions cron handles manual_override expiry.
+**15d — Hardening & Polish:** Fixed listShops bulk user fetch (1000 cap → per-owner lookup), shared statusBadge util, rate limiting + 404 checks on all admin API routes, ConfirmModal/Toast on admin actions, 28 admin tests.
+**15e — Dual-Role:** set-admin.ts preserves shop_id on promotion, BottomNav shows owner tabs + Admin tab for dual-role, AdminNav shows "My Shop" link.
 
-### Phase 15c: Admin Dashboard — Subscription & Access Logic — COMPLETE
-What was built:
-- src/lib/validation/schemas.ts — added adminUpdateSubscriptionSchema (status + optional end dates)
-- src/lib/db/admin.ts — added updateShopSubscription(): updates status + dates, syncs JWT metadata, auto-revokes access on expire
-- src/app/api/admin/shops/[id]/subscription/route.ts — NEW: PATCH endpoint for admin to directly change subscription status and end dates
-- src/app/api/cron/expire-subscriptions/route.ts — FIXED: now also expires manual_override shops when subscription_ends_at passes; sets access_granted=false on expiry
-- src/app/(app)/admin/shops/[id]/page.tsx — UPDATED: subscription management UI with status dropdown, end date picker, and "Update Subscription" button
-- 0 TypeScript errors, 125/125 tests passing
+### Phase 16a–d: Shared Barcode Catalog (complete group)
+**16a — Database + Backend:** `007_barcode_catalog.sql` table, catalog DB helpers (user read + admin CRUD), Zod schemas.
+**16b — Scan Flow Integration:** Product GET falls back to barcode_catalog for unknown barcodes, NewProductModal pre-fills suggested name from catalog.
+**16c — Admin Management UI:** Catalog CRUD pages + API routes under /admin/catalog, AdminNav gains "Catalog" link.
+**16d — Pre-Live Seed:** `data/sa-products.csv` (100 SA products with EAN-13 barcodes), `scripts/seed-catalog.ts` idempotent seeder.
 
-### Phase 15d: Admin Dashboard — Hardening & Polish — COMPLETE
-What was built:
-- src/lib/db/admin.ts — FIXED: listShops() replaced bulk listUsers (1000 cap) with per-owner getUserById via Promise.allSettled; added shopExists() helper
-- src/lib/utils/statusBadge.ts — NEW: shared subscription status badge color map (extracted from 2 pages)
-- src/app/api/admin/shops/[id]/access/route.ts — UPDATED: added shop existence check (404) + rate limiting (30/60s)
-- src/app/api/admin/shops/[id]/notes/route.ts — UPDATED: added shop existence check (404) + rate limiting (30/60s)
-- src/app/api/admin/shops/[id]/subscription/route.ts — UPDATED: added shop existence check (404) + rate limiting (30/60s)
-- src/app/api/admin/shops/[id]/payments/route.ts — UPDATED: added shop existence check (404) + rate limiting (30/60s)
-- src/app/(app)/admin/shops/page.tsx — UPDATED: uses shared statusBadge; error state with Retry button (replaces infinite spinner)
-- src/app/(app)/admin/shops/[id]/page.tsx — UPDATED: ConfirmModal before access revocation; Toast feedback on all actions; notes char counter (2000 max); uses shared statusBadge; removed inline "Saved" state in favor of toasts
-- src/components/admin/AdminNav.tsx — UPDATED: sign-out error handling with toast feedback
-- tests/unit/admin.test.ts — NEW: 28 tests covering statusBadgeColors, all 5 admin Zod schemas
-- 0 TypeScript errors, 153/153 tests passing
+### Phase 17a–d: Compliance (complete group)
+**17a — Onboarding + Shop Fields:** `008_shop_fields.sql` (registration_number, location). Shop code auto-generated from name. Registration number + location in onboarding + settings.
+**17b — Expiry Date Tracking:** `009_product_batches.sql` (product_batches table + decrement_stock_fefo FEFO function). Batch CRUD helpers, batches API, expiry section in stock adjustment page, Expiring tab in stock overview. 14 batch tests.
+**17c — Report PDF Download:** jspdf + jspdf-autotable. Compliance PDF API (inventory, expiry register, 30-day stock movement). Download button in settings.
+**17d — WhatsApp Expiry Warning:** getExpiringProductsForShop() query, expiry alert section in daily WhatsApp summary, 5 new formatter tests.
 
-### Phase 15e: Admin Dual-Role — Shop Access for Admins — COMPLETE
-What was built:
-- scripts/set-admin.ts — UPDATED: explicit metadata merge preserves shop_id on promotion; logs dual-role vs admin-only status
-- src/components/BottomNav.tsx — UPDATED: accepts hasShop prop; dual-role admins see 5 owner tabs + Admin tab
-- src/app/(app)/layout.tsx — UPDATED: reads shop_id from metadata, passes hasShop to BottomNav
-- src/components/admin/AdminNav.tsx — UPDATED: accepts hasShop prop; shows "My Shop" link to /dashboard
-- src/app/(app)/admin/layout.tsx — UPDATED: async server component, reads user session, passes hasShop to AdminNav
-- src/proxy.ts — UPDATED: clarifying comment for dual-role admin access (no functional change)
-- CLAUDE.md Access Matrix updated to reflect admin dual-role access
-- 0 TypeScript errors, 153/153 tests passing
+### Phase 18 + 18b: Expiry Date UX (complete group)
+**18 — Plain English UX:** Renamed all batch jargon to plain English ("Expiry Dates", "Remove", "Add expiry date"). Optional expiry date field added to product creation and scan-create modal. Two-step creation pattern (product first, then batch) avoids double-counting.
+**18b — Multi-Expiry + Name Uniqueness:** `010_product_name_unique.sql` case-insensitive unique index. ExpiryEntryList shared component for repeatable date+qty rows. Multi-expiry in all 3 creation flows (product form, scan modal, stock adjustment). Smart duplicate handling — scan modal shows existing product with "Add to sale" when catalog name matches existing shop product. API returns distinct error messages for name vs barcode duplicates.
 
-### Phase 16a: Shared Barcode Catalog — Database + Backend Foundation — COMPLETE
-What was built:
-- supabase/migrations/007_barcode_catalog.sql — NEW: barcode_catalog table (barcode, name, category), RLS SELECT for all, no write policies (admin-only via service role)
-- src/types/index.ts — UPDATED: added BarcodeCatalogEntry interface
-- src/lib/validation/schemas.ts — UPDATED: added adminCatalogEntrySchema + adminCatalogSearchSchema
-- src/lib/db/catalog.ts — NEW: getCatalogEntry (user client), listCatalogEntries, createCatalogEntry, updateCatalogEntry, deleteCatalogEntry (admin client)
-- 0 TypeScript errors, 153/153 tests passing
-
-### Phase 16b: Shared Barcode Catalog — Scan Flow Integration — COMPLETE
-What was built:
-- src/app/api/products/route.ts — UPDATED: GET with ?barcode= now falls back to barcode_catalog if shop product not found; response shape changed from Product[] to { products: Product[], catalog_suggestion?: { barcode, name } }
-- src/app/(app)/sale/page.tsx — UPDATED: handleScan parses new response shape, passes catalogSuggestion to NewProductModal
-- src/components/sale/NewProductModal.tsx — UPDATED: accepts suggestedName prop, pre-fills name field, shows hint text when catalog matched
-- src/components/sale/ProductPicker.tsx — UPDATED: handles new response shape (json.products ?? json)
-- src/app/(app)/stock-take/page.tsx — UPDATED: handles new response shape (data.products ?? data)
-- CLAUDE.md Admin section updated to reflect dual-role (Phase 15e); file tree header fixed
-- 0 TypeScript errors, 153/153 tests passing
-
-### Phase 16c: Shared Barcode Catalog — Admin Management UI — COMPLETE
-What was built:
-- src/lib/db/catalog.ts — UPDATED: added getCatalogEntryById() for admin single-entry lookup
-- src/components/admin/AdminNav.tsx — UPDATED: added "Catalog" nav link
-- src/app/api/admin/catalog/route.ts — NEW: GET (list with search/pagination) + POST (create, 409 on duplicate barcode)
-- src/app/api/admin/catalog/[id]/route.ts — NEW: GET (single entry), PATCH (update name/category), DELETE
-- src/app/(app)/admin/catalog/page.tsx — NEW: catalog list with search, pagination, "Add Entry" button
-- src/app/(app)/admin/catalog/new/page.tsx — NEW: add entry form (barcode, name, category)
-- src/app/(app)/admin/catalog/[id]/page.tsx — NEW: edit/delete entry (barcode read-only, ConfirmModal on delete)
-- src/app/(app)/admin/catalog/loading.tsx — NEW: skeleton loader
-- All mutation API routes use requireAdmin() + checkRateLimit(30/60s) + schema validation
-- Shops cannot write to the catalog — admin-only via service role client
-- 0 TypeScript errors, 153/153 tests passing, production build succeeds
-
-### Phase 16d: Shared Barcode Catalog — Pre-Live Database Seed — COMPLETE
-What was built:
-- data/sa-products.csv — 100 common South African products with real EAN-13 barcodes (600/601 prefix), sourced from Open Food Facts SA database
-- scripts/seed-catalog.ts — CLI seed script: reads CSV, validates rows, batch upserts into barcode_catalog via Supabase admin client (ON CONFLICT DO NOTHING)
-- Categories: Beverages, Snacks, Dairy, Bread, Condiments, Cereals, Spreads, Canned Food, Cooking Oil, Confectionery, Tea, Pasta
-- Run with: `npx tsx scripts/seed-catalog.ts` (defaults to data/sa-products.csv)
-- Idempotent: safe to re-run, duplicates silently skipped
-- No app code changes, no new dependencies, no UI changes
-- 0 TypeScript errors, 153/153 tests passing, production build succeeds
-
-### Phase 17a: Compliance — Onboarding + Shop Field Improvements — COMPLETE
-What was built:
-- supabase/migrations/008_shop_fields.sql — NEW: ALTER shops ADD registration_number (TEXT), location (TEXT) — both nullable
-- src/types/index.ts — UPDATED: Shop interface gains registration_number + location fields
-- src/lib/validation/schemas.ts — UPDATED: onboardingSchema removes shopCode (now auto-generated), adds optional registrationNumber + location; updateShopSettingsSchema adds optional registration_number + location
-- src/app/api/onboarding/route.ts — UPDATED: auto-generates shop code from name (first 4 alpha chars + 2 random digits, retry on collision); inserts registration_number + location; returns generated code
-- src/app/(auth)/onboarding/page.tsx — UPDATED: removed shop code input; added optional Registration Number + Location fields; new "done" step shows generated code before redirecting
-- src/app/api/settings/route.ts — UPDATED: GET + PATCH include registration_number + location columns
-- src/app/(app)/settings/page.tsx — UPDATED: added Registration Number + Location input fields with helper text
-- tests/unit/validation.test.ts — UPDATED: onboarding tests rewritten (no shopCode), added registration_number/location tests for both schemas
-- 0 TypeScript errors, 53/53 validation tests passing (total test count adjusts: removed 3 shopCode tests, added 5 new field tests)
-
-### Phase 17b: Compliance — Product Expiry Date Tracking (Batch System) — COMPLETE
-What was built:
-- supabase/migrations/009_product_batches.sql — NEW: product_batches table (id, shop_id, product_id, expiry_date, quantity), RLS via user_in_shop, decrement_stock_fefo SQL function (FEFO batch consumption)
-- src/types/index.ts — UPDATED: added ProductBatch + AddBatchInput interfaces
-- src/lib/validation/schemas.ts — UPDATED: added addBatchSchema (product_id, expiry_date YYYY-MM-DD, quantity)
-- src/lib/db/batches.ts — NEW: listBatchesForProduct, addBatch (insert + increment stock), removeBatch (discard + decrement stock), getExpiryStats, listExpiringProducts
-- src/lib/db/sales.ts — UPDATED: swapped decrement_stock → decrement_stock_fefo RPC (FEFO deduction is transparent to sale flow)
-- src/app/api/batches/route.ts — NEW: GET (list batches for product), POST (add batch with expiry)
-- src/app/api/batches/[id]/route.ts — NEW: DELETE (discard batch, decrement stock)
-- src/app/api/stock/route.ts — UPDATED: returns expiring_count in GET response; ?expiring=1 returns expiring products list
-- src/app/(app)/stock/[id]/page.tsx — UPDATED: added Expiry Batches section (batch list with color-coded status, add batch form, discard with confirmation)
-- src/app/(app)/stock/page.tsx — UPDATED: added 4th summary card (Expiring count), 3rd tab (Expiring) with expired/expiring-soon product list
-- tests/unit/batches.test.ts — NEW: 14 tests for addBatchSchema validation (format, boundaries, rejections)
-- tests/unit/security.test.ts — FIXED: 2 pre-existing failures from Phase 17a shopCode removal (tests updated to test empty shopName/ownerName instead)
-- 0 TypeScript errors, 171/171 tests passing, production build succeeds
-
-### Phase 17c: Compliance — Report PDF Download — COMPLETE
-What was built:
-- jspdf + jspdf-autotable installed as dependencies
-- src/types/index.ts — UPDATED: added StockMovementEntry interface (date, product_name, type, delta, reason)
-- src/lib/db/compliance-report.ts — NEW: getComplianceReportData() fetches shop info, inventory, expiry batches, and 30-day stock movement (adjustments + sales) in parallel via authenticated client
-- src/app/api/reports/compliance-pdf/route.ts — NEW: GET handler generates A4 PDF with jspdf; 3 sections (Current Inventory table, Expiry Register with color-coded status, 30-day Stock Movement); auth check + owner/admin role guard; returns application/pdf blob
-- src/app/(app)/settings/page.tsx — UPDATED: added Compliance Report card with "Download Compliance Report" button between shop code section and the settings form; handles loading state and errors
-- 0 TypeScript errors, 176/176 tests passing, production build succeeds
-
-### Phase 17d: Compliance — WhatsApp Expiry Warning — COMPLETE
-What was built:
-- src/types/index.ts — UPDATED: added ExpiringProductAlert interface (name, expired_qty, expiring_soon_qty, earliest_expiry)
-- src/lib/db/reports.ts — UPDATED: added getExpiringProductsForShop() — admin client query for expired/expiring-soon batches per shop
-- src/lib/whatsapp/format.ts — UPDATED: formatDailySummary() accepts optional expiringProducts param; renders ⏰ Expiry alert section with expired counts, expiring-soon counts, and earliest expiry dates
-- src/app/api/cron/daily-summary/route.ts — UPDATED: calls getExpiringProductsForShop() in parallel with existing queries; passes results to formatter
-- tests/unit/whatsapp-format.test.ts — UPDATED: 14 tests (9 existing updated for new param + 5 new expiry tests)
-- 0 TypeScript errors, 176/176 tests passing, production build succeeds
-
-### Phase 18: Expiry Date UX — Make It Obvious & Plain English — COMPLETE
-What was built:
-- src/app/(app)/stock/[id]/page.tsx — UPDATED: renamed all jargon ("Expiry Batches" → "Expiry Dates", "Discard" → "Remove", "Add batch" → "Add expiry date", etc.); added optional expiry date field to "Add stock" mode (uses POST /api/batches instead of POST /api/stock when expiry date is provided, so stock is both incremented and expiry-tracked in one step)
-- src/app/(app)/products/new/page.tsx — UPDATED: added optional expiry date field (appears when opening stock > 0); two-step creation: product created with stock_qty=0, then batch created (which auto-increments stock), avoiding double-counting
-- src/components/sale/NewProductModal.tsx — UPDATED: added optional expiry date field to scan-create modal (same two-step pattern as product creation form)
-- No API routes, DB helpers, schemas, migrations, or tests changed — purely frontend UX improvements
-- 0 TypeScript errors, 176/176 tests passing
-
-### Phase 18b: Multiple Expiry Dates on Product Creation + Product Name Uniqueness — COMPLETE
-What was built:
-- supabase/migrations/010_product_name_unique.sql — NEW: case-insensitive unique index on (shop_id, LOWER(name)) to prevent duplicate product names per shop
-- src/components/ExpiryEntryList.tsx — NEW: shared reusable component for repeatable expiry date + quantity rows; plain English labels ("When does it expire?", "How many?"); summary feedback ("You've entered X out of Y units")
-- src/app/api/products/route.ts — UPDATED: POST handler now distinguishes name vs barcode duplicates in 23505 error; returns "You already have a product called that" for name conflicts
-- src/app/api/products/[id]/route.ts — UPDATED: PATCH handler now catches 23505 errors for name duplicates on rename
-- src/app/(app)/products/new/page.tsx — UPDATED: replaced single expiry date field with "Do you know the expiry dates?" checkbox + ExpiryEntryList; loops through entries creating batches after product creation
-- src/components/sale/NewProductModal.tsx — UPDATED: same multi-expiry pattern as product form; bottom sheet scrolls with max-h-[85vh]; smart duplicate handling — when scanned barcode matches a catalog name that already exists as a shop product, shows the existing product with "Add to sale" button instead of a dead-end error; silently links the barcode to the existing product if it had none
-- src/app/(app)/stock/[id]/page.tsx — UPDATED: replaced single expiry date field in "Add stock" mode with checkbox + ExpiryEntryList; loops through entries calling batch API for each
-- No changes to: schemas, batch API, batch DB helpers, types, or existing tests
-- 0 TypeScript errors, 176/176 tests passing, production build succeeds
+**Bug fixes (post-Phase 18b):**
+- BUG-013: Adding stock with partial expiry dates dropped untracked units. Fixed: remainder added via `/api/stock`.
+- BUG-014: BottomNav covered CartSummary's "Complete Sale" button on mobile. Fixed: `aboveNav` prop with z-50.
+- Dashboard expiry alert: wired `getExpiringProductsForShop()` to dashboard (was only in WhatsApp cron).
 
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 18b complete_
+_Last updated: Post-audit cleanup (2026-03-25)_
 
 ```
 spaza shop/
@@ -690,192 +398,192 @@ spaza shop/
 │   ├── proxy.ts                    # Auth guard + role-based routing (Next.js 16 proxy convention)
 │   ├── app/
 │   │   ├── layout.tsx              # Root layout (PWA meta, viewport, viewportFit=cover)
-│   │   ├── error.tsx               # Global error boundary (Phase 11)
-│   │   ├── not-found.tsx           # 404 page (Phase 11)
+│   │   ├── error.tsx               # Global error boundary
+│   │   ├── not-found.tsx           # 404 page
 │   │   ├── page.tsx                # Root redirect logic
 │   │   ├── globals.css
 │   │   ├── favicon.ico
 │   │   ├── auth/
-│   │   │   └── callback/route.ts   # Supabase email confirmation handler (exchanges code → session)
+│   │   │   └── callback/route.ts   # Supabase email confirmation handler
 │   │   ├── (auth)/
 │   │   │   ├── login/page.tsx      # Owner + Teller login tabs
-│   │   │   └── onboarding/page.tsx # 2-step: account → shop setup (email-sent state for confirmation)
+│   │   │   └── onboarding/page.tsx # Account → shop setup (email-sent state for confirmation)
 │   │   ├── (app)/
 │   │   │   ├── layout.tsx          # Authenticated shell (ToastProvider + BottomNav)
-│   │   │   ├── error.tsx           # App-segment error boundary (Phase 11)
-│   │   │   ├── dashboard/page.tsx  # Full dashboard: today summary, weekly chart, top products, latest sales, nav
-│   │   │   ├── dashboard/loading.tsx  # Skeleton loader for dashboard
-│   │   │   ├── settings/page.tsx   # Owner settings: shop name, WhatsApp number, low-stock threshold, subscription status
-│   │   │   ├── subscribe/page.tsx # Subscription page: pricing, PayFast checkout, success/cancel states
+│   │   │   ├── error.tsx           # App-segment error boundary
+│   │   │   ├── dashboard/page.tsx  # Full dashboard: today summary, expiry alert, weekly chart, top products, latest sales
+│   │   │   ├── dashboard/loading.tsx
+│   │   │   ├── settings/page.tsx   # Owner settings: shop info, WhatsApp, threshold, subscription, compliance PDF
+│   │   │   ├── subscribe/page.tsx  # Subscription page: pricing, PayFast checkout
 │   │   │   ├── sale/
 │   │   │   │   ├── page.tsx        # Full sale flow: scan → cart → complete
-│   │   │   │   └── complete/page.tsx  # Sale confirmation screen
+│   │   │   │   └── complete/page.tsx
 │   │   │   ├── stock-take/
 │   │   │   │   └── page.tsx        # Count products, enter real qty, save
 │   │   │   ├── stock/
-│   │   │   │   ├── page.tsx        # Stock overview: summary strip, search, All/Low tabs
-│   │   │   │   ├── loading.tsx     # Skeleton loader for stock list
+│   │   │   │   ├── page.tsx        # Stock overview: summary strip, search, All/Low/Expiring tabs
+│   │   │   │   ├── loading.tsx
 │   │   │   │   └── [id]/page.tsx   # Adjust stock form (Add/Remove mode, multi-expiry in add mode)
 │   │   │   ├── products/
 │   │   │   │   ├── page.tsx        # Searchable product list (owner only)
 │   │   │   │   ├── new/page.tsx    # Add product form (multi-expiry dates)
 │   │   │   │   └── [id]/page.tsx   # Edit/delete product form
 │   │   │   ├── tellers/
-│   │   │   │   ├── page.tsx        # Teller list with remove (ConfirmModal, Skeleton)
-│   │   │   │   ├── loading.tsx     # Skeleton loader for tellers list
+│   │   │   │   ├── page.tsx        # Teller list with remove
+│   │   │   │   ├── loading.tsx
 │   │   │   │   └── new/page.tsx    # Add teller form
 │   │   │   └── admin/
 │   │   │       ├── layout.tsx      # Admin layout (AdminNav + max-w-4xl)
-│   │   │       ├── loading.tsx     # Skeleton loader for admin overview
-│   │   │       ├── page.tsx        # Admin overview: 6 stat cards + link to shops
+│   │   │       ├── loading.tsx
+│   │   │       ├── page.tsx        # Admin overview: stat cards
 │   │   │       ├── shops/
-│   │   │       │   ├── loading.tsx     # Skeleton loader for shop list
-│   │   │       │   ├── page.tsx        # Shop list: search, status filter, pagination
-│   │   │       │   └── [id]/page.tsx   # Shop detail: info, access toggle, notes, payments
+│   │   │       │   ├── loading.tsx
+│   │   │       │   ├── page.tsx    # Shop list: search, status filter, pagination
+│   │   │       │   └── [id]/page.tsx # Shop detail: info, access toggle, notes, payments, subscription
 │   │   │       └── catalog/
-│   │   │           ├── loading.tsx     # Skeleton loader for catalog list (Phase 16c)
-│   │   │           ├── page.tsx        # Catalog list: search, pagination (Phase 16c)
-│   │   │           ├── new/page.tsx    # Add catalog entry form (Phase 16c)
-│   │   │           └── [id]/page.tsx   # Edit/delete catalog entry (Phase 16c)
+│   │   │           ├── loading.tsx
+│   │   │           ├── page.tsx    # Catalog list: search, pagination
+│   │   │           ├── new/page.tsx # Add catalog entry form
+│   │   │           └── [id]/page.tsx # Edit/delete catalog entry
 │   │   └── api/
 │   │       ├── auth/
-│   │       │   └── teller-login/route.ts  # Returns synthetic email
-│   │       ├── onboarding/route.ts        # Creates shop + owner records
+│   │       │   └── teller-login/route.ts
+│   │       ├── onboarding/route.ts
 │   │       ├── products/
-│   │       │   ├── route.ts               # GET list, POST create
-│   │       │   └── [id]/route.ts          # GET by id, PATCH, DELETE
+│   │       │   ├── route.ts               # GET list (+ catalog fallback), POST create
+│   │       │   └── [id]/route.ts          # GET, PATCH, DELETE
 │   │       ├── sales/
-│   │       │   └── route.ts               # POST — complete a sale (uses decrement_stock_fefo)
+│   │       │   └── route.ts               # POST — complete sale (uses decrement_stock_fefo)
 │   │       ├── batches/
-│   │       │   ├── route.ts               # GET list batches for product, POST add batch (Phase 17b)
-│   │       │   └── [id]/route.ts          # DELETE — discard batch (Phase 17b)
+│   │       │   ├── route.ts               # GET list, POST add batch
+│   │       │   └── [id]/route.ts          # DELETE — discard batch
 │   │       ├── stock/
-│   │       │   └── route.ts               # GET list with low_stock flag + expiry count, POST adjust qty
+│   │       │   └── route.ts               # GET list + expiry count, POST adjust qty
 │   │       ├── stock-take/
-│   │       │   └── route.ts               # POST — save stock take
+│   │       │   └── route.ts
 │   │       ├── subscribe/
-│   │       │   ├── checkout/route.ts      # POST — generates PayFast checkout params
-│   │       │   ├── notify/route.ts        # POST — PayFast ITN webhook handler
-│   │       │   └── status/route.ts        # GET — subscription status + days remaining
+│   │       │   ├── checkout/route.ts
+│   │       │   ├── notify/route.ts        # PayFast ITN webhook
+│   │       │   └── status/route.ts
 │   │       ├── cron/
-│   │       │   ├── daily-summary/route.ts # GET — 22:00 SAST daily; sends WhatsApp summaries
-│   │       │   └── expire-subscriptions/route.ts # GET — 02:00 SAST daily; expires overdue trials/subs
+│   │       │   ├── daily-summary/route.ts # 22:00 SAST — WhatsApp summaries
+│   │       │   └── expire-subscriptions/route.ts # 02:00 SAST — expire overdue trials/subs
 │   │       ├── admin/
-│   │       │   ├── overview/route.ts      # GET — admin aggregate stats
+│   │       │   ├── overview/route.ts
 │   │       │   ├── catalog/
-│   │       │   │   ├── route.ts           # GET — list catalog, POST — create entry (Phase 16c)
-│   │       │   │   └── [id]/route.ts      # GET — single entry, PATCH — update, DELETE (Phase 16c)
+│   │       │   │   ├── route.ts           # GET list, POST create
+│   │       │   │   └── [id]/route.ts      # GET, PATCH, DELETE
 │   │       │   └── shops/
-│   │       │       ├── route.ts           # GET — paginated shop list with search/filter
+│   │       │       ├── route.ts           # GET paginated list
 │   │       │       └── [id]/
-│   │       │           ├── route.ts       # GET — full shop detail
-│   │       │           ├── payments/route.ts  # POST — record manual payment
-│   │       │           ├── access/route.ts    # PATCH — toggle access_granted
-│   │       │           ├── notes/route.ts     # PATCH — update admin notes
-│   │       │           └── subscription/route.ts # PATCH — update subscription status + end dates (Phase 15c)
+│   │       │           ├── route.ts       # GET shop detail
+│   │       │           ├── payments/route.ts
+│   │       │           ├── access/route.ts
+│   │       │           ├── notes/route.ts
+│   │       │           └── subscription/route.ts
 │   │       ├── reports/
-│   │       │   └── compliance-pdf/route.ts # GET — generates compliance PDF (Phase 17c)
+│   │       │   └── compliance-pdf/route.ts
 │   │       ├── settings/
-│   │       │   └── route.ts               # GET + PATCH shop settings (owner only)
+│   │       │   └── route.ts               # GET + PATCH shop settings
 │   │       └── tellers/
 │   │           ├── route.ts               # GET list, POST create
-│   │           ├── me/route.ts            # GET own teller record
+│   │           ├── me/route.ts
 │   │           └── [id]/route.ts          # PATCH deactivate
 │   ├── components/
 │   │   ├── sale/
-│   │   │   ├── TellerSelector.tsx         # Teller picker for owners
-│   │   │   ├── CartItem.tsx               # Cart row with qty +/− controls
-│   │   │   ├── CartSummary.tsx            # Sticky total + Complete Sale button
-│   │   │   ├── NewProductModal.tsx        # Quick-create for unknown barcodes (multi-expiry, smart duplicate handling)
-│   │   │   └── ProductPicker.tsx          # Manual product picker (bottom-sheet with search)
+│   │   │   ├── TellerSelector.tsx
+│   │   │   ├── CartItem.tsx
+│   │   │   ├── CartSummary.tsx            # Sticky total + Complete Sale (aboveNav prop)
+│   │   │   ├── NewProductModal.tsx        # Quick-create (multi-expiry, smart duplicate handling)
+│   │   │   └── ProductPicker.tsx          # Manual product picker (bottom-sheet search)
 │   │   ├── scanner/
-│   │   │   ├── BarcodeScanner.tsx         # Full-screen camera overlay
-│   │   │   └── ScannerOverlay.tsx         # Targeting reticle
+│   │   │   ├── BarcodeScanner.tsx
+│   │   │   └── ScannerOverlay.tsx
 │   │   ├── admin/
-│   │   │   └── AdminNav.tsx               # Admin top nav: Overview | Shops | Catalog + sign out (Phase 15b, 16c)
+│   │   │   └── AdminNav.tsx               # Overview | Shops | Catalog + sign out
 │   │   ├── dashboard/
-│   │   │   └── WeeklySalesChart.tsx       # Client component; bar chart of last 7 days (recharts)
-│   │   ├── ExpiryEntryList.tsx             # Repeatable expiry date + quantity rows (shared component, Phase 18b)
-│   │   ├── BottomNav.tsx                  # Owner bottom navigation bar (5 tabs)
-│   │   ├── ConfirmModal.tsx               # Bottom-sheet confirm dialog (replaces browser confirm())
-│   │   ├── Skeleton.tsx                   # Animated skeleton primitive for loading states
-│   │   ├── Toast.tsx                      # Toast notification system + ToastProvider context
-│   │   ├── OfflineBanner.tsx              # Amber/blue top banner (offline / syncing)
-│   │   ├── OfflineSyncProvider.tsx        # Client wrapper; owns sync state
-│   │   └── ServiceWorkerRegistrar.tsx     # Registers /sw.js on mount
+│   │   │   └── WeeklySalesChart.tsx        # recharts bar chart
+│   │   ├── ExpiryEntryList.tsx             # Repeatable expiry date + qty rows (shared)
+│   │   ├── BottomNav.tsx                   # Owner nav (5 tabs + Admin for dual-role)
+│   │   ├── ConfirmModal.tsx
+│   │   ├── Skeleton.tsx
+│   │   ├── Toast.tsx                       # Toast system + ToastProvider
+│   │   ├── OfflineBanner.tsx
+│   │   ├── OfflineSyncProvider.tsx
+│   │   └── ServiceWorkerRegistrar.tsx
 │   ├── hooks/
-│   │   ├── useActiveTeller.ts             # Active teller state (owner=pick, teller=auto)
-│   │   ├── useCart.ts                     # Cart state (add/remove/updateQty/clear)
-│   │   ├── useScanner.ts                  # @zxing/browser wrapper
-│   │   ├── useOnlineStatus.ts             # Tracks navigator.onLine
-│   │   ├── useOfflineSync.ts              # Auto-sync on reconnect + pending count
-│   │   └── useToast.ts                    # (legacy standalone hook — Toast.tsx context is used)
+│   │   ├── useActiveTeller.ts
+│   │   ├── useCart.ts
+│   │   ├── useScanner.ts
+│   │   ├── useOnlineStatus.ts
+│   │   └── useOfflineSync.ts
 │   ├── lib/
 │   │   ├── supabase/
-│   │   │   ├── client.ts           # Browser client
-│   │   │   ├── server.ts           # Server client (with cookies)
-│   │   │   └── admin.ts            # Service role client
+│   │   │   ├── client.ts                  # Browser client
+│   │   │   ├── server.ts                  # Server client (with cookies)
+│   │   │   └── admin.ts                   # Service role client
 │   │   ├── auth/
-│   │   │   ├── teller.ts           # Synthetic email + provisioning + updateShopUsersSubscription
-│   │   │   └── admin-guard.ts      # requireAdmin() — server-side admin auth verification (Phase 15a)
+│   │   │   ├── teller.ts                  # Synthetic email + provisioning + subscription sync
+│   │   │   ├── admin-guard.ts             # requireAdmin()
+│   │   │   └── shop-auth.ts              # getShopAuth() — shared user + shopId extraction
 │   │   ├── payfast/
-│   │   │   └── index.ts            # PayFast: signature, checkout params, ITN validation (Phase 14)
+│   │   │   └── index.ts                   # Signature, checkout, ITN validation
 │   │   ├── db/
-│   │   │   ├── products.ts         # Product CRUD helpers
-│   │   │   ├── tellers.ts          # Teller query helpers
-│   │   │   ├── sales.ts            # completeSale (insert + stock deduction)
-│   │   │   ├── stock-take.ts       # saveStockTake (audit + update stock_qty)
-│   │   │   ├── stock.ts            # listProductsWithStock + adjustStock (Phase 8)
-│   │   │   ├── reports.ts          # getDailySalesForShop + getLowStockForShop (Phase 9)
-│   │   │   ├── admin.ts            # Admin DB helpers: overview stats, list/detail shops, payments, access, notes (Phase 15b)
-│   │   │   ├── catalog.ts          # Shared barcode catalog: getCatalogEntry, getCatalogEntryById + admin CRUD (Phase 16a, 16c)
-│   │   │   ├── batches.ts          # Product batch CRUD + expiry stats (Phase 17b)
-│   │   │   └── compliance-report.ts # getComplianceReportData — fetches all data for PDF report (Phase 17c)
+│   │   │   ├── products.ts
+│   │   │   ├── sales.ts                   # completeSale (uses decrement_stock_fefo)
+│   │   │   ├── stock-take.ts
+│   │   │   ├── stock.ts
+│   │   │   ├── reports.ts                 # Daily sales, low stock, weekly, top products, expiring alerts
+│   │   │   ├── admin.ts                   # Admin: overview, shops, payments, access, notes, subscription
+│   │   │   ├── catalog.ts                 # Barcode catalog CRUD
+│   │   │   ├── batches.ts                 # Product batch CRUD + expiry stats
+│   │   │   └── compliance-report.ts       # Compliance PDF data fetcher
 │   │   ├── offline/
-│   │   │   ├── db.ts               # IndexedDB via idb (enqueue/list/remove/count)
-│   │   │   └── sync.ts             # syncPendingSales (retry queue → server)
+│   │   │   ├── db.ts                      # IndexedDB via idb
+│   │   │   └── sync.ts                    # syncPendingSales
 │   │   ├── whatsapp/
-│   │   │   ├── client.ts           # Twilio client factory + sendWhatsApp()
-│   │   │   └── format.ts           # formatDailySummary() — pure text formatter
+│   │   │   ├── client.ts                  # Twilio + sendWhatsApp()
+│   │   │   └── format.ts                  # formatDailySummary (+ expiry alerts)
 │   │   ├── validation/
-│   │   │   └── schemas.ts          # All Zod schemas (all phases)
+│   │   │   └── schemas.ts                 # All Zod schemas
 │   │   └── utils/
+│   │       ├── api.ts                    # parseBody() — shared JSON parse + Zod validation
 │   │       ├── currency.ts
 │   │       ├── date.ts
-│   │       ├── rateLimit.ts    # In-memory rate limiter for API routes (Phase 11)
-│   │       └── statusBadge.ts  # Shared subscription status badge colors (Phase 15d)
+│   │       ├── rateLimit.ts
+│   │       └── statusBadge.ts
 │   └── types/
 │       └── index.ts
 ├── supabase/
 │   └── migrations/
 │       ├── 001_initial_schema.sql
-│       ├── 002_decrement_stock.sql  # decrement_stock(p_product_id, p_qty) RPC
-│       ├── 003_stock_adjustments.sql  # stock_adjustments audit table (Phase 8)
-│       ├── 004_optional_barcode.sql  # barcode nullable + partial unique index (Phase 13)
-│       ├── 005_subscriptions.sql    # subscription_status, trial_ends_at, subscription_ends_at, payfast_token (Phase 14)
-│       ├── 006_admin_dashboard.sql  # access_granted, admin_notes, admin_payments table, manual_override status (Phase 15a)
-│       ├── 007_barcode_catalog.sql  # barcode_catalog table — shared product name lookup (Phase 16a)
-│       ├── 008_shop_fields.sql     # registration_number + location columns on shops (Phase 17a)
-│       ├── 009_product_batches.sql # product_batches table + decrement_stock_fefo function (Phase 17b)
-│       └── 010_product_name_unique.sql # case-insensitive unique index on product names per shop (Phase 18b)
+│       ├── 002_decrement_stock.sql
+│       ├── 003_stock_adjustments.sql
+│       ├── 004_optional_barcode.sql
+│       ├── 005_subscriptions.sql
+│       ├── 006_admin_dashboard.sql
+│       ├── 007_barcode_catalog.sql
+│       ├── 008_shop_fields.sql
+│       ├── 009_product_batches.sql
+│       └── 010_product_name_unique.sql
 ├── data/
-│   └── sa-products.csv             # 100 common SA products with EAN-13 barcodes for catalog seeding (Phase 16d)
+│   └── sa-products.csv                    # 100 SA products with EAN-13 barcodes
 ├── scripts/
-│   ├── set-admin.ts                # CLI: npx tsx scripts/set-admin.ts <email> — promotes user to admin (Phase 15a)
-│   └── seed-catalog.ts             # CLI: npx tsx scripts/seed-catalog.ts [csv] — seeds barcode_catalog table (Phase 16d)
+│   ├── set-admin.ts                       # Promote user to admin
+│   └── seed-catalog.ts                    # Seed barcode_catalog from CSV
 ├── tasks/
 │   ├── todo.md
 │   ├── lessons.md
-│   └── bugs.md                     # Bug tracker — read at every session start; update on every fix
+│   └── bugs.md                            # Bug tracker — read at session start
 └── tests/
     └── unit/
-        ├── currency.test.ts        # 16 tests — formatZAR, parsePrice, calcSubtotal, calcTotal
-        ├── whatsapp-format.test.ts # 14 tests — formatDailySummary + expiry alerts (Phase 17d)
-        ├── validation.test.ts      # 49 tests — all 10 Zod schemas (Phase 12)
-        ├── date.test.ts            # 17 tests — SAST timezone helpers (Phase 12)
-        ├── rate-limit.test.ts      # 7 tests  — in-memory rate limiter (Phase 12)
-        ├── security.test.ts        # 15 tests — schema rejection of malformed input (Phase 12)
-        ├── payfast.test.ts         # 12 tests — PayFast signature, checkout params, IP validation, expiry logic (Phase 14)
-        ├── admin.test.ts          # 28 tests — statusBadge, admin Zod schemas (Phase 15d)
-        └── batches.test.ts        # 14 tests — addBatchSchema validation (Phase 17b)
+        ├── currency.test.ts               # 16 tests
+        ├── whatsapp-format.test.ts        # 14 tests
+        ├── validation.test.ts             # 49 tests
+        ├── date.test.ts                   # 17 tests
+        ├── rate-limit.test.ts             # 7 tests
+        ├── security.test.ts              # 15 tests
+        ├── payfast.test.ts               # 12 tests
+        ├── admin.test.ts                 # 28 tests
+        └── batches.test.ts              # 14 tests
 ```
