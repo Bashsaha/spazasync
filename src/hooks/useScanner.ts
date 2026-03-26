@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useCallback, useState } from 'react'
-import { BrowserMultiFormatReader, type IScannerControls } from '@zxing/browser'
+import type { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser'
 
 interface UseScannerOptions {
   onScan: (barcode: string) => void
@@ -31,6 +31,7 @@ export function useScanner({ onScan, onError }: UseScannerOptions): UseScannerRe
       hasScanned.current = false
 
       if (!readerRef.current) {
+        const { BrowserMultiFormatReader } = await import('@zxing/browser')
         readerRef.current = new BrowserMultiFormatReader()
       }
 
