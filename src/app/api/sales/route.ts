@@ -16,6 +16,14 @@ export async function POST(request: Request) {
     return NextResponse.json(sale, { status: 201 })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to complete sale'
+    const code = typeof err === 'object' && err !== null && 'code' in err
+      ? (err as { code: string }).code
+      : ''
+
+    // Duplicate offline_id — sale was already synced
+    if (code === '23505' && message.includes('offline_id')) {
+      return NextResponse.json({ error: 'Sale already recorded' }, { status: 409 })
+    }
 
     // stock_qty >= 0 constraint violation
     if (message.includes('stock_qty') || message.includes('check')) {

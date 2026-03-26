@@ -299,6 +299,7 @@ At the start of every session:
 - [x] Phase 19a: Expiry Management — Dedicated Expiry Page
 - [x] Phase 19b: Expiry Management — Batch Consumption Tracking on Sales
 - [x] Phase 20a: Performance — Singleton Client, Lazy Scanner, Theme Fix
+- [x] Phase 20b: Offline Dedup Safety — Migration + API 409
 
 **Phase 20 context:** Site is extremely laggy and offline support is incomplete. Target users are on mid-range Android phones with inconsistent cellular data. Performance issues: Supabase client re-created on every call, ~60KB @zxing loaded even when scanner not open, manifest theme mismatch. Offline issues: no UNIQUE constraint on offline_id (duplicate sales), products not cached for offline browsing, no sync retry strategy, cart lost on crash, no sync error feedback. Full plan at `.claude/plans/velvety-floating-pond.md`. Implementation order: 20a (quick wins) → 20b (dedup safety) → 20c (offline resilience) → 20d (stock warnings + dashboard streaming).
 
@@ -384,6 +385,9 @@ Renamed middleware.ts → proxy.ts (Next.js 16 convention), fixed dark mode invi
 
 ### Phase 20a: Performance — Quick Wins
 Supabase browser client cached as module-level singleton (`src/lib/supabase/client.ts`). `@zxing/browser` lazy-loaded via dynamic import in `useScanner.ts` — removes ~60KB from initial sale page bundle. PWA manifest `theme_color` corrected from orange `#f97316` to blue `#2563eb`.
+
+### Phase 20b: Offline Dedup Safety
+`012_offline_id_unique.sql` — partial unique index on `sales.offline_id` (WHERE NOT NULL) prevents duplicate offline sales on retry. Cleans up existing duplicates (keeps earliest). `src/app/api/sales/route.ts` now catches PostgreSQL `23505` unique violation and returns `{ status: 409 }` — sync client already handles this correctly.
 
 ---
 
@@ -588,7 +592,8 @@ spaza shop/
 │       ├── 008_shop_fields.sql
 │       ├── 009_product_batches.sql
 │       ├── 010_product_name_unique.sql
-│       └── 011_sale_batch_consumptions.sql
+│       ├── 011_sale_batch_consumptions.sql
+│       └── 012_offline_id_unique.sql
 ├── data/
 │   └── sa-products.csv                    # 100 SA products with EAN-13 barcodes
 ├── scripts/
