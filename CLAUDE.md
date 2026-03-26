@@ -298,6 +298,9 @@ At the start of every session:
 - [x] Phase 18b: Multiple Expiry Dates on Product Creation + Product Name Uniqueness
 - [x] Phase 19a: Expiry Management — Dedicated Expiry Page
 - [x] Phase 19b: Expiry Management — Batch Consumption Tracking on Sales
+- [x] Phase 20a: Performance — Singleton Client, Lazy Scanner, Theme Fix
+
+**Phase 20 context:** Site is extremely laggy and offline support is incomplete. Target users are on mid-range Android phones with inconsistent cellular data. Performance issues: Supabase client re-created on every call, ~60KB @zxing loaded even when scanner not open, manifest theme mismatch. Offline issues: no UNIQUE constraint on offline_id (duplicate sales), products not cached for offline browsing, no sync retry strategy, cart lost on crash, no sync error feedback. Full plan at `.claude/plans/velvety-floating-pond.md`. Implementation order: 20a (quick wins) → 20b (dedup safety) → 20c (offline resilience) → 20d (stock warnings + dashboard streaming).
 
 **Phase 19 context:** Expiry dates are buried inside the stock adjustment page (`/stock/[id]`), requiring multiple hops to see them. Owners need a dedicated page showing all expiry-tracked products grouped by urgency (expired → expiring soon → OK) with expandable batch details. Additionally, `decrement_stock_fefo` silently consumes batches during sales with no audit trail — Phase 19b adds a `sale_batch_consumptions` table and modifies the SQL function to record which batches each sale consumed (fully automatic, zero teller burden). The system already knows expiry dates because owners enter them when adding stock; FEFO deduction is pure database logic. Implementation order: 19a first (UI only, no DB changes), then 19b (migration + sale flow). Full plan at `.claude/plans/sorted-prancing-dove.md`.
 
@@ -378,6 +381,9 @@ Renamed middleware.ts → proxy.ts (Next.js 16 convention), fixed dark mode invi
 - BUG-013: Adding stock with partial expiry dates dropped untracked units. Fixed: remainder added via `/api/stock`.
 - BUG-014: BottomNav covered CartSummary's "Complete Sale" button on mobile. Fixed: `aboveNav` prop with z-50.
 - Dashboard expiry alert: wired `getExpiringProductsForShop()` to dashboard (was only in WhatsApp cron).
+
+### Phase 20a: Performance — Quick Wins
+Supabase browser client cached as module-level singleton (`src/lib/supabase/client.ts`). `@zxing/browser` lazy-loaded via dynamic import in `useScanner.ts` — removes ~60KB from initial sale page bundle. PWA manifest `theme_color` corrected from orange `#f97316` to blue `#2563eb`.
 
 ---
 
