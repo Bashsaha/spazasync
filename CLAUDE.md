@@ -301,6 +301,7 @@ At the start of every session:
 - [x] Phase 20a: Performance — Singleton Client, Lazy Scanner, Theme Fix
 - [x] Phase 20b: Offline Dedup Safety — Migration + API 409
 - [x] Phase 20c: Offline Resilience — Cart, Product Cache, Sync Improvements
+- [ ] Phase 20d: Stock Warnings + Dashboard Streaming
 
 **Phase 20 context:** Site is extremely laggy and offline support is incomplete. Target users are on mid-range Android phones with inconsistent cellular data. Performance issues: Supabase client re-created on every call, ~60KB @zxing loaded even when scanner not open, manifest theme mismatch. Offline issues: no UNIQUE constraint on offline_id (duplicate sales), products not cached for offline browsing, no sync retry strategy, cart lost on crash, no sync error feedback. Full plan at `.claude/plans/velvety-floating-pond.md`. Implementation order: 20a (quick wins) → 20b (dedup safety) → 20c (offline resilience) → 20d (stock warnings + dashboard streaming).
 
