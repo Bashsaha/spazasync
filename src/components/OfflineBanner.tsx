@@ -1,18 +1,31 @@
 interface OfflineBannerProps {
   isOnline: boolean
   pendingCount: number
+  failedCount: number
   isSyncing: boolean
+  onRetryFailed?: () => void
 }
 
 /**
  * Thin top banner that surfaces connectivity and sync status.
- * Renders nothing when online with no pending sales.
+ * Renders nothing when online with no pending/failed sales.
  */
-export function OfflineBanner({ isOnline, pendingCount, isSyncing }: OfflineBannerProps) {
+export function OfflineBanner({ isOnline, pendingCount, failedCount, isSyncing, onRetryFailed }: OfflineBannerProps) {
   if (isSyncing) {
     return (
       <div className="bg-blue-500 text-white text-xs text-center py-2 px-4">
         Syncing {pendingCount} saved sale{pendingCount !== 1 ? 's' : ''}…
+      </div>
+    )
+  }
+
+  if (failedCount > 0 && isOnline) {
+    return (
+      <div
+        className="bg-red-500 text-white text-xs text-center py-2 px-4 cursor-pointer active:bg-red-600"
+        onClick={onRetryFailed}
+      >
+        {failedCount} sale{failedCount !== 1 ? 's' : ''} could not sync — tap to retry
       </div>
     )
   }

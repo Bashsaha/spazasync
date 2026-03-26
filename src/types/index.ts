@@ -111,6 +111,7 @@ export interface PendingSale {
   items: OfflineSaleItem[]
   queued_at: string
   retry_count: number
+  last_error?: string      // reason for last sync failure
 }
 
 export interface OfflineSaleItem {

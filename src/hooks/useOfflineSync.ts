@@ -2,20 +2,23 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useOnlineStatus } from './useOnlineStatus'
-import { countPendingSales } from '@/lib/offline/db'
-import { syncPendingSales } from '@/lib/offline/sync'
+import { countPendingSales, countFailedSales, resetFailedSales } from '@/lib/offline/db'
+import { syncPendingSales, MAX_RETRIES } from '@/lib/offline/sync'
 
 export interface OfflineSyncState {
   isOnline: boolean
   pendingCount: number
+  failedCount: number
   isSyncing: boolean
   refreshCount: () => Promise<void>
+  retryFailed: () => Promise<void>
 }
 
 /**
  * Manages the offline sale queue.
  *
  * - Counts pending sales and exposes them for display.
+ * - Tracks sales that have exceeded max retries (failed).
  * - Automatically syncs when the device comes back online.
  * - Listens for a custom 'offlinequeue' window event so the count updates
  *   immediately after a sale is queued (without needing context/props drilling).
@@ -24,12 +27,22 @@ export interface OfflineSyncState {
 export function useOfflineSync(): OfflineSyncState {
   const isOnline = useOnlineStatus()
   const [pendingCount, setPendingCount] = useState(0)
+  const [failedCount, setFailedCount] = useState(0)
   const [isSyncing, setIsSyncing] = useState(false)
   const syncingRef = useRef(false)
 
   async function refreshCount() {
-    const count = await countPendingSales()
+    const [count, failed] = await Promise.all([
+      countPendingSales(),
+      countFailedSales(MAX_RETRIES),
+    ])
     setPendingCount(count)
+    setFailedCount(failed)
+  }
+
+  async function retryFailed() {
+    await resetFailedSales(MAX_RETRIES)
+    await refreshCount()
   }
 
   // Initial count
@@ -68,5 +81,5 @@ export function useOfflineSync(): OfflineSyncState {
       })
   }, [isOnline, pendingCount])
 
-  return { isOnline, pendingCount, isSyncing, refreshCount }
+  return { isOnline, pendingCount, failedCount, isSyncing, refreshCount, retryFailed }
 }

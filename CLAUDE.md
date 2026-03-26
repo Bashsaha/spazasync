@@ -300,6 +300,7 @@ At the start of every session:
 - [x] Phase 19b: Expiry Management — Batch Consumption Tracking on Sales
 - [x] Phase 20a: Performance — Singleton Client, Lazy Scanner, Theme Fix
 - [x] Phase 20b: Offline Dedup Safety — Migration + API 409
+- [x] Phase 20c: Offline Resilience — Cart, Product Cache, Sync Improvements
 
 **Phase 20 context:** Site is extremely laggy and offline support is incomplete. Target users are on mid-range Android phones with inconsistent cellular data. Performance issues: Supabase client re-created on every call, ~60KB @zxing loaded even when scanner not open, manifest theme mismatch. Offline issues: no UNIQUE constraint on offline_id (duplicate sales), products not cached for offline browsing, no sync retry strategy, cart lost on crash, no sync error feedback. Full plan at `.claude/plans/velvety-floating-pond.md`. Implementation order: 20a (quick wins) → 20b (dedup safety) → 20c (offline resilience) → 20d (stock warnings + dashboard streaming).
 
@@ -388,6 +389,9 @@ Supabase browser client cached as module-level singleton (`src/lib/supabase/clie
 
 ### Phase 20b: Offline Dedup Safety
 `012_offline_id_unique.sql` — partial unique index on `sales.offline_id` (WHERE NOT NULL) prevents duplicate offline sales on retry. Cleans up existing duplicates (keeps earliest). `src/app/api/sales/route.ts` now catches PostgreSQL `23505` unique violation and returns `{ status: 409 }` — sync client already handles this correctly.
+
+### Phase 20c: Offline Resilience
+IndexedDB bumped to v2 with `products` store (indexes: `by_barcode`) and `cart` store for crash recovery. `useCart` now persists to/restores from IndexedDB on every change. Sync engine has exponential backoff (1s→16s cap), max 5 retries, and stores `last_error` per sale. `ProductPicker` caches full product list on fetch, falls back to cached products when offline. Sale page barcode scan falls back to IndexedDB product cache when network fails. `OfflineBanner` shows red banner for failed sales with tap-to-retry. `useOfflineSync` tracks `failedCount` and exposes `retryFailed()`.
 
 ---
 

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import { saveCart, loadCart, clearCartCache } from '@/lib/offline/db'
 import type { CartItem, Product } from '@/types'
 
 interface UseCartReturn {
@@ -14,6 +15,27 @@ interface UseCartReturn {
 
 export function useCart(): UseCartReturn {
   const [items, setItems] = useState<CartItem[]>([])
+  const initialLoadDone = useRef(false)
+
+  // Restore cart from IndexedDB on mount (crash recovery)
+  useEffect(() => {
+    loadCart().then((saved) => {
+      if (saved && saved.length > 0) {
+        setItems(saved)
+      }
+      initialLoadDone.current = true
+    })
+  }, [])
+
+  // Persist to IndexedDB on every change (after initial load)
+  useEffect(() => {
+    if (!initialLoadDone.current) return
+    if (items.length === 0) {
+      clearCartCache()
+    } else {
+      saveCart(items)
+    }
+  }, [items])
 
   const total = items.reduce((sum, item) => sum + item.subtotal, 0)
 
@@ -47,7 +69,10 @@ export function useCart(): UseCartReturn {
     )
   }, [])
 
-  const clearCart = useCallback(() => setItems([]), [])
+  const clearCart = useCallback(() => {
+    setItems([])
+    clearCartCache()
+  }, [])
 
   return { items, total, addItem, removeItem, updateQty, clearCart }
 }

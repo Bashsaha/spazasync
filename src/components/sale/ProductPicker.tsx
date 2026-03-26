@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import type { Product } from '@/types'
 import { formatZAR } from '@/lib/utils/currency'
+import { cacheProducts, getCachedProducts } from '@/lib/offline/db'
 
 interface ProductPickerProps {
   onSelect: (product: Product) => void
@@ -25,10 +26,29 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
         const res = await fetch(url, { signal: controller.signal })
         if (res.ok) {
           const json = await res.json()
-          setProducts(json.products ?? json)
+          const fetched = json.products ?? json
+          setProducts(fetched)
+          // Cache full product list for offline use (unfiltered only)
+          if (!search.trim()) {
+            cacheProducts(fetched)
+          }
         }
-      } catch {
-        // ignore abort errors
+      } catch (err) {
+        // On fetch failure (offline), fall back to cached products
+        if (err instanceof DOMException && err.name === 'AbortError') return
+        const cached = await getCachedProducts()
+        if (cached.length > 0) {
+          const q = search.trim().toLowerCase()
+          setProducts(
+            q
+              ? cached.filter(
+                  (p) =>
+                    p.name.toLowerCase().includes(q) ||
+                    (p.barcode?.includes(search.trim()) ?? false),
+                )
+              : cached,
+          )
+        }
       } finally {
         setLoading(false)
       }

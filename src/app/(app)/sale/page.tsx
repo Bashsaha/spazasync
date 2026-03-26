@@ -11,7 +11,7 @@ import { CartItem } from '@/components/sale/CartItem'
 import { CartSummary } from '@/components/sale/CartSummary'
 import { NewProductModal } from '@/components/sale/NewProductModal'
 import { ProductPicker } from '@/components/sale/ProductPicker'
-import { enqueueSale } from '@/lib/offline/db'
+import { enqueueSale, getCachedProductByBarcode } from '@/lib/offline/db'
 import { createClient } from '@/lib/supabase/client'
 import type { Product } from '@/types'
 
@@ -49,7 +49,12 @@ export default function SalePage() {
       setCatalogSuggestion(json.catalog_suggestion ?? null)
       setUnknownBarcode(barcode)
     } catch {
-      // Network failed and SW has no cached match for this barcode
+      // Network failed and SW has no cached match — try IndexedDB product cache
+      const cached = await getCachedProductByBarcode(barcode)
+      if (cached) {
+        addItem(cached)
+        return
+      }
       setCatalogSuggestion(null)
       setUnknownBarcode(barcode)
     }
@@ -153,7 +158,7 @@ export default function SalePage() {
 
   return (
     <>
-      <main className="px-4 pt-8 pb-36 max-w-lg mx-auto">
+      <main className={`px-4 pt-8 max-w-lg mx-auto ${role !== 'teller' ? 'pb-52' : 'pb-36'}`}>
         {/* header */}
         <div className="flex items-center justify-between mb-1">
           <h1 className="text-2xl font-bold text-gray-900">Sale</h1>
@@ -225,6 +230,7 @@ export default function SalePage() {
         itemCount={items.length}
         onCompleteSale={handleCompleteSale}
         isSubmitting={isSubmitting}
+        aboveNav={role !== 'teller'}
       />
 
       {/* full-screen scanner overlay */}

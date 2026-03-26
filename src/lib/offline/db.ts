@@ -1,26 +1,42 @@
 /**
- * IndexedDB wrapper for offline sale queuing.
+ * IndexedDB wrapper for offline support.
  * Uses the `idb` library for a promise-based API.
  *
- * Database: spazasync (v1)
- * Store:    pending_sales — keyed by offline_id (UUID generated locally)
+ * Database: spazasync (v2)
+ * Stores:
+ *   pending_sales — keyed by offline_id (UUID generated locally)
+ *   products      — cached product list for offline browsing/barcode lookup
+ *   cart          — current cart state for crash recovery
  */
 import { openDB } from 'idb'
-import type { PendingSale } from '@/types'
+import type { PendingSale, Product, CartItem } from '@/types'
 
 const DB_NAME = 'spazasync'
-const DB_VERSION = 1
+const DB_VERSION = 2
 const STORE = 'pending_sales'
 
 function getDB() {
   return openDB(DB_NAME, DB_VERSION, {
-    upgrade(db) {
-      if (!db.objectStoreNames.contains(STORE)) {
+    upgrade(db, oldVersion) {
+      // v1: pending_sales
+      if (oldVersion < 1) {
         db.createObjectStore(STORE, { keyPath: 'offline_id' })
+      }
+      // v2: product cache + cart persistence
+      if (oldVersion < 2) {
+        if (!db.objectStoreNames.contains('products')) {
+          const productStore = db.createObjectStore('products', { keyPath: 'id' })
+          productStore.createIndex('by_barcode', 'barcode')
+        }
+        if (!db.objectStoreNames.contains('cart')) {
+          db.createObjectStore('cart', { keyPath: 'key' })
+        }
       }
     },
   })
 }
+
+// ── Pending sales ─────────────────────────────────────────────────────────────
 
 /** Add (or replace) a pending sale in the queue. */
 export async function enqueueSale(sale: PendingSale): Promise<void> {
@@ -47,4 +63,85 @@ export async function removePendingSale(offlineId: string): Promise<void> {
 export async function countPendingSales(): Promise<number> {
   const db = await getDB()
   return db.count(STORE)
+}
+
+/** Update retry count and last error on a pending sale. */
+export async function updateSaleRetry(offlineId: string, retryCount: number, lastError: string): Promise<void> {
+  const db = await getDB()
+  const sale = await db.get(STORE, offlineId)
+  if (sale) {
+    sale.retry_count = retryCount
+    sale.last_error = lastError
+    await db.put(STORE, sale)
+  }
+}
+
+/** Count sales that have exceeded max retries. */
+export async function countFailedSales(maxRetries: number): Promise<number> {
+  const db = await getDB()
+  const all = await db.getAll(STORE)
+  return all.filter((s) => s.retry_count >= maxRetries).length
+}
+
+/** Reset retry count on failed sales so they can be retried. */
+export async function resetFailedSales(maxRetries: number): Promise<void> {
+  const db = await getDB()
+  const tx = db.transaction(STORE, 'readwrite')
+  const store = tx.objectStore(STORE)
+  const all = await store.getAll()
+  for (const sale of all) {
+    if (sale.retry_count >= maxRetries) {
+      sale.retry_count = 0
+      sale.last_error = undefined
+      await store.put(sale)
+    }
+  }
+  await tx.done
+}
+
+// ── Product cache ─────────────────────────────────────────────────────────────
+
+/** Replace the entire product cache with a fresh list. */
+export async function cacheProducts(products: Product[]): Promise<void> {
+  const db = await getDB()
+  const tx = db.transaction('products', 'readwrite')
+  const store = tx.objectStore('products')
+  await store.clear()
+  for (const p of products) {
+    await store.put(p)
+  }
+  await tx.done
+}
+
+/** Return all cached products. */
+export async function getCachedProducts(): Promise<Product[]> {
+  const db = await getDB()
+  return db.getAll('products')
+}
+
+/** Look up a single product by barcode from cache. */
+export async function getCachedProductByBarcode(barcode: string): Promise<Product | undefined> {
+  const db = await getDB()
+  return db.getFromIndex('products', 'by_barcode', barcode)
+}
+
+// ── Cart persistence ──────────────────────────────────────────────────────────
+
+/** Save current cart items for crash recovery. */
+export async function saveCart(items: CartItem[]): Promise<void> {
+  const db = await getDB()
+  await db.put('cart', { key: 'current', items, updated_at: new Date().toISOString() })
+}
+
+/** Load saved cart items. Returns null if no saved cart. */
+export async function loadCart(): Promise<CartItem[] | null> {
+  const db = await getDB()
+  const record = await db.get('cart', 'current')
+  return record?.items ?? null
+}
+
+/** Clear the saved cart. */
+export async function clearCartCache(): Promise<void> {
+  const db = await getDB()
+  await db.delete('cart', 'current')
 }

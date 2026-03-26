@@ -8,11 +8,17 @@ import { OfflineBanner } from './OfflineBanner'
  * Inserted into the (app) layout so it covers all authenticated pages.
  */
 export function OfflineSyncProvider({ children }: { children: React.ReactNode }) {
-  const { isOnline, pendingCount, isSyncing } = useOfflineSync()
+  const { isOnline, pendingCount, failedCount, isSyncing, retryFailed } = useOfflineSync()
 
   return (
     <>
-      <OfflineBanner isOnline={isOnline} pendingCount={pendingCount} isSyncing={isSyncing} />
+      <OfflineBanner
+        isOnline={isOnline}
+        pendingCount={pendingCount}
+        failedCount={failedCount}
+        isSyncing={isSyncing}
+        onRetryFailed={retryFailed}
+      />
       {children}
     </>
   )
