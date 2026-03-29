@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useActiveTeller } from '@/hooks/useActiveTeller'
 import { useCart } from '@/hooks/useCart'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
+import { useToast } from '@/components/Toast'
 import { TellerSelector } from '@/components/sale/TellerSelector'
 import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
 import { CartItem } from '@/components/sale/CartItem'
@@ -20,6 +21,7 @@ export default function SalePage() {
   const isOnline = useOnlineStatus()
   const { activeTeller, setActiveTeller, clearActiveTeller, isLoading, role } = useActiveTeller()
   const { items, total, addItem, removeItem, updateQty, clearCart } = useCart()
+  const { addToast } = useToast()
 
   const [isScannerOpen, setIsScannerOpen] = useState(false)
   const [isPickerOpen, setIsPickerOpen] = useState(false)
@@ -27,6 +29,27 @@ export default function SalePage() {
   const [catalogSuggestion, setCatalogSuggestion] = useState<{ barcode: string; name: string } | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+
+  // Low-stock threshold from shop settings
+  const [threshold, setThreshold] = useState(5)
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((shop) => {
+        if (shop?.low_stock_threshold != null) setThreshold(shop.low_stock_threshold)
+      })
+      .catch(() => {}) // offline: use default
+  }, [])
+
+  // Show stock warning toast when adding a product
+  function showStockToast(product: Product) {
+    if (product.stock_qty === 0) {
+      addToast('Heads up — this item is out of stock', 'error')
+    } else if (product.stock_qty <= threshold) {
+      addToast(`Heads up — only ${product.stock_qty} left in stock`, 'info')
+    }
+  }
 
   // ── Barcode scan handler ───────────────────────────────────────────────────
 
@@ -43,6 +66,7 @@ export default function SalePage() {
       const products = (json.products ?? json) as Product[]
       if (products.length > 0) {
         addItem(products[0])
+        showStockToast(products[0])
         return
       }
       // No shop product — check if catalog had a suggestion
@@ -53,6 +77,7 @@ export default function SalePage() {
       const cached = await getCachedProductByBarcode(barcode)
       if (cached) {
         addItem(cached)
+        showStockToast(cached)
         return
       }
       setCatalogSuggestion(null)
@@ -64,6 +89,12 @@ export default function SalePage() {
     setUnknownBarcode(null)
     setCatalogSuggestion(null)
     addItem(product)
+    showStockToast(product)
+  }
+
+  function handleProductSelect(product: Product) {
+    addItem(product)
+    showStockToast(product)
   }
 
   // ── Complete sale ──────────────────────────────────────────────────────────
@@ -131,6 +162,10 @@ export default function SalePage() {
       setIsSubmitting(false)
     }
   }
+
+  // ── Computed: oversell warning ──────────────────────────────────────────────
+
+  const hasOversellWarning = items.some((i) => i.quantity > i.product.stock_qty)
 
   // ── Loading ────────────────────────────────────────────────────────────────
 
@@ -218,6 +253,7 @@ export default function SalePage() {
                 item={item}
                 onRemove={removeItem}
                 onUpdateQty={updateQty}
+                threshold={threshold}
               />
             ))}
           </div>
@@ -231,6 +267,7 @@ export default function SalePage() {
         onCompleteSale={handleCompleteSale}
         isSubmitting={isSubmitting}
         aboveNav={role !== 'teller'}
+        hasOversellWarning={hasOversellWarning}
       />
 
       {/* full-screen scanner overlay */}
@@ -240,7 +277,7 @@ export default function SalePage() {
 
       {/* manual product picker */}
       {isPickerOpen && (
-        <ProductPicker onSelect={addItem} onClose={() => setIsPickerOpen(false)} />
+        <ProductPicker onSelect={handleProductSelect} onClose={() => setIsPickerOpen(false)} />
       )}
 
       {/* bottom-sheet: unknown barcode → quick-create product */}

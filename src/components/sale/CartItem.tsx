@@ -5,9 +5,10 @@ interface CartItemProps {
   item: CartItemType
   onRemove: (productId: string) => void
   onUpdateQty: (productId: string, qty: number) => void
+  threshold?: number
 }
 
-export function CartItem({ item, onRemove, onUpdateQty }: CartItemProps) {
+export function CartItem({ item, onRemove, onUpdateQty, threshold = 5 }: CartItemProps) {
   const { product, quantity, subtotal } = item
 
   function decrement() {
@@ -18,12 +19,29 @@ export function CartItem({ item, onRemove, onUpdateQty }: CartItemProps) {
     }
   }
 
+  // Stock warning badge
+  const stockBadge =
+    product.stock_qty === 0 ? (
+      <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 mt-0.5">
+        Out of stock
+      </span>
+    ) : quantity > product.stock_qty ? (
+      <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 mt-0.5">
+        Only {product.stock_qty} left
+      </span>
+    ) : product.stock_qty <= threshold ? (
+      <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 mt-0.5">
+        Low stock: {product.stock_qty} left
+      </span>
+    ) : null
+
   return (
     <div className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0">
       {/* product info */}
       <div className="flex-1 min-w-0">
         <p className="font-medium text-gray-900 truncate text-sm">{product.name}</p>
         <p className="text-xs text-gray-400">{formatZAR(product.price)} each</p>
+        {stockBadge}
       </div>
 
       {/* qty controls */}

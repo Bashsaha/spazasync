@@ -1,17 +1,13 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import {
-  getDailySalesForShop,
-  getLowStockForShop,
-  getWeeklySalesForShop,
-  getRecentSalesForShop,
-  getTopProductsThisWeek,
-  getExpiringProductsForShop,
-} from '@/lib/db/reports'
-import type { ExpiringProductAlert } from '@/types'
-import { formatZAR } from '@/lib/utils/currency'
-import { formatSAST } from '@/lib/utils/date'
-import { WeeklySalesChart } from '@/components/dashboard/WeeklySalesChart'
+import { Skeleton } from '@/components/Skeleton'
+import { TodaySummary } from '@/components/dashboard/TodaySummary'
+import { LowStockAlert } from '@/components/dashboard/LowStockAlert'
+import { ExpiringAlert } from '@/components/dashboard/ExpiringAlert'
+import { WeeklyChartSection } from '@/components/dashboard/WeeklyChartSection'
+import { TopProducts } from '@/components/dashboard/TopProducts'
+import { LatestSales } from '@/components/dashboard/LatestSales'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -39,34 +35,6 @@ export default async function DashboardPage() {
 
   const shopName = shop?.name ?? 'Your Shop'
   const shopCode = shop?.code ?? ''
-
-  // Fetch all dashboard data in parallel — all best-effort
-  let summary = { salesCount: 0, totalRevenue: 0, topItems: [] as { name: string; totalQty: number }[], tellerCount: 0 }
-  let lowStock: { name: string; stock_qty: number }[] = []
-  let weeklyData = [] as Awaited<ReturnType<typeof getWeeklySalesForShop>>
-  let recentSales = [] as Awaited<ReturnType<typeof getRecentSalesForShop>>
-  let topProducts = [] as Awaited<ReturnType<typeof getTopProductsThisWeek>>
-  let expiringProducts: ExpiringProductAlert[] = []
-
-  if (shop?.id) {
-    const results = await Promise.allSettled([
-      getDailySalesForShop(shop.id),
-      getLowStockForShop(shop.id, shop.low_stock_threshold),
-      getWeeklySalesForShop(shop.id),
-      getRecentSalesForShop(shop.id, 10),
-      getTopProductsThisWeek(shop.id, 5),
-      getExpiringProductsForShop(shop.id),
-    ])
-    if (results[0].status === 'fulfilled') summary = results[0].value
-    if (results[1].status === 'fulfilled') lowStock = results[1].value
-    if (results[2].status === 'fulfilled') weeklyData = results[2].value
-    if (results[3].status === 'fulfilled') recentSales = results[3].value
-    if (results[4].status === 'fulfilled') topProducts = results[4].value
-    if (results[5].status === 'fulfilled') expiringProducts = results[5].value
-  }
-
-  const outOfStock = lowStock.filter((p) => p.stock_qty === 0)
-  const lowOnly = lowStock.filter((p) => p.stock_qty > 0)
 
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
@@ -106,180 +74,49 @@ export default async function DashboardPage() {
         )
       })()}
 
-      {/* Today's summary */}
-      <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-4">
-        <p className="text-xs font-semibold text-blue-500 uppercase tracking-wide mb-3">
-          Today
-        </p>
-        <div className="flex gap-4">
-          <div className="flex-1">
-            <p className="text-2xl font-bold text-gray-900">{formatZAR(summary.totalRevenue)}</p>
-            <p className="text-xs text-gray-400 mt-0.5">made</p>
-          </div>
-          <div className="flex-1">
-            <p className="text-2xl font-bold text-gray-900">{summary.salesCount}</p>
-            <p className="text-xs text-gray-400 mt-0.5">
-              {summary.salesCount === 1 ? 'sale' : 'sales'}
-            </p>
-          </div>
-          {summary.tellerCount > 0 && (
-            <div className="flex-1">
-              <p className="text-2xl font-bold text-gray-900">{summary.tellerCount}</p>
-              <p className="text-xs text-gray-400 mt-0.5">
-                {summary.tellerCount === 1 ? 'teller' : 'tellers'}
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Low stock alert */}
-      {lowStock.length > 0 && (
-        <a
-          href="/stock?tab=low"
-          className="block bg-red-50 border border-red-100 rounded-2xl p-4 mb-4"
-        >
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm font-semibold text-red-700 mb-1">
-                ⚠️ Stock running low
-              </p>
-              {outOfStock.length > 0 && (
-                <p className="text-xs text-red-600">
-                  {outOfStock.length} item{outOfStock.length !== 1 ? 's' : ''} out of stock
-                </p>
-              )}
-              {lowOnly.length > 0 && (
-                <p className="text-xs text-blue-700">
-                  {lowOnly.length} item{lowOnly.length !== 1 ? 's' : ''} almost out
-                </p>
-              )}
-              <ul className="mt-2 space-y-0.5">
-                {lowStock.slice(0, 4).map((item) => (
-                  <li key={item.name} className="text-xs text-gray-600">
-                    • {item.name}{' '}
-                    <span className={item.stock_qty === 0 ? 'text-red-600 font-semibold' : 'text-blue-600'}>
-                      {item.stock_qty === 0 ? '(out)' : `(${item.stock_qty} left)`}
-                    </span>
-                  </li>
-                ))}
-                {lowStock.length > 4 && (
-                  <li className="text-xs text-gray-400">+{lowStock.length - 4} more…</li>
-                )}
-              </ul>
-            </div>
-            <span className="text-gray-300 text-lg">›</span>
-          </div>
-        </a>
+      {/* Today's summary — streams in */}
+      {shop?.id && (
+        <Suspense fallback={<Skeleton className="h-24 rounded-2xl mb-4" />}>
+          <TodaySummary shopId={shop.id} />
+        </Suspense>
       )}
 
-      {/* Expiring products alert */}
-      {expiringProducts.length > 0 && (() => {
-        const expired = expiringProducts.filter((p) => p.expired_qty > 0)
-        const expiringSoon = expiringProducts.filter((p) => p.expiring_soon_qty > 0 && p.expired_qty === 0)
-        return (
-          <a
-            href="/expiry"
-            className="block bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4"
-          >
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-semibold text-amber-800 mb-1">
-                  ⏰ Products expiring
-                </p>
-                {expired.length > 0 && (
-                  <p className="text-xs text-red-600">
-                    {expired.length} product{expired.length !== 1 ? 's' : ''} already expired
-                  </p>
-                )}
-                {expiringSoon.length > 0 && (
-                  <p className="text-xs text-amber-700">
-                    {expiringSoon.length} product{expiringSoon.length !== 1 ? 's' : ''} expiring within 7 days
-                  </p>
-                )}
-                <ul className="mt-2 space-y-0.5">
-                  {expiringProducts.slice(0, 4).map((item) => (
-                    <li key={item.name} className="text-xs text-gray-600">
-                      • {item.name}{' '}
-                      <span className={item.expired_qty > 0 ? 'text-red-600 font-semibold' : 'text-amber-600'}>
-                        {item.expired_qty > 0
-                          ? `(${item.expired_qty} expired)`
-                          : `(${item.expiring_soon_qty} expiring)`}
-                      </span>
-                    </li>
-                  ))}
-                  {expiringProducts.length > 4 && (
-                    <li className="text-xs text-gray-400">+{expiringProducts.length - 4} more…</li>
-                  )}
-                </ul>
-              </div>
-              <span className="text-gray-300 text-lg">›</span>
-            </div>
-          </a>
-        )
-      })()}
-
-      {/* This week chart */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-          This week
-        </p>
-        <WeeklySalesChart data={weeklyData} />
-      </div>
-
-      {/* What sold most this week */}
-      {topProducts.length > 0 && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-            What sold most this week
-          </p>
-          <ol className="space-y-2">
-            {topProducts.map((p, i) => (
-              <li key={p.name} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-300 w-4">{i + 1}.</span>
-                  <span className="text-sm text-gray-800">{p.name}</span>
-                </div>
-                <span className="text-xs text-gray-400">
-                  {p.totalQty} sold
-                </span>
-              </li>
-            ))}
-          </ol>
-        </div>
+      {/* Low stock alert — streams in */}
+      {shop?.id && (
+        <Suspense fallback={null}>
+          <LowStockAlert shopId={shop.id} threshold={shop.low_stock_threshold} />
+        </Suspense>
       )}
 
-      {/* Latest sales */}
-      {recentSales.length > 0 && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-            Latest sales
-          </p>
-          <ul className="divide-y divide-gray-50">
-            {recentSales.map((sale) => (
-              <li key={sale.id} className="flex items-center justify-between py-2 first:pt-0 last:pb-0">
-                <div>
-                  <p className="text-sm text-gray-800 font-medium">{formatZAR(sale.total)}</p>
-                  <p className="text-xs text-gray-400">
-                    {sale.teller_name ?? '—'} · {formatSAST(sale.completed_at, 'HH:mm')}
-                  </p>
-                </div>
-                <span className="text-xs text-gray-300">
-                  {formatSAST(sale.completed_at, 'd MMM')}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+      {/* Expiring products alert — streams in */}
+      {shop?.id && (
+        <Suspense fallback={null}>
+          <ExpiringAlert shopId={shop.id} />
+        </Suspense>
       )}
 
-      {recentSales.length === 0 && summary.salesCount === 0 && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4 text-center">
-          <p className="text-sm text-gray-400">No sales yet — tap &ldquo;Start a Sale&rdquo; below to begin!</p>
-        </div>
+      {/* This week chart — streams in */}
+      {shop?.id && (
+        <Suspense fallback={<Skeleton className="h-48 rounded-2xl mb-4" />}>
+          <WeeklyChartSection shopId={shop.id} />
+        </Suspense>
       )}
 
-      {/* Nav cards */}
+      {/* What sold most this week — streams in */}
+      {shop?.id && (
+        <Suspense fallback={<Skeleton className="h-32 rounded-2xl mb-4" />}>
+          <TopProducts shopId={shop.id} />
+        </Suspense>
+      )}
+
+      {/* Latest sales (includes empty state) — streams in */}
+      {shop?.id && (
+        <Suspense fallback={<Skeleton className="h-40 rounded-2xl mb-4" />}>
+          <LatestSales shopId={shop.id} />
+        </Suspense>
+      )}
+
+      {/* Nav cards — instant */}
       <div className="space-y-3">
         <a
           href="/sale"

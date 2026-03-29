@@ -301,7 +301,7 @@ At the start of every session:
 - [x] Phase 20a: Performance — Singleton Client, Lazy Scanner, Theme Fix
 - [x] Phase 20b: Offline Dedup Safety — Migration + API 409
 - [x] Phase 20c: Offline Resilience — Cart, Product Cache, Sync Improvements
-- [ ] Phase 20d: Stock Warnings + Dashboard Streaming
+- [x] Phase 20d: Stock Warnings + Dashboard Streaming
 
 **Phase 20 context:** Site is extremely laggy and offline support is incomplete. Target users are on mid-range Android phones with inconsistent cellular data. Performance issues: Supabase client re-created on every call, ~60KB @zxing loaded even when scanner not open, manifest theme mismatch. Offline issues: no UNIQUE constraint on offline_id (duplicate sales), products not cached for offline browsing, no sync retry strategy, cart lost on crash, no sync error feedback. Full plan at `.claude/plans/velvety-floating-pond.md`. Implementation order: 20a (quick wins) → 20b (dedup safety) → 20c (offline resilience) → 20d (stock warnings + dashboard streaming).
 
@@ -391,8 +391,11 @@ Supabase browser client cached as module-level singleton (`src/lib/supabase/clie
 ### Phase 20b: Offline Dedup Safety
 `012_offline_id_unique.sql` — partial unique index on `sales.offline_id` (WHERE NOT NULL) prevents duplicate offline sales on retry. Cleans up existing duplicates (keeps earliest). `src/app/api/sales/route.ts` now catches PostgreSQL `23505` unique violation and returns `{ status: 409 }` — sync client already handles this correctly.
 
-### Phase 20c: Offline Resilience
-IndexedDB bumped to v2 with `products` store (indexes: `by_barcode`) and `cart` store for crash recovery. `useCart` now persists to/restores from IndexedDB on every change. Sync engine has exponential backoff (1s→16s cap), max 5 retries, and stores `last_error` per sale. `ProductPicker` caches full product list on fetch, falls back to cached products when offline. Sale page barcode scan falls back to IndexedDB product cache when network fails. `OfflineBanner` shows red banner for failed sales with tap-to-retry. `useOfflineSync` tracks `failedCount` and exposes `retryFailed()`.
+### Phase 20a–d: Performance & Offline (complete group)
+**20a — Quick Wins:** Supabase browser client cached as module-level singleton. `@zxing/browser` lazy-loaded via dynamic import (~60KB saved from initial bundle). PWA manifest `theme_color` corrected to blue.
+**20b — Offline Dedup Safety:** `012_offline_id_unique.sql` partial unique index on `sales.offline_id`. API returns 409 on duplicate. Cleans up existing duplicates.
+**20c — Offline Resilience:** IndexedDB v2 with `products` + `cart` stores. Cart crash recovery, sync engine with exponential backoff (1s→16s, max 5 retries), product cache for offline barcode scanning, red banner for failed sales with tap-to-retry.
+**20d — Stock Warnings + Dashboard Streaming:** Dashboard split into 6 independent async server components wrapped in `<Suspense>` — each section streams in as its query completes instead of blocking on all 6. Sale page now shows stock warning badges on cart items (red for out/oversell, amber for low stock), toast on low-stock scan, and oversell warning on CartSummary. 6 new files in `src/components/dashboard/`, 3 modified sale components.
 
 ---
 
@@ -438,7 +441,7 @@ spaza shop/
 │   │   ├── (app)/
 │   │   │   ├── layout.tsx          # Authenticated shell (ToastProvider + BottomNav)
 │   │   │   ├── error.tsx           # App-segment error boundary
-│   │   │   ├── dashboard/page.tsx  # Full dashboard: today summary, expiry alert, weekly chart, top products, latest sales
+│   │   │   ├── dashboard/page.tsx  # Streaming dashboard: Suspense-wrapped sections, instant shell
 │   │   │   ├── dashboard/loading.tsx
 │   │   │   ├── settings/page.tsx   # Owner settings: shop info, WhatsApp, threshold, subscription, compliance PDF
 │   │   │   ├── subscribe/page.tsx  # Subscription page: pricing, PayFast checkout
@@ -523,8 +526,8 @@ spaza shop/
 │   ├── components/
 │   │   ├── sale/
 │   │   │   ├── TellerSelector.tsx
-│   │   │   ├── CartItem.tsx
-│   │   │   ├── CartSummary.tsx            # Sticky total + Complete Sale (aboveNav prop)
+│   │   │   ├── CartItem.tsx               # Stock warning badges (threshold prop)
+│   │   │   ├── CartSummary.tsx            # Sticky total + Complete Sale (aboveNav, oversell warning)
 │   │   │   ├── NewProductModal.tsx        # Quick-create (multi-expiry, smart duplicate handling)
 │   │   │   └── ProductPicker.tsx          # Manual product picker (bottom-sheet search)
 │   │   ├── scanner/
@@ -533,7 +536,13 @@ spaza shop/
 │   │   ├── admin/
 │   │   │   └── AdminNav.tsx               # Overview | Shops | Catalog + sign out
 │   │   ├── dashboard/
-│   │   │   └── WeeklySalesChart.tsx        # recharts bar chart
+│   │   │   ├── WeeklySalesChart.tsx        # recharts bar chart (client component)
+│   │   │   ├── TodaySummary.tsx           # Async server — today's revenue/sales/tellers
+│   │   │   ├── LowStockAlert.tsx          # Async server — low/out-of-stock alert
+│   │   │   ├── ExpiringAlert.tsx          # Async server — expiring products alert
+│   │   │   ├── WeeklyChartSection.tsx     # Async server — wraps WeeklySalesChart
+│   │   │   ├── TopProducts.tsx            # Async server — top products this week
+│   │   │   └── LatestSales.tsx            # Async server — recent sales + empty state
 │   │   ├── ExpiryEntryList.tsx             # Repeatable expiry date + qty rows (shared)
 │   │   ├── BottomNav.tsx                   # Owner nav (5 tabs + Admin for dual-role)
 │   │   ├── ConfirmModal.tsx
