@@ -111,7 +111,28 @@ export default function SettingsPage() {
       </a>
 
       <h1 className="text-2xl font-bold text-gray-900 mb-1">Settings</h1>
-      <p className="text-sm text-gray-400 mb-8">Update your shop details</p>
+      <p className="text-sm text-gray-400 mb-6">Update your shop details</p>
+
+      {/* Compliance report — at the top for quick access */}
+      <div id="compliance" className="bg-indigo-50 border border-indigo-100 rounded-2xl px-4 py-4 mb-6">
+        <div className="flex items-start gap-3 mb-3">
+          <span className="text-2xl">📋</span>
+          <div>
+            <p className="font-bold text-indigo-900">Compliance Report</p>
+            <p className="text-sm text-indigo-700 mt-0.5">
+              If a health inspector visits your shop, show them this PDF. It has your full stock list, expiry dates, and 30 days of sales — everything they need to see.
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleDownloadReport}
+          disabled={downloading}
+          className="w-full bg-indigo-600 text-white font-semibold rounded-xl py-3 text-sm active:bg-indigo-700 disabled:opacity-50"
+        >
+          {downloading ? 'Generating your report…' : 'Download Report PDF'}
+        </button>
+      </div>
 
       {/* Subscription status */}
       {settings?.subscription_status && (
@@ -178,22 +199,6 @@ export default function SettingsPage() {
         <p className="text-xs text-gray-300 text-right max-w-[140px]">
           Tellers use this to log in. It cannot be changed.
         </p>
-      </div>
-
-      {/* Compliance report download */}
-      <div className="bg-white border border-gray-100 rounded-2xl px-4 py-4 mb-6">
-        <p className="text-sm font-medium text-gray-700 mb-1">Compliance Report</p>
-        <p className="text-xs text-gray-400 mb-3">
-          Download a PDF with your shop info, inventory, expiry register, and 30-day stock movement. Ready for inspector visits.
-        </p>
-        <button
-          type="button"
-          onClick={handleDownloadReport}
-          disabled={downloading}
-          className="w-full bg-blue-600 text-white font-semibold rounded-xl py-3 text-sm active:bg-blue-700 disabled:opacity-50"
-        >
-          {downloading ? 'Generating report…' : 'Download Compliance Report'}
-        </button>
       </div>
 
       <form onSubmit={handleSave} className="space-y-5">

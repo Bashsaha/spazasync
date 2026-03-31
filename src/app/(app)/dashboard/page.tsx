@@ -184,6 +184,17 @@ export default async function DashboardPage() {
           </div>
           <span className="text-3xl">⚙️</span>
         </a>
+
+        <a
+          href="/settings#compliance"
+          className="flex items-center justify-between bg-indigo-50 rounded-2xl p-5 border border-indigo-100 shadow-sm active:bg-indigo-100"
+        >
+          <div>
+            <p className="font-bold text-indigo-900">Inspector coming?</p>
+            <p className="text-indigo-600 text-sm">Download your compliance report PDF — ready in seconds</p>
+          </div>
+          <span className="text-3xl">📋</span>
+        </a>
       </div>
     </main>
   )

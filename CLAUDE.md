@@ -309,6 +309,8 @@ At the start of every session:
   - Expiry page: inline "Remove expired stock" button (red, links to stock/[id]?mode=remove&qty=N) + "Manage stock" button replacing tiny "Adjust stock →" link; plain-English expired warning message; "Soon" → "Expiring" in summary strip; bigger back button
   - Stock adjust page (stock/[id]): reads ?mode=remove&qty=N URL params on load to pre-fill Remove mode + quantity when navigating from expiry page; dynamic title ("Add Stock" / "Remove Stock"); plain-English reason labels ("Counting correction" → "I counted it wrong before", "Damaged / expired" → "Damaged or expired"); expiry checkbox label improved; wrapped in Suspense for useSearchParams
   - Stock list page: "Adjust →" tiny text → › chevron (standard mobile tap affordance); bigger back button
+  - Dashboard: "Inspector coming?" card added (indigo, links to /settings#compliance) for quick PDF access
+  - Settings: Compliance Report section moved to top of page (above subscription/shop code), rewritten in plain English ("If a health inspector visits your shop, show them this PDF"), styled in indigo for visibility; old buried card removed
 
 All phases 1–21 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
 
