@@ -312,7 +312,14 @@ At the start of every session:
   - Dashboard: "Inspector coming?" card added (indigo, links to /settings#compliance) for quick PDF access
   - Settings: Compliance Report section moved to top of page (above subscription/shop code), rewritten in plain English ("If a health inspector visits your shop, show them this PDF"), styled in indigo for visibility; old buried card removed
 
-All phases 1–21 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
+- [x] Phase 22: Smart Catalog Import + Top Sellers in Sale
+  - Products page: "Import from catalog" button opens bottom-sheet showing catalog items not yet in shop; owner checks items + sets price per item (mandatory); bulk-imports as products with stock_qty=0
+  - Sale ProductPicker: fetches /api/products/popular (top 10 by qty sold last 30 days); shows "Top sellers" section above "All products" when no search active
+  - New routes: GET /api/catalog/importable, POST /api/products/bulk-import, GET /api/products/popular
+  - New component: CatalogImportSheet.tsx
+  - No migration needed — uses existing tables
+
+All phases 1–22 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
 
 ---
 
@@ -400,9 +407,13 @@ spaza shop/
 │   │       ├── auth/
 │   │       │   └── teller-login/route.ts
 │   │       ├── onboarding/route.ts
+│   │       ├── catalog/
+│   │       │   └── importable/route.ts    # GET catalog items not yet in shop's products
 │   │       ├── products/
 │   │       │   ├── route.ts               # GET list (+ catalog fallback), POST create
-│   │       │   └── [id]/route.ts          # GET, PATCH, DELETE
+│   │       │   ├── [id]/route.ts          # GET, PATCH, DELETE
+│   │       │   ├── popular/route.ts       # GET top 10 product IDs by sales (last 30 days)
+│   │       │   └── bulk-import/route.ts   # POST bulk-import from catalog (price required)
 │   │       ├── sales/
 │   │       │   └── route.ts               # POST — complete sale (uses decrement_stock_fefo)
 │   │       ├── batches/
@@ -442,6 +453,8 @@ spaza shop/
 │   │           ├── me/route.ts
 │   │           └── [id]/route.ts          # PATCH deactivate
 │   ├── components/
+│   │   ├── products/
+│   │   │   └── CatalogImportSheet.tsx     # Bottom-sheet: search catalog, set prices, bulk import
 │   │   ├── sale/
 │   │   │   ├── TellerSelector.tsx
 │   │   │   ├── CartItem.tsx               # Stock warning badges (threshold prop)
