@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useEffect, useState, Suspense } from 'react'
+import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import type { Product, ProductBatch } from '@/types'
 import { formatZAR } from '@/lib/utils/currency'
@@ -19,9 +19,9 @@ const QUICK_AMOUNTS = [10, 24, 48, 100]
 
 const REASONS = [
   'Received from supplier',
-  'Damaged / expired',
+  'Damaged or expired',
   'Returned to supplier',
-  'Counting correction',
+  'I counted it wrong before',
   'Other',
 ]
 
@@ -47,14 +47,15 @@ function expiryLabel(status: 'expired' | 'soon' | 'ok') {
   return 'OK'
 }
 
-export default function StockAdjustPage() {
+function StockAdjustContent() {
   const router = useRouter()
   const params = useParams<{ id: string }>()
+  const searchParams = useSearchParams()
 
   const [product, setProduct] = useState<Product | null>(null)
   const [loadError, setLoadError] = useState('')
-  const [mode, setMode] = useState<Mode>('add')
-  const [amount, setAmount] = useState('')
+  const [mode, setMode] = useState<Mode>(() => searchParams.get('mode') === 'remove' ? 'remove' : 'add')
+  const [amount, setAmount] = useState(() => searchParams.get('qty') ?? '')
   const [reason, setReason] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
@@ -139,6 +140,26 @@ export default function StockAdjustPage() {
       if (batchFailed) {
         setSaveError('Some expiry dates could not be saved. You can add them later.')
       }
+
+      // Add remaining units that have no expiry date via regular stock adjustment
+      const remainder = parsedAmount - totalAdded
+      if (remainder > 0) {
+        const stockRes = await fetch('/api/stock', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            product_id: product.id,
+            qty_delta: remainder,
+            reason: reason || undefined,
+          }),
+        })
+        if (stockRes.ok) {
+          totalAdded += remainder
+        } else {
+          setSaveError(`Expiry dates saved, but ${remainder} units without expiry could not be added.`)
+        }
+      }
+
       if (totalAdded > 0) {
         setResultQty(product.stock_qty + totalAdded)
         setDone(true)
@@ -263,10 +284,12 @@ export default function StockAdjustPage() {
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/stock" className="text-gray-400 active:text-gray-600 text-sm">
+        <Link href="/stock" className="flex items-center gap-1 text-gray-500 active:text-gray-700 font-medium py-1 pr-2">
           ← Back
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Adjust Stock</h1>
+        <h1 className="text-2xl font-bold text-gray-900">
+          {mode === 'add' ? 'Add Stock' : 'Remove Stock'}
+        </h1>
       </div>
 
       {loadError && (
@@ -402,7 +425,7 @@ export default function StockAdjustPage() {
                     }}
                     className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="text-sm text-gray-700">Do you know the expiry dates?</span>
+                  <span className="text-sm text-gray-700">Add expiry dates for this stock</span>
                 </label>
 
                 {trackAddExpiry && (
@@ -553,5 +576,13 @@ export default function StockAdjustPage() {
         </>
       )}
     </main>
+  )
+}
+
+export default function StockAdjustPage() {
+  return (
+    <Suspense fallback={<main className="px-4 pt-10 pb-24 max-w-lg mx-auto"><p className="text-center text-gray-400 text-sm mt-12">Loading…</p></main>}>
+      <StockAdjustContent />
+    </Suspense>
   )
 }

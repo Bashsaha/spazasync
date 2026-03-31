@@ -41,8 +41,9 @@ export default async function DashboardPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">{shopName}</h1>
         <p className="text-sm text-gray-400 mt-0.5">
-          Shop code:{' '}
+          Staff login code:{' '}
           <span className="font-mono font-semibold text-blue-600">{shopCode}</span>
+          <span className="text-xs text-gray-400 ml-1">(give this to your staff)</span>
         </p>
       </div>
 

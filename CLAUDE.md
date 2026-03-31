@@ -302,8 +302,15 @@ At the start of every session:
 - [x] Phase 20b: Offline Dedup Safety — Migration + API 409
 - [x] Phase 20c: Offline Resilience — Cart, Product Cache, Sync Improvements
 - [x] Phase 20d: Stock Warnings + Dashboard Streaming
+- [x] Phase 21: UX Polish — Plain English & Non-Technical User Improvements
+  - BottomNav "Tellers" → "Staff" (consistent with dashboard nav cards)
+  - "Stock Take" page → "Count Stock" (consistent with dashboard card label)
+  - Dashboard "Shop code:" → "Staff login code: (give this to your staff)"
+  - Expiry page: inline "Remove expired stock" button (red, links to stock/[id]?mode=remove&qty=N) + "Manage stock" button replacing tiny "Adjust stock →" link; plain-English expired warning message; "Soon" → "Expiring" in summary strip; bigger back button
+  - Stock adjust page (stock/[id]): reads ?mode=remove&qty=N URL params on load to pre-fill Remove mode + quantity when navigating from expiry page; dynamic title ("Add Stock" / "Remove Stock"); plain-English reason labels ("Counting correction" → "I counted it wrong before", "Damaged / expired" → "Damaged or expired"); expiry checkbox label improved; wrapped in Suspense for useSearchParams
+  - Stock list page: "Adjust →" tiny text → › chevron (standard mobile tap affordance); bigger back button
 
-All phases 1–20d complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
+All phases 1–21 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
 
 ---
 

@@ -72,7 +72,7 @@ export default function StockPage() {
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/dashboard" className="text-gray-400 active:text-gray-600 text-sm">
+        <Link href="/dashboard" className="flex items-center gap-1 text-gray-500 active:text-gray-700 font-medium py-1 pr-2">
           ← Back
         </Link>
         <h1 className="text-2xl font-bold text-gray-900">Stock</h1>
@@ -238,7 +238,7 @@ export default function StockPage() {
                     >
                       {p.stock_qty}
                     </span>
-                    <span className="text-xs text-blue-600 font-semibold">Adjust →</span>
+                    <span className="text-blue-600 font-bold text-lg leading-none">›</span>
                   </div>
                 </Link>
               </li>

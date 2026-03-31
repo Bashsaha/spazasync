@@ -107,16 +107,31 @@ function ProductCard({ product }: { product: ExpiryProductDetail }) {
               <BatchRow key={batch.id} batch={batch} />
             ))}
           </div>
-          <div className="px-3 py-2 border-t border-gray-100 flex items-center justify-between">
-            <span className="text-xs text-gray-400">
+          <div className="px-3 py-3 border-t border-gray-100 space-y-2">
+            <p className="text-xs text-gray-400">
               Total stock: {product.stock_qty} units
-            </span>
-            <Link
-              href={`/stock/${product.product_id}`}
-              className="text-xs text-blue-600 font-semibold active:text-blue-700"
-            >
-              Adjust stock →
-            </Link>
+            </p>
+            {product.urgency === 'expired' && (
+              <p className="text-xs text-red-600">
+                These items have passed their use-by date and should be removed from sale.
+              </p>
+            )}
+            <div className="flex gap-2">
+              {product.urgency === 'expired' && (
+                <Link
+                  href={`/stock/${product.product_id}?mode=remove&qty=${totalBatchQty}`}
+                  className="flex-1 text-center bg-red-500 text-white text-sm font-semibold py-2 px-3 rounded-xl active:bg-red-600"
+                >
+                  Remove expired stock
+                </Link>
+              )}
+              <Link
+                href={`/stock/${product.product_id}`}
+                className={`text-center text-sm font-semibold py-2 px-3 rounded-xl active:bg-gray-100 border border-gray-200 text-gray-700 ${product.urgency === 'expired' ? '' : 'flex-1'}`}
+              >
+                Manage stock
+              </Link>
+            </div>
           </div>
         </div>
       )}
@@ -189,7 +204,7 @@ export default function ExpiryPage() {
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/dashboard" className="text-gray-400 active:text-gray-600 text-sm">
+        <Link href="/dashboard" className="flex items-center gap-1 text-gray-500 active:text-gray-700 font-medium py-1 pr-2">
           ← Back
         </Link>
         <h1 className="text-2xl font-bold text-gray-900">Expiry Dates</h1>
@@ -216,7 +231,7 @@ export default function ExpiryPage() {
             <p className={`text-xl font-bold ${expiringSoon.length > 0 ? 'text-amber-600' : 'text-gray-900'}`}>
               {expiringSoon.length}
             </p>
-            <p className="text-xs text-gray-500 mt-0.5">Soon</p>
+            <p className="text-xs text-gray-500 mt-0.5">Expiring</p>
           </div>
           <div className="bg-white border-gray-100 rounded-2xl p-3 border text-center shadow-sm">
             <p className="text-xl font-bold text-green-600">{ok.length}</p>

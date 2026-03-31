@@ -12,7 +12,7 @@ ALTER TABLE shops ADD COLUMN access_granted BOOLEAN NOT NULL DEFAULT FALSE;
 -- Free-text notes field for admin annotations
 ALTER TABLE shops ADD COLUMN admin_notes TEXT;
 
--- Manual payment log — only accessed via admin (service role) client, no RLS needed
+-- Manual payment log — accessed via admin (service role) client only
 CREATE TABLE admin_payments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   shop_id UUID NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
@@ -23,3 +23,7 @@ CREATE TABLE admin_payments (
   recorded_by UUID NOT NULL,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- RLS enabled as defense in depth — no policies = zero access via anon/authenticated clients.
+-- Service role bypasses RLS, so admin operations are unaffected.
+ALTER TABLE admin_payments ENABLE ROW LEVEL SECURITY;

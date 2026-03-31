@@ -83,3 +83,35 @@ Also added `/auth/callback` to `PUBLIC_ROUTES` in middleware so the route is rea
 **Root cause:** Auth check omitted during initial implementation.
 **Fix:** Added auth guard to `src/app/api/stock-take/route.ts`.
 **Prevention rule:** Same as BUG-004. When creating a new API route, copy the auth pattern from an existing protected route (e.g. `/api/stock/route.ts`) before writing any other logic.
+
+---
+
+## BUG-011: Migrations 008–010 never applied — batch API returns 500 on every call
+**Symptom:** Adding expiry dates to products fails silently. POST /api/batches and GET /api/batches both return 500. Products save with stock_qty: 0 but no expiry batches are created.
+**Root cause:** Supabase migrations 008 (shop fields), 009 (product_batches table + decrement_stock_fefo function), and 010 (product name unique index) were written as local SQL files but never executed against the live Supabase database. The `product_batches` table did not exist.
+**Fix:** Ran all three migrations in Supabase SQL Editor. Verified table and function existence via diagnostic script.
+**Prevention rule:** After writing any new migration file, ALWAYS verify it has been applied to the live database before marking the phase complete. Run a quick check: `supabase.from('<table>').select('id').limit(0)` to confirm the table exists. Never assume local migration files are in sync with the remote database.
+
+---
+
+## BUG-014: BottomNav covers CartSummary's Complete Sale button on sale page
+**Symptom:** On the sale page, the bottom navigation bar covers the "Complete Sale" button, making it untappable on mobile.
+**Root cause:** Both `CartSummary` and `BottomNav` were `fixed bottom-0`. BottomNav had `z-40` while CartSummary had no z-index, so the nav sat on top of the sale button.
+**Fix:** CartSummary now accepts `aboveNav` prop — when true, positions itself above the BottomNav using `bottom: calc(56px + env(safe-area-inset-bottom))` and gets `z-50`. Sale page passes `aboveNav={role !== 'teller'}` since tellers don't see BottomNav. Main content padding increased from `pb-36` to `pb-52` for owners to prevent cart items from hiding behind both bars.
+**Prevention rule:** When placing a fixed-bottom element on a page that already has a fixed-bottom navigation bar, always check for overlap. Use z-index layering and bottom offsets to stack them correctly.
+
+---
+
+## BUG-013: Adding stock with partial expiry dates drops untracked units
+**Symptom:** User adds 10 units, assigns 5 to an expiry date. Only 5 units are added to stock instead of 10.
+**Root cause:** In `stock/[id]/page.tsx` `handleSubmit`, when `trackAddExpiry` is true, the code only creates batches via `/api/batches` (which each increment stock by their quantity) then returns early. Units not assigned to any expiry entry are silently dropped.
+**Fix:** After creating all expiry batches, calculate `remainder = parsedAmount - totalAdded`. If remainder > 0, call `/api/stock` to add the untracked units via regular stock adjustment.
+**Prevention rule:** When a form has a "total quantity" field and a subset breakdown (e.g. expiry entries), always verify the subset sums to the total. If it doesn't, handle the remainder explicitly — never assume the subset covers everything.
+
+---
+
+## BUG-012: admin_payments table had RLS disabled — defense-in-depth gap
+**Symptom:** `admin_payments` was the only table without RLS enabled. While access was gated by `requireAdmin()` in the API layer and the service role client, a bug in application code could have exposed all payment records via the anon/authenticated client.
+**Root cause:** Original migration (006) explicitly skipped RLS with comment "no RLS needed" — prioritized convenience over defense-in-depth.
+**Fix:** Added `ALTER TABLE admin_payments ENABLE ROW LEVEL SECURITY;` to migration 006. No policies added — with RLS on and zero policies, anon/authenticated clients get 0 rows. Service role bypasses RLS automatically.
+**Prevention rule:** Every table must have RLS enabled, even admin-only tables. "Only accessed by service role" is not a reason to skip RLS — it's a reason to enable RLS with no policies (zero-access default). Service role bypasses RLS anyway, so there's no downside.

@@ -14,7 +14,7 @@ const ownerNav: NavItem[] = [
   { href: '/sale', label: 'Sale', icon: '🧾' },
   { href: '/stock', label: 'Stock', icon: '📦' },
   { href: '/products', label: 'Products', icon: '🏷️' },
-  { href: '/tellers', label: 'Tellers', icon: '👤' },
+  { href: '/tellers', label: 'Staff', icon: '👤' },
 ]
 
 const tellerNav: NavItem[] = [

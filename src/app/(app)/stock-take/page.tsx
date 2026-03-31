@@ -73,7 +73,7 @@ export default function StockTakePage() {
         <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-6">
           <span className="text-4xl">✓</span>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Stock Updated</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Count Saved</h1>
         <p className="text-gray-500 text-sm mb-10">
           {savedCount} product{savedCount !== 1 ? 's' : ''} updated.
         </p>
@@ -106,10 +106,10 @@ export default function StockTakePage() {
           <Link href="/dashboard" className="text-gray-400 text-sm active:text-gray-600">
             ← Back
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Stock Take</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Count Stock</h1>
         </div>
         <p className="text-gray-500 text-sm mb-6 ml-11">
-          Enter the real quantity you counted. Leave blank to skip a product.
+          Write in how many of each product you actually have. Leave blank to skip.
         </p>
 
         {/* error banner */}
