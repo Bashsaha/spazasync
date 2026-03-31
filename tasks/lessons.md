@@ -86,4 +86,12 @@ Creating files before step 5 is a protocol violation regardless of how confident
 
 ---
 
+## Lesson: Always commit and push at phase completion — no exceptions
+
+**What happened:** Completed Phase 22 implementation, ran type checks, updated lessons.md — then stopped without committing or pushing.
+
+**Rule:** Step 7 of the Phase Completion Protocol is mandatory: stage all changed files, commit with `feat: Phase N — <short description>`, and push to `main`. This is not optional even if the user doesn't explicitly ask. The protocol always ends with a pushed commit.
+
+---
+
 _Add new lessons here as they occur._
