@@ -8,6 +8,7 @@ const bulkImportSchema = z.object({
       z.object({
         barcode: z.string().min(1),
         name: z.string().min(1),
+        price: z.number().positive('Every product needs a price'),
       }),
     )
     .min(1)
@@ -16,7 +17,7 @@ const bulkImportSchema = z.object({
 
 /**
  * POST /api/products/bulk-import
- * Imports selected catalog items into the shop's products with price=0, stock_qty=0.
+ * Imports selected catalog items into the shop's products with owner-set price, stock_qty=0.
  * Skips any barcode already present (by checking first, then inserting).
  */
 export async function POST(request: Request) {
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
     shop_id: shopId,
     barcode: item.barcode,
     name: item.name,
-    price: 0,
+    price: item.price,
     stock_qty: 0,
   }))
 

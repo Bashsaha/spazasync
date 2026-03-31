@@ -15,6 +15,7 @@ export function CatalogImportSheet() {
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [prices, setPrices] = useState<Map<string, string>>(new Map())
   const [importing, setImporting] = useState(false)
   const [result, setResult] = useState<{ imported: number; skipped: number } | null>(null)
   const router = useRouter()
@@ -37,6 +38,7 @@ export function CatalogImportSheet() {
     setIsOpen(false)
     setSearch('')
     setSelected(new Set())
+    setPrices(new Map())
     setResult(null)
   }
 
@@ -51,10 +53,18 @@ export function CatalogImportSheet() {
   function toggle(barcode: string) {
     setSelected((prev) => {
       const next = new Set(prev)
-      if (next.has(barcode)) next.delete(barcode)
-      else next.add(barcode)
+      if (next.has(barcode)) {
+        next.delete(barcode)
+        setPrices((p) => { const m = new Map(p); m.delete(barcode); return m })
+      } else {
+        next.add(barcode)
+      }
       return next
     })
+  }
+
+  function setPrice(barcode: string, value: string) {
+    setPrices((prev) => new Map(prev).set(barcode, value))
   }
 
   function selectAll() {
@@ -65,13 +75,23 @@ export function CatalogImportSheet() {
     setSelected(new Set())
   }
 
+  // All selected items must have a valid price > 0
+  const allPriced = selected.size > 0 && [...selected].every((b) => {
+    const v = parseFloat(prices.get(b) ?? '')
+    return !isNaN(v) && v > 0
+  })
+
   async function handleImport() {
-    if (selected.size === 0 || importing) return
+    if (!allPriced || importing) return
     setImporting(true)
 
     const toImport = items
       .filter((i) => selected.has(i.barcode))
-      .map(({ barcode, name }) => ({ barcode, name }))
+      .map(({ barcode, name }) => ({
+        barcode,
+        name,
+        price: parseFloat(prices.get(barcode) ?? '0'),
+      }))
 
     try {
       const res = await fetch('/api/products/bulk-import', {
@@ -88,6 +108,7 @@ export function CatalogImportSheet() {
 
       setResult(json)
       setSelected(new Set())
+      setPrices(new Map())
       router.refresh()
 
       // Reload the importable list (imported items now in shop, so they disappear)
@@ -129,9 +150,9 @@ export function CatalogImportSheet() {
             {/* success banner */}
             {result && (
               <div className="bg-green-50 text-green-700 text-sm rounded-xl px-4 py-3 mb-3">
-                ✓ {result.imported} product{result.imported !== 1 ? 's' : ''} added.
+                ✓ {result.imported} product{result.imported !== 1 ? 's' : ''} added with prices set.
                 {result.skipped > 0 ? ` ${result.skipped} already in your shop.` : ''}
-                {' '}Go to each product to set the correct price.
+                {' '}Go to Stock to add quantities when you&apos;re ready.
               </div>
             )}
 
@@ -178,54 +199,73 @@ export function CatalogImportSheet() {
                   {filtered.map((item) => {
                     const checked = selected.has(item.barcode)
                     return (
-                      <button
-                        key={item.barcode}
-                        onClick={() => toggle(item.barcode)}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left active:bg-gray-100 transition-colors ${
-                          checked ? 'bg-blue-50' : 'bg-white'
-                        }`}
-                      >
-                        {/* checkbox */}
-                        <div
-                          className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-                            checked
-                              ? 'bg-blue-600 border-blue-600'
-                              : 'border-gray-300'
+                      <div key={item.barcode}>
+                        <button
+                          onClick={() => toggle(item.barcode)}
+                          className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left active:bg-gray-100 transition-colors ${
+                            checked ? 'bg-blue-50 rounded-b-none' : 'bg-white'
                           }`}
                         >
-                          {checked && (
-                            <svg
-                              className="w-3 h-3 text-white"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={3}
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
+                          {/* checkbox */}
+                          <div
+                            className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                              checked
+                                ? 'bg-blue-600 border-blue-600'
+                                : 'border-gray-300'
+                            }`}
+                          >
+                            {checked && (
+                              <svg
+                                className="w-3 h-3 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={3}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            )}
+                          </div>
+
+                          {/* info */}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {item.name}
+                            </p>
+                            <p className="text-xs text-gray-400 font-mono">
+                              {item.barcode}
+                            </p>
+                          </div>
+
+                          {item.category && (
+                            <span className="text-xs text-gray-400 shrink-0">
+                              {item.category}
+                            </span>
                           )}
-                        </div>
+                        </button>
 
-                        {/* info */}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {item.name}
-                          </p>
-                          <p className="text-xs text-gray-400 font-mono">
-                            {item.barcode}
-                          </p>
-                        </div>
-
-                        {item.category && (
-                          <span className="text-xs text-gray-400 shrink-0">
-                            {item.category}
-                          </span>
+                        {/* price input — visible when selected */}
+                        {checked && (
+                          <div className="bg-blue-50 px-3 pb-3 pt-1 rounded-b-xl flex items-center gap-2 ml-8">
+                            <span className="text-sm text-gray-500 font-medium">R</span>
+                            <input
+                              type="number"
+                              inputMode="decimal"
+                              min="0.01"
+                              step="0.01"
+                              placeholder="Selling price"
+                              value={prices.get(item.barcode) ?? ''}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={(e) => setPrice(item.barcode, e.target.value)}
+                              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
                         )}
-                      </button>
+                      </div>
                     )
                   })}
                 </div>
@@ -235,13 +275,14 @@ export function CatalogImportSheet() {
             {/* import button */}
             {selected.size > 0 && (
               <div className="pt-3 border-t border-gray-100 mt-2">
-                <p className="text-xs text-gray-400 mb-2">
-                  Products are added with R0.00 price and 0 stock. Tap each product
-                  afterwards to set the correct price.
-                </p>
+                {!allPriced && (
+                  <p className="text-xs text-amber-600 mb-2">
+                    Set a selling price for every selected product before importing.
+                  </p>
+                )}
                 <button
                   onClick={handleImport}
-                  disabled={importing}
+                  disabled={importing || !allPriced}
                   className="w-full bg-blue-600 text-white font-semibold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50"
                 >
                   {importing
