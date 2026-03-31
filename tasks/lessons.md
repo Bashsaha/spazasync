@@ -70,4 +70,20 @@ _Update this file after every user correction. Write rules that prevent the same
 
 ---
 
+## Lesson: Never write files before the plan is approved
+
+**What happened:** Started creating API route files immediately after reading the codebase, skipping EnterPlanMode, tasks/todo.md planning, and user sign-off entirely.
+
+**Rule:** For ANY task with 3+ steps or architectural decisions, the mandatory order is:
+1. EnterPlanMode
+2. Explore codebase
+3. Write plan to tasks/todo.md
+4. Present plan via ExitPlanMode
+5. WAIT for user approval
+6. Only then write a single line of code
+
+Creating files before step 5 is a protocol violation regardless of how confident you are about the approach.
+
+---
+
 _Add new lessons here as they occur._

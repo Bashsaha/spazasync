@@ -10,10 +10,47 @@ interface ProductPickerProps {
   onClose: () => void
 }
 
+function ProductRow({
+  product,
+  onSelect,
+  onClose,
+}: {
+  product: Product
+  onSelect: (p: Product) => void
+  onClose: () => void
+}) {
+  return (
+    <button
+      onClick={() => {
+        onSelect(product)
+        onClose()
+      }}
+      className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 text-left"
+    >
+      <div>
+        <p className="text-sm font-medium text-gray-900">{product.name}</p>
+        {product.barcode && (
+          <p className="text-xs text-gray-400 font-mono">{product.barcode}</p>
+        )}
+      </div>
+      <p className="text-sm font-semibold text-gray-900">{formatZAR(product.price)}</p>
+    </button>
+  )
+}
+
 export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
   const [search, setSearch] = useState('')
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [popularIds, setPopularIds] = useState<string[]>([])
+
+  // Fetch popular product IDs once on mount (best-effort — fails silently)
+  useEffect(() => {
+    fetch('/api/products/popular')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => { if (data?.popular) setPopularIds(data.popular) })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -59,6 +96,19 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
     }
   }, [search])
 
+  // Split into top sellers + rest when no search is active
+  const noSearch = !search.trim()
+  const popularSet = new Set(popularIds)
+  const topSellers = noSearch && popularIds.length > 0
+    ? popularIds
+        .map((id) => products.find((p) => p.id === id))
+        .filter((p): p is Product => p !== undefined)
+        .slice(0, 5)
+    : []
+  const restProducts = noSearch && topSellers.length > 0
+    ? products.filter((p) => !popularSet.has(p.id))
+    : products
+
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-end">
       <div className="bg-white w-full rounded-t-2xl px-4 pt-5 pb-8 max-h-[80vh] flex flex-col">
@@ -82,25 +132,33 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
             <p className="text-gray-400 text-sm text-center py-8">Loading...</p>
           ) : products.length === 0 ? (
             <p className="text-gray-400 text-sm text-center py-8">No products found.</p>
+          ) : noSearch && topSellers.length > 0 ? (
+            <>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-1 pb-1">
+                Top sellers
+              </p>
+              <div className="space-y-1 mb-4">
+                {topSellers.map((p) => (
+                  <ProductRow key={p.id} product={p} onSelect={onSelect} onClose={onClose} />
+                ))}
+              </div>
+              {restProducts.length > 0 && (
+                <>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-1 pb-1">
+                    All products
+                  </p>
+                  <div className="space-y-1">
+                    {restProducts.map((p) => (
+                      <ProductRow key={p.id} product={p} onSelect={onSelect} onClose={onClose} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
           ) : (
             <div className="space-y-1">
               {products.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => {
-                    onSelect(p)
-                    onClose()
-                  }}
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 text-left"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{p.name}</p>
-                    {p.barcode && (
-                      <p className="text-xs text-gray-400 font-mono">{p.barcode}</p>
-                    )}
-                  </div>
-                  <p className="text-sm font-semibold text-gray-900">{formatZAR(p.price)}</p>
-                </button>
+                <ProductRow key={p.id} product={p} onSelect={onSelect} onClose={onClose} />
               ))}
             </div>
           )}

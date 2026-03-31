@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { listProducts } from '@/lib/db/products'
 import { formatZAR } from '@/lib/utils/currency'
+import { CatalogImportSheet } from '@/components/products/CatalogImportSheet'
 
 export default async function ProductsPage({
   searchParams,
@@ -27,12 +28,15 @@ export default async function ProductsPage({
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">Products</h1>
         </div>
-        <Link
-          href="/products/new"
-          className="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-xl active:bg-blue-700"
-        >
-          + Add
-        </Link>
+        <div className="flex items-center gap-2">
+          <CatalogImportSheet />
+          <Link
+            href="/products/new"
+            className="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-xl active:bg-blue-700"
+          >
+            + Add
+          </Link>
+        </div>
       </div>
 
       <form method="GET" className="mb-4">
