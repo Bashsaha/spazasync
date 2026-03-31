@@ -59,4 +59,15 @@ _Update this file after every user correction. Write rules that prevent the same
 
 ---
 
+---
+
+## Session 6
+
+### Lesson 8: Always output the explicit protocol checklist — every single time
+**What happened:** Completed Phase 21 UX improvements and the compliance PDF change. Updated CLAUDE.md, committed, pushed. But never output the Step 8 completion confirmation checklist. User had to call it out twice.
+**Fix:** After every phase completion, ALWAYS print the checklist verbatim: "Phase completion checklist: Glob scanned ✓, file tree updated ✓, Living Scope checked off ✓, commit [hash] pushed ✓." No exceptions, even for small changes.
+**Rule:** Step 8 of the Phase Completion Protocol is not optional. It is the proof the protocol was followed. If you do not output the checklist, the user cannot trust the protocol ran. Output it every time, even if you think it's obvious.
+
+---
+
 _Add new lessons here as they occur._
