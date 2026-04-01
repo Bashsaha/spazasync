@@ -313,7 +313,7 @@ At the start of every session:
   - Settings: Compliance Report section moved to top of page (above subscription/shop code), rewritten in plain English ("If a health inspector visits your shop, show them this PDF"), styled in indigo for visibility; old buried card removed
 
 - [x] Phase 22: Smart Catalog Import + Top Sellers in Sale
-  - Products page: "Import from catalog" button opens bottom-sheet showing catalog items not yet in shop; owner checks items + sets price per item (mandatory); bulk-imports as products with stock_qty=0
+  - Products page: "Import from catalog" bottom-sheet picks a catalog item → navigates to /products/new with name + barcode pre-filled → user fills price (mandatory), stock qty, expiry dates in one step
   - Sale ProductPicker: fetches /api/products/popular (top 10 by qty sold last 30 days); shows "Top sellers" section above "All products" when no search active
   - New routes: GET /api/catalog/importable, POST /api/products/bulk-import, GET /api/products/popular
   - New component: CatalogImportSheet.tsx

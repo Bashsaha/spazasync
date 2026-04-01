@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ExpiryEntryList } from '@/components/ExpiryEntryList'
 
 interface ExpiryEntry {
@@ -9,9 +9,20 @@ interface ExpiryEntry {
   quantity: string
 }
 
-export default function NewProductPage() {
+function NewProductContent() {
   const router = useRouter()
-  const [form, setForm] = useState({ barcode: '', name: '', price: '', stock_qty: '0' })
+  const searchParams = useSearchParams()
+
+  // Pre-fill from catalog picker (query params)
+  const prefillBarcode = searchParams.get('barcode') ?? ''
+  const prefillName = searchParams.get('name') ?? ''
+
+  const [form, setForm] = useState({
+    barcode: prefillBarcode,
+    name: prefillName,
+    price: '',
+    stock_qty: '0',
+  })
   const [trackExpiry, setTrackExpiry] = useState(false)
   const [expiryEntries, setExpiryEntries] = useState<ExpiryEntry[]>([])
   const [error, setError] = useState('')
@@ -174,5 +185,13 @@ export default function NewProductPage() {
         </button>
       </form>
     </main>
+  )
+}
+
+export default function NewProductPage() {
+  return (
+    <Suspense fallback={<main className="px-4 pt-10 pb-24 max-w-lg mx-auto"><p className="text-center text-gray-400 text-sm mt-12">Loading...</p></main>}>
+      <NewProductContent />
+    </Suspense>
   )
 }

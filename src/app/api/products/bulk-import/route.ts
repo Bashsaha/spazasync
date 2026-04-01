@@ -9,6 +9,7 @@ const bulkImportSchema = z.object({
         barcode: z.string().min(1),
         name: z.string().min(1),
         price: z.number().positive('Every product needs a price'),
+        stock_qty: z.number().int().min(0).optional(),
       }),
     )
     .min(1)
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
     barcode: item.barcode,
     name: item.name,
     price: item.price,
-    stock_qty: 0,
+    stock_qty: item.stock_qty ?? 0,
   }))
 
   const { data, error } = await supabase.from('products').insert(rows).select('id')
