@@ -319,7 +319,14 @@ At the start of every session:
   - New component: CatalogImportSheet.tsx
   - No migration needed — uses existing tables
 
-All phases 1–22 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
+- [x] Phase 23: Barcode Scan Buttons — Products & Stock Pages
+  - Products page: "Scan" button in header → scans barcode → navigates to edit page (existing product) or Add Product with barcode + catalog name pre-filled (new product)
+  - Add Product page: "Scan" button next to barcode input → fills barcode field, auto-suggests product name from catalog
+  - Stock page: "Scan" button in header → scans barcode → navigates to stock adjust page; toast error if product not found
+  - New component: BarcodeScanButton.tsx (self-contained client component for server-rendered Products page)
+  - No migration needed — uses existing BarcodeScanner component and /api/products?barcode= endpoint
+
+All phases 1–23 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
 
 ---
 
@@ -454,7 +461,8 @@ spaza shop/
 │   │           └── [id]/route.ts          # PATCH deactivate
 │   ├── components/
 │   │   ├── products/
-│   │   │   └── CatalogImportSheet.tsx     # Bottom-sheet: search catalog, set prices, bulk import
+│   │   │   ├── CatalogImportSheet.tsx     # Bottom-sheet: search catalog, set prices, bulk import
+│   │   │   └── BarcodeScanButton.tsx      # Scan barcode → find/add product (client component for server page)
 │   │   ├── sale/
 │   │   │   ├── TellerSelector.tsx
 │   │   │   ├── CartItem.tsx               # Stock warning badges (threshold prop)

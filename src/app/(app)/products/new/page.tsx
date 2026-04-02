@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ExpiryEntryList } from '@/components/ExpiryEntryList'
+import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
 
 interface ExpiryEntry {
   expiry_date: string
@@ -27,6 +28,7 @@ function NewProductContent() {
   const [expiryEntries, setExpiryEntries] = useState<ExpiryEntry[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [scanning, setScanning] = useState(false)
 
   const stockQty = parseInt(form.stock_qty, 10) || 0
 
@@ -35,6 +37,21 @@ function NewProductContent() {
     (e) => e.expiry_date && parseInt(e.quantity, 10) > 0,
   )
   const hasExpiry = trackExpiry && validEntries.length > 0 && stockQty > 0
+
+  async function handleBarcodeScan(barcode: string) {
+    setForm((f) => ({ ...f, barcode }))
+    try {
+      const res = await fetch(`/api/products?barcode=${encodeURIComponent(barcode)}`)
+      if (res.ok) {
+        const data = await res.json()
+        if (data.catalog_suggestion?.name && !form.name) {
+          setForm((f) => ({ ...f, barcode, name: data.catalog_suggestion.name }))
+        }
+      }
+    } catch {
+      // Barcode filled, catalog lookup failed — not critical
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -101,12 +118,22 @@ function NewProductContent() {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Barcode <span className="text-gray-400 font-normal">(optional)</span>
           </label>
-          <input
-            value={form.barcode}
-            onChange={(e) => setForm((f) => ({ ...f, barcode: e.target.value }))}
-            placeholder="e.g. 6001234567890"
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <div className="flex gap-2">
+            <input
+              value={form.barcode}
+              onChange={(e) => setForm((f) => ({ ...f, barcode: e.target.value }))}
+              placeholder="e.g. 6001234567890"
+              className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              type="button"
+              onClick={() => setScanning(true)}
+              className="shrink-0 bg-blue-600 text-white px-4 py-3 rounded-xl active:bg-blue-700 text-sm font-semibold"
+              aria-label="Scan barcode"
+            >
+              Scan
+            </button>
+          </div>
         </div>
 
         <div>
@@ -184,6 +211,13 @@ function NewProductContent() {
           {loading ? 'Saving…' : 'Add Product'}
         </button>
       </form>
+
+      {scanning && (
+        <BarcodeScanner
+          onScan={handleBarcodeScan}
+          onClose={() => setScanning(false)}
+        />
+      )}
     </main>
   )
 }

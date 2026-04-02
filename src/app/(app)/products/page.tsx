@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { listProducts } from '@/lib/db/products'
 import { formatZAR } from '@/lib/utils/currency'
 import { CatalogImportSheet } from '@/components/products/CatalogImportSheet'
+import { BarcodeScanButton } from '@/components/products/BarcodeScanButton'
 
 export default async function ProductsPage({
   searchParams,
@@ -29,6 +30,7 @@ export default async function ProductsPage({
           <h1 className="text-2xl font-bold text-gray-900">Products</h1>
         </div>
         <div className="flex items-center gap-2">
+          <BarcodeScanButton />
           <CatalogImportSheet />
           <Link
             href="/products/new"

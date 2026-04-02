@@ -1,8 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { ProductWithStock } from '@/lib/db/stock'
+import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
+import { useToast } from '@/components/Toast'
 
 type Tab = 'all' | 'low' | 'expiring'
 
@@ -17,12 +20,15 @@ interface ExpiringProduct {
 }
 
 export default function StockPage() {
+  const router = useRouter()
+  const { addToast } = useToast()
   const [products, setProducts] = useState<ProductWithStock[]>([])
   const [threshold, setThreshold] = useState(5)
   const [tab, setTab] = useState<Tab>('all')
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [scanning, setScanning] = useState(false)
 
   // Expiry data (loaded lazily when tab selected)
   const [expiringProducts, setExpiringProducts] = useState<ExpiringProduct[]>([])
@@ -56,6 +62,22 @@ export default function StockPage() {
       .catch(() => {})
   }, [tab, expiryLoaded])
 
+  async function handleBarcodeScan(barcode: string) {
+    try {
+      const res = await fetch(`/api/products?barcode=${encodeURIComponent(barcode)}`)
+      if (res.ok) {
+        const json = await res.json()
+        if (json.products && json.products.length > 0) {
+          router.push(`/stock/${json.products[0].id}`)
+          return
+        }
+      }
+      addToast('No product found with that barcode', 'error')
+    } catch {
+      addToast('Could not look up product. Try again.', 'error')
+    }
+  }
+
   const filtered = products.filter((p) => {
     const matchesTab = tab === 'all' || (tab === 'low' && p.low_stock)
     const matchesSearch =
@@ -71,11 +93,19 @@ export default function StockPage() {
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/dashboard" className="flex items-center gap-1 text-gray-500 active:text-gray-700 font-medium py-1 pr-2">
-          ← Back
-        </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Stock</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="flex items-center gap-1 text-gray-500 active:text-gray-700 font-medium py-1 pr-2">
+            ← Back
+          </Link>
+          <h1 className="text-2xl font-bold text-gray-900">Stock</h1>
+        </div>
+        <button
+          onClick={() => setScanning(true)}
+          className="flex items-center gap-1.5 text-sm font-semibold text-blue-600 border border-blue-300 px-3 py-2 rounded-xl active:bg-blue-50"
+        >
+          Scan
+        </button>
       </div>
 
       {/* Summary strip */}
@@ -266,6 +296,13 @@ export default function StockPage() {
       <p className="text-xs text-gray-400 text-center mt-6">
         Low stock threshold: {threshold} units
       </p>
+
+      {scanning && (
+        <BarcodeScanner
+          onScan={handleBarcodeScan}
+          onClose={() => setScanning(false)}
+        />
+      )}
     </main>
   )
 }
