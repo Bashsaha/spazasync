@@ -94,4 +94,12 @@ Creating files before step 5 is a protocol violation regardless of how confident
 
 ---
 
+## Lesson: Phase Completion Protocol runs IMMEDIATELY after code is verified — not as an afterthought
+
+**What happened:** Completed Phase 23 implementation, ran type-check and tests, then stopped. Did not run the Phase Completion Protocol (Glob scan, file tree update, Living Scope update, commit, push, checklist output). User had to call it out — again.
+
+**Rule:** The moment `tsc --noEmit` passes and tests pass, the NEXT thing that happens is the Phase Completion Protocol steps 1–10 in order. There is no gap between "code works" and "protocol runs." Do not mark todos as complete, do not output a summary to the user, do not do anything else until all 10 steps are executed. The protocol IS the final step of every phase — not a separate task to remember later.
+
+---
+
 _Add new lessons here as they occur._
