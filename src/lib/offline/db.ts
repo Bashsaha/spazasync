@@ -9,11 +9,20 @@
  *   cart          — current cart state for crash recovery
  */
 import { openDB } from 'idb'
-import type { PendingSale, Product, CartItem } from '@/types'
+import type { PendingSale, Product, CartItem, Teller } from '@/types'
 
 const DB_NAME = 'spazasync'
-const DB_VERSION = 2
+const DB_VERSION = 3
 const STORE = 'pending_sales'
+
+/** Product cache is considered stale after 30 minutes. */
+const PRODUCT_CACHE_TTL_MS = 30 * 60 * 1000
+
+interface CachedSettings {
+  key: 'shop'
+  low_stock_threshold: number
+  cached_at: string
+}
 
 function getDB() {
   return openDB(DB_NAME, DB_VERSION, {
@@ -30,6 +39,15 @@ function getDB() {
         }
         if (!db.objectStoreNames.contains('cart')) {
           db.createObjectStore('cart', { keyPath: 'key' })
+        }
+      }
+      // v3: settings cache + teller cache
+      if (oldVersion < 3) {
+        if (!db.objectStoreNames.contains('settings')) {
+          db.createObjectStore('settings', { keyPath: 'key' })
+        }
+        if (!db.objectStoreNames.contains('tellers')) {
+          db.createObjectStore('tellers', { keyPath: 'id' })
         }
       }
     },
@@ -101,15 +119,17 @@ export async function resetFailedSales(maxRetries: number): Promise<void> {
 
 // ── Product cache ─────────────────────────────────────────────────────────────
 
-/** Replace the entire product cache with a fresh list. */
+/** Replace the entire product cache with a fresh list and record timestamp. */
 export async function cacheProducts(products: Product[]): Promise<void> {
   const db = await getDB()
-  const tx = db.transaction('products', 'readwrite')
+  const tx = db.transaction(['products', 'settings'], 'readwrite')
   const store = tx.objectStore('products')
   await store.clear()
   for (const p of products) {
     await store.put(p)
   }
+  // Record when products were cached so we can check staleness
+  tx.objectStore('settings').put({ key: 'products_meta', cached_at: new Date().toISOString() })
   await tx.done
 }
 
@@ -144,4 +164,49 @@ export async function loadCart(): Promise<CartItem[] | null> {
 export async function clearCartCache(): Promise<void> {
   const db = await getDB()
   await db.delete('cart', 'current')
+}
+
+// ── Settings cache ───────────────────────────────────────────────────────────
+
+/** Cache shop settings for offline use. */
+export async function cacheSettings(settings: CachedSettings): Promise<void> {
+  const db = await getDB()
+  await db.put('settings', settings)
+}
+
+/** Load cached shop settings. Returns null if no cache. */
+export async function getCachedSettings(): Promise<CachedSettings | null> {
+  const db = await getDB()
+  const record = await db.get('settings', 'shop')
+  return record ?? null
+}
+
+// ── Teller cache ─────────────────────────────────────────────────────────────
+
+/** Replace the entire teller cache with a fresh list. */
+export async function cacheTellers(tellers: Teller[]): Promise<void> {
+  const db = await getDB()
+  const tx = db.transaction('tellers', 'readwrite')
+  const store = tx.objectStore('tellers')
+  await store.clear()
+  for (const t of tellers) {
+    await store.put(t)
+  }
+  await tx.done
+}
+
+/** Return all cached tellers. */
+export async function getCachedTellers(): Promise<Teller[]> {
+  const db = await getDB()
+  return db.getAll('tellers')
+}
+
+// ── Product cache staleness ──────────────────────────────────────────────────
+
+/** Check if the product cache is older than PRODUCT_CACHE_TTL_MS. */
+export async function isProductCacheStale(): Promise<boolean> {
+  const db = await getDB()
+  const meta = await db.get('settings', 'products_meta')
+  if (!meta?.cached_at) return true
+  return Date.now() - new Date(meta.cached_at).getTime() > PRODUCT_CACHE_TTL_MS
 }

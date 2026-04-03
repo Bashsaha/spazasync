@@ -2,18 +2,31 @@
  * SpazaSync Service Worker
  *
  * Strategy:
+ *  - install         → precache app shell + offline fallback
  *  - /_next/static/  → cache-first (content-hashed, safe to cache forever)
  *  - /api/products   → stale-while-revalidate (enables offline barcode lookup)
  *  - /api/*          → network-only (auth-sensitive mutations must reach server)
- *  - navigation      → network-first, fall back to cache (app shell)
+ *  - navigation      → network-first, fall back to cache, then /offline.html
  */
 
-const CACHE = 'spazasync-v1'
+const CACHE = 'spazasync-v2'
+
+/** Critical routes precached on install so the app works offline from first install. */
+const PRECACHE_URLS = [
+  '/offline.html',
+  '/sale',
+  '/login',
+  '/dashboard',
+]
 
 // ── Lifecycle ──────────────────────────────────────────────────────────────
 
-self.addEventListener('install', () => {
-  self.skipWaiting()
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE)
+      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then(() => self.skipWaiting()),
+  )
 })
 
 self.addEventListener('activate', (event) => {
@@ -22,7 +35,13 @@ self.addEventListener('activate', (event) => {
       Promise.all(
         keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)),
       ),
-    ).then(() => self.clients.claim()),
+    )
+      .then(() => self.clients.claim())
+      .then(() =>
+        self.clients.matchAll().then((clients) => {
+          clients.forEach((client) => client.postMessage({ type: 'SW_UPDATED' }))
+        }),
+      ),
   )
 })
 
@@ -86,7 +105,7 @@ self.addEventListener('fetch', (event) => {
   // All other API routes — network only (never cache auth/mutation endpoints)
   if (url.pathname.startsWith('/api/')) return
 
-  // Page navigation — network-first, fall back to cached version
+  // Page navigation — network-first, fall back to cached version, then offline page
   event.respondWith(
     fetch(request)
       .then((res) => {
@@ -95,6 +114,10 @@ self.addEventListener('fetch', (event) => {
         }
         return res
       })
-      .catch(() => caches.match(request)),
+      .catch(() =>
+        caches.match(request).then((cached) =>
+          cached ?? caches.match('/offline.html'),
+        ),
+      ),
   )
 })

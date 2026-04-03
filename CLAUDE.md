@@ -326,7 +326,18 @@ At the start of every session:
   - New component: BarcodeScanButton.tsx (self-contained client component for server-rendered Products page)
   - No migration needed — uses existing BarcodeScanner component and /api/products?barcode= endpoint
 
-All phases 1–23 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
+- [x] Phase 24: Performance + Offline Hardening
+  - IndexedDB v3: added `settings` + `tellers` stores, product cache TTL (30 min staleness check)
+  - Service Worker v2: precaches app shell (/sale, /login, /dashboard, /offline.html) on install; offline fallback page for uncached routes; SW update notification banner
+  - Offline-first settings: sale page loads cached `low_stock_threshold` from IndexedDB before network fetch
+  - Offline-first tellers: TellerSelector falls back to IndexedDB cache when fetch fails
+  - Network error resilience: online sale POST failures auto-queue to offline sale queue (no data loss)
+  - Product cache staleness: ProductPicker warns "product list may be outdated" when using stale cache offline
+  - jspdf dynamic import: compliance PDF route lazy-loads jspdf/autoTable to reduce serverless cold start
+  - New file: `public/offline.html`
+  - No migrations needed
+
+All phases 1–24 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
 
 ---
 
@@ -352,7 +363,8 @@ spaza shop/
 ├── public/
 │   ├── file.svg, globe.svg, next.svg, vercel.svg, window.svg
 │   ├── manifest.json               # PWA manifest
-│   ├── sw.js                       # Service worker (cache strategies)
+│   ├── offline.html                # Offline fallback page (self-contained)
+│   ├── sw.js                       # Service worker (precache + cache strategies)
 │   └── icons/
 │       ├── icon.svg                # App icon
 │       └── icon-maskable.svg       # Maskable variant

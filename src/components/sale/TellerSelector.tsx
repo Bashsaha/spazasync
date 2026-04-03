@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { cacheTellers, getCachedTellers } from '@/lib/offline/db'
 import type { Teller } from '@/types'
 
 interface Props {
@@ -18,10 +19,21 @@ export function TellerSelector({ onSelect, selectedId }: Props) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/tellers')
-      .then((r) => r.json())
-      .then((data: Teller[]) => setTellers(data))
-      .finally(() => setLoading(false))
+    async function load() {
+      try {
+        const res = await fetch('/api/tellers')
+        const data: Teller[] = await res.json()
+        setTellers(data)
+        cacheTellers(data) // persist for offline use
+      } catch {
+        // Offline fallback — load from IndexedDB
+        const cached = await getCachedTellers()
+        setTellers(cached)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
   }, [])
 
   if (loading) return <p className="text-gray-400 text-sm">Loading tellers…</p>

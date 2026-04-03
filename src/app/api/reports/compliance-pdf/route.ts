@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getComplianceReportData } from '@/lib/db/compliance-report'
 import { formatSAST } from '@/lib/utils/date'
-import { jsPDF } from 'jspdf'
-import autoTable from 'jspdf-autotable'
+// jsPDF + autoTable are dynamically imported inside GET() to reduce cold start
+import type { jsPDF } from 'jspdf'
 
 /**
  * GET /api/reports/compliance-pdf
@@ -34,6 +34,10 @@ export async function GET() {
   try {
     const data = await getComplianceReportData(shopId)
     const now = new Date()
+
+    // Lazy-load PDF libraries (only when report is actually requested)
+    const { jsPDF } = await import('jspdf')
+    const { default: autoTable } = await import('jspdf-autotable')
 
     // Create PDF (A4 portrait)
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })

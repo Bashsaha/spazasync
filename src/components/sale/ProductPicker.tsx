@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import type { Product } from '@/types'
 import { formatZAR } from '@/lib/utils/currency'
-import { cacheProducts, getCachedProducts } from '@/lib/offline/db'
+import { cacheProducts, getCachedProducts, isProductCacheStale } from '@/lib/offline/db'
 
 interface ProductPickerProps {
   onSelect: (product: Product) => void
@@ -42,6 +42,7 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
   const [search, setSearch] = useState('')
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [usingStaleCache, setUsingStaleCache] = useState(false)
   const [popularIds, setPopularIds] = useState<string[]>([])
 
   // Fetch popular product IDs once on mount (best-effort — fails silently)
@@ -85,6 +86,9 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
                 )
               : cached,
           )
+          // Warn user if cached data may be outdated
+          const stale = await isProductCacheStale()
+          setUsingStaleCache(stale)
         }
       } finally {
         setLoading(false)
@@ -126,6 +130,12 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
           autoFocus
           className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
         />
+
+        {usingStaleCache && (
+          <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mb-3">
+            You're offline — product list may be outdated
+          </p>
+        )}
 
         <div className="overflow-y-auto flex-1 -mx-4 px-4">
           {loading ? (

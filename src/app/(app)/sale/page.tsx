@@ -12,7 +12,7 @@ import { CartItem } from '@/components/sale/CartItem'
 import { CartSummary } from '@/components/sale/CartSummary'
 import { NewProductModal } from '@/components/sale/NewProductModal'
 import { ProductPicker } from '@/components/sale/ProductPicker'
-import { enqueueSale, getCachedProductByBarcode } from '@/lib/offline/db'
+import { enqueueSale, getCachedProductByBarcode, getCachedSettings, cacheSettings } from '@/lib/offline/db'
 import { createClient } from '@/lib/supabase/client'
 import type { Product } from '@/types'
 
@@ -34,12 +34,20 @@ export default function SalePage() {
   const [threshold, setThreshold] = useState(5)
 
   useEffect(() => {
+    // Apply cached settings immediately (offline-first)
+    getCachedSettings().then((cached) => {
+      if (cached?.low_stock_threshold != null) setThreshold(cached.low_stock_threshold)
+    })
+    // Then try network for freshest value
     fetch('/api/settings')
       .then((r) => (r.ok ? r.json() : null))
       .then((shop) => {
-        if (shop?.low_stock_threshold != null) setThreshold(shop.low_stock_threshold)
+        if (shop?.low_stock_threshold != null) {
+          setThreshold(shop.low_stock_threshold)
+          cacheSettings({ key: 'shop', low_stock_threshold: shop.low_stock_threshold, cached_at: new Date().toISOString() })
+        }
       })
-      .catch(() => {}) // offline: use default
+      .catch(() => {}) // offline: cached or default already applied
   }, [])
 
   // Show stock warning toast when adding a product
@@ -97,6 +105,34 @@ export default function SalePage() {
     showStockToast(product)
   }
 
+  // ── Queue sale offline (shared by offline path + network error fallback) ──
+
+  async function queueAsOfflineSale() {
+    const supabase = createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    const shopId = (session?.user.app_metadata?.shop_id as string) ?? ''
+
+    await enqueueSale({
+      offline_id: crypto.randomUUID(),
+      shop_id: shopId,
+      teller_id: activeTeller?.id ?? null,
+      total,
+      items: items.map((i) => ({
+        product_id: i.product.id,
+        barcode: i.product.barcode ?? '',
+        quantity: i.quantity,
+        unit_price: i.product.price,
+        subtotal: i.subtotal,
+      })),
+      queued_at: new Date().toISOString(),
+      retry_count: 0,
+    })
+
+    window.dispatchEvent(new Event('offlinequeue'))
+    clearCart()
+    router.push(`/sale/complete?total=${encodeURIComponent(total.toFixed(2))}&offline=1`)
+  }
+
   // ── Complete sale ──────────────────────────────────────────────────────────
 
   async function handleCompleteSale() {
@@ -106,31 +142,7 @@ export default function SalePage() {
     try {
       // ── Offline path: queue locally and sync later ─────────────────────────
       if (!isOnline) {
-        const supabase = createClient()
-        const { data: { session } } = await supabase.auth.getSession()
-        const shopId = (session?.user.app_metadata?.shop_id as string) ?? ''
-
-        await enqueueSale({
-          offline_id: crypto.randomUUID(),
-          shop_id: shopId,
-          teller_id: activeTeller?.id ?? null,
-          total,
-          items: items.map((i) => ({
-            product_id: i.product.id,
-            barcode: i.product.barcode ?? '',
-            quantity: i.quantity,
-            unit_price: i.product.price,
-            subtotal: i.subtotal,
-          })),
-          queued_at: new Date().toISOString(),
-          retry_count: 0,
-        })
-
-        // Notify the OfflineSyncProvider at layout level to refresh its count
-        window.dispatchEvent(new Event('offlinequeue'))
-
-        clearCart()
-        router.push(`/sale/complete?total=${encodeURIComponent(total.toFixed(2))}&offline=1`)
+        await queueAsOfflineSale()
         return
       }
 
@@ -157,7 +169,8 @@ export default function SalePage() {
       clearCart()
       router.push(`/sale/complete?total=${encodeURIComponent(total.toFixed(2))}`)
     } catch {
-      setSubmitError('Something went wrong. Try again.')
+      // Network error mid-POST — auto-queue offline instead of showing error
+      await queueAsOfflineSale()
     } finally {
       setIsSubmitting(false)
     }
