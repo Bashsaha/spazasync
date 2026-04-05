@@ -337,6 +337,11 @@ At the start of every session:
   - New file: `public/offline.html`
   - No migrations needed
 
+- [x] UX Tweak: Floating "Start Sale" Button
+  - Added a blue floating action button (FAB) in bottom-right corner of all pages (except /sale itself)
+  - Positioned above BottomNav; hidden for tellers (they only see /sale)
+  - Modified: BottomNav.tsx — no new files or migrations
+
 All phases 1–24 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
 
 ---
