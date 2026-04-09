@@ -114,6 +114,7 @@ PAYFAST_PASSPHRASE=
 PAYFAST_SANDBOX=true
 SUBSCRIPTION_PRICE_ZAR=349.99
 NEXT_PUBLIC_APP_URL=
+EXTERNAL_API_KEY=
 ```
 
 ---
@@ -342,7 +343,23 @@ At the start of every session:
   - Positioned above BottomNav; hidden for tellers (they only see /sale)
   - Modified: BottomNav.tsx — no new files or migrations
 
-All phases 1–24 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
+- [x] Phase 25: Secure External API for Business Portal
+  - Bearer token auth (`EXTERNAL_API_KEY` env var) — same pattern as cron routes, server-to-server
+  - Auth guard: `src/lib/auth/external-api-guard.ts` — `requireExternalApi(request)` returns null (ok) or NextResponse (error)
+  - proxy.ts: `/api/external` added to PUBLIC_ROUTES (bypasses cookie session checks; own Bearer auth)
+  - Rate limited: 60 req/min per IP via existing `checkRateLimit()`
+  - 6 read-only GET endpoints under `/api/external/v1/`:
+    - `GET /overview` — platform stats (reuses `getOverviewStats()`)
+    - `GET /shops` — paginated shop list (reuses `listShops()`)
+    - `GET /shops/:id` — shop detail (reuses `getShopDetail()`)
+    - `GET /shops/:id/sales` — combined sales snapshot: today, weekly, recent, top products (reuses reports.ts)
+    - `GET /shops/:id/stock` — all products + stock levels + low-stock alerts (new `getProductsForShop()` in reports.ts)
+    - `GET /shops/:id/expiry` — expired + expiring-soon products (reuses `getExpiringProductsForShop()`)
+  - New type: `ShopProduct` in types/index.ts
+  - No migrations needed — reuses existing DB functions via admin (service role) client
+  - New files: 1 auth guard + 6 route handlers. Modified: proxy.ts, reports.ts, types/index.ts, .env.local.example
+
+All phases 1–25 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
 
 ---
 
@@ -468,6 +485,16 @@ spaza shop/
 │   │       │           ├── access/route.ts
 │   │       │           ├── notes/route.ts
 │   │       │           └── subscription/route.ts
+│   │       ├── external/
+│   │       │   └── v1/
+│   │       │       ├── overview/route.ts       # GET platform stats
+│   │       │       └── shops/
+│   │       │           ├── route.ts            # GET paginated shop list
+│   │       │           └── [id]/
+│   │       │               ├── route.ts        # GET shop detail
+│   │       │               ├── sales/route.ts  # GET sales snapshot
+│   │       │               ├── stock/route.ts  # GET products + stock levels
+│   │       │               └── expiry/route.ts # GET expiring products
 │   │       ├── reports/
 │   │       │   └── compliance-pdf/route.ts
 │   │       ├── settings/
@@ -521,7 +548,8 @@ spaza shop/
 │   │   ├── auth/
 │   │   │   ├── teller.ts                  # Synthetic email + provisioning + subscription sync
 │   │   │   ├── admin-guard.ts             # requireAdmin()
-│   │   │   └── shop-auth.ts              # getShopAuth() — shared user + shopId extraction
+│   │   │   ├── shop-auth.ts              # getShopAuth() — shared user + shopId extraction
+│   │   │   └── external-api-guard.ts     # requireExternalApi() — Bearer token + rate limit
 │   │   ├── payfast/
 │   │   │   └── index.ts                   # Signature, checkout, ITN validation
 │   │   ├── db/

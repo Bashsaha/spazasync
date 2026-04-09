@@ -2,7 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { formatInTimeZone } from 'date-fns-tz'
 import { subDays } from 'date-fns'
 import { SAST_TZ } from '@/lib/utils/date'
-import type { DailySummaryData, LowStockItem, WeeklyDataPoint, RecentSale, TopProduct, ExpiringProductAlert } from '@/types'
+import type { DailySummaryData, LowStockItem, WeeklyDataPoint, RecentSale, TopProduct, ExpiringProductAlert, ShopProduct } from '@/types'
 
 /**
  * Returns ISO boundaries for a given date in SAST (Africa/Johannesburg, UTC+2).
@@ -241,6 +241,30 @@ export async function getLowStockForShop(
   if (error) throw error
 
   return (data ?? []).map((p) => ({ name: p.name, stock_qty: p.stock_qty }))
+}
+
+/**
+ * Get all products for a single shop with stock levels.
+ * Used by the external API stock endpoint.
+ */
+export async function getProductsForShop(shopId: string): Promise<ShopProduct[]> {
+  const admin = createAdminClient()
+
+  const { data, error } = await admin
+    .from('products')
+    .select('id, name, barcode, price, stock_qty')
+    .eq('shop_id', shopId)
+    .order('name', { ascending: true })
+
+  if (error) throw error
+
+  return (data ?? []).map((p) => ({
+    id: p.id,
+    name: p.name,
+    barcode: p.barcode,
+    price: Number(p.price),
+    stock_qty: p.stock_qty,
+  }))
 }
 
 /**

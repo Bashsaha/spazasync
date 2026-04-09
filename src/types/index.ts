@@ -312,6 +312,14 @@ export interface SaleBatchConsumption {
   created_at: string
 }
 
+export interface ShopProduct {
+  id: string
+  name: string
+  barcode: string | null
+  price: number
+  stock_qty: number
+}
+
 export interface AdminOverviewStats {
   totalShops: number
   activeShops: number
