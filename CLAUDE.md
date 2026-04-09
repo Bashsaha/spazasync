@@ -4,7 +4,7 @@
 
 SpazaSync is a mobile-first PWA for South African spaza shop and small retail owners. These owners currently calculate sales on a basic calculator and manage stock manually or not at all. SpazaSync replaces that entire workflow with a smartphone app that requires no technical skill.
 
-**Core flow:** owner opens the app on their Android phone → scans a product barcode using their phone camera → product added to the sale → stock automatically deducted when the sale is completed → owner receives a daily WhatsApp summary of sales and stock levels.
+**Core flow:** owner opens the app on their Android phone → scans a product barcode using their phone camera → product added to the sale → stock automatically deducted when the sale is completed → owner sees an in-app daily summary of sales and stock levels each evening.
 
 **Target user:** someone with no technical background. Plain English. No jargon. Obvious UI. Works on a mid-range Android smartphone, no laptop or external hardware needed.
 
@@ -17,7 +17,6 @@ SpazaSync is a mobile-first PWA for South African spaza shop and small retail ow
 | Framework | Next.js 16, App Router, TypeScript strict mode |
 | Styling | Tailwind CSS |
 | Database + Auth | Supabase (PostgreSQL, RLS, Supabase Auth) |
-| Messaging | Twilio WhatsApp Business API |
 | Deployment | Vercel (+ Vercel Cron Jobs) |
 | Validation | Zod |
 | Testing | Vitest |
@@ -104,9 +103,6 @@ All tables have RLS enabled. `admin_payments` and `barcode_catalog` writes are s
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
-TWILIO_ACCOUNT_SID=
-TWILIO_AUTH_TOKEN=
-TWILIO_WHATSAPP_FROM=
 CRON_SECRET=
 PAYFAST_MERCHANT_ID=
 PAYFAST_MERCHANT_KEY=
@@ -359,7 +355,14 @@ At the start of every session:
   - No migrations needed — reuses existing DB functions via admin (service role) client
   - New files: 1 auth guard + 6 route handlers. Modified: proxy.ts, reports.ts, types/index.ts, .env.local.example
 
-All phases 1–25 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
+- [x] Phase 26: In-App Daily Summary (Replace WhatsApp)
+  - Removed all WhatsApp/Twilio code: deleted `src/lib/whatsapp/`, `src/app/api/cron/daily-summary/`, `tests/unit/whatsapp-format.test.ts`; removed `twilio` dependency; cleaned WhatsApp fields from onboarding, settings, validation schemas, env files, vercel.json cron
+  - New `GET /api/summary/daily` endpoint: authenticated via `getShopAuth()`, returns sales + low stock + expiring products
+  - New `DailySummaryAlert.tsx` component: client-side 9pm SAST check + localStorage tracking; slide-down banner → modal with plain-English summary (revenue, top sellers, low stock, expiring); hidden for tellers
+  - Added to `src/app/(app)/layout.tsx`; slide-down animation in `globals.css`
+  - DB column `shops.whatsapp_number` kept (nullable, unused — no migration needed)
+
+All phases 1–26 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
 
 ---
 
@@ -405,11 +408,11 @@ spaza shop/
 │   │   │   ├── login/page.tsx      # Owner + Teller login tabs
 │   │   │   └── onboarding/page.tsx # Account → shop setup (email-sent state for confirmation)
 │   │   ├── (app)/
-│   │   │   ├── layout.tsx          # Authenticated shell (ToastProvider + BottomNav)
+│   │   │   ├── layout.tsx          # Authenticated shell (ToastProvider + BottomNav + DailySummaryAlert)
 │   │   │   ├── error.tsx           # App-segment error boundary
 │   │   │   ├── dashboard/page.tsx  # Streaming dashboard: Suspense-wrapped sections, instant shell
 │   │   │   ├── dashboard/loading.tsx
-│   │   │   ├── settings/page.tsx   # Owner settings: shop info, WhatsApp, threshold, subscription, compliance PDF
+│   │   │   ├── settings/page.tsx   # Owner settings: shop info, threshold, subscription, compliance PDF
 │   │   │   ├── subscribe/page.tsx  # Subscription page: pricing, PayFast checkout
 │   │   │   ├── sale/
 │   │   │   │   ├── page.tsx        # Full sale flow: scan → cart → complete
@@ -470,8 +473,9 @@ spaza shop/
 │   │       │   ├── notify/route.ts        # PayFast ITN webhook
 │   │       │   └── status/route.ts
 │   │       ├── cron/
-│   │       │   ├── daily-summary/route.ts # 22:00 SAST — WhatsApp summaries
 │   │       │   └── expire-subscriptions/route.ts # 02:00 SAST — expire overdue trials/subs
+│   │       ├── summary/
+│   │       │   └── daily/route.ts         # GET daily summary (sales + low stock + expiring) for in-app alert
 │   │       ├── admin/
 │   │       │   ├── overview/route.ts
 │   │       │   ├── catalog/
@@ -533,7 +537,8 @@ spaza shop/
 │   │   ├── Toast.tsx                       # Toast system + ToastProvider
 │   │   ├── OfflineBanner.tsx
 │   │   ├── OfflineSyncProvider.tsx
-│   │   └── ServiceWorkerRegistrar.tsx
+│   │   ├── ServiceWorkerRegistrar.tsx
+│   │   └── DailySummaryAlert.tsx          # In-app daily summary (9pm SAST banner + modal)
 │   ├── hooks/
 │   │   ├── useActiveTeller.ts
 │   │   ├── useCart.ts
@@ -565,9 +570,6 @@ spaza shop/
 │   │   ├── offline/
 │   │   │   ├── db.ts                      # IndexedDB via idb
 │   │   │   └── sync.ts                    # syncPendingSales
-│   │   ├── whatsapp/
-│   │   │   ├── client.ts                  # Twilio + sendWhatsApp()
-│   │   │   └── format.ts                  # formatDailySummary (+ expiry alerts)
 │   │   ├── validation/
 │   │   │   └── schemas.ts                 # All Zod schemas
 │   │   └── utils/
@@ -605,11 +607,10 @@ spaza shop/
 └── tests/
     └── unit/
         ├── currency.test.ts               # 16 tests
-        ├── whatsapp-format.test.ts        # 14 tests
-        ├── validation.test.ts             # 49 tests
+        ├── validation.test.ts             # 48 tests
         ├── date.test.ts                   # 17 tests
         ├── rate-limit.test.ts             # 7 tests
-        ├── security.test.ts              # 15 tests
+        ├── security.test.ts              # 14 tests
         ├── payfast.test.ts               # 12 tests
         ├── admin.test.ts                 # 28 tests
         └── batches.test.ts              # 14 tests

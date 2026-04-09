@@ -180,7 +180,7 @@ export default async function DashboardPage() {
         >
           <div>
             <p className="font-bold text-gray-900">Settings</p>
-            <p className="text-gray-400 text-sm">Change your shop name, WhatsApp number and more</p>
+            <p className="text-gray-400 text-sm">Change your shop name, stock alerts and more</p>
           </div>
           <span className="text-3xl">⚙️</span>
         </a>

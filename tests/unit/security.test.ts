@@ -89,15 +89,6 @@ describe('onboardingSchema security', () => {
     expect(result.success).toBe(false)
   })
 
-  it('rejects whatsappNumber without country code prefix', () => {
-    const result = onboardingSchema.safeParse({
-      shopName: 'Test',
-      ownerName: 'Owner',
-      whatsappNumber: '0821234567',
-    })
-    expect(result.success).toBe(false)
-  })
-
   it('rejects extremely long shopName', () => {
     const result = onboardingSchema.safeParse({
       shopName: 'A'.repeat(101),

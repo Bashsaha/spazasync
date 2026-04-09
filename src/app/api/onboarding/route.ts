@@ -37,7 +37,7 @@ async function generateShopCode(
 
 /**
  * POST /api/onboarding
- * Body: { shopName, ownerName, whatsappNumber?, registrationNumber?, location? }
+ * Body: { shopName, ownerName, registrationNumber?, location? }
  *
  * Creates the shop (with auto-generated code), maps the owner to it,
  * and adds the owner as a teller entry.
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: firstError }, { status: 400 })
   }
 
-  const { shopName, ownerName, whatsappNumber, registrationNumber, location } = parsed.data
+  const { shopName, ownerName, registrationNumber, location } = parsed.data
 
   // Get the authenticated user from their session
   const supabase = await createClient()
@@ -104,7 +104,6 @@ export async function POST(request: Request) {
     .insert({
       name: shopName,
       code: shopCode,
-      whatsapp_number: whatsappNumber || null,
       registration_number: registrationNumber || null,
       location: location || null,
       subscription_status: 'trialing',

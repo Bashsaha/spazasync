@@ -18,7 +18,6 @@ interface ShopSettings {
 export default function SettingsPage() {
   const [settings, setSettings] = useState<ShopSettings | null>(null)
   const [name, setName] = useState('')
-  const [whatsapp, setWhatsapp] = useState('')
   const [threshold, setThreshold] = useState(5)
   const [regNumber, setRegNumber] = useState('')
   const [location, setLocation] = useState('')
@@ -33,7 +32,6 @@ export default function SettingsPage() {
       .then((data: ShopSettings) => {
         setSettings(data)
         setName(data.name)
-        setWhatsapp(data.whatsapp_number ?? '')
         setThreshold(data.low_stock_threshold)
         setRegNumber(data.registration_number ?? '')
         setLocation(data.location ?? '')
@@ -52,7 +50,6 @@ export default function SettingsPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: name.trim(),
-        whatsapp_number: whatsapp.trim() || null,
         low_stock_threshold: threshold,
         registration_number: regNumber.trim() || null,
         location: location.trim() || null,
@@ -252,23 +249,6 @@ export default function SettingsPage() {
           <p className="text-xs text-gray-400 mt-1">
             Your shop address. Shows on compliance reports.
           </p>
-        </div>
-
-        {/* WhatsApp number */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Your WhatsApp number
-          </label>
-          <p className="text-xs text-gray-400 mb-2">
-            We send your daily sales report here. Leave blank to turn off reports.
-          </p>
-          <input
-            type="tel"
-            value={whatsapp}
-            onChange={(e) => setWhatsapp(e.target.value)}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
-            placeholder="+27821234567"
-          />
         </div>
 
         {/* Low stock threshold */}

@@ -84,28 +84,11 @@ describe('onboardingSchema', () => {
   const validBase = {
     shopName: 'Cape Town Spaza',
     ownerName: 'Thabo',
-    whatsappNumber: '+27821234567',
   }
 
   it('accepts a valid full onboarding object', () => {
     const result = onboardingSchema.safeParse(validBase)
     expect(result.success).toBe(true)
-  })
-
-  it('allows missing whatsappNumber', () => {
-    const { whatsappNumber: _, ...withoutPhone } = validBase
-    const result = onboardingSchema.safeParse(withoutPhone)
-    expect(result.success).toBe(true)
-  })
-
-  it('allows empty string for whatsappNumber', () => {
-    const result = onboardingSchema.safeParse({ ...validBase, whatsappNumber: '' })
-    expect(result.success).toBe(true)
-  })
-
-  it('rejects invalid South African number format', () => {
-    const result = onboardingSchema.safeParse({ ...validBase, whatsappNumber: '0821234567' })
-    expect(result.success).toBe(false)
   })
 
   it('rejects empty shopName', () => {
@@ -378,15 +361,6 @@ describe('updateShopSettingsSchema', () => {
     expect(result.success).toBe(true)
   })
 
-  it('accepts null whatsapp_number', () => {
-    const result = updateShopSettingsSchema.safeParse({
-      name: 'My Shop',
-      whatsapp_number: null,
-      low_stock_threshold: 5,
-    })
-    expect(result.success).toBe(true)
-  })
-
   it('rejects low_stock_threshold of zero', () => {
     const result = updateShopSettingsSchema.safeParse({
       name: 'My Shop',
@@ -406,15 +380,6 @@ describe('updateShopSettingsSchema', () => {
 
   it('rejects empty shop name', () => {
     const result = updateShopSettingsSchema.safeParse({ name: '', low_stock_threshold: 5 })
-    expect(result.success).toBe(false)
-  })
-
-  it('rejects invalid whatsapp_number format', () => {
-    const result = updateShopSettingsSchema.safeParse({
-      name: 'My Shop',
-      whatsapp_number: '0821234567',
-      low_stock_threshold: 5,
-    })
     expect(result.success).toBe(false)
   })
 

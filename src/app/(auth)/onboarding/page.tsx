@@ -11,7 +11,6 @@ export default function OnboardingPage() {
   const [password, setPassword] = useState('')
   const [shopName, setShopName] = useState('')
   const [ownerName, setOwnerName] = useState('')
-  const [whatsapp, setWhatsapp] = useState('')
   const [registrationNumber, setRegistrationNumber] = useState('')
   const [location, setLocation] = useState('')
   const [generatedCode, setGeneratedCode] = useState('')
@@ -58,7 +57,6 @@ export default function OnboardingPage() {
       body: JSON.stringify({
         shopName,
         ownerName,
-        whatsappNumber: whatsapp || undefined,
         registrationNumber: registrationNumber || undefined,
         location: location || undefined,
       }),
@@ -149,8 +147,6 @@ export default function OnboardingPage() {
               setShopName={setShopName}
               ownerName={ownerName}
               setOwnerName={setOwnerName}
-              whatsapp={whatsapp}
-              setWhatsapp={setWhatsapp}
               registrationNumber={registrationNumber}
               setRegistrationNumber={setRegistrationNumber}
               location={location}
@@ -228,14 +224,13 @@ function SignupForm({
 
 function ShopSetupForm({
   shopName, setShopName,
-  ownerName, setOwnerName, whatsapp, setWhatsapp,
+  ownerName, setOwnerName,
   registrationNumber, setRegistrationNumber,
   location, setLocation,
   error, loading, onSubmit,
 }: {
   shopName: string; setShopName: (v: string) => void
   ownerName: string; setOwnerName: (v: string) => void
-  whatsapp: string; setWhatsapp: (v: string) => void
   registrationNumber: string; setRegistrationNumber: (v: string) => void
   location: string; setLocation: (v: string) => void
   error: string; loading: boolean; onSubmit: (e: React.FormEvent) => void
@@ -298,21 +293,6 @@ function ShopSetupForm({
         />
         <p className="text-xs text-gray-400 mt-1">
           You can add this later in Settings.
-        </p>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          WhatsApp number <span className="text-gray-400 font-normal">(optional)</span>
-        </label>
-        <input
-          type="tel"
-          value={whatsapp}
-          onChange={(e) => setWhatsapp(e.target.value)}
-          placeholder="+27821234567"
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
-        />
-        <p className="text-xs text-gray-400 mt-1">
-          For daily sales summaries and low stock alerts.
         </p>
       </div>
       {error && (

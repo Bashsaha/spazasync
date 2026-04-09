@@ -27,7 +27,7 @@ export async function GET() {
 
 /**
  * PATCH /api/settings
- * Updates shop name, WhatsApp number, and low-stock threshold.
+ * Updates shop name, low-stock threshold, and other shop details.
  * Shop code cannot be changed.
  */
 export async function PATCH(request: Request) {
@@ -51,13 +51,12 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Only the shop owner can change settings' }, { status: 403 })
   }
 
-  const { name, whatsapp_number, low_stock_threshold, registration_number, location } = parsed
+  const { name, low_stock_threshold, registration_number, location } = parsed
 
   const { data: updated, error } = await admin
     .from('shops')
     .update({
       name,
-      whatsapp_number: whatsapp_number ?? null,
       low_stock_threshold,
       registration_number: registration_number ?? null,
       location: location ?? null,

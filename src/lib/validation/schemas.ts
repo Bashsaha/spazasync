@@ -23,11 +23,6 @@ export const tellerLoginSchema = z.object({
 export const onboardingSchema = z.object({
   shopName: z.string().min(1, 'Enter your shop name').max(100),
   ownerName: z.string().min(1, 'Enter your name').max(100),
-  whatsappNumber: z
-    .string()
-    .regex(/^\+27\d{9}$/, 'Enter a valid SA number, e.g. +27821234567')
-    .optional()
-    .or(z.literal('')),
   registrationNumber: z.string().max(100).optional().or(z.literal('')),
   location: z.string().max(200).optional().or(z.literal('')),
 })
@@ -100,11 +95,6 @@ export const stockAdjustSchema = z.object({
 
 export const updateShopSettingsSchema = z.object({
   name: z.string().min(1, 'Shop name is required').max(100),
-  whatsapp_number: z
-    .string()
-    .regex(/^\+\d{7,15}$/, 'Enter a number like +27821234567')
-    .nullable()
-    .optional(),
   low_stock_threshold: z
     .number()
     .int()

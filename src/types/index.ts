@@ -170,7 +170,7 @@ export interface StockAdjustInput {
   reason?: string
 }
 
-// --- Reporting / WhatsApp summaries ---
+// --- Reporting ---
 
 export interface DailySummaryData {
   salesCount: number
