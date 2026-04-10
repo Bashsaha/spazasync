@@ -374,6 +374,31 @@ All phases 1–26 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
   - LanguageProvider wired into `src/app/(app)/layout.tsx` with server-fetched initialLocale
   - No UI changes yet — strings still hardcoded, framework ready for Phase 27b
 
+- [ ] Phase 27b: Language Selection UI + Auth Page Translations
+  - LanguagePicker component (shows 5 languages with native names: English, Soomaali, አማርኛ, IsiZulu, اردو)
+  - Onboarding: new 'language' step before signup; pass language to API
+  - Login: small language switcher at bottom of page
+  - Settings: Language section with LanguagePicker; PATCH language on change
+  - Replace all hardcoded strings in login + onboarding with t() calls
+  - Translation JSONs: {so,am,zu,ur}/common.json + auth.json (8 files)
+
+- [ ] Phase 27c: Translate Core Pages (Sale + Dashboard + Stock + Summary)
+  - Replace hardcoded strings with t() in sale flow, dashboard, stock, stock-take, daily summary, bottom nav, offline banner
+  - Server components (dashboard/*) use getServerTranslations()
+  - Translation JSONs: {so,am,zu,ur}/sale.json + dashboard.json + stock.json + summary.json (16 files)
+
+- [ ] Phase 27d: Translate Remaining Pages + RTL Support
+  - Replace strings in products, tellers, expiry, settings, subscribe, error pages
+  - RTL support for Urdu: dir="rtl" on html, logical Tailwind properties, directional icon flips
+  - Translation JSONs: {so,am,zu,ur}/products.json + tellers.json + expiry.json + settings.json (16 files)
+  - Compliance PDF stays English-only (regulatory requirement)
+
+- [ ] Phase 27e: Polish, Offline Hardening, Tests
+  - Font support: Noto Sans Ethiopic (Amharic), Noto Nastaliq Urdu (Urdu) — hosted in /public/fonts/
+  - SW precache translation JSONs for selected language
+  - Fallback to English if translation JSON fails to load offline
+  - Unit tests: t(), tPlural(), translation key completeness across all locales
+
 ---
 
 ## Current File Tree
