@@ -1,0 +1,28 @@
+{
+  "title": "Expiry Dates",
+  "back": "\u2190 Back",
+
+  "group_expired": "Expired",
+  "group_expiring_soon": "Expiring soon",
+  "group_ok": "OK",
+
+  "badge_expired": "EXPIRED",
+  "badge_expiring_soon": "Expiring",
+  "badge_ok": "OK",
+
+  "btn_remove_expired": "Remove expired stock",
+  "btn_manage_stock": "Manage stock",
+
+  "expires_on": "Expires {date}",
+  "expired_on": "Expired {date}",
+  "qty": "{count} units",
+
+  "empty": "No expiry dates tracked. Add expiry dates when you receive stock.",
+
+  "entry_label_date": "When does it expire?",
+  "entry_label_qty": "How many?",
+  "entry_btn_add": "Add another expiry date",
+  "entry_summary_one": "{entered} of {total} unit has an expiry date",
+  "entry_summary_other": "{entered} of {total} units have expiry dates",
+  "entry_summary_all": "All {total} units have expiry dates"
+}

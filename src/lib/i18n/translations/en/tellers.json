@@ -1,0 +1,25 @@
+{
+  "title": "Staff",
+  "back": "\u2190 Back",
+  "btn_add": "Add",
+
+  "empty": "No staff members yet. Tap Add to create one.",
+  "has_login": "Has own login",
+  "no_login": "No login",
+  "btn_remove": "Remove",
+  "confirm_remove": "Remove this staff member? They will no longer be able to log in.",
+
+  "add_title": "Add Staff Member",
+  "label_name": "Name",
+  "placeholder_name": "e.g. Sipho",
+  "label_password": "Password",
+  "placeholder_password": "At least 6 characters",
+  "hint_password": "This is the password they will use to log in. Give it to them in person.",
+  "btn_create": "Create staff member",
+  "btn_creating": "Creating\u2026",
+
+  "msg_created": "Staff member created!",
+  "msg_removed": "Staff member removed.",
+  "error_create": "Could not create. Try again.",
+  "error_remove": "Could not remove. Try again."
+}

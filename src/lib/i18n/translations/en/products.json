@@ -1,0 +1,47 @@
+{
+  "title": "Products",
+  "back": "\u2190 Back",
+  "btn_add": "Add",
+  "btn_scan": "Scan",
+
+  "search_placeholder": "Search by name or barcode...",
+  "empty": "No products yet. Tap Add to create one.",
+  "no_results": "No products found.",
+  "in_stock": "in stock",
+  "no_barcode": "No barcode",
+
+  "add_title": "Add Product",
+  "edit_title": "Edit Product",
+  "label_barcode": "Barcode",
+  "placeholder_barcode": "Scan or type a barcode",
+  "label_name": "Product name",
+  "placeholder_name": "e.g. Coca-Cola 500ml",
+  "label_price": "Price (R)",
+  "label_stock_qty": "Starting stock",
+  "label_expiry": "Do you know the expiry dates?",
+
+  "btn_save_product": "Save product",
+  "btn_saving_product": "Saving\u2026",
+  "btn_delete_product": "Delete product",
+  "btn_deleting_product": "Deleting\u2026",
+
+  "msg_created": "Product created!",
+  "msg_updated": "Product updated!",
+  "msg_deleted": "Product deleted!",
+  "error_create": "Could not create product. Try again.",
+  "error_update": "Could not update product. Try again.",
+  "error_delete": "Could not delete product. Try again.",
+  "error_duplicate": "You already have a product called that.",
+
+  "confirm_delete": "Are you sure you want to delete this product? This cannot be undone.",
+
+  "import_title": "Import from catalog",
+  "import_search_placeholder": "Search catalog\u2026",
+  "import_set_price": "Set your selling price for each product",
+  "import_label_price": "Price (R)",
+  "import_btn_import": "Import selected",
+  "import_btn_importing": "Importing\u2026",
+  "import_success_one": "{count} product imported!",
+  "import_success_other": "{count} products imported!",
+  "import_empty": "No catalog items available to import."
+}

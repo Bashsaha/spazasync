@@ -1,0 +1,59 @@
+{
+  "title": "Sale",
+  "start_sale": "Start a Sale",
+  "select_teller": "Select who is serving today.",
+  "change_teller": "Change teller",
+  "serving": "Serving:",
+
+  "btn_scan": "Scan",
+  "btn_add_manually": "Add Manually",
+
+  "cart_empty": "No items yet. Scan a barcode or add manually.",
+  "item_one": "{count} item",
+  "item_other": "{count} items",
+  "oversell_warning": "Some items may be out of stock",
+  "btn_complete_sale": "Complete Sale",
+  "btn_processing": "Processing\u2026",
+
+  "toast_out_of_stock": "Heads up \u2014 this item is out of stock",
+  "toast_low_stock": "Heads up \u2014 only {qty} left in stock",
+
+  "complete_title": "Sale Complete",
+  "complete_title_offline": "Sale Saved",
+  "complete_total_label": "Total charged",
+  "complete_offline_text": "You're offline. This sale is saved on your phone and will sync to the server automatically when you reconnect.",
+  "btn_new_sale": "New Sale",
+  "btn_go_dashboard": "Go to Dashboard",
+
+  "new_product_title": "New Product",
+  "new_product_barcode_not_found": "Barcode {barcode} not in your catalogue.",
+  "new_product_catalog_hint": "We found a matching name \u2014 just set your price.",
+  "new_product_fill_details": "Fill in the details to add it.",
+  "label_product_name": "Product Name",
+  "placeholder_product_name": "e.g. Coca-Cola 500ml",
+  "label_price": "Price (R)",
+  "label_stock_units": "Stock (units)",
+  "label_track_expiry": "Do you know the expiry dates?",
+  "error_enter_name": "Enter a product name.",
+  "error_enter_price": "Enter a valid price.",
+  "error_create_failed": "Could not create product. Try again.",
+  "btn_add_scan": "Add & Scan",
+
+  "existing_product_title": "Product already exists",
+  "existing_product_text": "You already have {name} in your products. Want to add it to the sale?",
+  "existing_product_in_stock": "{qty} in stock",
+  "btn_add_to_sale": "Add to sale",
+
+  "picker_title": "Add Product",
+  "picker_search_placeholder": "Search by name...",
+  "picker_offline_stale": "You're offline \u2014 product list may be outdated",
+  "picker_loading": "Loading...",
+  "picker_no_products": "No products found.",
+  "picker_top_sellers": "Top sellers",
+  "picker_all_products": "All products",
+
+  "teller_loading": "Loading tellers\u2026",
+  "teller_none": "No tellers yet.",
+  "teller_add_one": "Add one",
+  "teller_who_serving": "Who is serving?"
+}

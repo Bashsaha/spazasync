@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: firstError }, { status: 400 })
   }
 
-  const { shopName, ownerName, registrationNumber, location } = parsed.data
+  const { shopName, ownerName, registrationNumber, location, language } = parsed.data
 
   // Get the authenticated user from their session
   const supabase = await createClient()
@@ -106,6 +106,7 @@ export async function POST(request: Request) {
       code: shopCode,
       registration_number: registrationNumber || null,
       location: location || null,
+      language: language ?? 'en',
       subscription_status: 'trialing',
       trial_ends_at: trialEndsAt,
     })

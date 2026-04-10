@@ -1,0 +1,60 @@
+{
+  "title": "Stock",
+  "back": "\u2190 Back",
+  "btn_scan": "Scan",
+
+  "summary_products": "Products",
+  "summary_low": "Low",
+  "summary_out": "Out",
+  "summary_expiring": "Expiring",
+
+  "search_placeholder": "Search products\u2026",
+  "tab_all": "All",
+  "tab_low": "Low ({count})",
+  "tab_expiring": "Expiring ({count})",
+
+  "loading": "Loading stock\u2026",
+  "error_load": "Could not load stock. Please try again.",
+  "error_barcode_not_found": "No product found with that barcode",
+  "error_barcode_lookup": "Could not look up product. Try again.",
+
+  "expiry_see_all": "See all expiry dates \u2192",
+  "expiry_none": "No products expiring soon \u2014 great job!",
+  "expiry_badge_expired": "{count} expired",
+  "expiry_badge_soon": "{count} soon",
+
+  "empty_low": "No low-stock items \u2014 great job!",
+  "empty_all": "No products found.",
+
+  "out_of_stock_prompt": "{count} products out of stock",
+  "out_of_stock_desc": "Run a stock take to reconcile your full inventory count.",
+  "btn_run_stock_take": "Run stock take",
+  "threshold_footer": "Low stock threshold: {threshold} units",
+
+  "adjust_title_add": "Add Stock",
+  "adjust_title_remove": "Remove Stock",
+  "adjust_mode_add": "Add",
+  "adjust_mode_remove": "Remove",
+  "adjust_label_amount": "How many?",
+  "adjust_label_reason": "Why are you making this change?",
+  "adjust_reason_restock": "I got new stock in",
+  "adjust_reason_correction": "I counted it wrong before",
+  "adjust_reason_damaged": "Damaged or expired",
+  "adjust_reason_other": "Another reason",
+  "adjust_label_expiry": "Do you know the expiry dates?",
+  "adjust_btn_save": "Save",
+  "adjust_btn_saving": "Saving\u2026",
+  "adjust_success_add": "Stock added",
+  "adjust_success_remove": "Stock removed",
+  "adjust_error": "Could not update stock. Try again.",
+
+  "stock_take_title": "Count Stock",
+  "stock_take_subtitle": "Walk through your shop and enter the real count for each product.",
+  "stock_take_label_current": "Currently: {count}",
+  "stock_take_label_actual": "Actual count",
+  "stock_take_btn_save": "Save stock take",
+  "stock_take_btn_saving": "Saving\u2026",
+  "stock_take_success": "Stock take saved",
+  "stock_take_error": "Could not save. Try again.",
+  "stock_take_empty": "No products to count. Add some products first."
+}

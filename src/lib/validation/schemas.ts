@@ -1,4 +1,7 @@
 import { z } from 'zod'
+import { SUPPORTED_LOCALES } from '@/lib/i18n/types'
+
+const languageEnum = z.enum(SUPPORTED_LOCALES as [string, ...string[]])
 
 // ============================================================
 // Auth
@@ -25,6 +28,7 @@ export const onboardingSchema = z.object({
   ownerName: z.string().min(1, 'Enter your name').max(100),
   registrationNumber: z.string().max(100).optional().or(z.literal('')),
   location: z.string().max(200).optional().or(z.literal('')),
+  language: languageEnum.optional().default('en'),
 })
 
 // ============================================================
@@ -102,6 +106,7 @@ export const updateShopSettingsSchema = z.object({
     .max(9999),
   registration_number: z.string().max(100).nullable().optional(),
   location: z.string().max(200).nullable().optional(),
+  language: languageEnum.optional(),
 })
 
 // ============================================================

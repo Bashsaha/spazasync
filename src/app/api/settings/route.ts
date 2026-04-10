@@ -14,7 +14,7 @@ export async function GET() {
 
   const { data: shop, error } = await auth.supabase
     .from('shops')
-    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, subscription_status, trial_ends_at, subscription_ends_at')
+    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, language, subscription_status, trial_ends_at, subscription_ends_at')
     .eq('id', auth.shopId)
     .single()
 
@@ -51,18 +51,21 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Only the shop owner can change settings' }, { status: 403 })
   }
 
-  const { name, low_stock_threshold, registration_number, location } = parsed
+  const { name, low_stock_threshold, registration_number, location, language } = parsed
+
+  const updatePayload: Record<string, unknown> = {
+    name,
+    low_stock_threshold,
+    registration_number: registration_number ?? null,
+    location: location ?? null,
+  }
+  if (language) updatePayload.language = language
 
   const { data: updated, error } = await admin
     .from('shops')
-    .update({
-      name,
-      low_stock_threshold,
-      registration_number: registration_number ?? null,
-      location: location ?? null,
-    })
+    .update(updatePayload)
     .eq('id', auth.shopId)
-    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location')
+    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, language')
     .single()
 
   if (error) {

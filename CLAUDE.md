@@ -72,7 +72,7 @@ SpazaSync is a mobile-first PWA for South African spaza shop and small retail ow
 ## Database Schema
 
 ### Tables
-- `shops` — id, name, code (unique), whatsapp_number, low_stock_threshold, subscription_status, trial_ends_at, subscription_ends_at, payfast_token, access_granted, admin_notes, registration_number, location, created_at
+- `shops` — id, name, code (unique), whatsapp_number, low_stock_threshold, language (default 'en', CHECK en/so/am/zu/ur), subscription_status, trial_ends_at, subscription_ends_at, payfast_token, access_granted, admin_notes, registration_number, location, created_at
 - `shop_users` — maps auth users to shops with role (owner | teller)
 - `tellers` — named teller entries; optional link to auth user_id; name unique per shop
 - `products` — barcode (nullable), name, price, stock_qty; unique(shop_id, barcode) where barcode IS NOT NULL; unique(shop_id, LOWER(name)) case-insensitive
@@ -364,6 +364,16 @@ At the start of every session:
 
 All phases 1–26 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
 
+- [x] Phase 27a: i18n Infrastructure + Database + API
+  - Custom lightweight i18n: JSON translation files per namespace + React Context (`LanguageProvider`) + `t()` helper
+  - New `src/lib/i18n/` — types.ts, interpolate.ts, loader.ts, server.ts (code-split dynamic imports, in-memory cache, server-side locale detection)
+  - New `src/components/LanguageProvider.tsx` — React Context provider, `useTranslation()` hook, localStorage + dynamic HTML lang/dir
+  - 10 English namespace JSON files in `src/lib/i18n/translations/en/` (common, auth, sale, dashboard, settings, stock, products, tellers, expiry, summary)
+  - Migration 013: `shops.language` column (TEXT, default 'en', CHECK constraint for en/so/am/zu/ur)
+  - Updated: types/index.ts (Shop.language), validation schemas (onboarding + settings), settings API (GET/PATCH), onboarding API (POST), IndexedDB (CachedSettings.language + getCachedLanguage/cacheLanguage)
+  - LanguageProvider wired into `src/app/(app)/layout.tsx` with server-fetched initialLocale
+  - No UI changes yet — strings still hardcoded, framework ready for Phase 27b
+
 ---
 
 ## Current File Tree
@@ -408,7 +418,7 @@ spaza shop/
 │   │   │   ├── login/page.tsx      # Owner + Teller login tabs
 │   │   │   └── onboarding/page.tsx # Account → shop setup (email-sent state for confirmation)
 │   │   ├── (app)/
-│   │   │   ├── layout.tsx          # Authenticated shell (ToastProvider + BottomNav + DailySummaryAlert)
+│   │   │   ├── layout.tsx          # Authenticated shell (LanguageProvider + ToastProvider + BottomNav + DailySummaryAlert)
 │   │   │   ├── error.tsx           # App-segment error boundary
 │   │   │   ├── dashboard/page.tsx  # Streaming dashboard: Suspense-wrapped sections, instant shell
 │   │   │   ├── dashboard/loading.tsx
@@ -538,7 +548,8 @@ spaza shop/
 │   │   ├── OfflineBanner.tsx
 │   │   ├── OfflineSyncProvider.tsx
 │   │   ├── ServiceWorkerRegistrar.tsx
-│   │   └── DailySummaryAlert.tsx          # In-app daily summary (9pm SAST banner + modal)
+│   │   ├── DailySummaryAlert.tsx          # In-app daily summary (9pm SAST banner + modal)
+│   │   └── LanguageProvider.tsx           # i18n React Context + useTranslation() hook
 │   ├── hooks/
 │   │   ├── useActiveTeller.ts
 │   │   ├── useCart.ts
@@ -570,6 +581,15 @@ spaza shop/
 │   │   ├── offline/
 │   │   │   ├── db.ts                      # IndexedDB via idb
 │   │   │   └── sync.ts                    # syncPendingSales
+│   │   ├── i18n/
+│   │   │   ├── types.ts                   # SupportedLocale, LOCALE_META, TranslationNamespace
+│   │   │   ├── interpolate.ts             # t(), tPlural() — string interpolation helpers
+│   │   │   ├── loader.ts                  # loadTranslation(), loadTranslations() — dynamic import + cache
+│   │   │   ├── server.ts                  # getServerLocale(), getServerTranslations() — for server components
+│   │   │   └── translations/
+│   │   │       └── en/                    # English namespace files (10 JSON files)
+│   │   │           ├── common.json, auth.json, sale.json, dashboard.json, settings.json
+│   │   │           └── stock.json, products.json, tellers.json, expiry.json, summary.json
 │   │   ├── validation/
 │   │   │   └── schemas.ts                 # All Zod schemas
 │   │   └── utils/
@@ -593,7 +613,8 @@ spaza shop/
 │       ├── 009_product_batches.sql
 │       ├── 010_product_name_unique.sql
 │       ├── 011_sale_batch_consumptions.sql
-│       └── 012_offline_id_unique.sql
+│       ├── 012_offline_id_unique.sql
+│       └── 013_shop_language.sql
 ├── data/
 │   └── sa-products.csv                    # 100 SA products with EAN-13 barcodes
 ├── scripts/

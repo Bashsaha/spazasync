@@ -1,0 +1,26 @@
+{
+  "banner_text": "Your daily summary is ready",
+  "btn_view": "View",
+  "btn_loading": "Loading\u2026",
+
+  "modal_title": "Today's Summary",
+
+  "sales_text": "You made {amount} from {count} sale today",
+  "sales_text_other": "You made {amount} from {count} sales today",
+  "top_sellers": "Top sellers:",
+  "sold": "{name} \u2014 {count} sold",
+
+  "no_sales": "No sales today",
+  "no_sales_encourage": "Tomorrow is a new day \u2014 you've got this!",
+
+  "low_stock_one": "Stock running low ({count} product)",
+  "low_stock_other": "Stock running low ({count} products)",
+  "low_stock_item": "{name} \u2014 {count} left",
+  "low_stock_more": "\u2026and {count} more",
+
+  "expiring_title": "Products expiring soon",
+  "expiring_item_expired": "{name} \u2014 {count} expired",
+  "expiring_item_soon": "{name} \u2014 {count} expiring soon",
+
+  "btn_close": "Got it"
+}

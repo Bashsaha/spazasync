@@ -10,6 +10,7 @@
  */
 import { openDB } from 'idb'
 import type { PendingSale, Product, CartItem, Teller } from '@/types'
+import type { SupportedLocale } from '@/lib/i18n/types'
 
 const DB_NAME = 'spazasync'
 const DB_VERSION = 3
@@ -21,6 +22,7 @@ const PRODUCT_CACHE_TTL_MS = 30 * 60 * 1000
 interface CachedSettings {
   key: 'shop'
   low_stock_threshold: number
+  language?: SupportedLocale
   cached_at: string
 }
 
@@ -209,4 +211,30 @@ export async function isProductCacheStale(): Promise<boolean> {
   const meta = await db.get('settings', 'products_meta')
   if (!meta?.cached_at) return true
   return Date.now() - new Date(meta.cached_at).getTime() > PRODUCT_CACHE_TTL_MS
+}
+
+// ── Language cache ──────────────────────────────────────────────────────────
+
+/** Get cached language preference. Returns undefined if not cached. */
+export async function getCachedLanguage(): Promise<SupportedLocale | undefined> {
+  const settings = await getCachedSettings()
+  return settings?.language
+}
+
+/** Update just the language in the settings cache. */
+export async function cacheLanguage(locale: SupportedLocale): Promise<void> {
+  const db = await getDB()
+  const existing = await db.get('settings', 'shop')
+  if (existing) {
+    existing.language = locale
+    existing.cached_at = new Date().toISOString()
+    await db.put('settings', existing)
+  } else {
+    await db.put('settings', {
+      key: 'shop',
+      low_stock_threshold: 5,
+      language: locale,
+      cached_at: new Date().toISOString(),
+    })
+  }
 }

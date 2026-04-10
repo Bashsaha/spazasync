@@ -1,0 +1,45 @@
+{
+  "title": "Settings",
+  "subtitle": "Update your shop details",
+  "back": "\u2190 Back",
+
+  "compliance_title": "Compliance Report",
+  "compliance_desc": "If a health inspector visits your shop, show them this PDF. It has your full stock list, expiry dates, and 30 days of sales \u2014 everything they need to see.",
+  "btn_download_report": "Download Report PDF",
+  "btn_generating_report": "Generating your report\u2026",
+
+  "subscription_label": "Subscription",
+  "sub_free_trial": "Free Trial",
+  "sub_active": "Active",
+  "sub_cancelled": "Cancelled",
+  "sub_expired": "Expired",
+  "sub_renews": "Renews {date}",
+  "sub_days_left_one": "{count} day left",
+  "sub_days_left_other": "{count} days left",
+
+  "shop_code_label": "Your shop code",
+  "shop_code_hint": "Tellers use this to log in. It cannot be changed.",
+
+  "label_shop_name": "Shop name",
+  "placeholder_shop_name": "e.g. Cape Town Corner Shop",
+  "label_reg_number": "Registration number",
+  "label_optional": "(optional)",
+  "placeholder_reg_number": "e.g. CIPC or municipal reg number",
+  "hint_reg_number": "Your CIPC or municipal registration number. Shows on compliance reports.",
+  "label_location": "Location",
+  "placeholder_location": "e.g. 12 Main Rd, Khayelitsha, Cape Town",
+  "hint_location": "Your shop address. Shows on compliance reports.",
+  "label_threshold": "Warn me when a product has fewer than",
+  "threshold_suffix": "left in stock",
+
+  "msg_saved": "Settings saved!",
+  "msg_save_failed": "Could not save. Try again.",
+  "msg_load_failed": "Could not load settings.",
+  "msg_report_failed": "Could not generate report.",
+  "msg_download_failed": "Could not download report. Try again.",
+
+  "btn_save": "Save settings",
+
+  "language_title": "Language",
+  "language_change": "Change language"
+}

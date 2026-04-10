@@ -1,0 +1,60 @@
+{
+  "staff_login_code": "Staff login code:",
+  "staff_login_hint": "(give this to your staff)",
+
+  "sub_ended": "Your {label} has ended.",
+  "sub_ending_one": "Your {label} ends in {count} day.",
+  "sub_ending_other": "Your {label} ends in {count} days.",
+  "sub_free_trial": "free trial",
+  "sub_subscription": "subscription",
+  "sub_tap_subscribe": "Tap here to subscribe and keep using SpazaSync.",
+
+  "card_start_sale": "Start a Sale",
+  "card_start_sale_desc": "Scan products and record a sale",
+  "card_check_stock": "Check Stock",
+  "card_check_stock_desc": "See what you have left",
+  "card_count_stock": "Count Stock",
+  "card_count_stock_desc": "Go through your products and update the numbers",
+  "card_products": "Products",
+  "card_products_desc": "Add or change the products you sell",
+  "card_staff": "Staff",
+  "card_staff_desc": "Manage the people who use the till",
+  "card_settings": "Settings",
+  "card_settings_desc": "Change your shop name, stock alerts and more",
+  "card_inspector": "Inspector coming?",
+  "card_inspector_desc": "Download your compliance report PDF \u2014 ready in seconds",
+
+  "today": "Today",
+  "today_made": "made",
+  "today_sale_one": "sale",
+  "today_sale_other": "sales",
+  "today_teller_one": "teller",
+  "today_teller_other": "tellers",
+  "today_no_sales": "No sales yet today",
+
+  "low_stock_title": "Stock running low",
+  "low_stock_out_one": "{count} item out of stock",
+  "low_stock_out_other": "{count} items out of stock",
+  "low_stock_low_one": "{count} item almost out",
+  "low_stock_low_other": "{count} items almost out",
+  "low_stock_badge_out": "out",
+  "low_stock_badge_left": "{count} left",
+  "low_stock_more": "+{count} more\u2026",
+
+  "expiring_title": "Products expiring soon",
+  "expiring_expired": "{count} expired",
+  "expiring_soon": "{count} expiring soon",
+
+  "weekly_title": "This week",
+  "weekly_revenue": "Revenue",
+  "weekly_sales": "Sales",
+
+  "top_products_title": "Top sellers this week",
+  "top_products_sold": "sold",
+  "top_products_none": "No sales this week",
+
+  "latest_sales_title": "Latest sales",
+  "latest_sales_by": "by {name}",
+  "latest_sales_none": "No sales recorded yet. Start your first sale!",
+  "latest_sales_ago": "{time} ago"
+}

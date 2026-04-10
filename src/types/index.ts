@@ -2,6 +2,8 @@
 // SpazaSync — Shared TypeScript Types
 // ============================================================
 
+import type { SupportedLocale } from '@/lib/i18n/types'
+
 // --- Database row types ---
 
 export type UserRole = 'owner' | 'teller' | 'admin'
@@ -19,6 +21,7 @@ export interface Shop {
   subscription_status: SubscriptionStatus
   trial_ends_at: string | null
   subscription_ends_at: string | null
+  language: SupportedLocale
   access_granted: boolean
   admin_notes: string | null
   created_at: string
