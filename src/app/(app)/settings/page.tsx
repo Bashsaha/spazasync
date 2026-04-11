@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from '@/components/LanguageProvider'
+import { LanguagePicker } from '@/components/LanguagePicker'
+import type { SupportedLocale } from '@/lib/i18n/types'
 
 interface ShopSettings {
   id: string
@@ -10,17 +13,20 @@ interface ShopSettings {
   low_stock_threshold: number
   registration_number: string | null
   location: string | null
+  language: string | null
   subscription_status: string | null
   trial_ends_at: string | null
   subscription_ends_at: string | null
 }
 
 export default function SettingsPage() {
+  const { locale, setLocale } = useTranslation()
   const [settings, setSettings] = useState<ShopSettings | null>(null)
   const [name, setName] = useState('')
   const [threshold, setThreshold] = useState(5)
   const [regNumber, setRegNumber] = useState('')
   const [location, setLocation] = useState('')
+  const [language, setLanguage] = useState<SupportedLocale>(locale)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [downloading, setDownloading] = useState(false)
@@ -35,10 +41,29 @@ export default function SettingsPage() {
         setThreshold(data.low_stock_threshold)
         setRegNumber(data.registration_number ?? '')
         setLocation(data.location ?? '')
+        if (data.language) setLanguage(data.language as SupportedLocale)
       })
       .catch(() => setMessage({ type: 'err', text: 'Could not load settings.' }))
       .finally(() => setLoading(false))
   }, [])
+
+  async function handleLanguageChange(newLang: SupportedLocale) {
+    setLanguage(newLang)
+    setLocale(newLang)
+
+    // Auto-save language to server
+    await fetch('/api/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name.trim() || settings?.name,
+        low_stock_threshold: threshold,
+        registration_number: regNumber.trim() || null,
+        location: location.trim() || null,
+        language: newLang,
+      }),
+    })
+  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -53,6 +78,7 @@ export default function SettingsPage() {
         low_stock_threshold: threshold,
         registration_number: regNumber.trim() || null,
         location: location.trim() || null,
+        language,
       }),
     })
 
@@ -129,6 +155,12 @@ export default function SettingsPage() {
         >
           {downloading ? 'Generating your report…' : 'Download Report PDF'}
         </button>
+      </div>
+
+      {/* Language */}
+      <div className="bg-white border border-gray-100 rounded-2xl px-4 py-4 mb-6">
+        <p className="text-sm font-medium text-gray-700 mb-3">Language</p>
+        <LanguagePicker value={language} onChange={handleLanguageChange} variant="compact" />
       </div>
 
       {/* Subscription status */}

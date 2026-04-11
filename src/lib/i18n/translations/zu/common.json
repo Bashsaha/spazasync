@@ -1,0 +1,40 @@
+{
+  "nav_home": "Ikhaya",
+  "nav_sale": "Ukuthengisa",
+  "nav_stock": "Isitoko",
+  "nav_products": "Imikhiqizo",
+  "nav_staff": "Abasebenzi",
+  "nav_admin": "Umphathi",
+  "nav_settings": "Izilungiselelo",
+  "nav_start_sale": "Qala ukuthengisa",
+
+  "back": "Emuva",
+  "save": "Gcina",
+  "cancel": "Khansela",
+  "confirm": "Qinisekisa",
+  "close": "Vala",
+  "delete": "Susa",
+  "remove": "Susa",
+  "add": "Engeza",
+  "search": "Sesha",
+  "loading": "Iyalayisha…",
+  "retry": "Zama futhi",
+  "saving": "Iyagcina…",
+  "done": "Kuqediwe",
+
+  "error_generic": "Kukhona okungahambi kahle. Zama futhi.",
+  "error_network": "Iphutha lenethiwekhi. Zama futhi.",
+  "error_unauthorized": "Awungeniwe.",
+
+  "offline_banner_offline": "Awukho ku-inthanethi — ukuthengisa kuzovumelaniswa uma uxhuma futhi",
+  "offline_banner_offline_pending": "Awukho ku-inthanethi — ukuthengisa okungu-{count} kulondoloziwe, kuzovumelaniswa",
+  "offline_banner_syncing_one": "Kuvumelaniswa ukuthengisa okungu-{count}…",
+  "offline_banner_syncing_other": "Kuvumelaniswa ukuthengisa okungu-{count}…",
+  "offline_banner_failed_one": "Ukuthengisa okungu-{count} akuvumelanisekanga — thepha ukuzama futhi",
+  "offline_banner_failed_other": "Ukuthengisa okungu-{count} akuvumelanisekanga — thepha ukuzama futhi",
+  "offline_banner_pending_one": "Ukuthengisa okungu-{count} kulindele ukuvumelaniswa…",
+  "offline_banner_pending_other": "Ukuthengisa okungu-{count} kulindele ukuvumelaniswa…",
+
+  "sw_update_available": "Inguqulo entsha iyatholakala",
+  "sw_reload": "Layisha kabusha"
+}

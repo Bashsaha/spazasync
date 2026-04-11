@@ -1,0 +1,40 @@
+{
+  "nav_home": "መነሻ",
+  "nav_sale": "ሽያጭ",
+  "nav_stock": "ክምችት",
+  "nav_products": "ምርቶች",
+  "nav_staff": "ሰራተኞች",
+  "nav_admin": "አስተዳዳሪ",
+  "nav_settings": "ቅንብሮች",
+  "nav_start_sale": "ሽያጭ ጀምር",
+
+  "back": "ተመለስ",
+  "save": "አስቀምጥ",
+  "cancel": "ሰርዝ",
+  "confirm": "አረጋግጥ",
+  "close": "ዝጋ",
+  "delete": "ሰርዝ",
+  "remove": "አስወግድ",
+  "add": "ጨምር",
+  "search": "ፈልግ",
+  "loading": "በመጫን ላይ…",
+  "retry": "እንደገና ሞክር",
+  "saving": "በማስቀመጥ ላይ…",
+  "done": "ተጠናቅቋል",
+
+  "error_generic": "ችግር ተፈጥሯል። እንደገና ሞክር።",
+  "error_network": "የአውታረ መረብ ችግር። እንደገና ሞክር።",
+  "error_unauthorized": "አልገቡም።",
+
+  "offline_banner_offline": "ከመስመር ውጪ ነዎት — ሽያጮች ሲገናኙ ራሳቸው ይመሳሰላሉ",
+  "offline_banner_offline_pending": "ከመስመር ውጪ — {count} ሽያጮች ተቀምጠዋል፣ ራሳቸው ይመሳሰላሉ",
+  "offline_banner_syncing_one": "{count} ሽያጭ በመመሳሰል ላይ…",
+  "offline_banner_syncing_other": "{count} ሽያጮች በመመሳሰል ላይ…",
+  "offline_banner_failed_one": "{count} ሽያጭ ሊመሳሰል አልቻለም — ለመሞከር ንኩ",
+  "offline_banner_failed_other": "{count} ሽያጮች ሊመሳሰሉ አልቻሉም — ለመሞከር ንኩ",
+  "offline_banner_pending_one": "{count} ሽያጭ ለመመሳሰል እየጠበቀ…",
+  "offline_banner_pending_other": "{count} ሽያጮች ለመመሳሰል እየጠበቁ…",
+
+  "sw_update_available": "አዲስ ስሪት ይገኛል",
+  "sw_reload": "እንደገና ጫን"
+}

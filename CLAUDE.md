@@ -374,13 +374,14 @@ All phases 1–26 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
   - LanguageProvider wired into `src/app/(app)/layout.tsx` with server-fetched initialLocale
   - No UI changes yet — strings still hardcoded, framework ready for Phase 27b
 
-- [ ] Phase 27b: Language Selection UI + Auth Page Translations
-  - LanguagePicker component (shows 5 languages with native names: English, Soomaali, አማርኛ, IsiZulu, اردو)
-  - Onboarding: new 'language' step before signup; pass language to API
-  - Login: small language switcher at bottom of page
-  - Settings: Language section with LanguagePicker; PATCH language on change
-  - Replace all hardcoded strings in login + onboarding with t() calls
-  - Translation JSONs: {so,am,zu,ur}/common.json + auth.json (8 files)
+- [x] Phase 27b: Language Selection UI + Auth Page Translations
+  - New `src/components/LanguagePicker.tsx` — reusable picker with full (onboarding) + compact (login/settings) variants
+  - New `src/app/(auth)/layout.tsx` — wraps auth pages in LanguageProvider (localStorage-based, no server locale)
+  - Onboarding: new 'language' step before signup; selected language passed to POST /api/onboarding; all strings use t()
+  - Login: all strings use t(); compact LanguagePicker at bottom of page for pre-auth language switching
+  - Settings: Language section with compact LanguagePicker above shop name; auto-PATCH on change + setLocale() for instant UI update
+  - Updated `en/auth.json` with ~15 new keys (teller hints, password labels, error messages, step descriptions)
+  - 8 new translation JSON files: {so,am,zu,ur}/common.json + auth.json (Somali, Amharic, IsiZulu, Urdu)
 
 - [ ] Phase 27c: Translate Core Pages (Sale + Dashboard + Stock + Summary)
   - Replace hardcoded strings with t() in sale flow, dashboard, stock, stock-take, daily summary, bottom nav, offline banner
@@ -403,7 +404,7 @@ All phases 1–26 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
 
 ## Current File Tree
 
-_Last updated: Post-audit cleanup (2026-03-25)_
+_Last updated: Phase 27b (2026-04-11)_
 
 ```
 spaza shop/
@@ -440,14 +441,15 @@ spaza shop/
 │   │   ├── auth/
 │   │   │   └── callback/route.ts   # Supabase email confirmation handler
 │   │   ├── (auth)/
-│   │   │   ├── login/page.tsx      # Owner + Teller login tabs
-│   │   │   └── onboarding/page.tsx # Account → shop setup (email-sent state for confirmation)
+│   │   │   ├── layout.tsx          # Auth layout — wraps auth pages in LanguageProvider
+│   │   │   ├── login/page.tsx      # Owner + Teller login tabs (i18n + compact LanguagePicker)
+│   │   │   └── onboarding/page.tsx # Language step → Account → shop setup (i18n throughout)
 │   │   ├── (app)/
 │   │   │   ├── layout.tsx          # Authenticated shell (LanguageProvider + ToastProvider + BottomNav + DailySummaryAlert)
 │   │   │   ├── error.tsx           # App-segment error boundary
 │   │   │   ├── dashboard/page.tsx  # Streaming dashboard: Suspense-wrapped sections, instant shell
 │   │   │   ├── dashboard/loading.tsx
-│   │   │   ├── settings/page.tsx   # Owner settings: shop info, threshold, subscription, compliance PDF
+│   │   │   ├── settings/page.tsx   # Owner settings: language picker, shop info, threshold, subscription, compliance PDF
 │   │   │   ├── subscribe/page.tsx  # Subscription page: pricing, PayFast checkout
 │   │   │   ├── sale/
 │   │   │   │   ├── page.tsx        # Full sale flow: scan → cart → complete
@@ -565,6 +567,7 @@ spaza shop/
 │   │   │   ├── WeeklyChartSection.tsx     # Async server — wraps WeeklySalesChart
 │   │   │   ├── TopProducts.tsx            # Async server — top products this week
 │   │   │   └── LatestSales.tsx            # Async server — recent sales + empty state
+│   │   ├── LanguagePicker.tsx               # Language selection (full + compact variants)
 │   │   ├── ExpiryEntryList.tsx             # Repeatable expiry date + qty rows (shared)
 │   │   ├── BottomNav.tsx                   # Owner nav (5 tabs + Admin for dual-role)
 │   │   ├── ConfirmModal.tsx
@@ -612,9 +615,21 @@ spaza shop/
 │   │   │   ├── loader.ts                  # loadTranslation(), loadTranslations() — dynamic import + cache
 │   │   │   ├── server.ts                  # getServerLocale(), getServerTranslations() — for server components
 │   │   │   └── translations/
-│   │   │       └── en/                    # English namespace files (10 JSON files)
-│   │   │           ├── common.json, auth.json, sale.json, dashboard.json, settings.json
-│   │   │           └── stock.json, products.json, tellers.json, expiry.json, summary.json
+│   │   │       ├── en/                    # English namespace files (10 JSON files)
+│   │   │       │   ├── common.json, auth.json, sale.json, dashboard.json, settings.json
+│   │   │       │   └── stock.json, products.json, tellers.json, expiry.json, summary.json
+│   │   │       ├── so/                    # Somali translations
+│   │   │       │   ├── common.json
+│   │   │       │   └── auth.json
+│   │   │       ├── am/                    # Amharic translations
+│   │   │       │   ├── common.json
+│   │   │       │   └── auth.json
+│   │   │       ├── zu/                    # IsiZulu translations
+│   │   │       │   ├── common.json
+│   │   │       │   └── auth.json
+│   │   │       └── ur/                    # Urdu translations
+│   │   │           ├── common.json
+│   │   │           └── auth.json
 │   │   ├── validation/
 │   │   │   └── schemas.ts                 # All Zod schemas
 │   │   └── utils/

@@ -1,0 +1,40 @@
+{
+  "nav_home": "ہوم",
+  "nav_sale": "فروخت",
+  "nav_stock": "اسٹاک",
+  "nav_products": "مصنوعات",
+  "nav_staff": "عملہ",
+  "nav_admin": "ایڈمن",
+  "nav_settings": "ترتیبات",
+  "nav_start_sale": "فروخت شروع کریں",
+
+  "back": "واپس",
+  "save": "محفوظ کریں",
+  "cancel": "منسوخ",
+  "confirm": "تصدیق کریں",
+  "close": "بند کریں",
+  "delete": "حذف کریں",
+  "remove": "ہٹائیں",
+  "add": "شامل کریں",
+  "search": "تلاش کریں",
+  "loading": "لوڈ ہو رہا ہے…",
+  "retry": "دوبارہ کوشش کریں",
+  "saving": "محفوظ ہو رہا ہے…",
+  "done": "مکمل",
+
+  "error_generic": "کچھ غلط ہو گیا۔ دوبارہ کوشش کریں۔",
+  "error_network": "نیٹ ورک کی خرابی۔ دوبارہ کوشش کریں۔",
+  "error_unauthorized": "آپ سائن ان نہیں ہیں۔",
+
+  "offline_banner_offline": "آپ آف لائن ہیں — فروخت دوبارہ کنکشن ملنے پر خودکار طور پر مطابقت ہوں گی",
+  "offline_banner_offline_pending": "آف لائن — {count} فروخت محفوظ، خودکار مطابقت ہوگی",
+  "offline_banner_syncing_one": "{count} فروخت مطابقت ہو رہی ہے…",
+  "offline_banner_syncing_other": "{count} فروختیں مطابقت ہو رہی ہیں…",
+  "offline_banner_failed_one": "{count} فروخت مطابقت نہیں ہو سکی — دوبارہ کوشش کے لیے ٹیپ کریں",
+  "offline_banner_failed_other": "{count} فروختیں مطابقت نہیں ہو سکیں — دوبارہ کوشش کے لیے ٹیپ کریں",
+  "offline_banner_pending_one": "{count} فروخت مطابقت کا انتظار…",
+  "offline_banner_pending_other": "{count} فروختیں مطابقت کا انتظار…",
+
+  "sw_update_available": "نیا ورژن دستیاب ہے",
+  "sw_reload": "دوبارہ لوڈ کریں"
+}

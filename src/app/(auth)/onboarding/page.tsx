@@ -3,10 +3,15 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useTranslation } from '@/components/LanguageProvider'
+import { LanguagePicker } from '@/components/LanguagePicker'
+import type { SupportedLocale } from '@/lib/i18n/types'
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const [step, setStep] = useState<'signup' | 'email-sent' | 'setup' | 'done'>('signup')
+  const { locale, t, setLocale } = useTranslation()
+  const [step, setStep] = useState<'language' | 'signup' | 'email-sent' | 'setup' | 'done'>('language')
+  const [selectedLanguage, setSelectedLanguage] = useState<SupportedLocale>(locale)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [shopName, setShopName] = useState('')
@@ -16,6 +21,11 @@ export default function OnboardingPage() {
   const [generatedCode, setGeneratedCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  function handleLanguageContinue() {
+    setLocale(selectedLanguage)
+    setStep('signup')
+  }
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
@@ -27,7 +37,7 @@ export default function OnboardingPage() {
 
     if (authError) {
       if (authError.message.includes('already registered')) {
-        setError('That email is already registered. Go back and sign in instead.')
+        setError(t('error_email_registered'))
       } else {
         setError(authError.message)
       }
@@ -59,13 +69,14 @@ export default function OnboardingPage() {
         ownerName,
         registrationNumber: registrationNumber || undefined,
         location: location || undefined,
+        language: locale,
       }),
     })
 
     const data = await res.json()
 
     if (!res.ok) {
-      setError(data.error ?? 'Something went wrong. Please try again.')
+      setError(data.error ?? t('error_generic'))
       setLoading(false)
       return
     }
@@ -84,51 +95,72 @@ export default function OnboardingPage() {
     router.push('/dashboard')
   }
 
+  const subtitle =
+    step === 'language' ? t('language_step_subtitle') :
+    step === 'signup' ? t('onboarding_step1_title') :
+    step === 'email-sent' ? t('onboarding_step2_heading') :
+    step === 'done' ? t('shop_created_title') :
+    t('onboarding_step2_title')
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-blue-600">SpazaSync</h1>
-          <p className="text-gray-500 mt-1 text-sm">
-            {step === 'signup' ? 'Create your owner account' : step === 'email-sent' ? 'Almost there!' : step === 'done' ? 'You\'re all set!' : 'Set up your shop'}
-          </p>
+          <p className="text-gray-500 mt-1 text-sm">{subtitle}</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          {step === 'email-sent' ? (
+          {step === 'language' ? (
+            <div className="space-y-5">
+              <h2 className="text-lg font-bold text-gray-900 text-center">
+                {t('language_step_title')}
+              </h2>
+              <LanguagePicker
+                value={selectedLanguage}
+                onChange={setSelectedLanguage}
+                variant="full"
+              />
+              <button
+                onClick={handleLanguageContinue}
+                className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition-colors text-base min-h-[48px]"
+              >
+                {t('btn_continue')}
+              </button>
+            </div>
+          ) : step === 'email-sent' ? (
             <div className="text-center space-y-4 py-2">
               <div className="text-5xl">📧</div>
-              <h2 className="text-lg font-bold text-gray-900">Check your email</h2>
+              <h2 className="text-lg font-bold text-gray-900">{t('email_sent_title')}</h2>
               <p className="text-gray-600 text-sm">
-                We sent a confirmation link to <strong>{email}</strong>.
-                Click the link in the email, then come back here and sign in.
+                {t('email_sent_text', { email })}
               </p>
               <p className="text-gray-400 text-xs">
-                Can&apos;t find it? Check your spam folder.
+                {t('email_sent_spam_hint')}
               </p>
               <a
                 href="/login"
                 className="block w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition-colors text-base text-center mt-4"
               >
-                Go to sign in
+                {t('email_sent_link')}
               </a>
             </div>
           ) : step === 'done' ? (
             <div className="text-center space-y-4 py-2">
               <div className="text-5xl">🎉</div>
-              <h2 className="text-lg font-bold text-gray-900">Shop created!</h2>
+              <h2 className="text-lg font-bold text-gray-900">{t('shop_created_title')}</h2>
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <p className="text-sm text-gray-600 mb-1">Your shop code is</p>
+                <p className="text-sm text-gray-600 mb-1">{t('shop_created_text')}</p>
                 <p className="text-3xl font-bold text-blue-600 tracking-wider">{generatedCode}</p>
                 <p className="text-xs text-gray-500 mt-2">
-                  Your tellers use this code to log in. You can find it in Settings anytime.
+                  {t('shop_created_subtext')}
                 </p>
               </div>
               <button
                 onClick={handleContinueToDashboard}
                 className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition-colors text-base min-h-[48px]"
               >
-                Go to my dashboard
+                {t('btn_go_to_dashboard')}
               </button>
             </div>
           ) : step === 'signup' ? (
@@ -158,12 +190,14 @@ export default function OnboardingPage() {
           )}
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-4">
-          Already have an account?{' '}
-          <a href="/login" className="text-blue-600 font-medium">
-            Sign in
-          </a>
-        </p>
+        {step !== 'language' && step !== 'done' && (
+          <p className="text-center text-sm text-gray-500 mt-4">
+            {t('link_already_have_account')}{' '}
+            <a href="/login" className="text-blue-600 font-medium">
+              {t('link_sign_in_instead')}
+            </a>
+          </p>
+        )}
       </div>
     </div>
   )
@@ -178,29 +212,31 @@ function SignupForm({
   password: string; setPassword: (v: string) => void
   error: string; loading: boolean; onSubmit: (e: React.FormEvent) => void
 }) {
+  const { t } = useTranslation()
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <p className="text-sm text-gray-600">
-        Step 1 of 2 — Create your login details
+        {t('onboarding_step1_subtitle')} — {t('onboarding_step1_description')}
       </p>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Your email</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_email')}</label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="your@email.com"
+          placeholder={t('placeholder_email')}
           required
           className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Choose a password</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_choose_password')}</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="At least 6 characters"
+          placeholder={t('placeholder_password_hint')}
           required
           minLength={6}
           className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
@@ -214,7 +250,7 @@ function SignupForm({
         disabled={loading}
         className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 text-base min-h-[48px]"
       >
-        {loading ? 'Creating account…' : 'Continue'}
+        {loading ? t('btn_creating_account') : t('btn_continue')}
       </button>
     </form>
   )
@@ -235,64 +271,66 @@ function ShopSetupForm({
   location: string; setLocation: (v: string) => void
   error: string; loading: boolean; onSubmit: (e: React.FormEvent) => void
 }) {
+  const { t } = useTranslation()
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <p className="text-sm text-gray-600">
-        Step 2 of 2 — Tell us about your shop
+        {t('onboarding_step2_subtitle')} — {t('onboarding_step2_description')}
       </p>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Shop name</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_shop_name')}</label>
         <input
           type="text"
           value={shopName}
           onChange={(e) => setShopName(e.target.value)}
-          placeholder="e.g. Mlungu General Store"
+          placeholder={t('placeholder_shop_name')}
           required
           className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Your name</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_your_name')}</label>
         <input
           type="text"
           value={ownerName}
           onChange={(e) => setOwnerName(e.target.value)}
-          placeholder="e.g. Sipho"
+          placeholder={t('placeholder_your_name')}
           required
           className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
         />
         <p className="text-xs text-gray-400 mt-1">
-          This is how you appear in the teller list when you serve customers yourself.
+          {t('hint_owner_name')}
         </p>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Registration number <span className="text-gray-400 font-normal">(optional)</span>
+          {t('label_registration_number')} <span className="text-gray-400 font-normal">{t('label_optional')}</span>
         </label>
         <input
           type="text"
           value={registrationNumber}
           onChange={(e) => setRegistrationNumber(e.target.value)}
-          placeholder="e.g. CIPC or municipal reg number"
+          placeholder={t('placeholder_registration_number')}
           className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
         />
         <p className="text-xs text-gray-400 mt-1">
-          You can add this later in Settings.
+          {t('hint_add_later')}
         </p>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Location <span className="text-gray-400 font-normal">(optional)</span>
+          {t('label_location')} <span className="text-gray-400 font-normal">{t('label_optional')}</span>
         </label>
         <input
           type="text"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
-          placeholder="e.g. 12 Main Rd, Khayelitsha, Cape Town"
+          placeholder={t('placeholder_location')}
           className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
         />
         <p className="text-xs text-gray-400 mt-1">
-          You can add this later in Settings.
+          {t('hint_add_later')}
         </p>
       </div>
       {error && (
@@ -303,7 +341,7 @@ function ShopSetupForm({
         disabled={loading}
         className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 text-base min-h-[48px]"
       >
-        {loading ? 'Creating your shop…' : 'Create my shop'}
+        {loading ? t('btn_creating_shop') : t('btn_create_shop')}
       </button>
     </form>
   )

@@ -1,0 +1,40 @@
+{
+  "nav_home": "Guriga",
+  "nav_sale": "Iibinta",
+  "nav_stock": "Kaydka",
+  "nav_products": "Alaabta",
+  "nav_staff": "Shaqaalaha",
+  "nav_admin": "Maamulka",
+  "nav_settings": "Dejinta",
+  "nav_start_sale": "Bilow iibinta",
+
+  "back": "Dib u noqo",
+  "save": "Kaydi",
+  "cancel": "Ka noqo",
+  "confirm": "Xaqiiji",
+  "close": "Xidh",
+  "delete": "Tirtir",
+  "remove": "Ka saar",
+  "add": "Kudar",
+  "search": "Raadi",
+  "loading": "Waa la soo rarayaa…",
+  "retry": "Isku day mar kale",
+  "saving": "Waa la kaydiyaa…",
+  "done": "Dhammaad",
+
+  "error_generic": "Wax baa qaldamay. Isku day mar kale.",
+  "error_network": "Khalad shabakadeed. Isku day mar kale.",
+  "error_unauthorized": "Laguma saxiixin.",
+
+  "offline_banner_offline": "Internet malaha — iibintu way iska kaydsanaysaa marka aad ku soo noqoto",
+  "offline_banner_offline_pending": "Internet malaha — {count} iibinta la kaydiyay, way iska diraysaa",
+  "offline_banner_syncing_one": "Waxaa la dirayaa {count} iibinta la kaydiyay…",
+  "offline_banner_syncing_other": "Waxaa la dirayaa {count} iibinta la kaydiyay…",
+  "offline_banner_failed_one": "{count} iibinta lama diri karin — taabo si aad u isku daydo mar kale",
+  "offline_banner_failed_other": "{count} iibinta lama diri karin — taabo si aad u isku daydo mar kale",
+  "offline_banner_pending_one": "{count} iibinta sugaysa in la diro…",
+  "offline_banner_pending_other": "{count} iibinta sugaysa in la diro…",
+
+  "sw_update_available": "Nooc cusub ayaa diyaar ah",
+  "sw_reload": "Dib u soo rar"
+}
