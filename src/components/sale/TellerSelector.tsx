@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { cacheTellers, getCachedTellers } from '@/lib/offline/db'
+import { useTranslation } from '@/components/LanguageProvider'
 import type { Teller } from '@/types'
 
 interface Props {
@@ -17,6 +18,7 @@ interface Props {
 export function TellerSelector({ onSelect, selectedId }: Props) {
   const [tellers, setTellers] = useState<Teller[]>([])
   const [loading, setLoading] = useState(true)
+  const { t } = useTranslation()
 
   useEffect(() => {
     async function load() {
@@ -36,14 +38,14 @@ export function TellerSelector({ onSelect, selectedId }: Props) {
     load()
   }, [])
 
-  if (loading) return <p className="text-gray-400 text-sm">Loading tellers…</p>
+  if (loading) return <p className="text-gray-400 text-sm">{t('teller_loading')}</p>
 
   if (tellers.length === 0) {
     return (
       <p className="text-gray-500 text-sm">
-        No tellers yet.{' '}
+        {t('teller_none')}{' '}
         <Link href="/tellers/new" className="text-blue-600 font-semibold">
-          Add one
+          {t('teller_add_one')}
         </Link>
         .
       </p>
@@ -52,7 +54,7 @@ export function TellerSelector({ onSelect, selectedId }: Props) {
 
   return (
     <div>
-      <p className="text-sm font-medium text-gray-700 mb-3">Who is serving?</p>
+      <p className="text-sm font-medium text-gray-700 mb-3">{t('teller_who_serving')}</p>
       <div className="space-y-2">
         {tellers.map((t) => (
           <button

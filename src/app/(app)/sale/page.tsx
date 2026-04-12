@@ -6,6 +6,7 @@ import { useActiveTeller } from '@/hooks/useActiveTeller'
 import { useCart } from '@/hooks/useCart'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import { useToast } from '@/components/Toast'
+import { useTranslation } from '@/components/LanguageProvider'
 import { TellerSelector } from '@/components/sale/TellerSelector'
 import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
 import { CartItem } from '@/components/sale/CartItem'
@@ -22,6 +23,7 @@ export default function SalePage() {
   const { activeTeller, setActiveTeller, clearActiveTeller, isLoading, role } = useActiveTeller()
   const { items, total, addItem, removeItem, updateQty, clearCart } = useCart()
   const { addToast } = useToast()
+  const { t } = useTranslation()
 
   const [isScannerOpen, setIsScannerOpen] = useState(false)
   const [isPickerOpen, setIsPickerOpen] = useState(false)
@@ -53,9 +55,9 @@ export default function SalePage() {
   // Show stock warning toast when adding a product
   function showStockToast(product: Product) {
     if (product.stock_qty === 0) {
-      addToast('Heads up — this item is out of stock', 'error')
+      addToast(t('toast_out_of_stock'), 'error')
     } else if (product.stock_qty <= threshold) {
-      addToast(`Heads up — only ${product.stock_qty} left in stock`, 'info')
+      addToast(t('toast_low_stock', { qty: product.stock_qty }), 'info')
     }
   }
 
@@ -162,7 +164,7 @@ export default function SalePage() {
 
       const json = await res.json()
       if (!res.ok) {
-        setSubmitError(json.error ?? 'Something went wrong. Try again.')
+        setSubmitError(json.error ?? t('error_generic'))
         return
       }
 
@@ -185,7 +187,7 @@ export default function SalePage() {
   if (isLoading) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-400 text-sm">Loading…</p>
+        <p className="text-gray-400 text-sm">{t('loading')}</p>
       </main>
     )
   }
@@ -195,8 +197,8 @@ export default function SalePage() {
   if (role === 'owner' && !activeTeller) {
     return (
       <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Start a Sale</h1>
-        <p className="text-gray-500 text-sm mb-8">Select who is serving today.</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">{t('start_sale')}</h1>
+        <p className="text-gray-500 text-sm mb-8">{t('select_teller')}</p>
         <TellerSelector onSelect={setActiveTeller} selectedId={null} />
       </main>
     )
@@ -209,20 +211,20 @@ export default function SalePage() {
       <main className={`px-4 pt-8 max-w-lg mx-auto ${role !== 'teller' ? 'pb-52' : 'pb-36'}`}>
         {/* header */}
         <div className="flex items-center justify-between mb-1">
-          <h1 className="text-2xl font-bold text-gray-900">Sale</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
           {role === 'owner' && (
             <button
               onClick={clearActiveTeller}
               className="text-xs text-blue-600 font-semibold active:text-blue-800"
             >
-              Change teller
+              {t('change_teller')}
             </button>
           )}
         </div>
 
         {activeTeller && (
           <p className="text-sm text-gray-500 mb-6">
-            Serving:{' '}
+            {t('serving')}{' '}
             <span className="font-semibold text-gray-900">{activeTeller.name}</span>
           </p>
         )}
@@ -241,14 +243,14 @@ export default function SalePage() {
             className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold py-4 rounded-2xl active:bg-blue-700 text-base"
           >
             <span className="text-lg">📷</span>
-            Scan
+            {t('btn_scan')}
           </button>
           <button
             onClick={() => setIsPickerOpen(true)}
             className="flex-1 flex items-center justify-center gap-2 border-2 border-blue-600 text-blue-600 font-semibold py-4 rounded-2xl active:bg-blue-50 text-base"
           >
             <span className="text-lg">📋</span>
-            Add Manually
+            {t('btn_add_manually')}
           </button>
         </div>
 
@@ -256,7 +258,7 @@ export default function SalePage() {
         {items.length === 0 ? (
           <div className="text-center mt-16">
             <p className="text-4xl mb-3">🛒</p>
-            <p className="text-gray-400 text-sm">No items yet. Scan a barcode or add manually.</p>
+            <p className="text-gray-400 text-sm">{t('cart_empty')}</p>
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-sm px-4">

@@ -383,10 +383,20 @@ All phases 1–26 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
   - Updated `en/auth.json` with ~15 new keys (teller hints, password labels, error messages, step descriptions)
   - 8 new translation JSON files: {so,am,zu,ur}/common.json + auth.json (Somali, Amharic, IsiZulu, Urdu)
 
-- [ ] Phase 27c: Translate Core Pages (Sale + Dashboard + Stock + Summary)
-  - Replace hardcoded strings with t() in sale flow, dashboard, stock, stock-take, daily summary, bottom nav, offline banner
-  - Server components (dashboard/*) use getServerTranslations()
-  - Translation JSONs: {so,am,zu,ur}/sale.json + dashboard.json + stock.json + summary.json (16 files)
+- [ ] Phase 27c: Translate Core Pages (Sale + Dashboard + Stock + Summary) — split into 3 sub-phases
+  - [x] **Phase 27c.1: Sale flow + stock list page** (shipped)
+    - Expanded `src/app/(app)/layout.tsx` LanguageProvider namespaces to `['common','sale','dashboard','stock','summary']` so every client component has its translations preloaded
+    - Translated (client, `useTranslation()`): sale/page.tsx, sale/complete/page.tsx, TellerSelector.tsx, NewProductModal.tsx, ProductPicker.tsx, stock/page.tsx
+    - Converted to `'use client'` and translated: CartItem.tsx, CartSummary.tsx (both only rendered inside sale/page.tsx — verified safe)
+    - Added 7 new keys to `en/sale.json`: cart_each, cart_badge_out_of_stock, cart_badge_only_left, cart_badge_low_stock, cart_decrease_qty, cart_increase_qty, error_product_name_exists
+    - stock/page.tsx pattern: `errorKey` state instead of `error` string so error text re-renders on locale change; renamed `.map((t) => …)` → `.map((tabId) => …)` to avoid shadowing the i18n `t` hook
+  - [ ] **Phase 27c.2: Remaining client + server pages** (pending)
+    - Client: stock/[id]/page.tsx, stock-take/page.tsx, BottomNav.tsx, OfflineBanner.tsx, DailySummaryAlert.tsx
+    - Server: dashboard/page.tsx + 7 dashboard server components (pass `locale` prop from page → children; each calls `getServerTranslations(locale, ['dashboard'])`)
+    - Add any missing keys to `en/stock.json` for the Adjust Stock flow (REASONS, expiry labels, success screen)
+  - [ ] **Phase 27c.3: Publish 16 translation JSONs** (pending)
+    - `{so,am,zu,ur}/{sale,dashboard,stock,summary}.json` — mirror English key sets exactly
+    - Manual locale-switch smoke test on every page; `tsc --noEmit` + `vitest run` clean; phase completion protocol + commit + push
 
 - [ ] Phase 27d: Translate Remaining Pages + RTL Support
   - Replace strings in products, tellers, expiry, settings, subscribe, error pages

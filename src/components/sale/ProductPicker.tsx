@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import type { Product } from '@/types'
 import { formatZAR } from '@/lib/utils/currency'
 import { cacheProducts, getCachedProducts, isProductCacheStale } from '@/lib/offline/db'
+import { useTranslation } from '@/components/LanguageProvider'
 
 interface ProductPickerProps {
   onSelect: (product: Product) => void
@@ -39,6 +40,7 @@ function ProductRow({
 }
 
 export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
+  const { t } = useTranslation()
   const [search, setSearch] = useState('')
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -117,35 +119,35 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
     <div className="fixed inset-0 z-50 bg-black/60 flex items-end">
       <div className="bg-white w-full rounded-t-2xl px-4 pt-5 pb-8 max-h-[80vh] flex flex-col">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-gray-900">Add Product</h2>
+          <h2 className="text-lg font-bold text-gray-900">{t('picker_title')}</h2>
           <button onClick={onClose} className="text-gray-400 text-sm font-medium active:text-gray-600">
-            Close
+            {t('close')}
           </button>
         </div>
 
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name..."
+          placeholder={t('picker_search_placeholder')}
           autoFocus
           className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
         />
 
         {usingStaleCache && (
           <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mb-3">
-            You're offline — product list may be outdated
+            {t('picker_offline_stale')}
           </p>
         )}
 
         <div className="overflow-y-auto flex-1 -mx-4 px-4">
           {loading ? (
-            <p className="text-gray-400 text-sm text-center py-8">Loading...</p>
+            <p className="text-gray-400 text-sm text-center py-8">{t('picker_loading')}</p>
           ) : products.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-8">No products found.</p>
+            <p className="text-gray-400 text-sm text-center py-8">{t('picker_no_products')}</p>
           ) : noSearch && topSellers.length > 0 ? (
             <>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-1 pb-1">
-                Top sellers
+                {t('picker_top_sellers')}
               </p>
               <div className="space-y-1 mb-4">
                 {topSellers.map((p) => (
@@ -155,7 +157,7 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
               {restProducts.length > 0 && (
                 <>
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-1 pb-1">
-                    All products
+                    {t('picker_all_products')}
                   </p>
                   <div className="space-y-1">
                     {restProducts.map((p) => (

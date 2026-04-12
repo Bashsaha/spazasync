@@ -18,6 +18,13 @@
   "toast_out_of_stock": "Heads up \u2014 this item is out of stock",
   "toast_low_stock": "Heads up \u2014 only {qty} left in stock",
 
+  "cart_each": "each",
+  "cart_badge_out_of_stock": "Out of stock",
+  "cart_badge_only_left": "Only {qty} left",
+  "cart_badge_low_stock": "Low stock: {qty} left",
+  "cart_decrease_qty": "Decrease quantity",
+  "cart_increase_qty": "Increase quantity",
+
   "complete_title": "Sale Complete",
   "complete_title_offline": "Sale Saved",
   "complete_total_label": "Total charged",
@@ -37,6 +44,7 @@
   "error_enter_name": "Enter a product name.",
   "error_enter_price": "Enter a valid price.",
   "error_create_failed": "Could not create product. Try again.",
+  "error_product_name_exists": "You already have a product called that.",
   "btn_add_scan": "Add & Scan",
 
   "existing_product_title": "Product already exists",

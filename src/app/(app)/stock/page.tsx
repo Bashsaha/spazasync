@@ -6,6 +6,7 @@ import Link from 'next/link'
 import type { ProductWithStock } from '@/lib/db/stock'
 import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
 import { useToast } from '@/components/Toast'
+import { useTranslation } from '@/components/LanguageProvider'
 
 type Tab = 'all' | 'low' | 'expiring'
 
@@ -22,12 +23,13 @@ interface ExpiringProduct {
 export default function StockPage() {
   const router = useRouter()
   const { addToast } = useToast()
+  const { t } = useTranslation()
   const [products, setProducts] = useState<ProductWithStock[]>([])
   const [threshold, setThreshold] = useState(5)
   const [tab, setTab] = useState<Tab>('all')
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [errorKey, setErrorKey] = useState<string>('')
   const [scanning, setScanning] = useState(false)
 
   // Expiry data (loaded lazily when tab selected)
@@ -45,7 +47,7 @@ export default function StockPage() {
         setLoading(false)
       })
       .catch(() => {
-        setError('Could not load stock. Please try again.')
+        setErrorKey('error_load')
         setLoading(false)
       })
   }, [])
@@ -72,9 +74,9 @@ export default function StockPage() {
           return
         }
       }
-      addToast('No product found with that barcode', 'error')
+      addToast(t('error_barcode_not_found'), 'error')
     } catch {
-      addToast('Could not look up product. Try again.', 'error')
+      addToast(t('error_barcode_lookup'), 'error')
     }
   }
 
@@ -96,24 +98,24 @@ export default function StockPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="flex items-center gap-1 text-gray-500 active:text-gray-700 font-medium py-1 pr-2">
-            ← Back
+            {t('back')}
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Stock</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
         </div>
         <button
           onClick={() => setScanning(true)}
           className="flex items-center gap-1.5 text-sm font-semibold text-blue-600 border border-blue-300 px-3 py-2 rounded-xl active:bg-blue-50"
         >
-          Scan
+          {t('btn_scan')}
         </button>
       </div>
 
       {/* Summary strip */}
-      {!loading && !error && (
+      {!loading && !errorKey && (
         <div className="grid grid-cols-4 gap-2 mb-5">
           <div className="bg-white rounded-2xl p-3 border border-gray-100 text-center shadow-sm">
             <p className="text-xl font-bold text-gray-900">{products.length}</p>
-            <p className="text-xs text-gray-500 mt-0.5">Products</p>
+            <p className="text-xs text-gray-500 mt-0.5">{t('summary_products')}</p>
           </div>
           <div
             className={`rounded-2xl p-3 border text-center shadow-sm ${
@@ -123,7 +125,7 @@ export default function StockPage() {
             <p className={`text-xl font-bold ${lowCount > 0 ? 'text-amber-600' : 'text-gray-900'}`}>
               {lowCount}
             </p>
-            <p className="text-xs text-gray-500 mt-0.5">Low</p>
+            <p className="text-xs text-gray-500 mt-0.5">{t('summary_low')}</p>
           </div>
           <div
             className={`rounded-2xl p-3 border text-center shadow-sm ${
@@ -133,7 +135,7 @@ export default function StockPage() {
             <p className={`text-xl font-bold ${outCount > 0 ? 'text-red-600' : 'text-gray-900'}`}>
               {outCount}
             </p>
-            <p className="text-xs text-gray-500 mt-0.5">Out</p>
+            <p className="text-xs text-gray-500 mt-0.5">{t('summary_out')}</p>
           </div>
           <div
             className={`rounded-2xl p-3 border text-center shadow-sm ${
@@ -143,7 +145,7 @@ export default function StockPage() {
             <p className={`text-xl font-bold ${expiryCount > 0 ? 'text-amber-600' : 'text-gray-900'}`}>
               {expiryCount}
             </p>
-            <p className="text-xs text-gray-500 mt-0.5">Expiring</p>
+            <p className="text-xs text-gray-500 mt-0.5">{t('summary_expiring')}</p>
           </div>
         </div>
       )}
@@ -152,51 +154,55 @@ export default function StockPage() {
       <input
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search products…"
-        aria-label="Search products"
+        placeholder={t('search_placeholder')}
+        aria-label={t('search_placeholder')}
         className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
       />
 
       {/* Tabs */}
       <div className="flex gap-2 mb-4">
-        {(['all', 'low', 'expiring'] as Tab[]).map((t) => (
+        {(['all', 'low', 'expiring'] as Tab[]).map((tabId) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={tabId}
+            onClick={() => setTab(tabId)}
             className={`px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
-              tab === t
+              tab === tabId
                 ? 'bg-blue-600 text-white'
                 : 'bg-white border border-gray-200 text-gray-600 active:bg-gray-50'
             }`}
           >
-            {t === 'all' ? 'All' : t === 'low' ? `Low (${lowCount})` : `Expiring (${expiryCount})`}
+            {tabId === 'all'
+              ? t('tab_all')
+              : tabId === 'low'
+              ? t('tab_low', { count: lowCount })
+              : t('tab_expiring', { count: expiryCount })}
           </button>
         ))}
       </div>
 
       {/* Content */}
       {loading && (
-        <p className="text-center text-gray-400 text-sm mt-12">Loading stock…</p>
+        <p className="text-center text-gray-400 text-sm mt-12">{t('loading')}</p>
       )}
 
-      {error && (
-        <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4 mb-4">{error}</div>
+      {errorKey && (
+        <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4 mb-4">{t(errorKey)}</div>
       )}
 
       {/* Expiring tab */}
-      {!loading && !error && tab === 'expiring' && (
+      {!loading && !errorKey && tab === 'expiring' && (
         <>
           <div className="mb-4">
             <Link
               href="/expiry"
               className="inline-flex items-center gap-1 text-sm text-blue-600 font-semibold active:text-blue-700"
             >
-              See all expiry dates →
+              {t('expiry_see_all')}
             </Link>
           </div>
           {expiringProducts.length === 0 && expiryLoaded && (
             <p className="text-center text-gray-400 text-sm mt-8">
-              No products expiring soon — great job!
+              {t('expiry_none')}
             </p>
           )}
           {expiringProducts.length > 0 && (
@@ -216,12 +222,12 @@ export default function StockPage() {
                     <div className="flex items-center gap-2 ml-4 shrink-0">
                       {ep.expired_qty > 0 && (
                         <span className="text-xs font-bold px-2 py-1 rounded-lg bg-red-100 text-red-700">
-                          {ep.expired_qty} expired
+                          {t('expiry_badge_expired', { count: ep.expired_qty })}
                         </span>
                       )}
                       {ep.expiring_soon_qty > 0 && (
                         <span className="text-xs font-bold px-2 py-1 rounded-lg bg-amber-100 text-amber-700">
-                          {ep.expiring_soon_qty} soon
+                          {t('expiry_badge_soon', { count: ep.expiring_soon_qty })}
                         </span>
                       )}
                     </div>
@@ -234,13 +240,13 @@ export default function StockPage() {
       )}
 
       {/* All / Low tabs */}
-      {!loading && !error && tab !== 'expiring' && filtered.length === 0 && (
+      {!loading && !errorKey && tab !== 'expiring' && filtered.length === 0 && (
         <p className="text-center text-gray-400 text-sm mt-12">
-          {tab === 'low' ? 'No low-stock items — great job!' : 'No products found.'}
+          {tab === 'low' ? t('empty_low') : t('empty_all')}
         </p>
       )}
 
-      {!loading && !error && tab !== 'expiring' && filtered.length > 0 && (
+      {!loading && !errorKey && tab !== 'expiring' && filtered.length > 0 && (
         <ul className="space-y-2">
           {filtered.map((p) => {
             const isOut = p.stock_qty === 0
@@ -278,23 +284,23 @@ export default function StockPage() {
       )}
 
       {/* Stock take prompt if many out of stock */}
-      {!loading && !error && outCount >= 3 && (
+      {!loading && !errorKey && outCount >= 3 && (
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-2xl p-4 text-sm text-blue-800">
-          <p className="font-semibold mb-1">{outCount} products out of stock</p>
+          <p className="font-semibold mb-1">{t('out_of_stock_prompt', { count: outCount })}</p>
           <p className="text-blue-800 mb-3">
-            Run a stock take to reconcile your full inventory count.
+            {t('out_of_stock_desc')}
           </p>
           <Link
             href="/stock-take"
             className="inline-block bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-xl active:bg-blue-700"
           >
-            Run stock take
+            {t('btn_run_stock_take')}
           </Link>
         </div>
       )}
 
       <p className="text-xs text-gray-400 text-center mt-6">
-        Low stock threshold: {threshold} units
+        {t('threshold_footer', { threshold })}
       </p>
 
       {scanning && (

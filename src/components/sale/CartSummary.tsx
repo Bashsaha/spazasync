@@ -1,4 +1,7 @@
+'use client'
+
 import { formatZAR } from '@/lib/utils/currency'
+import { useTranslation } from '@/components/LanguageProvider'
 
 interface CartSummaryProps {
   total: number
@@ -14,6 +17,8 @@ interface CartSummaryProps {
  * When aboveNav is true, positions itself above the BottomNav bar.
  */
 export function CartSummary({ total, itemCount, onCompleteSale, isSubmitting, aboveNav, hasOversellWarning }: CartSummaryProps) {
+  const { t, tPlural } = useTranslation()
+
   return (
     <div
       className="fixed inset-x-0 bg-white border-t border-gray-200 shadow-lg z-50"
@@ -22,21 +27,21 @@ export function CartSummary({ total, itemCount, onCompleteSale, isSubmitting, ab
       <div className="max-w-lg mx-auto flex items-center gap-4 px-4 py-3" style={{ paddingBottom: aboveNav ? '12px' : 'max(12px, env(safe-area-inset-bottom))' }}>
         <div className="flex-shrink-0">
           <p className="text-xs text-gray-400">
-            {itemCount} item{itemCount !== 1 ? 's' : ''}
+            {tPlural('item', itemCount, { count: itemCount })}
           </p>
           <p className="text-xl font-bold text-gray-900">{formatZAR(total)}</p>
         </div>
 
         <div className="flex-1">
           {hasOversellWarning && (
-            <p className="text-xs text-amber-600 mb-1">Some items may be out of stock</p>
+            <p className="text-xs text-amber-600 mb-1">{t('oversell_warning')}</p>
           )}
           <button
             onClick={onCompleteSale}
             disabled={isSubmitting || itemCount === 0}
             className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl active:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-base"
           >
-            {isSubmitting ? 'Processing…' : 'Complete Sale'}
+            {isSubmitting ? t('btn_processing') : t('btn_complete_sale')}
           </button>
         </div>
       </div>

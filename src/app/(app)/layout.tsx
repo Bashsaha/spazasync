@@ -35,7 +35,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <LanguageProvider initialLocale={initialLocale}>
+      <LanguageProvider
+        initialLocale={initialLocale}
+        namespaces={['common', 'sale', 'dashboard', 'stock', 'summary']}
+      >
         <ToastProvider>
           {role !== 'teller' && <DailySummaryAlert />}
           <OfflineSyncProvider>

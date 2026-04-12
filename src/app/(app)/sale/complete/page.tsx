@@ -3,10 +3,12 @@
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Suspense } from 'react'
 import { formatZAR } from '@/lib/utils/currency'
+import { useTranslation } from '@/components/LanguageProvider'
 
 function SaleCompleteContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { t } = useTranslation()
 
   const totalRaw = searchParams.get('total')
   const total = totalRaw ? parseFloat(totalRaw) : 0
@@ -24,16 +26,15 @@ function SaleCompleteContent() {
       </div>
 
       <h1 className="text-2xl font-bold text-gray-900 mb-2">
-        {isOffline ? 'Sale Saved' : 'Sale Complete'}
+        {isOffline ? t('complete_title_offline') : t('complete_title')}
       </h1>
 
       {isOffline ? (
         <p className="text-gray-500 text-sm mb-2 max-w-xs leading-relaxed">
-          You&apos;re offline. This sale is saved on your phone and will sync to the
-          server automatically when you reconnect.
+          {t('complete_offline_text')}
         </p>
       ) : (
-        <p className="text-gray-500 text-sm mb-2">Total charged</p>
+        <p className="text-gray-500 text-sm mb-2">{t('complete_total_label')}</p>
       )}
 
       <p className="text-4xl font-bold text-gray-900 mb-10">{formatZAR(total)}</p>
@@ -42,28 +43,30 @@ function SaleCompleteContent() {
         onClick={() => router.push('/sale')}
         className="w-full max-w-xs bg-blue-600 text-white font-semibold py-4 rounded-2xl active:bg-blue-700 text-base"
       >
-        New Sale
+        {t('btn_new_sale')}
       </button>
 
       <button
         onClick={() => router.push('/dashboard')}
         className="mt-4 text-sm text-gray-500 active:text-gray-700"
       >
-        Go to Dashboard
+        {t('btn_go_dashboard')}
       </button>
+    </main>
+  )
+}
+
+function SaleCompleteFallback() {
+  return (
+    <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <p className="text-gray-400 text-sm">Loading…</p>
     </main>
   )
 }
 
 export default function SaleCompletePage() {
   return (
-    <Suspense
-      fallback={
-        <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <p className="text-gray-400 text-sm">Loading…</p>
-        </main>
-      }
-    >
+    <Suspense fallback={<SaleCompleteFallback />}>
       <SaleCompleteContent />
     </Suspense>
   )

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { Product } from '@/types'
 import { ExpiryEntryList } from '@/components/ExpiryEntryList'
+import { useTranslation } from '@/components/LanguageProvider'
 
 interface ExpiryEntry {
   expiry_date: string
@@ -25,6 +26,7 @@ interface NewProductModalProps {
  * Lets the owner quick-create the product so the sale can continue.
  */
 export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }: NewProductModalProps) {
+  const { t } = useTranslation()
   const [name, setName] = useState(suggestedName ?? '')
   const [price, setPrice] = useState('')
   const [stock, setStock] = useState('0')
@@ -49,11 +51,11 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
 
     const priceNum = parseFloat(price)
     if (!name.trim()) {
-      setError('Enter a product name.')
+      setError(t('error_enter_name'))
       return
     }
     if (isNaN(priceNum) || priceNum <= 0) {
-      setError('Enter a valid price.')
+      setError(t('error_enter_price'))
       return
     }
 
@@ -77,7 +79,7 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
           await findExistingProduct(name.trim())
           return
         }
-        setError(json.error ?? 'Could not create product. Try again.')
+        setError(json.error ?? t('error_create_failed'))
         return
       }
 
@@ -99,7 +101,7 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
 
       onCreated(json as Product)
     } catch {
-      setError('Network error. Try again.')
+      setError(t('error_network'))
     } finally {
       setIsLoading(false)
     }
@@ -110,7 +112,7 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
     try {
       const res = await fetch(`/api/products?search=${encodeURIComponent(searchName)}`)
       if (!res.ok) {
-        setError('You already have a product called that.')
+        setError(t('error_product_name_exists'))
         return
       }
       const json = await res.json()
@@ -131,10 +133,10 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
           }).catch(() => {}) // silent — not critical
         }
       } else {
-        setError('You already have a product called that.')
+        setError(t('error_product_name_exists'))
       }
     } catch {
-      setError('You already have a product called that.')
+      setError(t('error_product_name_exists'))
     } finally {
       setIsLoading(false)
     }
@@ -151,16 +153,15 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
     return (
       <div className="fixed inset-0 z-50 bg-black/60 flex items-end">
         <div className="bg-white w-full rounded-t-2xl px-6 pt-6 pb-10">
-          <h2 className="text-lg font-bold text-gray-900 mb-2">Product already exists</h2>
+          <h2 className="text-lg font-bold text-gray-900 mb-2">{t('existing_product_title')}</h2>
           <p className="text-sm text-gray-500 mb-4">
-            You already have <span className="font-semibold text-gray-900">{existingProduct.name}</span> in
-            your products. Want to add it to the sale?
+            {t('existing_product_text', { name: existingProduct.name })}
           </p>
 
           <div className="bg-gray-50 rounded-xl p-4 mb-5">
             <p className="font-semibold text-gray-900">{existingProduct.name}</p>
             <p className="text-sm text-gray-500 mt-1">
-              R{existingProduct.price.toFixed(2)} · {existingProduct.stock_qty} in stock
+              R{existingProduct.price.toFixed(2)} · {t('existing_product_in_stock', { qty: existingProduct.stock_qty })}
             </p>
           </div>
 
@@ -170,14 +171,14 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
               onClick={onDismiss}
               className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-xl font-medium active:bg-gray-50"
             >
-              Cancel
+              {t('cancel')}
             </button>
             <button
               type="button"
               onClick={handleUseExisting}
               className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-semibold active:bg-blue-700"
             >
-              Add to sale
+              {t('btn_add_to_sale')}
             </button>
           </div>
         </div>
@@ -190,12 +191,10 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
     <div className="fixed inset-0 z-50 bg-black/60 flex items-end">
       {/* sheet */}
       <div className="bg-white w-full rounded-t-2xl px-6 pt-6 pb-10 max-h-[85vh] overflow-y-auto">
-        <h2 className="text-lg font-bold text-gray-900 mb-0.5">New Product</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-0.5">{t('new_product_title')}</h2>
         <p className="text-sm text-gray-500 mb-5">
-          Barcode <span className="font-mono text-gray-700">{barcode}</span> not in your catalogue.
-          {suggestedName
-            ? ' We found a matching name — just set your price.'
-            : ' Fill in the details to add it.'}
+          {t('new_product_barcode_not_found', { barcode })}{' '}
+          {suggestedName ? t('new_product_catalog_hint') : t('new_product_fill_details')}
         </p>
 
         {error && (
@@ -205,12 +204,12 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Product Name
+              {t('label_product_name')}
             </label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Coca-Cola 500ml"
+              placeholder={t('placeholder_product_name')}
               autoFocus
               className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -219,7 +218,7 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
           <div className="flex gap-3">
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Price (R)
+                {t('label_price')}
               </label>
               <input
                 type="number"
@@ -234,7 +233,7 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
             </div>
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Stock (units)
+                {t('label_stock_units')}
               </label>
               <input
                 type="number"
@@ -262,7 +261,7 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
                   }}
                   className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">Do you know the expiry dates?</span>
+                <span className="text-sm text-gray-700">{t('label_track_expiry')}</span>
               </label>
 
               {trackExpiry && (
@@ -281,14 +280,14 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
               onClick={onDismiss}
               className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-xl font-medium active:bg-gray-50"
             >
-              Cancel
+              {t('cancel')}
             </button>
             <button
               type="submit"
               disabled={isLoading}
               className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-semibold active:bg-blue-700 disabled:opacity-50"
             >
-              {isLoading ? 'Saving…' : 'Add & Scan'}
+              {isLoading ? t('saving') : t('btn_add_scan')}
             </button>
           </div>
         </form>
