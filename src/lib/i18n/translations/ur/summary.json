@@ -1,0 +1,28 @@
+{
+  "banner_text": "آپ کا روزانہ کا خلاصہ تیار ہے",
+  "btn_view": "دیکھیں",
+  "btn_loading": "لوڈ ہو رہا ہے\u2026",
+  "dismiss": "برخاست",
+  "close": "بند",
+
+  "modal_title": "آج کا خلاصہ",
+
+  "sales_text_one": "آپ نے آج {count} فروخت سے {amount} کمائے",
+  "sales_text_other": "آپ نے آج {count} فروختوں سے {amount} کمائے",
+  "top_sellers": "سب سے زیادہ بکنے والی:",
+  "sold": "{name} \u2014 {count} فروخت ہوئیں",
+
+  "no_sales": "آج کوئی فروخت نہیں",
+  "no_sales_encourage": "کل نیا دن ہے \u2014 آپ کر سکتے ہیں!",
+
+  "low_stock_one": "اسٹاک کم ہو رہا ہے ({count} پروڈکٹ)",
+  "low_stock_other": "اسٹاک کم ہو رہا ہے ({count} پروڈکٹس)",
+  "low_stock_item": "{name} \u2014 {count} باقی",
+  "low_stock_more": "\u2026اور {count} مزید",
+
+  "expiring_title": "جلد میعاد ختم ہونے والی پروڈکٹس",
+  "expiring_item_expired": "{name} \u2014 {count} میعاد ختم",
+  "expiring_item_soon": "{name} \u2014 {count} جلد میعاد ختم",
+
+  "btn_close": "سمجھ گیا"
+}

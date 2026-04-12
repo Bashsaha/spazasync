@@ -8,6 +8,7 @@ import { ExpiringAlert } from '@/components/dashboard/ExpiringAlert'
 import { WeeklyChartSection } from '@/components/dashboard/WeeklyChartSection'
 import { TopProducts } from '@/components/dashboard/TopProducts'
 import { LatestSales } from '@/components/dashboard/LatestSales'
+import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -36,14 +37,17 @@ export default async function DashboardPage() {
   const shopName = shop?.name ?? 'Your Shop'
   const shopCode = shop?.code ?? ''
 
+  const locale = await getServerLocale()
+  const { t, tPlural } = await getServerTranslations(locale, ['dashboard'])
+
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">{shopName}</h1>
         <p className="text-sm text-gray-400 mt-0.5">
-          Staff login code:{' '}
+          {t('staff_login_code')}{' '}
           <span className="font-mono font-semibold text-blue-600">{shopCode}</span>
-          <span className="text-xs text-gray-400 ml-1">(give this to your staff)</span>
+          <span className="text-xs text-gray-400 ml-1">{t('staff_login_hint')}</span>
         </p>
       </div>
 
@@ -57,7 +61,8 @@ export default async function DashboardPage() {
         if (!endDate) return null
         const daysLeft = Math.max(0, Math.ceil((new Date(endDate).getTime() - Date.now()) / (24 * 60 * 60 * 1000)))
         if (daysLeft > 3) return null
-        const label = shop?.subscription_status === 'trialing' ? 'free trial' : 'subscription'
+        const labelKey = shop?.subscription_status === 'trialing' ? 'sub_free_trial' : 'sub_subscription'
+        const label = t(labelKey)
         return (
           <a
             href="/subscribe"
@@ -65,11 +70,11 @@ export default async function DashboardPage() {
           >
             <p className="text-sm font-semibold text-amber-800">
               {daysLeft === 0
-                ? `Your ${label} has ended.`
-                : `Your ${label} ends in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}.`}
+                ? t('sub_ended', { label })
+                : tPlural('sub_ending', daysLeft, { label, count: daysLeft })}
             </p>
             <p className="text-xs text-amber-600 mt-1">
-              Tap here to subscribe and keep using SpazaSync.
+              {t('sub_tap_subscribe')}
             </p>
           </a>
         )
@@ -78,42 +83,42 @@ export default async function DashboardPage() {
       {/* Today's summary — streams in */}
       {shop?.id && (
         <Suspense fallback={<Skeleton className="h-24 rounded-2xl mb-4" />}>
-          <TodaySummary shopId={shop.id} />
+          <TodaySummary shopId={shop.id} locale={locale} />
         </Suspense>
       )}
 
       {/* Low stock alert — streams in */}
       {shop?.id && (
         <Suspense fallback={null}>
-          <LowStockAlert shopId={shop.id} threshold={shop.low_stock_threshold} />
+          <LowStockAlert shopId={shop.id} threshold={shop.low_stock_threshold} locale={locale} />
         </Suspense>
       )}
 
       {/* Expiring products alert — streams in */}
       {shop?.id && (
         <Suspense fallback={null}>
-          <ExpiringAlert shopId={shop.id} />
+          <ExpiringAlert shopId={shop.id} locale={locale} />
         </Suspense>
       )}
 
       {/* This week chart — streams in */}
       {shop?.id && (
         <Suspense fallback={<Skeleton className="h-48 rounded-2xl mb-4" />}>
-          <WeeklyChartSection shopId={shop.id} />
+          <WeeklyChartSection shopId={shop.id} locale={locale} />
         </Suspense>
       )}
 
       {/* What sold most this week — streams in */}
       {shop?.id && (
         <Suspense fallback={<Skeleton className="h-32 rounded-2xl mb-4" />}>
-          <TopProducts shopId={shop.id} />
+          <TopProducts shopId={shop.id} locale={locale} />
         </Suspense>
       )}
 
       {/* Latest sales (includes empty state) — streams in */}
       {shop?.id && (
         <Suspense fallback={<Skeleton className="h-40 rounded-2xl mb-4" />}>
-          <LatestSales shopId={shop.id} />
+          <LatestSales shopId={shop.id} locale={locale} />
         </Suspense>
       )}
 
@@ -124,8 +129,8 @@ export default async function DashboardPage() {
           className="flex items-center justify-between bg-blue-600 text-white rounded-2xl p-5 shadow-sm active:bg-blue-700"
         >
           <div>
-            <p className="font-bold text-lg">Start a Sale</p>
-            <p className="text-blue-100 text-sm">Scan products and record a sale</p>
+            <p className="font-bold text-lg">{t('card_start_sale')}</p>
+            <p className="text-blue-100 text-sm">{t('card_start_sale_desc')}</p>
           </div>
           <span className="text-3xl">🛒</span>
         </a>
@@ -135,8 +140,8 @@ export default async function DashboardPage() {
           className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:bg-gray-50"
         >
           <div>
-            <p className="font-bold text-gray-900">Check Stock</p>
-            <p className="text-gray-400 text-sm">See what you have left</p>
+            <p className="font-bold text-gray-900">{t('card_check_stock')}</p>
+            <p className="text-gray-400 text-sm">{t('card_check_stock_desc')}</p>
           </div>
           <span className="text-3xl">📦</span>
         </a>
@@ -146,8 +151,8 @@ export default async function DashboardPage() {
           className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:bg-gray-50"
         >
           <div>
-            <p className="font-bold text-gray-900">Count Stock</p>
-            <p className="text-gray-400 text-sm">Go through your products and update the numbers</p>
+            <p className="font-bold text-gray-900">{t('card_count_stock')}</p>
+            <p className="text-gray-400 text-sm">{t('card_count_stock_desc')}</p>
           </div>
           <span className="text-3xl">📋</span>
         </a>
@@ -157,8 +162,8 @@ export default async function DashboardPage() {
           className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:bg-gray-50"
         >
           <div>
-            <p className="font-bold text-gray-900">Products</p>
-            <p className="text-gray-400 text-sm">Add or change the products you sell</p>
+            <p className="font-bold text-gray-900">{t('card_products')}</p>
+            <p className="text-gray-400 text-sm">{t('card_products_desc')}</p>
           </div>
           <span className="text-3xl">🏷️</span>
         </a>
@@ -168,8 +173,8 @@ export default async function DashboardPage() {
           className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:bg-gray-50"
         >
           <div>
-            <p className="font-bold text-gray-900">Staff</p>
-            <p className="text-gray-400 text-sm">Manage the people who use the till</p>
+            <p className="font-bold text-gray-900">{t('card_staff')}</p>
+            <p className="text-gray-400 text-sm">{t('card_staff_desc')}</p>
           </div>
           <span className="text-3xl">👤</span>
         </a>
@@ -179,8 +184,8 @@ export default async function DashboardPage() {
           className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:bg-gray-50"
         >
           <div>
-            <p className="font-bold text-gray-900">Settings</p>
-            <p className="text-gray-400 text-sm">Change your shop name, stock alerts and more</p>
+            <p className="font-bold text-gray-900">{t('card_settings')}</p>
+            <p className="text-gray-400 text-sm">{t('card_settings_desc')}</p>
           </div>
           <span className="text-3xl">⚙️</span>
         </a>
@@ -190,8 +195,8 @@ export default async function DashboardPage() {
           className="flex items-center justify-between bg-indigo-50 rounded-2xl p-5 border border-indigo-100 shadow-sm active:bg-indigo-100"
         >
           <div>
-            <p className="font-bold text-indigo-900">Inspector coming?</p>
-            <p className="text-indigo-600 text-sm">Download your compliance report PDF — ready in seconds</p>
+            <p className="font-bold text-indigo-900">{t('card_inspector')}</p>
+            <p className="text-indigo-600 text-sm">{t('card_inspector_desc')}</p>
           </div>
           <span className="text-3xl">📋</span>
         </a>

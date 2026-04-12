@@ -21,13 +21,15 @@
   "retry": "እንደገና ሞክር",
   "saving": "በማስቀመጥ ላይ…",
   "done": "ተጠናቅቋል",
+  "dismiss": "አሰናብት",
 
   "error_generic": "ችግር ተፈጥሯል። እንደገና ሞክር።",
   "error_network": "የአውታረ መረብ ችግር። እንደገና ሞክር።",
   "error_unauthorized": "አልገቡም።",
 
   "offline_banner_offline": "ከመስመር ውጪ ነዎት — ሽያጮች ሲገናኙ ራሳቸው ይመሳሰላሉ",
-  "offline_banner_offline_pending": "ከመስመር ውጪ — {count} ሽያጮች ተቀምጠዋል፣ ራሳቸው ይመሳሰላሉ",
+  "offline_banner_offline_pending_one": "ከመስመር ውጪ — {count} ሽያጭ ተቀምጧል፣ ራሱ ይመሳሰላል",
+  "offline_banner_offline_pending_other": "ከመስመር ውጪ — {count} ሽያጮች ተቀምጠዋል፣ ራሳቸው ይመሳሰላሉ",
   "offline_banner_syncing_one": "{count} ሽያጭ በመመሳሰል ላይ…",
   "offline_banner_syncing_other": "{count} ሽያጮች በመመሳሰል ላይ…",
   "offline_banner_failed_one": "{count} ሽያጭ ሊመሳሰል አልቻለም — ለመሞከር ንኩ",

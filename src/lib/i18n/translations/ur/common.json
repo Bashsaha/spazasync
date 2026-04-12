@@ -21,13 +21,15 @@
   "retry": "دوبارہ کوشش کریں",
   "saving": "محفوظ ہو رہا ہے…",
   "done": "مکمل",
+  "dismiss": "برخاست",
 
   "error_generic": "کچھ غلط ہو گیا۔ دوبارہ کوشش کریں۔",
   "error_network": "نیٹ ورک کی خرابی۔ دوبارہ کوشش کریں۔",
   "error_unauthorized": "آپ سائن ان نہیں ہیں۔",
 
   "offline_banner_offline": "آپ آف لائن ہیں — فروخت دوبارہ کنکشن ملنے پر خودکار طور پر مطابقت ہوں گی",
-  "offline_banner_offline_pending": "آف لائن — {count} فروخت محفوظ، خودکار مطابقت ہوگی",
+  "offline_banner_offline_pending_one": "آف لائن — {count} فروخت محفوظ، خودکار مطابقت ہوگی",
+  "offline_banner_offline_pending_other": "آف لائن — {count} فروختیں محفوظ، خودکار مطابقت ہوں گی",
   "offline_banner_syncing_one": "{count} فروخت مطابقت ہو رہی ہے…",
   "offline_banner_syncing_other": "{count} فروختیں مطابقت ہو رہی ہیں…",
   "offline_banner_failed_one": "{count} فروخت مطابقت نہیں ہو سکی — دوبارہ کوشش کے لیے ٹیپ کریں",

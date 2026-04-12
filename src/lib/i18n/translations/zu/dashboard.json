@@ -1,0 +1,60 @@
+{
+  "staff_login_code": "Ikhodi yokungena yabasebenzi:",
+  "staff_login_hint": "(inikeze abasebenzi bakho)",
+
+  "sub_ended": "{label} yakho isiphelile.",
+  "sub_ending_one": "{label} yakho iphela ngosuku olu-{count}.",
+  "sub_ending_other": "{label} yakho iphela ezinsukwini ezi-{count}.",
+  "sub_free_trial": "ukuhlolwa kwamahhala",
+  "sub_subscription": "ukubhalisa",
+  "sub_tap_subscribe": "Chofoza lapha ukubhalisa futhi uqhubeke usebenzisa i-SpazaSync.",
+
+  "card_start_sale": "Qala Ukudayisa",
+  "card_start_sale_desc": "Skena imikhiqizo futhi urekhode ukudayisa",
+  "card_check_stock": "Hlola Isitoki",
+  "card_check_stock_desc": "Bheka lokho okuseleyo",
+  "card_count_stock": "Bala Isitoki",
+  "card_count_stock_desc": "Dlula kwimikhiqizo yakho futhi ubuyekeze izinombolo",
+  "card_products": "Imikhiqizo",
+  "card_products_desc": "Faka noma ushintshe imikhiqizo oyidayisayo",
+  "card_staff": "Abasebenzi",
+  "card_staff_desc": "Lawula abantu abasebenzisa ithili",
+  "card_settings": "Izilungiselelo",
+  "card_settings_desc": "Shintsha igama lesitolo, izexwayiso zesitoki nokunye",
+  "card_inspector": "Umhloli uyeza?",
+  "card_inspector_desc": "Landa umbiko wokulandela umthetho we-PDF \u2014 ulungile emasekhondini",
+
+  "today": "Namuhla",
+  "today_made": "utholile",
+  "today_sale_one": "ukudayisa",
+  "today_sale_other": "ukudayisa",
+  "today_teller_one": "umsebenzi",
+  "today_teller_other": "abasebenzi",
+  "today_no_sales": "Akukho ukudayisa okwenziwe namuhla",
+
+  "low_stock_title": "Isitoki siyaphela",
+  "low_stock_out_one": "{count} into iphelile",
+  "low_stock_out_other": "{count} izinto ziphelile",
+  "low_stock_low_one": "{count} into iseduze nokuphela",
+  "low_stock_low_other": "{count} izinto ziseduze nokuphela",
+  "low_stock_badge_out": "iphelile",
+  "low_stock_badge_left": "kusele {count}",
+  "low_stock_more": "+{count} okunye\u2026",
+
+  "expiring_title": "Imikhiqizo eseduze nokuphela",
+  "expiring_expired": "{count} seluphelile",
+  "expiring_soon": "{count} eseduze nokuphela",
+
+  "weekly_title": "Leli sonto",
+  "weekly_revenue": "Imali engenayo",
+  "weekly_sales": "Ukudayisa",
+
+  "top_products_title": "Okudayisa kakhulu leli sonto",
+  "top_products_sold": "kudayisiwe",
+  "top_products_none": "Akukho ukudayisa leli sonto",
+
+  "latest_sales_title": "Okudayisiwe kamuva",
+  "latest_sales_by": "ngu-{name}",
+  "latest_sales_none": "Akukho ukudayisa okurekhodiwe okwamanje. Qala ukudayisa kwakho kokuqala!",
+  "latest_sales_ago": "kudlule {time}"
+}

@@ -1,8 +1,13 @@
 import { getExpiringProductsForShop } from '@/lib/db/reports'
+import { getServerTranslations } from '@/lib/i18n/server'
+import type { SupportedLocale } from '@/lib/i18n/types'
 
-export async function ExpiringAlert({ shopId }: { shopId: string }) {
+export async function ExpiringAlert({ shopId, locale }: { shopId: string; locale: SupportedLocale }) {
   try {
-    const expiringProducts = await getExpiringProductsForShop(shopId)
+    const [expiringProducts, { t }] = await Promise.all([
+      getExpiringProductsForShop(shopId),
+      getServerTranslations(locale, ['dashboard']),
+    ])
     if (expiringProducts.length === 0) return null
 
     const expired = expiringProducts.filter((p) => p.expired_qty > 0)
@@ -16,16 +21,16 @@ export async function ExpiringAlert({ shopId }: { shopId: string }) {
         <div className="flex items-start justify-between">
           <div>
             <p className="text-sm font-semibold text-amber-800 mb-1">
-              Products expiring
+              {t('expiring_title')}
             </p>
             {expired.length > 0 && (
               <p className="text-xs text-red-600">
-                {expired.length} product{expired.length !== 1 ? 's' : ''} already expired
+                {t('expiring_expired', { count: expired.length })}
               </p>
             )}
             {expiringSoon.length > 0 && (
               <p className="text-xs text-amber-700">
-                {expiringSoon.length} product{expiringSoon.length !== 1 ? 's' : ''} expiring within 7 days
+                {t('expiring_soon', { count: expiringSoon.length })}
               </p>
             )}
             <ul className="mt-2 space-y-0.5">
@@ -34,13 +39,13 @@ export async function ExpiringAlert({ shopId }: { shopId: string }) {
                   &bull; {item.name}{' '}
                   <span className={item.expired_qty > 0 ? 'text-red-600 font-semibold' : 'text-amber-600'}>
                     {item.expired_qty > 0
-                      ? `(${item.expired_qty} expired)`
-                      : `(${item.expiring_soon_qty} expiring)`}
+                      ? `(${t('expiring_expired', { count: item.expired_qty })})`
+                      : `(${t('expiring_soon', { count: item.expiring_soon_qty })})`}
                   </span>
                 </li>
               ))}
               {expiringProducts.length > 4 && (
-                <li className="text-xs text-gray-400">+{expiringProducts.length - 4} more…</li>
+                <li className="text-xs text-gray-400">+{expiringProducts.length - 4}…</li>
               )}
             </ul>
           </div>

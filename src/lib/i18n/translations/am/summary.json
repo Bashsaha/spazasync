@@ -1,0 +1,28 @@
+{
+  "banner_text": "የእለታዊ ማጠቃለያዎ ዝግጁ ነው",
+  "btn_view": "ይመልከቱ",
+  "btn_loading": "በመጫን ላይ\u2026",
+  "dismiss": "አሰናብት",
+  "close": "ዝጋ",
+
+  "modal_title": "የዛሬ ማጠቃለያ",
+
+  "sales_text_one": "ዛሬ ከ{count} ሽያጭ {amount} አገኙ",
+  "sales_text_other": "ዛሬ ከ{count} ሽያጮች {amount} አገኙ",
+  "top_sellers": "ከፍተኛ ሽያጮች፡",
+  "sold": "{name} \u2014 {count} ተሽጧል",
+
+  "no_sales": "ዛሬ ሽያጭ የለም",
+  "no_sales_encourage": "ነገ አዲስ ቀን ነው \u2014 ትችላላችሁ!",
+
+  "low_stock_one": "ክምችት እያለቀ ነው ({count} እቃ)",
+  "low_stock_other": "ክምችት እያለቀ ነው ({count} እቃዎች)",
+  "low_stock_item": "{name} \u2014 {count} ይቀራል",
+  "low_stock_more": "\u2026እና ተጨማሪ {count}",
+
+  "expiring_title": "በቅርቡ ጊዜያቸው የሚያልቅ እቃዎች",
+  "expiring_item_expired": "{name} \u2014 {count} ጊዜው አልፏል",
+  "expiring_item_soon": "{name} \u2014 {count} በቅርቡ ጊዜው ያልፋል",
+
+  "btn_close": "ተረድቻለሁ"
+}

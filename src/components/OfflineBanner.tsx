@@ -1,3 +1,7 @@
+'use client'
+
+import { useTranslation } from '@/components/LanguageProvider'
+
 interface OfflineBannerProps {
   isOnline: boolean
   pendingCount: number
@@ -11,10 +15,12 @@ interface OfflineBannerProps {
  * Renders nothing when online with no pending/failed sales.
  */
 export function OfflineBanner({ isOnline, pendingCount, failedCount, isSyncing, onRetryFailed }: OfflineBannerProps) {
+  const { t, tPlural } = useTranslation()
+
   if (isSyncing) {
     return (
       <div className="bg-blue-500 text-white text-xs text-center py-2 px-4">
-        Syncing {pendingCount} saved sale{pendingCount !== 1 ? 's' : ''}…
+        {tPlural('offline_banner_syncing', pendingCount, { count: pendingCount })}
       </div>
     )
   }
@@ -25,7 +31,7 @@ export function OfflineBanner({ isOnline, pendingCount, failedCount, isSyncing, 
         className="bg-red-500 text-white text-xs text-center py-2 px-4 cursor-pointer active:bg-red-600"
         onClick={onRetryFailed}
       >
-        {failedCount} sale{failedCount !== 1 ? 's' : ''} could not sync — tap to retry
+        {tPlural('offline_banner_failed', failedCount, { count: failedCount })}
       </div>
     )
   }
@@ -34,8 +40,8 @@ export function OfflineBanner({ isOnline, pendingCount, failedCount, isSyncing, 
     return (
       <div className="bg-amber-500 text-white text-xs text-center py-2 px-4">
         {pendingCount > 0
-          ? `Offline — ${pendingCount} sale${pendingCount !== 1 ? 's' : ''} saved, will sync automatically`
-          : "You're offline — sales will sync automatically when you reconnect"}
+          ? tPlural('offline_banner_offline_pending', pendingCount, { count: pendingCount })
+          : t('offline_banner_offline')}
       </div>
     )
   }
@@ -43,7 +49,7 @@ export function OfflineBanner({ isOnline, pendingCount, failedCount, isSyncing, 
   if (pendingCount > 0) {
     return (
       <div className="bg-blue-500 text-white text-xs text-center py-2 px-4">
-        {pendingCount} sale{pendingCount !== 1 ? 's' : ''} waiting to sync…
+        {tPlural('offline_banner_pending', pendingCount, { count: pendingCount })}
       </div>
     )
   }

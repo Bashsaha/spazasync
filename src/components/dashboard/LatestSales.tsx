@@ -1,15 +1,20 @@
 import { getRecentSalesForShop } from '@/lib/db/reports'
 import { formatZAR } from '@/lib/utils/currency'
 import { formatSAST } from '@/lib/utils/date'
+import { getServerTranslations } from '@/lib/i18n/server'
+import type { SupportedLocale } from '@/lib/i18n/types'
 
-export async function LatestSales({ shopId }: { shopId: string }) {
+export async function LatestSales({ shopId, locale }: { shopId: string; locale: SupportedLocale }) {
   try {
-    const recentSales = await getRecentSalesForShop(shopId, 10)
+    const [recentSales, { t }] = await Promise.all([
+      getRecentSalesForShop(shopId, 10),
+      getServerTranslations(locale, ['dashboard']),
+    ])
 
     if (recentSales.length === 0) {
       return (
         <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4 text-center">
-          <p className="text-sm text-gray-400">No sales yet — tap &ldquo;Start a Sale&rdquo; below to begin!</p>
+          <p className="text-sm text-gray-400">{t('latest_sales_none')}</p>
         </div>
       )
     }
@@ -17,7 +22,7 @@ export async function LatestSales({ shopId }: { shopId: string }) {
     return (
       <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-          Latest sales
+          {t('latest_sales_title')}
         </p>
         <ul className="divide-y divide-gray-50">
           {recentSales.map((sale) => (

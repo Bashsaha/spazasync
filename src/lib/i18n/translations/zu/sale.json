@@ -1,0 +1,67 @@
+{
+  "title": "Ukudayisa",
+  "start_sale": "Qala Ukudayisa",
+  "select_teller": "Khetha osebenza namuhla.",
+  "change_teller": "Shintsha umsebenzi",
+  "serving": "Osebenza manje:",
+
+  "btn_scan": "Skena",
+  "btn_add_manually": "Faka ngesandla",
+
+  "cart_empty": "Azikho izinto okwamanje. Skena ibhakhodi noma ufake ngesandla.",
+  "item_one": "{count} into",
+  "item_other": "{count} izinto",
+  "oversell_warning": "Ezinye izinto zingase zingabi khona",
+  "btn_complete_sale": "Qedela Ukudayisa",
+  "btn_processing": "Iyacutshungulwa\u2026",
+
+  "toast_out_of_stock": "Qaphela \u2014 le nto ayikho esitokini",
+  "toast_low_stock": "Qaphela \u2014 kusele {qty} kuphela esitokini",
+
+  "cart_each": "ngayinye",
+  "cart_badge_out_of_stock": "Ayikho esitokini",
+  "cart_badge_only_left": "Kusele {qty} kuphela",
+  "cart_badge_low_stock": "Isitoki esiphansi: kusele {qty}",
+  "cart_decrease_qty": "Yehlisa inani",
+  "cart_increase_qty": "Khuphula inani",
+
+  "complete_title": "Ukudayisa Kuphelile",
+  "complete_title_offline": "Ukudayisa Kulondoloziwe",
+  "complete_total_label": "Inani eliyisamba elikhokhiwe",
+  "complete_offline_text": "Awuxhunyiwe. Lo mboniso ulondoloziwe efonini yakho futhi uzovumelanisa nesiphesheya ngokuzenzakalelayo uma uphinde uxhume.",
+  "btn_new_sale": "Ukudayisa Okusha",
+  "btn_go_dashboard": "Yiya ku-Dashboard",
+
+  "new_product_title": "Umkhiqizo Omusha",
+  "new_product_barcode_not_found": "Ibhakhodi {barcode} ayikho ohlwini lwakho.",
+  "new_product_catalog_hint": "Sithole igama elifanayo \u2014 beka inani lakho nje.",
+  "new_product_fill_details": "Gcwalisa imininingwane ukuze uyifake.",
+  "label_product_name": "Igama Lomkhiqizo",
+  "placeholder_product_name": "isb. Coca-Cola 500ml",
+  "label_price": "Intengo (R)",
+  "label_stock_units": "Isitoki (amayunithi)",
+  "label_track_expiry": "Uzazi izinsuku zokuphela?",
+  "error_enter_name": "Faka igama lomkhiqizo.",
+  "error_enter_price": "Faka intengo ehlukile.",
+  "error_create_failed": "Akukwazanga ukudala umkhiqizo. Zama futhi.",
+  "error_product_name_exists": "Usuvele unawo umkhiqizo onalelo gama.",
+  "btn_add_scan": "Faka & Skena",
+
+  "existing_product_title": "Umkhiqizo uvele ukhona",
+  "existing_product_text": "Usuvele unayo i-{name} emikhiqizweni yakho. Ufuna ukuyifaka ekudayiseni?",
+  "existing_product_in_stock": "{qty} esitokini",
+  "btn_add_to_sale": "Faka ekudayiseni",
+
+  "picker_title": "Faka Umkhiqizo",
+  "picker_search_placeholder": "Sesha ngegama...",
+  "picker_offline_stale": "Awuxhunyiwe \u2014 uhla lwemikhiqizo lungase lungaguquki",
+  "picker_loading": "Iyalayisha...",
+  "picker_no_products": "Ayikho imikhiqizo etholiwe.",
+  "picker_top_sellers": "Abadayisa kakhulu",
+  "picker_all_products": "Yonke imikhiqizo",
+
+  "teller_loading": "Kulayishwa abasebenzi\u2026",
+  "teller_none": "Basekho abasebenzi.",
+  "teller_add_one": "Faka oyedwa",
+  "teller_who_serving": "Ubani osebenza?"
+}

@@ -21,13 +21,15 @@
   "retry": "Isku day mar kale",
   "saving": "Waa la kaydiyaa…",
   "done": "Dhammaad",
+  "dismiss": "Iska saar",
 
   "error_generic": "Wax baa qaldamay. Isku day mar kale.",
   "error_network": "Khalad shabakadeed. Isku day mar kale.",
   "error_unauthorized": "Laguma saxiixin.",
 
   "offline_banner_offline": "Internet malaha — iibintu way iska kaydsanaysaa marka aad ku soo noqoto",
-  "offline_banner_offline_pending": "Internet malaha — {count} iibinta la kaydiyay, way iska diraysaa",
+  "offline_banner_offline_pending_one": "Internet malaha — {count} iibinta la kaydiyay, way iska diraysaa",
+  "offline_banner_offline_pending_other": "Internet malaha — {count} iibino ayaa la kaydiyay, way iska diraysaa",
   "offline_banner_syncing_one": "Waxaa la dirayaa {count} iibinta la kaydiyay…",
   "offline_banner_syncing_other": "Waxaa la dirayaa {count} iibinta la kaydiyay…",
   "offline_banner_failed_one": "{count} iibinta lama diri karin — taabo si aad u isku daydo mar kale",

@@ -1,0 +1,67 @@
+{
+  "title": "فروخت",
+  "start_sale": "فروخت شروع کریں",
+  "select_teller": "منتخب کریں کہ آج کون خدمت کر رہا ہے۔",
+  "change_teller": "ٹیلر تبدیل کریں",
+  "serving": "خدمت کر رہا ہے:",
+
+  "btn_scan": "اسکین",
+  "btn_add_manually": "دستی طور پر شامل کریں",
+
+  "cart_empty": "ابھی کوئی چیز نہیں۔ بارکوڈ اسکین کریں یا دستی طور پر شامل کریں۔",
+  "item_one": "{count} چیز",
+  "item_other": "{count} چیزیں",
+  "oversell_warning": "کچھ چیزیں اسٹاک میں نہیں ہو سکتیں",
+  "btn_complete_sale": "فروخت مکمل کریں",
+  "btn_processing": "کارروائی جاری ہے\u2026",
+
+  "toast_out_of_stock": "خیال رکھیں \u2014 یہ چیز اسٹاک میں نہیں ہے",
+  "toast_low_stock": "خیال رکھیں \u2014 اسٹاک میں صرف {qty} باقی ہیں",
+
+  "cart_each": "فی عدد",
+  "cart_badge_out_of_stock": "اسٹاک میں نہیں",
+  "cart_badge_only_left": "صرف {qty} باقی",
+  "cart_badge_low_stock": "کم اسٹاک: {qty} باقی",
+  "cart_decrease_qty": "مقدار کم کریں",
+  "cart_increase_qty": "مقدار بڑھائیں",
+
+  "complete_title": "فروخت مکمل",
+  "complete_title_offline": "فروخت محفوظ",
+  "complete_total_label": "کل وصول",
+  "complete_offline_text": "آپ آف لائن ہیں۔ یہ فروخت آپ کے فون پر محفوظ ہے اور دوبارہ جڑنے پر خود بخود سرور پر بھیج دی جائے گی۔",
+  "btn_new_sale": "نئی فروخت",
+  "btn_go_dashboard": "ڈیش بورڈ پر جائیں",
+
+  "new_product_title": "نئی پروڈکٹ",
+  "new_product_barcode_not_found": "بارکوڈ {barcode} آپ کے کیٹلاگ میں نہیں ہے۔",
+  "new_product_catalog_hint": "ہمیں ملتا جلتا نام ملا \u2014 بس اپنی قیمت طے کریں۔",
+  "new_product_fill_details": "اسے شامل کرنے کے لیے تفصیلات پُر کریں۔",
+  "label_product_name": "پروڈکٹ کا نام",
+  "placeholder_product_name": "مثلاً Coca-Cola 500ml",
+  "label_price": "قیمت (R)",
+  "label_stock_units": "اسٹاک (یونٹ)",
+  "label_track_expiry": "کیا آپ میعاد ختم ہونے کی تاریخ جانتے ہیں؟",
+  "error_enter_name": "پروڈکٹ کا نام درج کریں۔",
+  "error_enter_price": "درست قیمت درج کریں۔",
+  "error_create_failed": "پروڈکٹ بنائی نہیں جا سکی۔ دوبارہ کوشش کریں۔",
+  "error_product_name_exists": "آپ کے پاس پہلے سے اس نام کی پروڈکٹ موجود ہے۔",
+  "btn_add_scan": "شامل کریں اور اسکین کریں",
+
+  "existing_product_title": "پروڈکٹ پہلے سے موجود ہے",
+  "existing_product_text": "آپ کے پروڈکٹس میں پہلے سے {name} موجود ہے۔ کیا اسے فروخت میں شامل کرنا چاہتے ہیں؟",
+  "existing_product_in_stock": "{qty} اسٹاک میں",
+  "btn_add_to_sale": "فروخت میں شامل کریں",
+
+  "picker_title": "پروڈکٹ شامل کریں",
+  "picker_search_placeholder": "نام سے تلاش کریں...",
+  "picker_offline_stale": "آپ آف لائن ہیں \u2014 پروڈکٹ لسٹ پرانی ہو سکتی ہے",
+  "picker_loading": "لوڈ ہو رہا ہے...",
+  "picker_no_products": "کوئی پروڈکٹ نہیں ملی۔",
+  "picker_top_sellers": "سب سے زیادہ فروخت ہونے والی",
+  "picker_all_products": "تمام پروڈکٹس",
+
+  "teller_loading": "ٹیلرز لوڈ ہو رہے ہیں\u2026",
+  "teller_none": "ابھی کوئی ٹیلر نہیں۔",
+  "teller_add_one": "ایک شامل کریں",
+  "teller_who_serving": "کون خدمت کر رہا ہے؟"
+}

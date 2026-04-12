@@ -7,6 +7,7 @@ import type { Product, ProductBatch } from '@/types'
 import { formatZAR } from '@/lib/utils/currency'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { ExpiryEntryList } from '@/components/ExpiryEntryList'
+import { useTranslation } from '@/components/LanguageProvider'
 
 interface ExpiryEntry {
   expiry_date: string
@@ -17,13 +18,13 @@ type Mode = 'add' | 'remove'
 
 const QUICK_AMOUNTS = [10, 24, 48, 100]
 
-const REASONS = [
-  'Received from supplier',
-  'Damaged or expired',
-  'Returned to supplier',
-  'I counted it wrong before',
-  'Other',
-]
+const REASON_KEYS = [
+  'adjust_reason_received',
+  'adjust_reason_damaged',
+  'adjust_reason_returned',
+  'adjust_reason_correction',
+  'adjust_reason_other',
+] as const
 
 /** Classify a batch by its expiry date relative to today. */
 function expiryStatus(expiryDate: string): 'expired' | 'soon' | 'ok' {
@@ -41,24 +42,21 @@ function expiryBadge(status: 'expired' | 'soon' | 'ok') {
   return 'bg-green-100 text-green-700'
 }
 
-function expiryLabel(status: 'expired' | 'soon' | 'ok') {
-  if (status === 'expired') return 'Expired'
-  if (status === 'soon') return 'Expiring soon'
-  return 'OK'
-}
-
 function StockAdjustContent() {
   const router = useRouter()
   const params = useParams<{ id: string }>()
   const searchParams = useSearchParams()
+  const { t, tPlural } = useTranslation()
 
   const [product, setProduct] = useState<Product | null>(null)
-  const [loadError, setLoadError] = useState('')
+  const [loadError, setLoadError] = useState(false)
   const [mode, setMode] = useState<Mode>(() => searchParams.get('mode') === 'remove' ? 'remove' : 'add')
   const [amount, setAmount] = useState(() => searchParams.get('qty') ?? '')
   const [reason, setReason] = useState('')
   const [saving, setSaving] = useState(false)
-  const [saveError, setSaveError] = useState('')
+  const [saveErrorKey, setSaveErrorKey] = useState<string | null>(null)
+  const [saveErrorCount, setSaveErrorCount] = useState(0)
+  const [saveErrorRaw, setSaveErrorRaw] = useState('')
   const [done, setDone] = useState(false)
   const [resultQty, setResultQty] = useState(0)
 
@@ -72,14 +70,15 @@ function StockAdjustContent() {
   const [batchDate, setBatchDate] = useState('')
   const [batchQty, setBatchQty] = useState('')
   const [batchSaving, setBatchSaving] = useState(false)
-  const [batchError, setBatchError] = useState('')
+  const [batchErrorKey, setBatchErrorKey] = useState<string | null>(null)
+  const [batchErrorRaw, setBatchErrorRaw] = useState('')
   const [discardingId, setDiscardingId] = useState<string | null>(null)
 
   useEffect(() => {
     fetch(`/api/products/${params.id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((data: Product) => setProduct(data))
-      .catch(() => setLoadError('Product not found.'))
+      .catch(() => setLoadError(true))
   }, [params.id])
 
   // Load batches
@@ -107,7 +106,8 @@ function StockAdjustContent() {
     e.preventDefault()
     if (!product || !validAmount) return
     setSaving(true)
-    setSaveError('')
+    setSaveErrorKey(null)
+    setSaveErrorRaw('')
 
     // When adding stock with expiry dates, use the batch API for each entry
     const validAddEntries = addExpiryEntries.filter(
@@ -138,7 +138,7 @@ function StockAdjustContent() {
       }
 
       if (batchFailed) {
-        setSaveError('Some expiry dates could not be saved. You can add them later.')
+        setSaveErrorKey('adjust_save_error_partial')
       }
 
       // Add remaining units that have no expiry date via regular stock adjustment
@@ -156,15 +156,16 @@ function StockAdjustContent() {
         if (stockRes.ok) {
           totalAdded += remainder
         } else {
-          setSaveError(`Expiry dates saved, but ${remainder} units without expiry could not be added.`)
+          setSaveErrorKey('adjust_save_error_expiry_partial')
+          setSaveErrorCount(remainder)
         }
       }
 
       if (totalAdded > 0) {
         setResultQty(product.stock_qty + totalAdded)
         setDone(true)
-      } else {
-        setSaveError('Could not save. Please try again.')
+      } else if (!saveErrorKey) {
+        setSaveErrorKey('adjust_save_error_generic')
       }
 
       setSaving(false)
@@ -189,7 +190,11 @@ function StockAdjustContent() {
       setDone(true)
     } else {
       const body = await res.json().catch(() => ({}))
-      setSaveError(body?.error ?? 'Could not save. Please try again.')
+      if (body?.error) {
+        setSaveErrorRaw(body.error)
+      } else {
+        setSaveErrorKey('adjust_save_error_generic')
+      }
     }
 
     setSaving(false)
@@ -202,7 +207,8 @@ function StockAdjustContent() {
     if (!batchDate || isNaN(qty) || qty < 1) return
 
     setBatchSaving(true)
-    setBatchError('')
+    setBatchErrorKey(null)
+    setBatchErrorRaw('')
 
     const res = await fetch('/api/batches', {
       method: 'POST',
@@ -223,7 +229,11 @@ function StockAdjustContent() {
       setShowAddBatch(false)
     } else {
       const body = await res.json().catch(() => ({}))
-      setBatchError(body?.error ?? 'Could not add. Please try again.')
+      if (body?.error) {
+        setBatchErrorRaw(body.error)
+      } else {
+        setBatchErrorKey('batches_error_add')
+      }
     }
 
     setBatchSaving(false)
@@ -250,10 +260,10 @@ function StockAdjustContent() {
     return (
       <main className="px-4 pt-10 pb-24 max-w-lg mx-auto flex flex-col items-center text-center">
         <div className="text-5xl mb-4">✓</div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">Stock updated</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t('adjust_success_title')}</h2>
         <p className="text-gray-500 mb-2">{product.name}</p>
         <p className="text-4xl font-bold text-gray-900 mb-1">{resultQty}</p>
-        <p className="text-sm text-gray-400 mb-8">units in stock</p>
+        <p className="text-sm text-gray-400 mb-8">{t('adjust_success_units')}</p>
 
         <div className="flex flex-col gap-3 w-full max-w-xs">
           <button
@@ -267,37 +277,40 @@ function StockAdjustContent() {
             }}
             className="bg-blue-600 text-white font-semibold py-3 rounded-2xl active:bg-blue-700"
           >
-            Adjust again
+            {t('adjust_success_btn_again')}
           </button>
           <Link
             href="/stock"
             className="bg-white border border-gray-200 text-gray-700 font-semibold py-3 rounded-2xl text-center active:bg-gray-50"
           >
-            Back to Stock
+            {t('adjust_success_btn_back')}
           </Link>
         </div>
       </main>
     )
   }
 
+  const statusLabelKey = (status: 'expired' | 'soon' | 'ok') =>
+    status === 'expired' ? 'batches_status_expired' : status === 'soon' ? 'batches_status_soon' : 'batches_status_ok'
+
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <Link href="/stock" className="flex items-center gap-1 text-gray-500 active:text-gray-700 font-medium py-1 pr-2">
-          ← Back
+          {t('back')}
         </Link>
         <h1 className="text-2xl font-bold text-gray-900">
-          {mode === 'add' ? 'Add Stock' : 'Remove Stock'}
+          {mode === 'add' ? t('adjust_title_add') : t('adjust_title_remove')}
         </h1>
       </div>
 
       {loadError && (
-        <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4">{loadError}</div>
+        <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4">{t('adjust_product_not_found')}</div>
       )}
 
       {!loadError && !product && (
-        <p className="text-center text-gray-400 text-sm mt-12">Loading…</p>
+        <p className="text-center text-gray-400 text-sm mt-12">{t('adjust_loading')}</p>
       )}
 
       {product && (
@@ -307,11 +320,11 @@ function StockAdjustContent() {
             <p className="font-bold text-gray-900 text-lg">{product.name}</p>
             <p className="text-xs text-gray-400 font-mono mt-0.5">{product.barcode}</p>
             <div className="flex items-center justify-between mt-3">
-              <span className="text-sm text-gray-500">Current stock</span>
+              <span className="text-sm text-gray-500">{t('adjust_current_stock')}</span>
               <span className="text-2xl font-bold text-gray-900">{product.stock_qty}</span>
             </div>
             <div className="flex items-center justify-between mt-1">
-              <span className="text-sm text-gray-500">Price</span>
+              <span className="text-sm text-gray-500">{t('adjust_price')}</span>
               <span className="text-sm font-semibold text-gray-700">{formatZAR(product.price)}</span>
             </div>
           </div>
@@ -332,14 +345,14 @@ function StockAdjustContent() {
                       : 'bg-white border border-gray-200 text-gray-600 active:bg-gray-50'
                   }`}
                 >
-                  {m === 'add' ? '+ Add stock' : '− Remove stock'}
+                  {m === 'add' ? t('adjust_btn_mode_add') : t('adjust_btn_mode_remove')}
                 </button>
               ))}
             </div>
 
             {/* Quick amounts */}
             <div>
-              <p className="text-xs text-gray-500 mb-2 font-medium">Quick amounts</p>
+              <p className="text-xs text-gray-500 mb-2 font-medium">{t('adjust_quick_amounts')}</p>
               <div className="flex gap-2 flex-wrap">
                 {QUICK_AMOUNTS.map((q) => (
                   <button
@@ -361,14 +374,14 @@ function StockAdjustContent() {
             {/* Amount input */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Quantity to {mode === 'add' ? 'add' : 'remove'}
+                {mode === 'add' ? t('adjust_label_qty_add') : t('adjust_label_qty_remove')}
               </label>
               <input
                 type="number"
                 min="1"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                placeholder="Enter amount…"
+                placeholder={t('adjust_amount_placeholder')}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -383,9 +396,7 @@ function StockAdjustContent() {
                 }`}
               >
                 <span className={wouldClamp ? 'text-amber-700' : 'text-gray-600'}>
-                  {wouldClamp
-                    ? `Can't go below 0 — will set to 0`
-                    : `New stock will be`}
+                  {wouldClamp ? t('adjust_clamp_warning') : t('adjust_new_stock')}
                 </span>
                 <span className="font-bold text-gray-900 text-lg">{projectedQty}</span>
               </div>
@@ -394,17 +405,17 @@ function StockAdjustContent() {
             {/* Reason */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Reason <span className="text-gray-400 font-normal">(optional)</span>
+                {t('adjust_label_reason')} <span className="text-gray-400 font-normal">{t('adjust_reason_optional')}</span>
               </label>
               <select
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Select a reason…</option>
-                {REASONS.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
+                <option value="">{t('adjust_reason_placeholder')}</option>
+                {REASON_KEYS.map((rk) => (
+                  <option key={rk} value={t(rk)}>
+                    {t(rk)}
                   </option>
                 ))}
               </select>
@@ -425,7 +436,7 @@ function StockAdjustContent() {
                     }}
                     className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="text-sm text-gray-700">Add expiry dates for this stock</span>
+                  <span className="text-sm text-gray-700">{t('adjust_expiry_checkbox')}</span>
                 </label>
 
                 {trackAddExpiry && (
@@ -438,8 +449,16 @@ function StockAdjustContent() {
               </div>
             )}
 
-            {saveError && (
-              <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4">{saveError}</div>
+            {(saveErrorKey || saveErrorRaw) && (
+              <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4">
+                {saveErrorRaw
+                  ? saveErrorRaw
+                  : saveErrorKey === 'adjust_save_error_expiry_partial'
+                    ? t(saveErrorKey, { count: saveErrorCount })
+                    : saveErrorKey
+                      ? t(saveErrorKey)
+                      : ''}
+              </div>
             )}
 
             <button
@@ -448,23 +467,27 @@ function StockAdjustContent() {
               className="w-full bg-blue-600 text-white font-semibold py-4 rounded-2xl text-base active:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving
-                ? 'Saving…'
+                ? t('adjust_btn_saving')
                 : mode === 'add'
-                ? `Add ${validAmount ? parsedAmount : '…'} units`
-                : `Remove ${validAmount ? parsedAmount : '…'} units`}
+                  ? validAmount
+                    ? tPlural('adjust_btn_add_units', parsedAmount, { count: parsedAmount })
+                    : t('adjust_btn_add_units_pending')
+                  : validAmount
+                    ? tPlural('adjust_btn_remove_units', parsedAmount, { count: parsedAmount })
+                    : t('adjust_btn_remove_units_pending')}
             </button>
           </form>
 
           {/* ── Expiry Batches Section ── */}
           <div className="mt-8">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-bold text-gray-900">Expiry Dates</h2>
+              <h2 className="text-lg font-bold text-gray-900">{t('batches_title')}</h2>
               <button
                 type="button"
                 onClick={() => setShowAddBatch(!showAddBatch)}
                 className="text-sm font-semibold text-blue-600 active:text-blue-700"
               >
-                {showAddBatch ? 'Cancel' : '+ Add expiry date'}
+                {showAddBatch ? t('batches_btn_cancel') : t('batches_btn_add')}
               </button>
             </div>
 
@@ -473,7 +496,7 @@ function StockAdjustContent() {
               <form onSubmit={handleAddBatch} className="bg-blue-50 rounded-xl p-4 mb-4 space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Expiry date
+                    {t('batches_label_date')}
                   </label>
                   <input
                     type="date"
@@ -485,30 +508,32 @@ function StockAdjustContent() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Quantity
+                    {t('batches_label_qty')}
                   </label>
                   <input
                     type="number"
                     min="1"
                     value={batchQty}
                     onChange={(e) => setBatchQty(e.target.value)}
-                    placeholder="How many units with this expiry date?"
+                    placeholder={t('batches_qty_placeholder')}
                     required
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                {batchError && (
-                  <p className="text-red-600 text-sm">{batchError}</p>
+                {(batchErrorKey || batchErrorRaw) && (
+                  <p className="text-red-600 text-sm">
+                    {batchErrorRaw ? batchErrorRaw : batchErrorKey ? t(batchErrorKey) : ''}
+                  </p>
                 )}
                 <button
                   type="submit"
                   disabled={batchSaving || !batchDate || !batchQty}
                   className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl text-sm active:bg-blue-700 disabled:opacity-50"
                 >
-                  {batchSaving ? 'Adding…' : 'Add'}
+                  {batchSaving ? t('batches_btn_saving') : t('batches_btn_save')}
                 </button>
                 <p className="text-xs text-gray-500">
-                  This also adds the quantity to your total stock.
+                  {t('batches_hint')}
                 </p>
               </form>
             )}
@@ -516,7 +541,7 @@ function StockAdjustContent() {
             {/* Batch list */}
             {batches.length === 0 ? (
               <p className="text-sm text-gray-400">
-                No expiry dates tracked for this product. Tap &quot;+ Add expiry date&quot; to start tracking.
+                {t('batches_none')}
               </p>
             ) : (
               <div className="space-y-2">
@@ -537,9 +562,9 @@ function StockAdjustContent() {
                         </p>
                         <div className="flex items-center gap-2 mt-1">
                           <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${expiryBadge(status)}`}>
-                            {expiryLabel(status)}
+                            {t(statusLabelKey(status))}
                           </span>
-                          <span className="text-xs text-gray-500">{b.quantity} units</span>
+                          <span className="text-xs text-gray-500">{tPlural('batches_units', b.quantity, { count: b.quantity })}</span>
                         </div>
                       </div>
                       <button
@@ -547,7 +572,7 @@ function StockAdjustContent() {
                         onClick={() => setDiscardingId(b.id)}
                         className="text-xs font-semibold text-red-500 active:text-red-700 px-3 py-1"
                       >
-                        Remove
+                        {t('batches_btn_remove')}
                       </button>
                     </div>
                   )
@@ -556,7 +581,7 @@ function StockAdjustContent() {
                 {/* Untracked stock note */}
                 {untrackedQty > 0 && (
                   <p className="text-xs text-gray-400 mt-2">
-                    {untrackedQty} unit{untrackedQty !== 1 ? 's' : ''} have no expiry date set.
+                    {tPlural('batches_untracked', untrackedQty, { count: untrackedQty })}
                   </p>
                 )}
               </div>
@@ -566,8 +591,8 @@ function StockAdjustContent() {
           {/* Discard confirm modal */}
           {discardingId && (
             <ConfirmModal
-              message="Remove this stock? The quantity will be reduced from your total."
-              confirmLabel="Remove"
+              message={t('batches_confirm_remove')}
+              confirmLabel={t('batches_confirm_btn')}
               isDestructive
               onConfirm={() => handleDiscardBatch(discardingId)}
               onCancel={() => setDiscardingId(null)}

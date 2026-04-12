@@ -21,13 +21,15 @@
   "retry": "Retry",
   "saving": "Saving\u2026",
   "done": "Done",
+  "dismiss": "Dismiss",
 
   "error_generic": "Something went wrong. Try again.",
   "error_network": "Network error. Try again.",
   "error_unauthorized": "You are not signed in.",
 
   "offline_banner_offline": "You're offline \u2014 sales will sync automatically when you reconnect",
-  "offline_banner_offline_pending": "Offline \u2014 {count} sale{count, plural} saved, will sync automatically",
+  "offline_banner_offline_pending_one": "Offline \u2014 {count} sale saved, will sync automatically",
+  "offline_banner_offline_pending_other": "Offline \u2014 {count} sales saved, will sync automatically",
   "offline_banner_syncing_one": "Syncing {count} saved sale\u2026",
   "offline_banner_syncing_other": "Syncing {count} saved sales\u2026",
   "offline_banner_failed_one": "{count} sale could not sync \u2014 tap to retry",

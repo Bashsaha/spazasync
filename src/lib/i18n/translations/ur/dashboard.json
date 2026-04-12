@@ -1,0 +1,60 @@
+{
+  "staff_login_code": "عملے کا لاگ ان کوڈ:",
+  "staff_login_hint": "(یہ اپنے عملے کو دیں)",
+
+  "sub_ended": "آپ کا {label} ختم ہو گیا ہے۔",
+  "sub_ending_one": "آپ کا {label} {count} دن میں ختم ہو جائے گا۔",
+  "sub_ending_other": "آپ کا {label} {count} دنوں میں ختم ہو جائے گا۔",
+  "sub_free_trial": "مفت آزمائش",
+  "sub_subscription": "سبسکرپشن",
+  "sub_tap_subscribe": "SpazaSync استعمال جاری رکھنے کے لیے یہاں ٹیپ کریں اور سبسکرائب کریں۔",
+
+  "card_start_sale": "فروخت شروع کریں",
+  "card_start_sale_desc": "پروڈکٹس اسکین کریں اور فروخت ریکارڈ کریں",
+  "card_check_stock": "اسٹاک چیک کریں",
+  "card_check_stock_desc": "دیکھیں آپ کے پاس کیا باقی ہے",
+  "card_count_stock": "اسٹاک گنیں",
+  "card_count_stock_desc": "اپنی پروڈکٹس سے گزریں اور تعداد اپ ڈیٹ کریں",
+  "card_products": "پروڈکٹس",
+  "card_products_desc": "جو پروڈکٹس آپ بیچتے ہیں انہیں شامل یا تبدیل کریں",
+  "card_staff": "عملہ",
+  "card_staff_desc": "ٹل استعمال کرنے والے لوگوں کا انتظام کریں",
+  "card_settings": "سیٹنگز",
+  "card_settings_desc": "اپنی دکان کا نام، اسٹاک الرٹس اور مزید تبدیل کریں",
+  "card_inspector": "معائنہ کار آ رہا ہے؟",
+  "card_inspector_desc": "اپنی کمپلائنس رپورٹ PDF ڈاؤن لوڈ کریں \u2014 سیکنڈوں میں تیار",
+
+  "today": "آج",
+  "today_made": "کمائے",
+  "today_sale_one": "فروخت",
+  "today_sale_other": "فروختیں",
+  "today_teller_one": "ٹیلر",
+  "today_teller_other": "ٹیلرز",
+  "today_no_sales": "آج ابھی تک کوئی فروخت نہیں",
+
+  "low_stock_title": "اسٹاک کم ہو رہا ہے",
+  "low_stock_out_one": "{count} چیز اسٹاک میں نہیں",
+  "low_stock_out_other": "{count} چیزیں اسٹاک میں نہیں",
+  "low_stock_low_one": "{count} چیز تقریباً ختم",
+  "low_stock_low_other": "{count} چیزیں تقریباً ختم",
+  "low_stock_badge_out": "ختم",
+  "low_stock_badge_left": "{count} باقی",
+  "low_stock_more": "+{count} مزید\u2026",
+
+  "expiring_title": "میعاد ختم ہونے والی پروڈکٹس",
+  "expiring_expired": "{count} کی میعاد ختم",
+  "expiring_soon": "{count} جلد میعاد ختم",
+
+  "weekly_title": "اس ہفتے",
+  "weekly_revenue": "آمدنی",
+  "weekly_sales": "فروختیں",
+
+  "top_products_title": "اس ہفتے سب سے زیادہ بکنے والی",
+  "top_products_sold": "فروخت ہوئیں",
+  "top_products_none": "اس ہفتے کوئی فروخت نہیں",
+
+  "latest_sales_title": "حالیہ فروختیں",
+  "latest_sales_by": "{name} کی طرف سے",
+  "latest_sales_none": "ابھی تک کوئی فروخت ریکارڈ نہیں ہوئی۔ اپنی پہلی فروخت شروع کریں!",
+  "latest_sales_ago": "{time} پہلے"
+}

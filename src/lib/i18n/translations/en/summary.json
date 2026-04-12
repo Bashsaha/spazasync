@@ -2,10 +2,12 @@
   "banner_text": "Your daily summary is ready",
   "btn_view": "View",
   "btn_loading": "Loading\u2026",
+  "dismiss": "Dismiss",
+  "close": "Close",
 
   "modal_title": "Today's Summary",
 
-  "sales_text": "You made {amount} from {count} sale today",
+  "sales_text_one": "You made {amount} from {count} sale today",
   "sales_text_other": "You made {amount} from {count} sales today",
   "top_sellers": "Top sellers:",
   "sold": "{name} \u2014 {count} sold",

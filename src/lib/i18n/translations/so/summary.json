@@ -1,0 +1,28 @@
+{
+  "banner_text": "Soo koobidaada maalinlaha ah way diyaar tahay",
+  "btn_view": "Eeg",
+  "btn_loading": "Waa la soo rarayaa\u2026",
+  "dismiss": "Iska saar",
+  "close": "Xir",
+
+  "modal_title": "Soo Koobidda Maanta",
+
+  "sales_text_one": "Maanta waxaad {amount} ka kasbatay {count} iib",
+  "sales_text_other": "Maanta waxaad {amount} ka kasbatay {count} iibiyo",
+  "top_sellers": "Walxaha ugu badnaa iibka:",
+  "sold": "{name} \u2014 {count} la iibiyey",
+
+  "no_sales": "Maanta iib ma jirin",
+  "no_sales_encourage": "Berrito waa maalin cusub \u2014 waad karaysaa!",
+
+  "low_stock_one": "Kaydka waa hoos u dhacayaa ({count} walax)",
+  "low_stock_other": "Kaydka waa hoos u dhacayaa ({count} walxood)",
+  "low_stock_item": "{name} \u2014 {count} ayaa hadhay",
+  "low_stock_more": "\u2026iyo {count} oo kale",
+
+  "expiring_title": "Walxo dhowaan dhacaya",
+  "expiring_item_expired": "{name} \u2014 {count} dhacay",
+  "expiring_item_soon": "{name} \u2014 {count} dhowaan dhacaya",
+
+  "btn_close": "Waan fahmay"
+}

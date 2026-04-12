@@ -1,0 +1,60 @@
+{
+  "staff_login_code": "የሰራተኛ የመግቢያ ኮድ፡",
+  "staff_login_hint": "(ለሰራተኞችዎ ይስጡ)",
+
+  "sub_ended": "{label} አብቅቷል።",
+  "sub_ending_one": "{label} በ{count} ቀን ውስጥ ያበቃል።",
+  "sub_ending_other": "{label} በ{count} ቀናት ውስጥ ያበቃል።",
+  "sub_free_trial": "ነጻ ሙከራዎ",
+  "sub_subscription": "ምዝገባዎ",
+  "sub_tap_subscribe": "SpazaSync መጠቀም ለመቀጠል እዚህ ይንኩ እና ይመዝገቡ።",
+
+  "card_start_sale": "ሽያጭ ጀምር",
+  "card_start_sale_desc": "እቃዎችን ቃኝ እና ሽያጭ መዝግብ",
+  "card_check_stock": "ክምችት ይመልከቱ",
+  "card_check_stock_desc": "ምን እንደሚቀርዎት ይመልከቱ",
+  "card_count_stock": "ክምችት ቁጠር",
+  "card_count_stock_desc": "እቃዎችዎን ይመልከቱ እና ቁጥሮችን ያዘምኑ",
+  "card_products": "እቃዎች",
+  "card_products_desc": "የሚሸጧቸውን እቃዎች ይጨምሩ ወይም ይቀይሩ",
+  "card_staff": "ሰራተኞች",
+  "card_staff_desc": "መመዝገቢያውን የሚጠቀሙ ሰዎችን ያስተዳድሩ",
+  "card_settings": "ቅንብሮች",
+  "card_settings_desc": "የሱቅ ስምዎን፣ የክምችት ማስጠንቀቂያዎችን እና ሌሎችን ይቀይሩ",
+  "card_inspector": "ተቆጣጣሪ ይመጣል?",
+  "card_inspector_desc": "የፈቃድ ሪፖርት PDF ያውርዱ \u2014 በሰከንዶች ዝግጁ",
+
+  "today": "ዛሬ",
+  "today_made": "አገኙ",
+  "today_sale_one": "ሽያጭ",
+  "today_sale_other": "ሽያጮች",
+  "today_teller_one": "አገልጋይ",
+  "today_teller_other": "አገልጋዮች",
+  "today_no_sales": "ዛሬ ገና ሽያጭ የለም",
+
+  "low_stock_title": "ክምችት እያለቀ ነው",
+  "low_stock_out_one": "{count} እቃ ተጠናቋል",
+  "low_stock_out_other": "{count} እቃዎች ተጠናቅቀዋል",
+  "low_stock_low_one": "{count} እቃ ሊያልቅ ነው",
+  "low_stock_low_other": "{count} እቃዎች ሊያልቁ ነው",
+  "low_stock_badge_out": "አልቋል",
+  "low_stock_badge_left": "{count} ይቀራል",
+  "low_stock_more": "+{count} ተጨማሪ\u2026",
+
+  "expiring_title": "ጊዜያቸው የሚያልቅ እቃዎች",
+  "expiring_expired": "{count} ጊዜያቸው አልፏል",
+  "expiring_soon": "{count} በቅርቡ ጊዜያቸው ያልፋል",
+
+  "weekly_title": "ይህ ሳምንት",
+  "weekly_revenue": "ገቢ",
+  "weekly_sales": "ሽያጮች",
+
+  "top_products_title": "በዚህ ሳምንት ከፍተኛ ሽያጭ ያላቸው",
+  "top_products_sold": "ተሽጧል",
+  "top_products_none": "በዚህ ሳምንት ሽያጭ የለም",
+
+  "latest_sales_title": "የቅርብ ሽያጮች",
+  "latest_sales_by": "በ{name}",
+  "latest_sales_none": "ገና ሽያጭ አልተመዘገበም። የመጀመሪያ ሽያጭዎን ይጀምሩ!",
+  "latest_sales_ago": "ከ{time} በፊት"
+}

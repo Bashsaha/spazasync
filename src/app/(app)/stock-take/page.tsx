@@ -4,21 +4,24 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { Product } from '@/types'
+import { useTranslation } from '@/components/LanguageProvider'
 
 export default function StockTakePage() {
   const router = useRouter()
+  const { t, tPlural } = useTranslation()
   const [products, setProducts] = useState<Product[]>([])
   const [counts, setCounts] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [errorKey, setErrorKey] = useState<string | null>(null)
+  const [errorRaw, setErrorRaw] = useState('')
   const [savedCount, setSavedCount] = useState<number | null>(null)
 
   useEffect(() => {
     fetch('/api/products')
       .then((r) => r.json())
       .then((data) => setProducts((data.products ?? data) as Product[]))
-      .catch(() => setError('Could not load products. Please refresh.'))
+      .catch(() => setErrorKey('stock_take_error_load'))
       .finally(() => setIsLoading(false))
   }, [])
 
@@ -30,7 +33,8 @@ export default function StockTakePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError(null)
+    setErrorKey(null)
+    setErrorRaw('')
 
     const entries = products
       .filter((p) => counts[p.id] !== undefined && counts[p.id] !== '')
@@ -41,7 +45,7 @@ export default function StockTakePage() {
       .filter((e) => !isNaN(e.qty_after) && e.qty_after >= 0)
 
     if (entries.length === 0) {
-      setError('Enter at least one count before saving.')
+      setErrorKey('stock_take_error_no_counts')
       return
     }
 
@@ -54,12 +58,13 @@ export default function StockTakePage() {
       })
       const json = await res.json()
       if (!res.ok) {
-        setError(json.error ?? 'Failed to save. Try again.')
+        if (json.error) setErrorRaw(json.error)
+        else setErrorKey('stock_take_error_save')
         return
       }
       setSavedCount(entries.length)
     } catch {
-      setError('Network error. Check your connection and try again.')
+      setErrorKey('stock_take_error_network')
     } finally {
       setIsSubmitting(false)
     }
@@ -73,15 +78,15 @@ export default function StockTakePage() {
         <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-6">
           <span className="text-4xl">✓</span>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Count Saved</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('stock_take_success_title')}</h1>
         <p className="text-gray-500 text-sm mb-10">
-          {savedCount} product{savedCount !== 1 ? 's' : ''} updated.
+          {tPlural('stock_take_success', savedCount, { count: savedCount })}
         </p>
         <button
           onClick={() => router.push('/dashboard')}
           className="w-full max-w-xs bg-blue-600 text-white font-semibold py-4 rounded-2xl active:bg-blue-700"
         >
-          Back to Dashboard
+          {t('stock_take_btn_dashboard')}
         </button>
         <button
           onClick={() => {
@@ -90,7 +95,7 @@ export default function StockTakePage() {
           }}
           className="mt-4 text-sm text-gray-400 active:text-gray-600"
         >
-          Do another stock take
+          {t('stock_take_btn_again')}
         </button>
       </main>
     )
@@ -104,38 +109,38 @@ export default function StockTakePage() {
         {/* header */}
         <div className="flex items-center gap-3 mb-1">
           <Link href="/dashboard" className="text-gray-400 text-sm active:text-gray-600">
-            ← Back
+            {t('back')}
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Count Stock</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('stock_take_title')}</h1>
         </div>
         <p className="text-gray-500 text-sm mb-6 ml-11">
-          Write in how many of each product you actually have. Leave blank to skip.
+          {t('stock_take_subtitle')}
         </p>
 
         {/* error banner */}
-        {error && (
+        {(errorKey || errorRaw) && (
           <div className="bg-red-50 text-red-600 text-sm rounded-xl px-4 py-3 mb-4">
-            {error}
+            {errorRaw ? errorRaw : errorKey ? t(errorKey) : ''}
           </div>
         )}
 
         {/* content */}
         {isLoading ? (
-          <p className="text-gray-400 text-sm text-center mt-16">Loading products…</p>
+          <p className="text-gray-400 text-sm text-center mt-16">{t('stock_take_loading')}</p>
         ) : products.length === 0 ? (
           <div className="text-center mt-16">
-            <p className="text-gray-400 text-sm">No products yet.</p>
+            <p className="text-gray-400 text-sm">{t('stock_take_no_products')}</p>
             <Link href="/products/new" className="text-blue-600 text-sm mt-2 inline-block">
-              Add your first product →
+              {t('stock_take_add_first')}
             </Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit} id="stock-take-form">
             {/* table header */}
             <div className="flex items-center px-4 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">
-              <span className="flex-1">Product</span>
-              <span className="w-14 text-right mr-3">Current</span>
-              <span className="w-16 text-center">Count</span>
+              <span className="flex-1">{t('stock_take_col_product')}</span>
+              <span className="w-14 text-right mr-3">{t('stock_take_col_current')}</span>
+              <span className="w-16 text-center">{t('stock_take_col_count')}</span>
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -175,7 +180,7 @@ export default function StockTakePage() {
                       placeholder="—"
                       value={inputVal}
                       onChange={(e) => handleCount(p.id, e.target.value)}
-                      aria-label={`Count for ${p.name}`}
+                      aria-label={t('stock_take_input_label', { name: p.name })}
                       className={`w-16 text-center border rounded-xl py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                         isChanged
                           ? 'border-blue-500 text-blue-800 bg-white'
@@ -201,10 +206,10 @@ export default function StockTakePage() {
               className="w-full bg-blue-600 text-white font-semibold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting
-                ? 'Saving…'
+                ? t('stock_take_btn_saving')
                 : countedItems === 0
-                  ? 'Enter counts to save'
-                  : `Save ${countedItems} count${countedItems !== 1 ? 's' : ''}`}
+                  ? t('stock_take_btn_empty')
+                  : tPlural('stock_take_btn_save', countedItems, { count: countedItems })}
             </button>
           </div>
         </div>

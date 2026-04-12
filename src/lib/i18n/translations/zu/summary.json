@@ -1,0 +1,28 @@
+{
+  "banner_text": "Isifinyezo sakho sosuku silungile",
+  "btn_view": "Buka",
+  "btn_loading": "Iyalayishwa\u2026",
+  "dismiss": "Cashisa",
+  "close": "Vala",
+
+  "modal_title": "Isifinyezo Sanamuhla",
+
+  "sales_text_one": "Wenze u-{amount} ngokudayisa {count} namuhla",
+  "sales_text_other": "Wenze u-{amount} ngokudayisa {count} namuhla",
+  "top_sellers": "Abadayisa kakhulu:",
+  "sold": "{name} \u2014 {count} kudayisiwe",
+
+  "no_sales": "Akukho ukudayisa namuhla",
+  "no_sales_encourage": "Kusasa wusuku olusha \u2014 ungakwazi!",
+
+  "low_stock_one": "Isitoki siyaphela ({count} umkhiqizo)",
+  "low_stock_other": "Isitoki siyaphela ({count} imikhiqizo)",
+  "low_stock_item": "{name} \u2014 kusele {count}",
+  "low_stock_more": "\u2026nokunye {count}",
+
+  "expiring_title": "Imikhiqizo ephela maduzane",
+  "expiring_item_expired": "{name} \u2014 {count} seluphelile",
+  "expiring_item_soon": "{name} \u2014 {count} kuphela maduze",
+
+  "btn_close": "Ngiyaqonda"
+}
