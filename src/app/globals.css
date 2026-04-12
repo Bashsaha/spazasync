@@ -18,6 +18,16 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Amharic: fall back to Noto Sans Ethiopic when the Latin font can't render Ge'ez */
+:lang(am) {
+  font-family: var(--font-ethiopic), Arial, Helvetica, sans-serif;
+}
+
+/* Urdu: use Nastaliq script */
+:lang(ur) {
+  font-family: var(--font-nastaliq), Arial, Helvetica, sans-serif;
+}
+
 @keyframes slide-down {
   from { transform: translateY(-100%); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }

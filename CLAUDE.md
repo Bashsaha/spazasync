@@ -398,17 +398,20 @@ All phases 1–26 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
   - **Published 16 translation JSONs:** `{so,am,zu,ur}/{products,tellers,expiry,settings}.json` mirror the English key set exactly. Compliance PDF remains English-only (regulatory requirement).
   - Verification: `tsc --noEmit` clean, `vitest run` 156/156 green.
 
-- [ ] Phase 27e: Polish, Offline Hardening, Tests
-  - Font support: Noto Sans Ethiopic (Amharic), Noto Nastaliq Urdu (Urdu) — hosted in /public/fonts/
-  - SW precache translation JSONs for selected language
-  - Fallback to English if translation JSON fails to load offline
-  - Unit tests: t(), tPlural(), translation key completeness across all locales
+- [x] Phase 27e: Polish, Offline Hardening, Tests
+  - **Font support via `next/font/google`:** `src/app/layout.tsx` imports `Noto_Sans_Ethiopic` (weight 400/500/600/700, `ethiopic` subset) and `Noto_Nastaliq_Urdu` (weight 400/500/600/700, `arabic` subset), exposed as CSS variables `--font-ethiopic` and `--font-nastaliq` attached to `<html>`. Globals.css applies them conditionally via `:lang(am)` and `:lang(ur)` so English/Somali/IsiZulu keep the default Arial stack. Next's build pipeline self-hosts the fonts into `/_next/static/media/` — no `/public/fonts/` directory needed, which deviates from the original plan but achieves the same offline-ready outcome (the SW's cache-first handler for `/_next/static/` covers them).
+  - **SW cache bump to v3:** `public/sw.js` `CACHE = 'spazasync-v3'` forces clients to re-fetch and prune the old cache; added `/settings` to `PRECACHE_URLS` so the language picker is reachable offline on first install. Translation JSONs are dynamically `import()`ed into hashed Next.js chunks under `/_next/static/chunks/`, already covered by the existing cache-first handler — no per-file precache list maintenance needed.
+  - **English fallback:** already wired in `loader.ts:29-36` since Phase 27a (`try { dynamic import } catch { fall back to DEFAULT_LOCALE recursively }`). Verified by the new completeness tests.
+  - **New test file `tests/unit/i18n.test.ts` — 97 tests:** covers `t()` (missing keys, interpolation, multiple params, duplicate placeholders, number coercion, untouched unknown placeholders), `tPlural()` (picks `_one`/`_other`, base-key fallback, missing-key fallback, custom params merged with auto-injected count), and **translation key completeness** — for every non-English locale × namespace combination, asserts the key set exactly matches English AND every `{placeholder}` token is preserved. This completeness test caught real bugs:
+    - `am/common.json`, `ur/common.json`, `zu/common.json` were missing 6 Phase 27d keys (`error_page_title`, `error_page_desc`, `error_btn_try_again`, `not_found_title`, `not_found_desc`, `btn_goto_dashboard`) — backfilled.
+    - `zu/common.json` had the bare `offline_banner_offline_pending` key instead of the `_one`/`_other` split that Phase 27c.3 claimed to have backfilled — fixed.
+  - Verification: `tsc --noEmit` clean, `vitest run` 253/253 green (9 suites), `next build` succeeds (fonts fetched and bundled successfully).
 
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 27d (2026-04-12)_
+_Last updated: Phase 27e (2026-04-12)_
 
 ```
 spaza shop/
@@ -670,5 +673,6 @@ spaza shop/
         ├── security.test.ts              # 14 tests
         ├── payfast.test.ts               # 12 tests
         ├── admin.test.ts                 # 28 tests
-        └── batches.test.ts              # 14 tests
+        ├── batches.test.ts              # 14 tests
+        └── i18n.test.ts                  # 97 tests — t(), tPlural(), key completeness + placeholder preservation
 ```

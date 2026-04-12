@@ -38,5 +38,12 @@
   "offline_banner_pending_other": "{count} iibinta sugaysa in la diro…",
 
   "sw_update_available": "Nooc cusub ayaa diyaar ah",
-  "sw_reload": "Dib u soo rar"
+  "sw_reload": "Dib u soo rar",
+
+  "error_page_title": "Wax baa qaldamay",
+  "error_page_desc": "App-kii wuxuu galay khalad aan la filayn. Xogtaada iibka iyo kaydka way nabad yihiin.",
+  "error_btn_try_again": "Isku day mar kale",
+  "not_found_title": "Bogga lama helin",
+  "not_found_desc": "Ma aannu helin waxaad raadineysay.",
+  "btn_goto_dashboard": "Aad Daashboodhka"
 }

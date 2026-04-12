@@ -28,7 +28,8 @@
   "error_unauthorized": "Awungeniwe.",
 
   "offline_banner_offline": "Awukho ku-inthanethi — ukuthengisa kuzovumelaniswa uma uxhuma futhi",
-  "offline_banner_offline_pending": "Awukho ku-inthanethi — ukuthengisa okungu-{count} kulondoloziwe, kuzovumelaniswa",
+  "offline_banner_offline_pending_one": "Awukho ku-inthanethi — ukuthengisa okungu-{count} kulondoloziwe, kuzovumelaniswa",
+  "offline_banner_offline_pending_other": "Awukho ku-inthanethi — ukuthengisa okungu-{count} kulondoloziwe, kuzovumelaniswa",
   "offline_banner_syncing_one": "Kuvumelaniswa ukuthengisa okungu-{count}…",
   "offline_banner_syncing_other": "Kuvumelaniswa ukuthengisa okungu-{count}…",
   "offline_banner_failed_one": "Ukuthengisa okungu-{count} akuvumelanisekanga — thepha ukuzama futhi",
@@ -37,5 +38,12 @@
   "offline_banner_pending_other": "Ukuthengisa okungu-{count} kulindele ukuvumelaniswa…",
 
   "sw_update_available": "Inguqulo entsha iyatholakala",
-  "sw_reload": "Layisha kabusha"
+  "sw_reload": "Layisha kabusha",
+
+  "error_page_title": "Kukhona okungalungile",
+  "error_page_desc": "I-app iye yathola iphutha elingalindelekile. Idatha yakho yokuthengisa neyesitokhu iphephile.",
+  "error_btn_try_again": "Zama futhi",
+  "not_found_title": "Ikhasi alitholakalanga",
+  "not_found_desc": "Asikwazanga ukuthola lokho okufunayo.",
+  "btn_goto_dashboard": "Iya Kudeshibhodi"
 }

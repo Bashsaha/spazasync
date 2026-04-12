@@ -38,5 +38,12 @@
   "offline_banner_pending_other": "{count} فروختیں مطابقت کا انتظار…",
 
   "sw_update_available": "نیا ورژن دستیاب ہے",
-  "sw_reload": "دوبارہ لوڈ کریں"
+  "sw_reload": "دوبارہ لوڈ کریں",
+
+  "error_page_title": "کچھ غلط ہو گیا",
+  "error_page_desc": "ایپ میں ایک غیر متوقع خرابی پیش آئی۔ آپ کی فروخت اور اسٹاک کا ڈیٹا محفوظ ہے۔",
+  "error_btn_try_again": "دوبارہ کوشش کریں",
+  "not_found_title": "صفحہ نہیں ملا",
+  "not_found_desc": "ہم وہ تلاش نہ کر سکے جو آپ ڈھونڈ رہے تھے۔",
+  "btn_goto_dashboard": "ڈیش بورڈ پر جائیں"
 }

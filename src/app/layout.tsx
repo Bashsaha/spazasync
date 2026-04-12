@@ -1,6 +1,21 @@
 import type { Metadata, Viewport } from 'next'
+import { Noto_Sans_Ethiopic, Noto_Nastaliq_Urdu } from 'next/font/google'
 import './globals.css'
 import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar'
+
+const notoEthiopic = Noto_Sans_Ethiopic({
+  subsets: ['ethiopic'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-ethiopic',
+  display: 'swap',
+})
+
+const notoNastaliqUrdu = Noto_Nastaliq_Urdu({
+  subsets: ['arabic'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-nastaliq',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'SpazaSync',
@@ -24,7 +39,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${notoEthiopic.variable} ${notoNastaliqUrdu.variable}`}>
       <body className="antialiased bg-gray-50 text-gray-900">
         <ServiceWorkerRegistrar />
         {children}

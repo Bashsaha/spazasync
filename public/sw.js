@@ -9,7 +9,7 @@
  *  - navigation      → network-first, fall back to cache, then /offline.html
  */
 
-const CACHE = 'spazasync-v2'
+const CACHE = 'spazasync-v3'
 
 /** Critical routes precached on install so the app works offline from first install. */
 const PRECACHE_URLS = [
@@ -17,6 +17,7 @@ const PRECACHE_URLS = [
   '/sale',
   '/login',
   '/dashboard',
+  '/settings',
 ]
 
 // ── Lifecycle ──────────────────────────────────────────────────────────────
