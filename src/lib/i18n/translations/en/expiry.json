@@ -9,6 +9,7 @@
   "badge_expired": "EXPIRED",
   "badge_expiring_soon": "Expiring",
   "badge_ok": "OK",
+  "badge_tracked": "{count} tracked",
 
   "btn_remove_expired": "Remove expired stock",
   "btn_manage_stock": "Manage stock",
@@ -16,13 +17,36 @@
   "expires_on": "Expires {date}",
   "expired_on": "Expired {date}",
   "qty": "{count} units",
+  "total_stock": "Total stock: {count} units",
+
+  "summary_expired": "Expired",
+  "summary_expiring": "Expiring",
+  "summary_ok": "OK",
+
+  "loading": "Loading expiry dates\u2026",
+  "error_load": "Could not load expiry data. Please try again.",
 
   "empty": "No expiry dates tracked. Add expiry dates when you receive stock.",
+  "empty_title": "No products with expiry dates tracked yet.",
+  "empty_subtitle": "Add expiry dates when you receive new stock.",
+
+  "expired_warning": "These items have passed their use-by date and should be removed from sale.",
+
+  "rel_yesterday": "Yesterday",
+  "rel_today": "Today",
+  "rel_tomorrow": "Tomorrow",
+  "rel_days_ago_other": "{count} days ago",
+  "rel_in_days": "In {count} days",
+  "rel_in_weeks_one": "In {count} week",
+  "rel_in_weeks_other": "In {count} weeks",
 
   "entry_label_date": "When does it expire?",
   "entry_label_qty": "How many?",
-  "entry_btn_add": "Add another expiry date",
+  "entry_btn_add": "+ Add another expiry date",
+  "entry_btn_remove_aria": "Remove this expiry date",
   "entry_summary_one": "{entered} of {total} unit has an expiry date",
   "entry_summary_other": "{entered} of {total} units have expiry dates",
-  "entry_summary_all": "All {total} units have expiry dates"
+  "entry_summary_all": "All {total} units have an expiry date.",
+  "entry_summary_remaining": "You've entered {entered} out of {total} units. The rest ({remaining}) won't have an expiry date.",
+  "entry_summary_over": "You've entered more units than the stock amount."
 }

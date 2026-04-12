@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ExpiryEntryList } from '@/components/ExpiryEntryList'
 import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
+import { useTranslation } from '@/components/LanguageProvider'
 
 interface ExpiryEntry {
   expiry_date: string
@@ -13,8 +14,8 @@ interface ExpiryEntry {
 function NewProductContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { t } = useTranslation()
 
-  // Pre-fill from catalog picker (query params)
   const prefillBarcode = searchParams.get('barcode') ?? ''
   const prefillName = searchParams.get('name') ?? ''
 
@@ -26,13 +27,13 @@ function NewProductContent() {
   })
   const [trackExpiry, setTrackExpiry] = useState(false)
   const [expiryEntries, setExpiryEntries] = useState<ExpiryEntry[]>([])
-  const [error, setError] = useState('')
+  const [errorKey, setErrorKey] = useState('')
+  const [errorRaw, setErrorRaw] = useState('')
   const [loading, setLoading] = useState(false)
   const [scanning, setScanning] = useState(false)
 
   const stockQty = parseInt(form.stock_qty, 10) || 0
 
-  // Valid entries: have both a date and a positive quantity
   const validEntries = expiryEntries.filter(
     (e) => e.expiry_date && parseInt(e.quantity, 10) > 0,
   )
@@ -55,7 +56,8 @@ function NewProductContent() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError('')
+    setErrorKey('')
+    setErrorRaw('')
     setLoading(true)
     try {
       const res = await fetch('/api/products', {
@@ -70,11 +72,11 @@ function NewProductContent() {
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error ?? 'Something went wrong')
+        if (data.error) setErrorRaw(data.error)
+        else setErrorKey('error_generic')
         return
       }
 
-      // If expiry dates provided, create a batch for each one
       if (hasExpiry) {
         let batchFailed = false
         for (const entry of validEntries) {
@@ -90,65 +92,65 @@ function NewProductContent() {
           if (!batchRes.ok) batchFailed = true
         }
         if (batchFailed) {
-          setError(
-            'Product saved but we couldn\'t save some expiry dates. You can add them later from the Stock page.',
-          )
+          setErrorKey('error_expiry_partial')
         }
       }
 
       router.push('/products')
     } catch {
-      setError('Something went wrong. Try again.')
+      setErrorKey('error_network')
     } finally {
       setLoading(false)
     }
   }
 
+  const errorMessage = errorRaw || (errorKey ? t(errorKey) : '')
+
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
       <div className="flex items-center gap-3 mb-8">
         <button onClick={() => router.back()} className="text-gray-400 active:text-gray-600 text-sm">
-          ← Back
+          {t('back')}
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">Add Product</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('add_title')}</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Barcode <span className="text-gray-400 font-normal">(optional)</span>
+            {t('label_barcode')} <span className="text-gray-400 font-normal">{t('label_optional')}</span>
           </label>
           <div className="flex gap-2">
             <input
               value={form.barcode}
               onChange={(e) => setForm((f) => ({ ...f, barcode: e.target.value }))}
-              placeholder="e.g. 6001234567890"
+              placeholder={t('placeholder_barcode')}
               className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
               type="button"
               onClick={() => setScanning(true)}
               className="shrink-0 bg-blue-600 text-white px-4 py-3 rounded-xl active:bg-blue-700 text-sm font-semibold"
-              aria-label="Scan barcode"
+              aria-label={t('btn_scan_aria')}
             >
-              Scan
+              {t('btn_scan')}
             </button>
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Product name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_name')}</label>
           <input
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            placeholder="e.g. Simba Chips 120g"
+            placeholder={t('placeholder_name')}
             required
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Price (ZAR)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_price')}</label>
           <input
             type="number"
             inputMode="decimal"
@@ -156,14 +158,14 @@ function NewProductContent() {
             min="0.01"
             value={form.price}
             onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-            placeholder="e.g. 9.99"
+            placeholder={t('placeholder_price')}
             required
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Opening stock</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_opening_stock')}</label>
           <input
             type="number"
             inputMode="numeric"
@@ -188,7 +190,7 @@ function NewProductContent() {
                 }}
                 className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              <span className="text-sm text-gray-700">Do you know the expiry dates?</span>
+              <span className="text-sm text-gray-700">{t('label_expiry')}</span>
             </label>
 
             {trackExpiry && (
@@ -201,14 +203,14 @@ function NewProductContent() {
           </div>
         )}
 
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+        {errorMessage && <p className="text-red-600 text-sm">{errorMessage}</p>}
 
         <button
           type="submit"
           disabled={loading}
           className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 min-h-[48px]"
         >
-          {loading ? 'Saving…' : 'Add Product'}
+          {loading ? t('btn_saving') : t('btn_save_product')}
         </button>
       </form>
 

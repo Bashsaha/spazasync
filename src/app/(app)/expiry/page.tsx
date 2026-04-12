@@ -3,26 +3,27 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { ExpiryProductDetail, BatchDetail } from '@/types'
+import { useTranslation } from '@/components/LanguageProvider'
 
 type UrgencyGroup = 'expired' | 'expiring_soon' | 'ok'
 
-const groupConfig: Record<UrgencyGroup, { label: string; bg: string; border: string; text: string; badge: string }> = {
+const groupColors: Record<UrgencyGroup, { bg: string; border: string; text: string; badge: string; labelKey: string }> = {
   expired: {
-    label: 'Expired',
+    labelKey: 'group_expired',
     bg: 'bg-red-50',
     border: 'border-red-200',
     text: 'text-red-800',
     badge: 'bg-red-100 text-red-700',
   },
   expiring_soon: {
-    label: 'Expiring soon',
+    labelKey: 'group_expiring_soon',
     bg: 'bg-amber-50',
     border: 'border-amber-200',
     text: 'text-amber-800',
     badge: 'bg-amber-100 text-amber-700',
   },
   ok: {
-    label: 'OK',
+    labelKey: 'group_ok',
     bg: 'bg-green-50',
     border: 'border-green-200',
     text: 'text-green-800',
@@ -30,28 +31,34 @@ const groupConfig: Record<UrgencyGroup, { label: string; bg: string; border: str
   },
 }
 
-function formatExpiryLabel(dateStr: string): string {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const expiry = new Date(dateStr + 'T00:00:00')
-  const diffMs = expiry.getTime() - today.getTime()
-  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24))
+function useRelativeExpiryLabel() {
+  const { t, tPlural, locale } = useTranslation()
 
-  if (diffDays < -1) return `${Math.abs(diffDays)} days ago`
-  if (diffDays === -1) return 'Yesterday'
-  if (diffDays === 0) return 'Today'
-  if (diffDays === 1) return 'Tomorrow'
-  if (diffDays <= 7) return `In ${diffDays} days`
-  if (diffDays <= 30) {
-    const weeks = Math.floor(diffDays / 7)
-    return `In ${weeks} week${weeks !== 1 ? 's' : ''}`
+  return function formatExpiryLabel(dateStr: string): string {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const expiry = new Date(dateStr + 'T00:00:00')
+    const diffMs = expiry.getTime() - today.getTime()
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24))
+
+    if (diffDays < -1) return t('rel_days_ago_other', { count: Math.abs(diffDays) })
+    if (diffDays === -1) return t('rel_yesterday')
+    if (diffDays === 0) return t('rel_today')
+    if (diffDays === 1) return t('rel_tomorrow')
+    if (diffDays <= 7) return t('rel_in_days', { count: diffDays })
+    if (diffDays <= 30) {
+      const weeks = Math.floor(diffDays / 7)
+      return tPlural('rel_in_weeks', weeks, { count: weeks })
+    }
+    const d = new Date(dateStr + 'T00:00:00')
+    const localeTag = locale === 'en' ? 'en-ZA' : locale
+    return d.toLocaleDateString(localeTag, { day: 'numeric', month: 'short', year: 'numeric' })
   }
-  // Show the date for anything further out
-  const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function BatchRow({ batch }: { batch: BatchDetail }) {
+  const { tPlural } = useTranslation()
+  const formatLabel = useRelativeExpiryLabel()
   const statusColors: Record<string, string> = {
     expired: 'text-red-600',
     expiring_soon: 'text-amber-600',
@@ -62,20 +69,21 @@ function BatchRow({ batch }: { batch: BatchDetail }) {
     <div className="flex items-center justify-between py-2 px-3 text-sm">
       <div>
         <span className={`font-medium ${statusColors[batch.status]}`}>
-          {formatExpiryLabel(batch.expiry_date)}
+          {formatLabel(batch.expiry_date)}
         </span>
         <span className="text-gray-400 ml-2 text-xs">
           {batch.expiry_date}
         </span>
       </div>
-      <span className="text-gray-700 font-semibold">{batch.quantity} units</span>
+      <span className="text-gray-700 font-semibold">{tPlural('batches_units', batch.quantity, { count: batch.quantity })}</span>
     </div>
   )
 }
 
 function ProductCard({ product }: { product: ExpiryProductDetail }) {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
-  const config = groupConfig[product.urgency]
+  const config = groupColors[product.urgency]
 
   const totalBatchQty = product.batches.reduce((sum, b) => sum + b.quantity, 0)
 
@@ -94,7 +102,7 @@ function ProductCard({ product }: { product: ExpiryProductDetail }) {
         </div>
         <div className="flex items-center gap-2 ml-3 shrink-0">
           <span className={`text-xs font-bold px-2 py-1 rounded-lg ${config.badge}`}>
-            {totalBatchQty} tracked
+            {t('badge_tracked', { count: totalBatchQty })}
           </span>
           <span className="text-gray-300 text-sm">{expanded ? '▲' : '▼'}</span>
         </div>
@@ -109,11 +117,11 @@ function ProductCard({ product }: { product: ExpiryProductDetail }) {
           </div>
           <div className="px-3 py-3 border-t border-gray-100 space-y-2">
             <p className="text-xs text-gray-400">
-              Total stock: {product.stock_qty} units
+              {t('total_stock', { count: product.stock_qty })}
             </p>
             {product.urgency === 'expired' && (
               <p className="text-xs text-red-600">
-                These items have passed their use-by date and should be removed from sale.
+                {t('expired_warning')}
               </p>
             )}
             <div className="flex gap-2">
@@ -122,14 +130,14 @@ function ProductCard({ product }: { product: ExpiryProductDetail }) {
                   href={`/stock/${product.product_id}?mode=remove&qty=${totalBatchQty}`}
                   className="flex-1 text-center bg-red-500 text-white text-sm font-semibold py-2 px-3 rounded-xl active:bg-red-600"
                 >
-                  Remove expired stock
+                  {t('btn_remove_expired')}
                 </Link>
               )}
               <Link
                 href={`/stock/${product.product_id}`}
                 className={`text-center text-sm font-semibold py-2 px-3 rounded-xl active:bg-gray-100 border border-gray-200 text-gray-700 ${product.urgency === 'expired' ? '' : 'flex-1'}`}
               >
-                Manage stock
+                {t('btn_manage_stock')}
               </Link>
             </div>
           </div>
@@ -146,8 +154,9 @@ function UrgencySection({
   urgency: UrgencyGroup
   products: ExpiryProductDetail[]
 }) {
+  const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState(false)
-  const config = groupConfig[urgency]
+  const config = groupColors[urgency]
 
   if (products.length === 0) return null
 
@@ -159,7 +168,7 @@ function UrgencySection({
         aria-expanded={!collapsed}
       >
         <div className="flex items-center gap-2">
-          <span className={`text-sm font-bold ${config.text}`}>{config.label}</span>
+          <span className={`text-sm font-bold ${config.text}`}>{t(config.labelKey)}</span>
           <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${config.badge}`}>
             {products.length}
           </span>
@@ -179,9 +188,10 @@ function UrgencySection({
 }
 
 export default function ExpiryPage() {
+  const { t } = useTranslation()
   const [products, setProducts] = useState<ExpiryProductDetail[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [errorKey, setErrorKey] = useState('')
 
   useEffect(() => {
     fetch('/api/stock/expiry')
@@ -191,7 +201,7 @@ export default function ExpiryPage() {
         setLoading(false)
       })
       .catch(() => {
-        setError('Could not load expiry data. Please try again.')
+        setErrorKey('error_load')
         setLoading(false)
       })
   }, [])
@@ -205,13 +215,13 @@ export default function ExpiryPage() {
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <Link href="/dashboard" className="flex items-center gap-1 text-gray-500 active:text-gray-700 font-medium py-1 pr-2">
-          ← Back
+          {t('back')}
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Expiry Dates</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
       </div>
 
       {/* Summary strip */}
-      {!loading && !error && products.length > 0 && (
+      {!loading && !errorKey && products.length > 0 && (
         <div className="grid grid-cols-3 gap-2 mb-5">
           <div
             className={`rounded-2xl p-3 border text-center shadow-sm ${
@@ -221,7 +231,7 @@ export default function ExpiryPage() {
             <p className={`text-xl font-bold ${expired.length > 0 ? 'text-red-600' : 'text-gray-900'}`}>
               {expired.length}
             </p>
-            <p className="text-xs text-gray-500 mt-0.5">Expired</p>
+            <p className="text-xs text-gray-500 mt-0.5">{t('summary_expired')}</p>
           </div>
           <div
             className={`rounded-2xl p-3 border text-center shadow-sm ${
@@ -231,37 +241,37 @@ export default function ExpiryPage() {
             <p className={`text-xl font-bold ${expiringSoon.length > 0 ? 'text-amber-600' : 'text-gray-900'}`}>
               {expiringSoon.length}
             </p>
-            <p className="text-xs text-gray-500 mt-0.5">Expiring</p>
+            <p className="text-xs text-gray-500 mt-0.5">{t('summary_expiring')}</p>
           </div>
           <div className="bg-white border-gray-100 rounded-2xl p-3 border text-center shadow-sm">
             <p className="text-xl font-bold text-green-600">{ok.length}</p>
-            <p className="text-xs text-gray-500 mt-0.5">OK</p>
+            <p className="text-xs text-gray-500 mt-0.5">{t('summary_ok')}</p>
           </div>
         </div>
       )}
 
       {/* Loading */}
       {loading && (
-        <p className="text-center text-gray-400 text-sm mt-12">Loading expiry dates…</p>
+        <p className="text-center text-gray-400 text-sm mt-12">{t('loading')}</p>
       )}
 
       {/* Error */}
-      {error && (
-        <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4 mb-4">{error}</div>
+      {errorKey && (
+        <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4 mb-4">{t(errorKey)}</div>
       )}
 
       {/* Empty state */}
-      {!loading && !error && products.length === 0 && (
+      {!loading && !errorKey && products.length === 0 && (
         <div className="text-center mt-16">
-          <p className="text-gray-400 text-sm">No products with expiry dates tracked yet.</p>
+          <p className="text-gray-400 text-sm">{t('empty_title')}</p>
           <p className="text-gray-400 text-xs mt-2">
-            Add expiry dates when you receive new stock.
+            {t('empty_subtitle')}
           </p>
         </div>
       )}
 
       {/* Grouped sections */}
-      {!loading && !error && products.length > 0 && (
+      {!loading && !errorKey && products.length > 0 && (
         <>
           <UrgencySection urgency="expired" products={expired} />
           <UrgencySection urgency="expiring_soon" products={expiringSoon} />

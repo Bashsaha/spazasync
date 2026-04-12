@@ -1,0 +1,52 @@
+{
+  "title": "Izinsuku Zokuphelelwa Yisikhathi",
+  "back": "← Emuva",
+
+  "group_expired": "Kuphelelwe yisikhathi",
+  "group_expiring_soon": "Kuzophelelwa maduzane",
+  "group_ok": "Kulungile",
+
+  "badge_expired": "KUPHELILE",
+  "badge_expiring_soon": "Kuyaphela",
+  "badge_ok": "KULUNGILE",
+  "badge_tracked": "{count} kulandelelwe",
+
+  "btn_remove_expired": "Susa isitokhu esiphelelwe yisikhathi",
+  "btn_manage_stock": "Phatha isitokhu",
+
+  "expires_on": "Kuphela ngo-{date}",
+  "expired_on": "Kuphelelwe ngo-{date}",
+  "qty": "{count} amayunithi",
+  "total_stock": "Isitokhu sisonke: {count} amayunithi",
+
+  "summary_expired": "Kuphelile",
+  "summary_expiring": "Kuyaphela",
+  "summary_ok": "Kulungile",
+
+  "loading": "Kulayishwa izinsuku zokuphelelwa yisikhathi…",
+  "error_load": "Ayikwazanga ukulayisha idatha yokuphelelwa. Sicela uzame futhi.",
+
+  "empty": "Azikho izinsuku zokuphelelwa ezilandelelwayo. Engeza izinsuku lapho uthola isitokhu.",
+  "empty_title": "Ayikho imikhiqizo enezinsuku zokuphelelwa okwamanje.",
+  "empty_subtitle": "Engeza izinsuku zokuphelelwa lapho uthola isitokhu esisha.",
+
+  "expired_warning": "Lezi zinto zidlulelwe usuku lokusetshenziswa futhi kufanele zisuswe ekuthengisweni.",
+
+  "rel_yesterday": "Izolo",
+  "rel_today": "Namuhla",
+  "rel_tomorrow": "Kusasa",
+  "rel_days_ago_other": "Izinsuku ezi-{count} ezedlule",
+  "rel_in_days": "Ezinsukwini ezi-{count}",
+  "rel_in_weeks_one": "Emasontweni angu-{count}",
+  "rel_in_weeks_other": "Emasontweni angu-{count}",
+
+  "entry_label_date": "Iphela nini?",
+  "entry_label_qty": "Zingaki?",
+  "entry_btn_add": "+ Engeza olunye usuku lokuphelelwa",
+  "entry_btn_remove_aria": "Susa lolu suku lokuphelelwa",
+  "entry_summary_one": "{entered} kwa-{total} iyunithi inosuku lokuphelelwa",
+  "entry_summary_other": "{entered} kwa-{total} amayunithi anezinsuku zokuphelelwa",
+  "entry_summary_all": "Wonke amayunithi angu-{total} anosuku lokuphelelwa.",
+  "entry_summary_remaining": "Ufake {entered} kwa-{total} amayunithi. Asalayo ({remaining}) ngeke abe nosuku lokuphelelwa.",
+  "entry_summary_over": "Ufake amayunithi amaningi kunenani lesitokhu."
+}

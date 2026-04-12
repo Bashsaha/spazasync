@@ -1,25 +1,29 @@
 {
-  "title": "Staff",
+  "title": "Tellers",
   "back": "\u2190 Back",
-  "btn_add": "Add",
+  "btn_add": "+ Add",
 
-  "empty": "No staff members yet. Tap Add to create one.",
+  "empty": "No tellers yet. Tap + Add to create one.",
   "has_login": "Has own login",
   "no_login": "No login",
   "btn_remove": "Remove",
-  "confirm_remove": "Remove this staff member? They will no longer be able to log in.",
+  "confirm_remove": "Remove {name} from your tellers?",
 
-  "add_title": "Add Staff Member",
-  "label_name": "Name",
-  "placeholder_name": "e.g. Sipho",
+  "add_title": "Add Teller",
+  "add_desc": "Give the teller their name and a password. They can log in on their own phone using your shop code, their name, and this password.",
+  "label_name": "Teller name",
+  "placeholder_name": "e.g. Maria",
   "label_password": "Password",
   "placeholder_password": "At least 6 characters",
-  "hint_password": "This is the password they will use to log in. Give it to them in person.",
-  "btn_create": "Create staff member",
+  "hint_password": "Share this password with the teller. They will use it to log in.",
+  "btn_create": "Add Teller",
   "btn_creating": "Creating\u2026",
 
   "msg_created": "Staff member created!",
   "msg_removed": "Staff member removed.",
-  "error_create": "Could not create. Try again.",
-  "error_remove": "Could not remove. Try again."
+  "error_load": "Could not load tellers",
+  "error_create": "Something went wrong",
+  "error_remove": "Could not remove teller.",
+  "error_generic": "Something went wrong.",
+  "error_network": "Something went wrong. Try again."
 }

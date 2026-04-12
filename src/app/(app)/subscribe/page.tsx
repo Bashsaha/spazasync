@@ -3,11 +3,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { SubscriptionInfo } from '@/types'
+import { useTranslation } from '@/components/LanguageProvider'
 
 export default function SubscribePage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const status = searchParams.get('status')
+  const { t, tPlural, locale } = useTranslation()
 
   const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null)
   const [loading, setLoading] = useState(true)
@@ -26,7 +28,6 @@ export default function SubscribePage() {
       .finally(() => setLoading(false))
   }, [])
 
-  // Auto-submit the PayFast form once checkout data is ready
   useEffect(() => {
     if (checkoutData && formRef.current) {
       formRef.current.submit()
@@ -39,19 +40,29 @@ export default function SubscribePage() {
       const res = await fetch('/api/subscribe/checkout', { method: 'POST' })
       if (!res.ok) {
         const err = await res.json()
-        alert(err.error || 'Something went wrong. Please try again.')
+        alert(err.error || t('subscribe_error_generic'))
         setSubmitting(false)
         return
       }
       const data = await res.json()
       setCheckoutData(data)
     } catch {
-      alert('Could not connect. Please check your internet and try again.')
+      alert(t('subscribe_error_connect'))
       setSubmitting(false)
     }
   }
 
-  // Success return from PayFast
+  const localeTag = locale === 'en' ? 'en-ZA' : locale
+
+  function formatDate(dateStr: string | null | undefined): string {
+    if (!dateStr) return t('subscribe_soon')
+    return new Date(dateStr).toLocaleDateString(localeTag, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  }
+
   if (status === 'success') {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-6">
@@ -61,22 +72,21 @@ export default function SubscribePage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Payment Successful</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('subscribe_success_title')}</h1>
           <p className="text-gray-600">
-            Your subscription is now active. You have full access to SpazaSync.
+            {t('subscribe_success_desc')}
           </p>
           <button
             onClick={() => router.push('/dashboard')}
             className="w-full rounded-xl bg-blue-600 py-3 text-white font-semibold hover:bg-blue-700 transition-colors"
           >
-            Go to Dashboard
+            {t('subscribe_btn_goto_dashboard')}
           </button>
         </div>
       </main>
     )
   }
 
-  // Cancelled return from PayFast
   if (status === 'cancelled') {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-6">
@@ -86,15 +96,15 @@ export default function SubscribePage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M12 3a9 9 0 100 18 9 9 0 000-18z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Payment Cancelled</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('subscribe_cancelled_title')}</h1>
           <p className="text-gray-600">
-            No worries — you can subscribe any time.
+            {t('subscribe_cancelled_desc')}
           </p>
           <button
             onClick={() => router.replace('/subscribe')}
             className="w-full rounded-xl bg-blue-600 py-3 text-white font-semibold hover:bg-blue-700 transition-colors"
           >
-            Try Again
+            {t('subscribe_btn_try_again')}
           </button>
         </div>
       </main>
@@ -120,17 +130,16 @@ export default function SubscribePage() {
   return (
     <main className="flex min-h-screen flex-col items-center p-6 pt-12">
       <div className="w-full max-w-sm space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900 text-center">Your Plan</h1>
+        <h1 className="text-2xl font-bold text-gray-900 text-center">{t('subscribe_page_title')}</h1>
 
-        {/* Status Card */}
         <div className="rounded-2xl bg-white p-6 shadow-sm border border-gray-100 space-y-3">
           {isTrialing && (
             <>
               <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
-                Free Trial
+                {t('sub_free_trial')}
               </span>
               <p className="text-gray-700">
-                You have <span className="font-bold">{subInfo!.daysRemaining} day{subInfo!.daysRemaining !== 1 ? 's' : ''}</span> left on your free trial.
+                {tPlural('subscribe_trial_days_left', subInfo!.daysRemaining!, { count: subInfo!.daysRemaining! })}
               </p>
             </>
           )}
@@ -138,19 +147,10 @@ export default function SubscribePage() {
           {isActive && (
             <>
               <span className="inline-block rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
-                Active
+                {t('sub_active')}
               </span>
               <p className="text-gray-700">
-                Your plan renews on{' '}
-                <span className="font-medium">
-                  {subInfo!.subscriptionEndsAt
-                    ? new Date(subInfo!.subscriptionEndsAt).toLocaleDateString('en-ZA', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })
-                    : 'soon'}
-                </span>
+                {t('subscribe_renews_on', { date: formatDate(subInfo!.subscriptionEndsAt) })}
               </p>
             </>
           )}
@@ -158,19 +158,10 @@ export default function SubscribePage() {
           {isCancelled && (
             <>
               <span className="inline-block rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-700">
-                Cancelled
+                {t('sub_cancelled')}
               </span>
               <p className="text-gray-700">
-                Your access ends on{' '}
-                <span className="font-medium">
-                  {subInfo!.subscriptionEndsAt
-                    ? new Date(subInfo!.subscriptionEndsAt).toLocaleDateString('en-ZA', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })
-                    : 'soon'}
-                </span>
+                {t('subscribe_access_ends', { date: formatDate(subInfo!.subscriptionEndsAt) })}
               </p>
             </>
           )}
@@ -178,60 +169,43 @@ export default function SubscribePage() {
           {isExpired && (
             <>
               <span className="inline-block rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-700">
-                Expired
+                {t('sub_expired')}
               </span>
               <p className="text-gray-700">
                 {subInfo?.status === 'trialing'
-                  ? 'Your free trial has ended.'
-                  : 'Your subscription has expired.'}
-                {' '}Subscribe to continue using SpazaSync.
+                  ? t('subscribe_trial_ended')
+                  : t('subscribe_expired_desc')}
+                {' '}{t('subscribe_expired_cta')}
               </p>
             </>
           )}
         </div>
 
-        {/* Pricing Card */}
         {!isActive && (
           <div className="rounded-2xl bg-white p-6 shadow-sm border border-gray-100 space-y-4">
             <div className="text-center">
-              <p className="text-sm text-gray-500 uppercase tracking-wide font-medium">SpazaSync Monthly</p>
+              <p className="text-sm text-gray-500 uppercase tracking-wide font-medium">{t('subscribe_price_title')}</p>
               <p className="mt-2">
                 <span className="text-4xl font-bold text-gray-900">R349.99</span>
-                <span className="text-gray-500">/month</span>
+                <span className="text-gray-500">{t('subscribe_price_month')}</span>
               </p>
             </div>
 
             <ul className="space-y-2 text-sm text-gray-600">
-              <li className="flex items-start gap-2">
-                <svg className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                Barcode scanning and sales
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                Stock management and stock take
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                Daily WhatsApp sales summary
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                Dashboard with charts and reports
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                Unlimited tellers
-              </li>
+              {[
+                'subscribe_feature_scan',
+                'subscribe_feature_stock',
+                'subscribe_feature_summary',
+                'subscribe_feature_dashboard',
+                'subscribe_feature_tellers',
+              ].map((key) => (
+                <li key={key} className="flex items-start gap-2">
+                  <svg className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  {t(key)}
+                </li>
+              ))}
             </ul>
 
             <button
@@ -239,27 +213,25 @@ export default function SubscribePage() {
               disabled={submitting}
               className="w-full rounded-xl bg-blue-600 py-3.5 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {submitting ? 'Redirecting to payment...' : 'Subscribe — R349.99/month'}
+              {submitting ? t('subscribe_btn_redirecting') : t('subscribe_btn_subscribe')}
             </button>
 
             <p className="text-center text-xs text-gray-400">
-              Pay with card, EFT, or SnapScan via PayFast
+              {t('subscribe_payment_methods')}
             </p>
           </div>
         )}
 
-        {/* Active subscription — link to settings */}
         {isActive && (
           <button
             onClick={() => router.push('/settings')}
             className="w-full rounded-xl bg-gray-100 py-3 text-gray-700 font-medium hover:bg-gray-200 transition-colors"
           >
-            Go to Settings
+            {t('subscribe_btn_goto_settings')}
           </button>
         )}
       </div>
 
-      {/* Hidden PayFast form — auto-submitted when checkout data is ready */}
       {checkoutData && (
         <form ref={formRef} action={checkoutData.action} method="POST" className="hidden">
           {Object.entries(checkoutData.params).map(([key, value]) => (

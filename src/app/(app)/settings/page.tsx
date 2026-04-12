@@ -20,7 +20,7 @@ interface ShopSettings {
 }
 
 export default function SettingsPage() {
-  const { locale, setLocale } = useTranslation()
+  const { t, tPlural, locale, setLocale } = useTranslation()
   const [settings, setSettings] = useState<ShopSettings | null>(null)
   const [name, setName] = useState('')
   const [threshold, setThreshold] = useState(5)
@@ -30,7 +30,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [downloading, setDownloading] = useState(false)
-  const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
+  const [message, setMessage] = useState<{ type: 'ok' | 'err'; key?: string; raw?: string } | null>(null)
 
   useEffect(() => {
     fetch('/api/settings')
@@ -43,7 +43,7 @@ export default function SettingsPage() {
         setLocation(data.location ?? '')
         if (data.language) setLanguage(data.language as SupportedLocale)
       })
-      .catch(() => setMessage({ type: 'err', text: 'Could not load settings.' }))
+      .catch(() => setMessage({ type: 'err', key: 'msg_load_failed' }))
       .finally(() => setLoading(false))
   }, [])
 
@@ -51,7 +51,6 @@ export default function SettingsPage() {
     setLanguage(newLang)
     setLocale(newLang)
 
-    // Auto-save language to server
     await fetch('/api/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -87,10 +86,11 @@ export default function SettingsPage() {
     if (res.ok) {
       const updated: ShopSettings = await res.json()
       setSettings(updated)
-      setMessage({ type: 'ok', text: 'Settings saved!' })
+      setMessage({ type: 'ok', key: 'msg_saved' })
     } else {
       const err = await res.json().catch(() => ({}))
-      setMessage({ type: 'err', text: (err as { error?: string }).error ?? 'Could not save. Try again.' })
+      const raw = (err as { error?: string }).error
+      setMessage({ type: 'err', key: raw ? undefined : 'msg_save_failed', raw })
     }
   }
 
@@ -100,7 +100,8 @@ export default function SettingsPage() {
       const res = await fetch('/api/reports/compliance-pdf')
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        setMessage({ type: 'err', text: (err as { error?: string }).error ?? 'Could not generate report.' })
+        const raw = (err as { error?: string }).error
+        setMessage({ type: 'err', key: raw ? undefined : 'msg_report_failed', raw })
         return
       }
       const blob = await res.blob()
@@ -113,7 +114,7 @@ export default function SettingsPage() {
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
     } catch {
-      setMessage({ type: 'err', text: 'Could not download report. Try again.' })
+      setMessage({ type: 'err', key: 'msg_download_failed' })
     } finally {
       setDownloading(false)
     }
@@ -122,28 +123,39 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
-        <p className="text-gray-400 text-sm">Loading…</p>
+        <p className="text-gray-400 text-sm">{t('loading')}</p>
       </main>
     )
+  }
+
+  const messageText = message?.raw || (message?.key ? t(message.key) : '')
+
+  const statusLabel = (status: string): string => {
+    switch (status) {
+      case 'trialing': return t('sub_free_trial')
+      case 'active': return t('sub_active')
+      case 'cancelled': return t('sub_cancelled')
+      default: return t('sub_expired')
+    }
   }
 
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
       <a href="/dashboard" className="text-sm text-blue-600 mb-6 inline-block">
-        ← Back
+        {t('back')}
       </a>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Settings</h1>
-      <p className="text-sm text-gray-400 mb-6">Update your shop details</p>
+      <h1 className="text-2xl font-bold text-gray-900 mb-1">{t('title')}</h1>
+      <p className="text-sm text-gray-400 mb-6">{t('subtitle')}</p>
 
-      {/* Compliance report — at the top for quick access */}
+      {/* Compliance report */}
       <div id="compliance" className="bg-indigo-50 border border-indigo-100 rounded-2xl px-4 py-4 mb-6">
         <div className="flex items-start gap-3 mb-3">
           <span className="text-2xl">📋</span>
           <div>
-            <p className="font-bold text-indigo-900">Compliance Report</p>
+            <p className="font-bold text-indigo-900">{t('compliance_title')}</p>
             <p className="text-sm text-indigo-700 mt-0.5">
-              If a health inspector visits your shop, show them this PDF. It has your full stock list, expiry dates, and 30 days of sales — everything they need to see.
+              {t('compliance_desc')}
             </p>
           </div>
         </div>
@@ -153,13 +165,13 @@ export default function SettingsPage() {
           disabled={downloading}
           className="w-full bg-indigo-600 text-white font-semibold rounded-xl py-3 text-sm active:bg-indigo-700 disabled:opacity-50"
         >
-          {downloading ? 'Generating your report…' : 'Download Report PDF'}
+          {downloading ? t('btn_generating_report') : t('btn_download_report')}
         </button>
       </div>
 
       {/* Language */}
       <div className="bg-white border border-gray-100 rounded-2xl px-4 py-4 mb-6">
-        <p className="text-sm font-medium text-gray-700 mb-3">Language</p>
+        <p className="text-sm font-medium text-gray-700 mb-3">{t('language_title')}</p>
         <LanguagePicker value={language} onChange={handleLanguageChange} variant="compact" />
       </div>
 
@@ -171,7 +183,7 @@ export default function SettingsPage() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-400 mb-1">Subscription</p>
+              <p className="text-xs text-gray-400 mb-1">{t('subscription_label')}</p>
               <div className="flex items-center gap-2">
                 <span
                   className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -184,13 +196,7 @@ export default function SettingsPage() {
                           : 'bg-red-100 text-red-700'
                   }`}
                 >
-                  {settings.subscription_status === 'trialing'
-                    ? 'Free Trial'
-                    : settings.subscription_status === 'active'
-                      ? 'Active'
-                      : settings.subscription_status === 'cancelled'
-                        ? 'Cancelled'
-                        : 'Expired'}
+                  {statusLabel(settings.subscription_status)}
                 </span>
                 {(() => {
                   const endDate =
@@ -199,16 +205,17 @@ export default function SettingsPage() {
                       : settings.subscription_ends_at
                   if (!endDate) return null
                   const days = Math.max(0, Math.ceil((new Date(endDate).getTime() - Date.now()) / (24 * 60 * 60 * 1000)))
+                  const localeTag = locale === 'en' ? 'en-ZA' : locale
                   if (settings.subscription_status === 'active') {
                     return (
                       <span className="text-xs text-gray-400">
-                        Renews {new Date(endDate).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
+                        {t('sub_renews', { date: new Date(endDate).toLocaleDateString(localeTag, { day: 'numeric', month: 'short' }) })}
                       </span>
                     )
                   }
                   return (
                     <span className="text-xs text-gray-400">
-                      {days} day{days !== 1 ? 's' : ''} left
+                      {tPlural('sub_days_left', days, { count: days })}
                     </span>
                   )
                 })()}
@@ -219,22 +226,21 @@ export default function SettingsPage() {
         </a>
       )}
 
-      {/* Shop code — read only */}
+      {/* Shop code */}
       <div className="bg-gray-50 rounded-2xl px-4 py-3 mb-6 flex items-center justify-between">
         <div>
-          <p className="text-xs text-gray-400">Your shop code</p>
+          <p className="text-xs text-gray-400">{t('shop_code_label')}</p>
           <p className="font-mono font-bold text-blue-600 text-lg">{settings?.code}</p>
         </div>
         <p className="text-xs text-gray-300 text-right max-w-[140px]">
-          Tellers use this to log in. It cannot be changed.
+          {t('shop_code_hint')}
         </p>
       </div>
 
       <form onSubmit={handleSave} className="space-y-5">
-        {/* Shop name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Shop name
+            {t('label_shop_name')}
           </label>
           <input
             type="text"
@@ -243,14 +249,13 @@ export default function SettingsPage() {
             required
             maxLength={100}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
-            placeholder="e.g. Cape Town Corner Shop"
+            placeholder={t('placeholder_shop_name')}
           />
         </div>
 
-        {/* Registration number */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Registration number <span className="text-gray-400 font-normal">(optional)</span>
+            {t('label_reg_number')} <span className="text-gray-400 font-normal">{t('label_optional')}</span>
           </label>
           <input
             type="text"
@@ -258,17 +263,16 @@ export default function SettingsPage() {
             onChange={(e) => setRegNumber(e.target.value)}
             maxLength={100}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
-            placeholder="e.g. CIPC or municipal reg number"
+            placeholder={t('placeholder_reg_number')}
           />
           <p className="text-xs text-gray-400 mt-1">
-            Your CIPC or municipal registration number. Shows on compliance reports.
+            {t('hint_reg_number')}
           </p>
         </div>
 
-        {/* Location */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Location <span className="text-gray-400 font-normal">(optional)</span>
+            {t('label_location')} <span className="text-gray-400 font-normal">{t('label_optional')}</span>
           </label>
           <input
             type="text"
@@ -276,17 +280,16 @@ export default function SettingsPage() {
             onChange={(e) => setLocation(e.target.value)}
             maxLength={200}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
-            placeholder="e.g. 12 Main Rd, Khayelitsha, Cape Town"
+            placeholder={t('placeholder_location')}
           />
           <p className="text-xs text-gray-400 mt-1">
-            Your shop address. Shows on compliance reports.
+            {t('hint_location')}
           </p>
         </div>
 
-        {/* Low stock threshold */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Warn me when a product has fewer than
+            {t('label_threshold')}
           </label>
           <div className="flex items-center gap-3">
             <input
@@ -297,20 +300,19 @@ export default function SettingsPage() {
               max={9999}
               className="w-24 border border-gray-200 rounded-xl px-4 py-3 text-sm text-center focus:outline-none focus:border-blue-500"
             />
-            <span className="text-sm text-gray-500">left in stock</span>
+            <span className="text-sm text-gray-500">{t('threshold_suffix')}</span>
           </div>
         </div>
 
-        {/* Feedback message */}
-        {message && (
+        {messageText && (
           <p
             className={`text-sm rounded-xl px-4 py-3 ${
-              message.type === 'ok'
+              message?.type === 'ok'
                 ? 'bg-green-50 text-green-700'
                 : 'bg-red-50 text-red-700'
             }`}
           >
-            {message.text}
+            {messageText}
           </p>
         )}
 
@@ -319,7 +321,7 @@ export default function SettingsPage() {
           disabled={saving}
           className="w-full bg-blue-600 text-white font-semibold rounded-2xl py-4 text-base active:bg-blue-700 disabled:opacity-50"
         >
-          {saving ? 'Saving…' : 'Save settings'}
+          {saving ? t('btn_saving') : t('btn_save')}
         </button>
       </form>
     </main>

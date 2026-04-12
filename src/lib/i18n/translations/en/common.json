@@ -38,5 +38,12 @@
   "offline_banner_pending_other": "{count} sales waiting to sync\u2026",
 
   "sw_update_available": "A new version is available",
-  "sw_reload": "Reload"
+  "sw_reload": "Reload",
+
+  "error_page_title": "Something went wrong",
+  "error_page_desc": "The app hit an unexpected error. Your sales and stock data are safe.",
+  "error_btn_try_again": "Try again",
+  "not_found_title": "Page not found",
+  "not_found_desc": "We could not find what you were looking for.",
+  "btn_goto_dashboard": "Go to Dashboard"
 }

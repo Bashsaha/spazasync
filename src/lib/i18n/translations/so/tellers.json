@@ -1,0 +1,29 @@
+{
+  "title": "Shaqaalaha",
+  "back": "← Dib",
+  "btn_add": "+ Ku dar",
+
+  "empty": "Weli shaqaale ma jiraan. Riix + Ku dar si aad u abuurto.",
+  "has_login": "Waxay leedahay gal u gaar ah",
+  "no_login": "Gal ma leh",
+  "btn_remove": "Ka saar",
+  "confirm_remove": "Ka saar {name} shaqaalahaaga?",
+
+  "add_title": "Ku dar Shaqaale",
+  "add_desc": "Sii shaqaaluhu magaciisa iyo furaha sirta. Waxay ku gali karaan taleefankooda adoo isticmaalaya koodhka dukaanka, magacooda, iyo furaha sirtan.",
+  "label_name": "Magaca shaqaalaha",
+  "placeholder_name": "tusaale Maria",
+  "label_password": "Furaha sirta",
+  "placeholder_password": "Ugu yaraan 6 xaraf",
+  "hint_password": "La wadaag furaha sirta shaqaalaha. Waxay ku isticmaali doonaan galitaanka.",
+  "btn_create": "Ku dar Shaqaale",
+  "btn_creating": "Abuuraya…",
+
+  "msg_created": "Shaqaale waa la abuuray!",
+  "msg_removed": "Shaqaale waa la saaray.",
+  "error_load": "Shaqaalihii lama soo shubin",
+  "error_create": "Wax baa qaldamay",
+  "error_remove": "Shaqaalihii lama saarin.",
+  "error_generic": "Wax baa qaldamay.",
+  "error_network": "Wax baa qaldamay. Isku day mar kale."
+}

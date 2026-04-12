@@ -1,0 +1,29 @@
+{
+  "title": "Abathengisi",
+  "back": "← Emuva",
+  "btn_add": "+ Engeza",
+
+  "empty": "Abekho abathengisi okwamanje. Thepha + Engeza ukudala oyedwa.",
+  "has_login": "Unokungena kwakhe",
+  "no_login": "Akukho ukungena",
+  "btn_remove": "Susa",
+  "confirm_remove": "Susa u-{name} kubathengisi bakho?",
+
+  "add_title": "Engeza Umthengisi",
+  "add_desc": "Nika umthengisi igama lakhe nephasiwedi. Bangakwazi ukungena ocingweni lwabo besebenzisa ikhodi yesitolo sakho, igama labo, nalephasiwedi.",
+  "label_name": "Igama lomthengisi",
+  "placeholder_name": "isb. Maria",
+  "label_password": "Iphasiwedi",
+  "placeholder_password": "Okungenani izinhlamvu ezi-6",
+  "hint_password": "Yabelana ngephasiwedi nomthengisi. Uzoyisebenzisa ukungena.",
+  "btn_create": "Engeza Umthengisi",
+  "btn_creating": "Kuyadalwa…",
+
+  "msg_created": "Isisebenzi sidaliwe!",
+  "msg_removed": "Isisebenzi sisusiwe.",
+  "error_load": "Ayikwazanga ukulayisha abathengisi",
+  "error_create": "Kukhona okungalungile",
+  "error_remove": "Ayikwazanga ukususa umthengisi.",
+  "error_generic": "Kukhona okungalungile.",
+  "error_network": "Kukhona okungalungile. Zama futhi."
+}

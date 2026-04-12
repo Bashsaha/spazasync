@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslation } from '@/components/LanguageProvider'
+
 interface ExpiryEntry {
   expiry_date: string
   quantity: string
@@ -8,15 +10,11 @@ interface ExpiryEntry {
 interface ExpiryEntryListProps {
   entries: ExpiryEntry[]
   onChange: (entries: ExpiryEntry[]) => void
-  /** The total stock quantity the entries should add up to. */
   totalStockQty: number
 }
 
-/**
- * Repeatable expiry date + quantity rows.
- * Used in all product creation flows + stock adjust (add mode).
- */
 export function ExpiryEntryList({ entries, onChange, totalStockQty }: ExpiryEntryListProps) {
+  const { t } = useTranslation()
   const today = new Date().toISOString().split('T')[0]
 
   const entryTotal = entries.reduce((sum, e) => {
@@ -46,7 +44,7 @@ export function ExpiryEntryList({ entries, onChange, totalStockQty }: ExpiryEntr
           <div className="flex-1">
             {i === 0 && (
               <label className="block text-xs font-medium text-gray-500 mb-1">
-                When does it expire?
+                {t('entry_label_date')}
               </label>
             )}
             <input
@@ -60,7 +58,7 @@ export function ExpiryEntryList({ entries, onChange, totalStockQty }: ExpiryEntr
           <div className="w-24">
             {i === 0 && (
               <label className="block text-xs font-medium text-gray-500 mb-1">
-                How many?
+                {t('entry_label_qty')}
               </label>
             )}
             <input
@@ -77,7 +75,7 @@ export function ExpiryEntryList({ entries, onChange, totalStockQty }: ExpiryEntr
             type="button"
             onClick={() => removeEntry(i)}
             className={`text-red-400 active:text-red-600 text-lg font-bold px-1 ${i === 0 ? 'mt-6' : 'mt-1'}`}
-            aria-label="Remove this expiry date"
+            aria-label={t('entry_btn_remove_aria')}
           >
             ✕
           </button>
@@ -89,26 +87,24 @@ export function ExpiryEntryList({ entries, onChange, totalStockQty }: ExpiryEntr
         onClick={addEntry}
         className="text-sm font-semibold text-blue-600 active:text-blue-700"
       >
-        + Add another expiry date
+        {t('entry_btn_add')}
       </button>
 
-      {/* Summary */}
       {totalStockQty > 0 && entries.length > 0 && (
         <div className="text-xs mt-1">
           {remaining > 0 && (
             <p className="text-gray-400">
-              You&apos;ve entered {entryTotal} out of {totalStockQty} units.
-              The rest ({remaining}) won&apos;t have an expiry date.
+              {t('entry_summary_remaining', { entered: entryTotal, total: totalStockQty, remaining })}
             </p>
           )}
           {remaining === 0 && (
             <p className="text-green-600">
-              All {totalStockQty} units have an expiry date.
+              {t('entry_summary_all', { total: totalStockQty })}
             </p>
           )}
           {remaining < 0 && (
             <p className="text-red-600">
-              You&apos;ve entered more units than the stock amount.
+              {t('entry_summary_over')}
             </p>
           )}
         </div>

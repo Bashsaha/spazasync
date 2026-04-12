@@ -3,15 +3,18 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Product } from '@/types'
+import { useTranslation } from '@/components/LanguageProvider'
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
+  const { t } = useTranslation()
   const [productId, setProductId] = useState<string>('')
   const [product, setProduct] = useState<Product | null>(null)
   const [form, setForm] = useState({ name: '', price: '', stock_qty: '' })
-  const [error, setError] = useState('')
+  const [errorKey, setErrorKey] = useState('')
+  const [errorRaw, setErrorRaw] = useState('')
   const [loading, setLoading] = useState(false)
-  const [loadError, setLoadError] = useState('')
+  const [loadError, setLoadError] = useState(false)
 
   useEffect(() => {
     params.then(({ id }) => {
@@ -22,13 +25,14 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           setProduct(data)
           setForm({ name: data.name, price: String(data.price), stock_qty: String(data.stock_qty) })
         })
-        .catch(() => setLoadError('Could not load product.'))
+        .catch(() => setLoadError(true))
     })
   }, [params])
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
-    setError('')
+    setErrorKey('')
+    setErrorRaw('')
     setLoading(true)
     try {
       const res = await fetch(`/api/products/${productId}`, {
@@ -42,29 +46,30 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error ?? 'Something went wrong')
+        if (data.error) setErrorRaw(data.error)
+        else setErrorKey('error_generic')
         return
       }
       router.push('/products')
     } catch {
-      setError('Something went wrong. Try again.')
+      setErrorKey('error_network')
     } finally {
       setLoading(false)
     }
   }
 
   async function handleDelete() {
-    if (!confirm('Delete this product? This cannot be undone.')) return
+    if (!confirm(t('confirm_delete'))) return
     setLoading(true)
     try {
       const res = await fetch(`/api/products/${productId}`, { method: 'DELETE' })
       if (!res.ok) {
-        setError('Could not delete product.')
+        setErrorKey('error_delete')
         return
       }
       router.push('/products')
     } catch {
-      setError('Something went wrong. Try again.')
+      setErrorKey('error_network')
     } finally {
       setLoading(false)
     }
@@ -73,7 +78,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   if (loadError) {
     return (
       <main className="px-4 pt-10 max-w-lg mx-auto">
-        <p className="text-red-500">{loadError}</p>
+        <p className="text-red-500">{t('edit_error_load')}</p>
       </main>
     )
   }
@@ -81,27 +86,29 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   if (!product) {
     return (
       <main className="px-4 pt-10 max-w-lg mx-auto">
-        <p className="text-gray-400 text-sm">Loading…</p>
+        <p className="text-gray-400 text-sm">{t('edit_loading')}</p>
       </main>
     )
   }
+
+  const errorMessage = errorRaw || (errorKey ? t(errorKey) : '')
 
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => router.back()} className="text-gray-400 active:text-gray-600 text-sm">
-          ← Back
+          {t('back')}
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">Edit Product</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('edit_title')}</h1>
       </div>
 
       <p className="text-xs text-gray-400 font-mono mb-6">
-        {product.barcode ? `Barcode: ${product.barcode}` : 'No barcode'}
+        {product.barcode ? t('edit_barcode_prefix', { barcode: product.barcode }) : t('no_barcode')}
       </p>
 
       <form onSubmit={handleSave} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Product name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_name')}</label>
           <input
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
@@ -111,7 +118,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Price (ZAR)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_price')}</label>
           <input
             type="number"
             inputMode="decimal"
@@ -125,7 +132,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Stock quantity</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_stock_qty')}</label>
           <input
             type="number"
             inputMode="numeric"
@@ -137,14 +144,14 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           />
         </div>
 
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+        {errorMessage && <p className="text-red-600 text-sm">{errorMessage}</p>}
 
         <button
           type="submit"
           disabled={loading}
           className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 min-h-[48px]"
         >
-          {loading ? 'Saving…' : 'Save Changes'}
+          {loading ? t('btn_saving') : t('btn_save_changes')}
         </button>
       </form>
 
@@ -154,7 +161,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           disabled={loading}
           className="w-full text-red-500 font-semibold py-3 text-sm active:text-red-700 disabled:opacity-50"
         >
-          Delete Product
+          {t('btn_delete_product')}
         </button>
       </div>
     </main>

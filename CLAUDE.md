@@ -388,11 +388,15 @@ All phases 1–26 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
   - **27c.2 Remaining client + dashboard tree:** translated stock/[id]/page.tsx (Adjust Stock: REASONS→REASON_KEYS const, tPlural for button labels + batch counts, errorKey/errorRaw state pairs), stock-take/page.tsx, BottomNav.tsx (labelKey field), OfflineBanner.tsx (converted to `'use client'`, 4 plural variants), DailySummaryAlert.tsx; dashboard: page.tsx calls `getServerLocale()` once and passes `locale` prop to each Suspense child; all 6 server children parallelize data + `getServerTranslations()` via `Promise.all`; expanded `en/stock.json` to ~140 keys covering adjust + stock-take; fixed `en/common.json` + `en/summary.json` plural suffixes (`_one`/`_other`) to match the simple interpolator contract
   - **27c.3 Published 16 translation JSONs:** `{so,am,zu,ur}/{sale,dashboard,stock,summary}.json` mirror English key sets exactly; also backfilled `{so,am,zu,ur}/common.json` with the split `offline_banner_offline_pending_one/_other` + `dismiss` keys. Verification: `tsc --noEmit` clean, `vitest run` 156/156 green
 
-- [ ] Phase 27d: Translate Remaining Pages + RTL Support
-  - Replace strings in products, tellers, expiry, settings, subscribe, error pages
-  - RTL support for Urdu: dir="rtl" on html, logical Tailwind properties, directional icon flips
-  - Translation JSONs: {so,am,zu,ur}/products.json + tellers.json + expiry.json + settings.json (16 files)
-  - Compliance PDF stays English-only (regulatory requirement)
+- [x] Phase 27d: Translate Remaining Pages + RTL Foundation
+  - **English namespace expansions:** `en/products.json` grew to ~57 keys (added `btn_scan_aria`, `empty_search`/`empty_no_search`, `edit_barcode_prefix`, `edit_loading`, `edit_error_load`, `btn_save_changes`, `error_expiry_partial`, full `import_*` set). `en/tellers.json` ~25 keys (`confirm_remove: "Remove {name}..."`, `has_login`/`no_login`, `add_desc`, `hint_password`). `en/expiry.json` gained `badge_tracked`, `total_stock`, `summary_*`, `empty_title`/`subtitle`, `expired_warning`, relative-date keys (`rel_yesterday`/`today`/`tomorrow`/`days_ago_other`/`in_days`/`in_weeks_one`/`other`), all `entry_*` labels. `en/settings.json` gained ~30 `subscribe_*` keys covering trial/active/cancelled/expired states, feature list, success/cancelled screens, PayFast error messages. `en/common.json` gained `error_page_title`/`desc`, `not_found_title`/`desc`, `btn_goto_dashboard`, `error_btn_try_again`.
+  - **Client component translations:** `products/new/page.tsx`, `products/[id]/page.tsx`, `tellers/page.tsx` (renamed `t` map variable to `teller` to avoid shadowing), `tellers/new/page.tsx`, `subscribe/page.tsx` (features rendered via `.map()` over key array; `tPlural('subscribe_trial_days_left', ...)`; `formatDate` falls back to `t('subscribe_soon')`), `settings/page.tsx` (introduced `statusLabel(status)` switch helper + `message: { type; key?; raw? }` shape with `messageText = raw || (key ? t(key) : '')`), `expiry/page.tsx` (module-level `groupConfig` → `groupColors` keyed by `labelKey`; extracted `formatExpiryLabel` into `useRelativeExpiryLabel()` hook closing over `t`/`tPlural`/`locale`; `errorKey` state pattern), `ExpiryEntryList.tsx` (converted to `'use client'`), `CatalogImportSheet.tsx`, `BarcodeScanButton.tsx`, `app/(app)/error.tsx`.
+  - **Server component translations:** `products/page.tsx` rewritten as server component using `Promise.all([listProducts(search), getServerTranslations(locale, ['products'])])` (matches dashboard pattern). `not-found.tsx` converted to async server component — `getServerLocale()` falls back safely to `en` when no auth.
+  - **Layout namespaces:** `app/(app)/layout.tsx` expanded preload to `['common', 'sale', 'dashboard', 'stock', 'summary', 'products', 'tellers', 'expiry', 'settings']` so all client pages have translations available without per-route loading.
+  - **RTL foundation:** `dir="rtl"` already set on `<html>` by `LanguageProvider` when Urdu is selected. Deep Tailwind `ml-`/`mr-` → `ms-`/`me-` class audit deferred to Phase 27e (tailwind v4 supports logical properties natively, but the codebase has ~100+ directional utility uses; changing them without visual QA risks breaking LTR layout).
+  - **Global error.tsx left in English intentionally:** it renders its own `<html><body>` root and may fire when `LanguageProvider` itself fails — hardcoded English is the defensive fallback.
+  - **Published 16 translation JSONs:** `{so,am,zu,ur}/{products,tellers,expiry,settings}.json` mirror the English key set exactly. Compliance PDF remains English-only (regulatory requirement).
+  - Verification: `tsc --noEmit` clean, `vitest run` 156/156 green.
 
 - [ ] Phase 27e: Polish, Offline Hardening, Tests
   - Font support: Noto Sans Ethiopic (Amharic), Noto Nastaliq Urdu (Urdu) — hosted in /public/fonts/
@@ -404,7 +408,7 @@ All phases 1–26 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
 
 ## Current File Tree
 
-_Last updated: Phase 27c (2026-04-12)_
+_Last updated: Phase 27d (2026-04-12)_
 
 ```
 spaza shop/
@@ -618,10 +622,10 @@ spaza shop/
 │   │   │       ├── en/                    # English namespace files (10 JSON files)
 │   │   │       │   ├── common.json, auth.json, sale.json, dashboard.json, settings.json
 │   │   │       │   └── stock.json, products.json, tellers.json, expiry.json, summary.json
-│   │   │       ├── so/                    # Somali (common, auth, sale, dashboard, stock, summary)
-│   │   │       ├── am/                    # Amharic (common, auth, sale, dashboard, stock, summary)
-│   │   │       ├── zu/                    # IsiZulu (common, auth, sale, dashboard, stock, summary)
-│   │   │       └── ur/                    # Urdu   (common, auth, sale, dashboard, stock, summary)
+│   │   │       ├── so/                    # Somali  (common, auth, sale, dashboard, stock, summary, products, tellers, expiry, settings)
+│   │   │       ├── am/                    # Amharic (common, auth, sale, dashboard, stock, summary, products, tellers, expiry, settings)
+│   │   │       ├── zu/                    # IsiZulu (common, auth, sale, dashboard, stock, summary, products, tellers, expiry, settings)
+│   │   │       └── ur/                    # Urdu    (common, auth, sale, dashboard, stock, summary, products, tellers, expiry, settings)
 │   │   ├── validation/
 │   │   │   └── schemas.ts                 # All Zod schemas
 │   │   └── utils/

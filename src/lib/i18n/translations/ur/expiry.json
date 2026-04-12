@@ -1,0 +1,52 @@
+{
+  "title": "ختم ہونے کی تاریخیں",
+  "back": "← واپس",
+
+  "group_expired": "ختم ہو چکا",
+  "group_expiring_soon": "جلد ختم ہو رہا ہے",
+  "group_ok": "ٹھیک",
+
+  "badge_expired": "ختم",
+  "badge_expiring_soon": "ختم ہو رہا ہے",
+  "badge_ok": "ٹھیک",
+  "badge_tracked": "{count} ٹریک شدہ",
+
+  "btn_remove_expired": "ختم شدہ اسٹاک ہٹائیں",
+  "btn_manage_stock": "اسٹاک منظم کریں",
+
+  "expires_on": "{date} کو ختم ہو گا",
+  "expired_on": "{date} کو ختم ہوا",
+  "qty": "{count} یونٹ",
+  "total_stock": "کل اسٹاک: {count} یونٹ",
+
+  "summary_expired": "ختم",
+  "summary_expiring": "ختم ہو رہا ہے",
+  "summary_ok": "ٹھیک",
+
+  "loading": "ختم ہونے کی تاریخیں لوڈ ہو رہی ہیں…",
+  "error_load": "ختم ہونے کا ڈیٹا لوڈ نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
+
+  "empty": "کوئی ختم ہونے کی تاریخیں ٹریک نہیں کی گئیں۔ جب آپ اسٹاک حاصل کریں تو ختم ہونے کی تاریخیں شامل کریں۔",
+  "empty_title": "ابھی تک کوئی مصنوعات ختم ہونے کی تاریخوں کے ساتھ ٹریک نہیں کی گئیں۔",
+  "empty_subtitle": "جب آپ نیا اسٹاک حاصل کریں تو ختم ہونے کی تاریخیں شامل کریں۔",
+
+  "expired_warning": "ان اشیاء کی استعمال کی تاریخ گزر چکی ہے اور انہیں فروخت سے ہٹایا جانا چاہیے۔",
+
+  "rel_yesterday": "کل",
+  "rel_today": "آج",
+  "rel_tomorrow": "کل",
+  "rel_days_ago_other": "{count} دن پہلے",
+  "rel_in_days": "{count} دنوں میں",
+  "rel_in_weeks_one": "{count} ہفتے میں",
+  "rel_in_weeks_other": "{count} ہفتوں میں",
+
+  "entry_label_date": "یہ کب ختم ہو گا؟",
+  "entry_label_qty": "کتنے؟",
+  "entry_btn_add": "+ ایک اور ختم ہونے کی تاریخ شامل کریں",
+  "entry_btn_remove_aria": "یہ ختم ہونے کی تاریخ ہٹائیں",
+  "entry_summary_one": "{total} میں سے {entered} یونٹ کی ختم ہونے کی تاریخ ہے",
+  "entry_summary_other": "{total} میں سے {entered} یونٹس کی ختم ہونے کی تاریخیں ہیں",
+  "entry_summary_all": "تمام {total} یونٹس کی ختم ہونے کی تاریخ ہے۔",
+  "entry_summary_remaining": "آپ نے {total} میں سے {entered} یونٹس درج کیے ہیں۔ باقی ({remaining}) کی ختم ہونے کی تاریخ نہیں ہو گی۔",
+  "entry_summary_over": "آپ نے اسٹاک کی مقدار سے زیادہ یونٹس درج کیے ہیں۔"
+}

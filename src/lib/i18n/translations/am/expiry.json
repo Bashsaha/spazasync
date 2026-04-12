@@ -1,0 +1,52 @@
+{
+  "title": "የማብቂያ ቀኖች",
+  "back": "← ተመለስ",
+
+  "group_expired": "ጊዜው አልፎበታል",
+  "group_expiring_soon": "በቅርብ ጊዜ ያበቃል",
+  "group_ok": "መልካም",
+
+  "badge_expired": "ጊዜው አልፎበታል",
+  "badge_expiring_soon": "እያበቃ",
+  "badge_ok": "መልካም",
+  "badge_tracked": "{count} እየተከታተለ",
+
+  "btn_remove_expired": "ጊዜው ያለፈበት ስቶክ አስወግድ",
+  "btn_manage_stock": "ስቶክ አስተዳድር",
+
+  "expires_on": "በ {date} ያበቃል",
+  "expired_on": "በ {date} ጊዜው አልፎበታል",
+  "qty": "{count} ቁርጥራጭ",
+  "total_stock": "ጠቅላላ ስቶክ: {count} ቁርጥራጭ",
+
+  "summary_expired": "ጊዜው አልፎበታል",
+  "summary_expiring": "እያበቃ",
+  "summary_ok": "መልካም",
+
+  "loading": "የማብቂያ ቀኖችን በመጫን ላይ…",
+  "error_load": "የማብቂያ ውሂብን መጫን አልተቻለም። እንደገና ይሞክሩ።",
+
+  "empty": "የማብቂያ ቀኖች የተከታተሉ የሉም። አዲስ ስቶክ ሲቀበሉ የማብቂያ ቀኖችን ያክሉ።",
+  "empty_title": "ገና የማብቂያ ቀኖች የተከታተሉ ምርቶች የሉም።",
+  "empty_subtitle": "አዲስ ስቶክ ሲቀበሉ የማብቂያ ቀኖችን ያክሉ።",
+
+  "expired_warning": "እነዚህ እቃዎች የመጠቀሚያ ቀን አልፎባቸዋል እና ከሽያጭ መወገድ አለባቸው።",
+
+  "rel_yesterday": "ትናንት",
+  "rel_today": "ዛሬ",
+  "rel_tomorrow": "ነገ",
+  "rel_days_ago_other": "ከ{count} ቀናት በፊት",
+  "rel_in_days": "በ{count} ቀናት ውስጥ",
+  "rel_in_weeks_one": "በ{count} ሳምንት ውስጥ",
+  "rel_in_weeks_other": "በ{count} ሳምንታት ውስጥ",
+
+  "entry_label_date": "መቼ ያበቃል?",
+  "entry_label_qty": "ስንት?",
+  "entry_btn_add": "+ ሌላ የማብቂያ ቀን ጨምር",
+  "entry_btn_remove_aria": "ይህን የማብቂያ ቀን አስወግድ",
+  "entry_summary_one": "{entered} ከ {total} ቁርጥራጭ የማብቂያ ቀን አለው",
+  "entry_summary_other": "{entered} ከ {total} ቁርጥራጮች የማብቂያ ቀኖች አሏቸው",
+  "entry_summary_all": "ሁሉም {total} ቁርጥራጮች የማብቂያ ቀን አላቸው።",
+  "entry_summary_remaining": "ከ {total} ቁርጥራጮች {entered} አስገብተዋል። የተቀሩት ({remaining}) የማብቂያ ቀን አይኖራቸውም።",
+  "entry_summary_over": "ከስቶክ መጠን በላይ ቁርጥራጮች አስገብተዋል።"
+}

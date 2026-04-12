@@ -1,0 +1,29 @@
+{
+  "title": "ሻጮች",
+  "back": "← ተመለስ",
+  "btn_add": "+ አክል",
+
+  "empty": "ገና ሻጮች የሉም። + አክል ን ይጫኑ አንዱን ለመፍጠር።",
+  "has_login": "የራሱ መግቢያ አለው",
+  "no_login": "መግቢያ የለም",
+  "btn_remove": "አስወግድ",
+  "confirm_remove": "{name} ን ከሻጮችዎ ያስወግዱ?",
+
+  "add_title": "ሻጭ ጨምር",
+  "add_desc": "ለሻጩ ስሙን እና የይለፍ ቃል ይስጡት። የመደብር ኮድዎን፣ ስማቸውን እና ይህን የይለፍ ቃል በመጠቀም በራሳቸው ስልክ መግባት ይችላሉ።",
+  "label_name": "የሻጭ ስም",
+  "placeholder_name": "ለምሳሌ Maria",
+  "label_password": "የይለፍ ቃል",
+  "placeholder_password": "ቢያንስ 6 ቁምፊዎች",
+  "hint_password": "ይህን የይለፍ ቃል ለሻጩ ያጋሩ። ለመግባት ይጠቀሙበታል።",
+  "btn_create": "ሻጭ ጨምር",
+  "btn_creating": "በመፍጠር ላይ…",
+
+  "msg_created": "ሰራተኛ ተፈጥሯል!",
+  "msg_removed": "ሰራተኛ ተወግዷል።",
+  "error_load": "ሻጮችን መጫን አልተቻለም",
+  "error_create": "የሆነ ችግር ተፈጥሯል",
+  "error_remove": "ሻጩን ማስወገድ አልተቻለም።",
+  "error_generic": "የሆነ ችግር ተፈጥሯል።",
+  "error_network": "የሆነ ችግር ተፈጥሯል። እንደገና ይሞክሩ።"
+}

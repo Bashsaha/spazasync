@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from '@/components/LanguageProvider'
 
 interface CatalogItem {
   barcode: string
@@ -10,6 +11,7 @@ interface CatalogItem {
 }
 
 export function CatalogImportSheet() {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const [items, setItems] = useState<CatalogItem[]>([])
   const [loading, setLoading] = useState(false)
@@ -56,37 +58,35 @@ export function CatalogImportSheet() {
         onClick={() => setIsOpen(true)}
         className="text-sm font-semibold text-blue-600 border border-blue-300 px-3 py-2 rounded-xl active:bg-blue-50"
       >
-        Import from catalog
+        {t('import_btn_open')}
       </button>
 
       {isOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-end">
           <div className="bg-white w-full rounded-t-2xl px-4 pt-5 pb-8 max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900">Pick a product to import</h2>
+              <h2 className="text-lg font-bold text-gray-900">{t('import_sheet_title')}</h2>
               <button
                 onClick={close}
                 className="text-gray-400 text-sm font-medium active:text-gray-600"
               >
-                Close
+                {t('import_btn_close')}
               </button>
             </div>
 
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name or barcode..."
+              placeholder={t('import_search_placeholder')}
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
 
             <div className="overflow-y-auto flex-1 -mx-4 px-4">
               {loading ? (
-                <p className="text-center text-gray-400 text-sm py-8">Loading catalog...</p>
+                <p className="text-center text-gray-400 text-sm py-8">{t('import_loading')}</p>
               ) : filtered.length === 0 ? (
                 <p className="text-center text-gray-400 text-sm py-8">
-                  {items.length === 0
-                    ? 'All catalog products are already in your shop.'
-                    : 'No products match that search.'}
+                  {items.length === 0 ? t('import_all_imported') : t('import_no_match')}
                 </p>
               ) : (
                 <div className="space-y-1">
