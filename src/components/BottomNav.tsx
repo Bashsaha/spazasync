@@ -16,9 +16,10 @@ const ownerNav: NavItem[] = [
   { href: '/stock', labelKey: 'nav_stock', icon: '📦' },
   { href: '/products', labelKey: 'nav_products', icon: '🏷️' },
   { href: '/tellers', labelKey: 'nav_staff', icon: '👤' },
+  { href: '/settings', labelKey: 'nav_settings', icon: '⚙️' },
 ]
 
-const adminExtra: NavItem = { href: '/admin', labelKey: 'nav_admin', icon: '⚙️' }
+const adminExtra: NavItem = { href: '/admin', labelKey: 'nav_admin', icon: '🛡️' }
 
 interface BottomNavProps {
   role: string

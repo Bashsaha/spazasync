@@ -19,6 +19,9 @@ build/
 # testing
 coverage/
 
+# supabase CLI cache
+supabase/.temp/
+
 # misc
 .DS_Store
 *.pem
