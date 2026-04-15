@@ -9,6 +9,7 @@
 
   "sales_text_one": "Maanta waxaad {amount} ka kasbatay {count} iib",
   "sales_text_other": "Maanta waxaad {amount} ka kasbatay {count} iibiyo",
+  "profit_text": "Faa'iidada maanta: {amount}",
   "top_sellers": "Walxaha ugu badnaa iibka:",
   "sold": "{name} \u2014 {count} la iibiyey",
 

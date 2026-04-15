@@ -14,6 +14,8 @@ interface ShopSettings {
   registration_number: string | null
   location: string | null
   language: string | null
+  profit_tracking_enabled: boolean
+  products_missing_cost: number
   subscription_status: string | null
   trial_ends_at: string | null
   subscription_ends_at: string | null
@@ -27,6 +29,7 @@ export default function SettingsPage() {
   const [regNumber, setRegNumber] = useState('')
   const [location, setLocation] = useState('')
   const [language, setLanguage] = useState<SupportedLocale>(locale)
+  const [profitTracking, setProfitTracking] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [downloading, setDownloading] = useState(false)
@@ -41,11 +44,35 @@ export default function SettingsPage() {
         setThreshold(data.low_stock_threshold)
         setRegNumber(data.registration_number ?? '')
         setLocation(data.location ?? '')
+        setProfitTracking(Boolean(data.profit_tracking_enabled))
         if (data.language) setLanguage(data.language as SupportedLocale)
       })
       .catch(() => setMessage({ type: 'err', key: 'msg_load_failed' }))
       .finally(() => setLoading(false))
   }, [])
+
+  async function handleProfitToggle(nextValue: boolean) {
+    setProfitTracking(nextValue)
+    const res = await fetch('/api/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name.trim() || settings?.name,
+        low_stock_threshold: threshold,
+        registration_number: regNumber.trim() || null,
+        location: location.trim() || null,
+        language,
+        profit_tracking_enabled: nextValue,
+      }),
+    })
+    if (res.ok) {
+      const updated: ShopSettings = await res.json()
+      setSettings((prev) => (prev ? { ...prev, ...updated } : updated))
+    } else {
+      setProfitTracking(!nextValue) // revert on failure
+      setMessage({ type: 'err', key: 'msg_save_failed' })
+    }
+  }
 
   async function handleLanguageChange(newLang: SupportedLocale) {
     setLanguage(newLang)
@@ -78,6 +105,7 @@ export default function SettingsPage() {
         registration_number: regNumber.trim() || null,
         location: location.trim() || null,
         language,
+        profit_tracking_enabled: profitTracking,
       }),
     })
 
@@ -173,6 +201,45 @@ export default function SettingsPage() {
       <div className="bg-white border border-gray-100 rounded-2xl px-4 py-4 mb-6">
         <p className="text-sm font-medium text-gray-700 mb-3">{t('language_title')}</p>
         <LanguagePicker value={language} onChange={handleLanguageChange} variant="compact" />
+      </div>
+
+      {/* Profit tracking toggle */}
+      <div className="bg-white border border-gray-100 rounded-2xl px-4 py-4 mb-6">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xl">💰</span>
+              <p className="font-semibold text-gray-900">{t('profit_tracking_title')}</p>
+            </div>
+            <p className="text-sm text-gray-500">{t('profit_tracking_desc')}</p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={profitTracking}
+            aria-label={profitTracking ? t('profit_tracking_on') : t('profit_tracking_off')}
+            onClick={() => handleProfitToggle(!profitTracking)}
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${
+              profitTracking ? 'bg-green-500' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                profitTracking ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+        {profitTracking && (settings?.products_missing_cost ?? 0) > 0 && (
+          <a
+            href="/products"
+            className="mt-3 block bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5 text-sm text-amber-800"
+          >
+            {tPlural('profit_tracking_hint_missing', settings!.products_missing_cost, {
+              count: settings!.products_missing_cost,
+            })}
+          </a>
+        )}
       </div>
 
       {/* Subscription status */}

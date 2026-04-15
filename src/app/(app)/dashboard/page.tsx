@@ -20,7 +20,7 @@ export default async function DashboardPage() {
 
   const { data: shopUser } = await supabase
     .from('shop_users')
-    .select('role, shops(id, name, code, low_stock_threshold, subscription_status, trial_ends_at, subscription_ends_at)')
+    .select('role, shops(id, name, code, low_stock_threshold, subscription_status, trial_ends_at, subscription_ends_at, profit_tracking_enabled)')
     .eq('user_id', user.id)
     .single()
 
@@ -32,6 +32,7 @@ export default async function DashboardPage() {
     subscription_status: string
     trial_ends_at: string | null
     subscription_ends_at: string | null
+    profit_tracking_enabled: boolean
   } | null
 
   const shopName = shop?.name ?? 'Your Shop'
@@ -83,7 +84,11 @@ export default async function DashboardPage() {
       {/* Today's summary — streams in */}
       {shop?.id && (
         <Suspense fallback={<Skeleton className="h-24 rounded-2xl mb-4" />}>
-          <TodaySummary shopId={shop.id} locale={locale} />
+          <TodaySummary
+            shopId={shop.id}
+            locale={locale}
+            profitTrackingEnabled={Boolean(shop.profit_tracking_enabled)}
+          />
         </Suspense>
       )}
 

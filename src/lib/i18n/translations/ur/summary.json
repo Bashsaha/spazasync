@@ -9,6 +9,7 @@
 
   "sales_text_one": "آپ نے آج {count} فروخت سے {amount} کمائے",
   "sales_text_other": "آپ نے آج {count} فروختوں سے {amount} کمائے",
+  "profit_text": "آج کا منافع: {amount}",
   "top_sellers": "سب سے زیادہ بکنے والی:",
   "sold": "{name} \u2014 {count} فروخت ہوئیں",
 

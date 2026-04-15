@@ -31,6 +31,7 @@
   "today_teller_one": "አገልጋይ",
   "today_teller_other": "አገልጋዮች",
   "today_no_sales": "ዛሬ ገና ሽያጭ የለም",
+  "today_profit": "ትርፍ",
 
   "low_stock_title": "ክምችት እያለቀ ነው",
   "low_stock_out_one": "{count} እቃ ተጠናቋል",

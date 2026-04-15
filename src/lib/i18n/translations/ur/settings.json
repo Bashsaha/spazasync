@@ -45,6 +45,14 @@
   "language_title": "زبان",
   "language_change": "زبان تبدیل کریں",
 
+  "profit_tracking_title": "منافع کی ٹریکنگ",
+  "profit_tracking_desc": "دیکھیں کہ آپ ہر دن کتنا منافع کماتے ہیں۔ آپ کو ہر مصنوعات کے لیے لاگت کی قیمت درج کرنی ہوگی۔",
+  "profit_tracking_on": "چالو",
+  "profit_tracking_off": "بند",
+  "profit_tracking_hint_missing_one": "{count} مصنوعات کو ابھی بھی لاگت کی قیمت کی ضرورت ہے",
+  "profit_tracking_hint_missing_other": "{count} مصنوعات کو ابھی بھی لاگت کی قیمت کی ضرورت ہے",
+  "profit_tracking_fix_now": "ابھی درست کریں \u2192",
+
   "subscribe_page_title": "آپ کا پلان",
   "subscribe_trial_days_left_one": "آپ کی مفت آزمائش کا {count} دن باقی ہے۔",
   "subscribe_trial_days_left_other": "آپ کی مفت آزمائش کے {count} دن باقی ہیں۔",

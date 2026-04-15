@@ -9,6 +9,7 @@
 
   "sales_text_one": "Wenze u-{amount} ngokudayisa {count} namuhla",
   "sales_text_other": "Wenze u-{amount} ngokudayisa {count} namuhla",
+  "profit_text": "Inzuzo yanamuhla: {amount}",
   "top_sellers": "Abadayisa kakhulu:",
   "sold": "{name} \u2014 {count} kudayisiwe",
 

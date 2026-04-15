@@ -39,6 +39,7 @@ export const createProductSchema = z.object({
   barcode: z.string().max(50).nullable().optional().transform((v) => v?.trim() || null),
   name: z.string().min(1, 'Product name is required').max(200),
   price: z.number().positive('Price must be greater than zero'),
+  cost_price: z.number().nonnegative('Cost price cannot be negative').nullable().optional(),
   stock_qty: z.number().int().min(0).default(0),
 })
 
@@ -107,6 +108,7 @@ export const updateShopSettingsSchema = z.object({
   registration_number: z.string().max(100).nullable().optional(),
   location: z.string().max(200).nullable().optional(),
   language: languageEnum.optional(),
+  profit_tracking_enabled: z.boolean().optional(),
 })
 
 // ============================================================

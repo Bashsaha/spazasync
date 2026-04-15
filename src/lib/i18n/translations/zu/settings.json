@@ -45,6 +45,14 @@
   "language_title": "Ulimi",
   "language_change": "Shintsha ulimi",
 
+  "profit_tracking_title": "Ukulandelela inzuzo",
+  "profit_tracking_desc": "Bona ukuthi ungakanani inzuzo oyenzayo nsuku zonke. Udinga ukufaka intengo yokubiza kumkhiqizo ngamunye.",
+  "profit_tracking_on": "Kuvuliwe",
+  "profit_tracking_off": "Kuvaliwe",
+  "profit_tracking_hint_missing_one": "{count} umkhiqizo usadinga intengo yokubiza",
+  "profit_tracking_hint_missing_other": "{count} imikhiqizo isadinga intengo yokubiza",
+  "profit_tracking_fix_now": "Lungisa manje \u2192",
+
   "subscribe_page_title": "Uhlelo Lwakho",
   "subscribe_trial_days_left_one": "Usele nosuku olungu-{count} esilingweni sakho samahhala.",
   "subscribe_trial_days_left_other": "Usele nezinsuku ezingu-{count} esilingweni sakho samahhala.",

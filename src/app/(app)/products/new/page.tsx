@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ExpiryEntryList } from '@/components/ExpiryEntryList'
 import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
@@ -23,14 +23,25 @@ function NewProductContent() {
     barcode: prefillBarcode,
     name: prefillName,
     price: '',
+    cost_price: '',
     stock_qty: '0',
   })
+  const [profitTracking, setProfitTracking] = useState(false)
   const [trackExpiry, setTrackExpiry] = useState(false)
   const [expiryEntries, setExpiryEntries] = useState<ExpiryEntry[]>([])
   const [errorKey, setErrorKey] = useState('')
   const [errorRaw, setErrorRaw] = useState('')
   const [loading, setLoading] = useState(false)
   const [scanning, setScanning] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.profit_tracking_enabled) setProfitTracking(true)
+      })
+      .catch(() => { /* default off */ })
+  }, [])
 
   const stockQty = parseInt(form.stock_qty, 10) || 0
 
@@ -67,6 +78,9 @@ function NewProductContent() {
           barcode: form.barcode.trim() || null,
           name: form.name.trim(),
           price: parseFloat(form.price),
+          cost_price: profitTracking && form.cost_price.trim() !== ''
+            ? parseFloat(form.cost_price)
+            : null,
           stock_qty: hasExpiry ? 0 : stockQty,
         }),
       })
@@ -163,6 +177,26 @@ function NewProductContent() {
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+
+        {profitTracking && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t('label_cost_price')}
+            </label>
+            <input
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              min="0"
+              value={form.cost_price}
+              onChange={(e) => setForm((f) => ({ ...f, cost_price: e.target.value }))}
+              placeholder={t('placeholder_cost_price')}
+              required
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-xs text-gray-400 mt-1">{t('hint_cost_price')}</p>
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_opening_stock')}</label>

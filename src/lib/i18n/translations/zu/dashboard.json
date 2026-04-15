@@ -31,6 +31,7 @@
   "today_teller_one": "umsebenzi",
   "today_teller_other": "abasebenzi",
   "today_no_sales": "Akukho ukudayisa okwenziwe namuhla",
+  "today_profit": "inzuzo",
 
   "low_stock_title": "Isitoki siyaphela",
   "low_stock_out_one": "{count} into iphelile",

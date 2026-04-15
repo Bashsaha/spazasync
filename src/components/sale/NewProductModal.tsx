@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Product } from '@/types'
 import { ExpiryEntryList } from '@/components/ExpiryEntryList'
 import { useTranslation } from '@/components/LanguageProvider'
@@ -29,11 +29,22 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
   const { t } = useTranslation()
   const [name, setName] = useState(suggestedName ?? '')
   const [price, setPrice] = useState('')
+  const [costPrice, setCostPrice] = useState('')
+  const [profitTracking, setProfitTracking] = useState(false)
   const [stock, setStock] = useState('0')
   const [trackExpiry, setTrackExpiry] = useState(false)
   const [expiryEntries, setExpiryEntries] = useState<ExpiryEntry[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.profit_tracking_enabled) setProfitTracking(true)
+      })
+      .catch(() => { /* default off */ })
+  }, [])
 
   // When a duplicate name is found, store the existing product
   const [existingProduct, setExistingProduct] = useState<Product | null>(null)
@@ -68,6 +79,9 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
           barcode,
           name: name.trim(),
           price: priceNum,
+          cost_price: profitTracking && costPrice.trim() !== ''
+            ? parseFloat(costPrice)
+            : null,
           stock_qty: hasExpiry ? 0 : stockQty,
         }),
       })
@@ -246,6 +260,26 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
               />
             </div>
           </div>
+
+          {profitTracking && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('label_cost_price')}
+              </label>
+              <input
+                type="number"
+                value={costPrice}
+                onChange={(e) => setCostPrice(e.target.value)}
+                placeholder={t('placeholder_cost_price')}
+                step="0.01"
+                min="0"
+                inputMode="decimal"
+                required
+                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-xs text-gray-400 mt-1">{t('hint_cost_price')}</p>
+            </div>
+          )}
 
           {stockQty > 0 && (
             <div className="space-y-3">

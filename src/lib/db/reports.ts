@@ -38,7 +38,7 @@ export async function getDailySalesForShop(
   if (salesError) throw salesError
 
   if (!sales || sales.length === 0) {
-    return { salesCount: 0, totalRevenue: 0, topItems: [], tellerCount: 0 }
+    return { salesCount: 0, totalRevenue: 0, totalProfit: 0, hasProfitData: false, topItems: [], tellerCount: 0 }
   }
 
   const saleIds = sales.map((s) => s.id)
@@ -48,13 +48,15 @@ export async function getDailySalesForShop(
   // Fetch sale items with product names — all belong to sales already filtered by shop_id
   const { data: saleItems, error: itemsError } = await admin
     .from('sale_items')
-    .select('quantity, product_id, products(name)')
+    .select('quantity, product_id, unit_price, unit_cost, products(name)')
     .in('sale_id', saleIds)
 
   if (itemsError) throw itemsError
 
-  // Aggregate quantities by product
+  // Aggregate quantities by product + compute profit
   const itemMap = new Map<string, { name: string; totalQty: number }>()
+  let totalProfit = 0
+  let hasProfitData = false
   for (const item of saleItems ?? []) {
     // Supabase infers FK joins as arrays without generated types; cast via unknown
     const productRaw = item.products as unknown as { name: string } | null
@@ -65,6 +67,10 @@ export async function getDailySalesForShop(
     } else {
       itemMap.set(item.product_id, { name: productName, totalQty: item.quantity })
     }
+    if (item.unit_cost !== null && item.unit_cost !== undefined) {
+      hasProfitData = true
+      totalProfit += (Number(item.unit_price) - Number(item.unit_cost)) * item.quantity
+    }
   }
 
   const topItems = [...itemMap.values()]
@@ -74,6 +80,8 @@ export async function getDailySalesForShop(
   return {
     salesCount: sales.length,
     totalRevenue: Math.round(totalRevenue * 100) / 100,
+    totalProfit: Math.round(totalProfit * 100) / 100,
+    hasProfitData,
     topItems,
     tellerCount,
   }

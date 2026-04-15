@@ -9,6 +9,7 @@
 
   "sales_text_one": "You made {amount} from {count} sale today",
   "sales_text_other": "You made {amount} from {count} sales today",
+  "profit_text": "Profit today: {amount}",
   "top_sellers": "Top sellers:",
   "sold": "{name} \u2014 {count} sold",
 

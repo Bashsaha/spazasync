@@ -45,6 +45,14 @@
   "language_title": "Luuqadda",
   "language_change": "Bedel luuqadda",
 
+  "profit_tracking_title": "La socodka faa'iidada",
+  "profit_tracking_desc": "Arag inta faa'iido aad samayso maalin kasta. Waxaad u baahan doontaa inaad gelisid qiimaha kharashka alaab kasta.",
+  "profit_tracking_on": "Shidan",
+  "profit_tracking_off": "Damin",
+  "profit_tracking_hint_missing_one": "{count} alaab ayaa weli u baahan qiimaha kharashka",
+  "profit_tracking_hint_missing_other": "{count} alaab ayaa weli u baahan qiimaha kharashka",
+  "profit_tracking_fix_now": "Hada hagaaji \u2192",
+
   "subscribe_page_title": "Qorshahaaga",
   "subscribe_trial_days_left_one": "Waxaad hayaa {count} maalin oo tijaabadaada bilaashka ah.",
   "subscribe_trial_days_left_other": "Waxaad hayaa {count} maalmood oo tijaabadaada bilaashka ah.",

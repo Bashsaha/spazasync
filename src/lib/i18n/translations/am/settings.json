@@ -45,6 +45,14 @@
   "language_title": "ቋንቋ",
   "language_change": "ቋንቋ ቀይር",
 
+  "profit_tracking_title": "የትርፍ ክትትል",
+  "profit_tracking_desc": "በየቀኑ ምን ያህል ትርፍ እንደሚያገኙ ይመልከቱ። ለእያንዳንዱ ምርት የዋጋ ወጪ ማስገባት ያስፈልግዎታል።",
+  "profit_tracking_on": "ንቁ",
+  "profit_tracking_off": "ጠፍቷል",
+  "profit_tracking_hint_missing_one": "{count} ምርት አሁንም የዋጋ ወጪ ያስፈልገዋል",
+  "profit_tracking_hint_missing_other": "{count} ምርቶች አሁንም የዋጋ ወጪ ያስፈልጋቸዋል",
+  "profit_tracking_fix_now": "አሁን አስተካክል \u2192",
+
   "subscribe_page_title": "የእርስዎ ዕቅድ",
   "subscribe_trial_days_left_one": "በነፃ ሙከራዎ ላይ {count} ቀን ቀርቷል።",
   "subscribe_trial_days_left_other": "በነፃ ሙከራዎ ላይ {count} ቀናት ቀርተዋል።",

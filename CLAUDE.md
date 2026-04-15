@@ -167,6 +167,14 @@ EXTERNAL_API_KEY=
 - This prevents CLAUDE.md from growing unboundedly while preserving enough context for future sessions.
 - Individual sub-phases should keep full detail until the entire phase group is complete.
 
+### 8. i18n Coverage Rule (CRITICAL)
+- SpazaSync supports 5 locales: `en` (English), `so` (Somali), `am` (Amharic), `zu` (IsiZulu), `ur` (Urdu).
+- **Any time a user-facing string is added, changed, or removed in `src/lib/i18n/translations/en/*.json`, the SAME key MUST be added/changed/removed in all other locale directories** (`so/`, `am/`, `zu/`, `ur/`) **in the same phase**. Missing keys in a non-English locale are a phase-blocker — the phase cannot be marked complete.
+- Translations must be native (not copy-pasted English). Use the plain-English SpazaSync tone: short, friendly, no jargon. If you genuinely can't translate (e.g. a brand name), fall back to English with a comment explaining why.
+- Every new page or component that renders user-visible text MUST use `useTranslation()` (client components) or `getServerTranslations()` (server components). NEVER hardcode English strings in JSX or component files.
+- The i18n key-parity test (`tests/unit/i18n.test.ts`) enforces parity automatically. If it fails, stop and fill in the missing locales before continuing.
+- When adding a new namespace JSON file (e.g. `en/foo.json`), also add `so/foo.json`, `am/foo.json`, `zu/foo.json`, `ur/foo.json` in the same commit.
+
 ---
 
 ## Task Management Rules
@@ -300,118 +308,29 @@ At the start of every session:
 - [x] Phase 20c: Offline Resilience — Cart, Product Cache, Sync Improvements
 - [x] Phase 20d: Stock Warnings + Dashboard Streaming
 - [x] Phase 21: UX Polish — Plain English & Non-Technical User Improvements
-  - BottomNav "Tellers" → "Staff" (consistent with dashboard nav cards)
-  - "Stock Take" page → "Count Stock" (consistent with dashboard card label)
-  - Dashboard "Shop code:" → "Staff login code: (give this to your staff)"
-  - Expiry page: inline "Remove expired stock" button (red, links to stock/[id]?mode=remove&qty=N) + "Manage stock" button replacing tiny "Adjust stock →" link; plain-English expired warning message; "Soon" → "Expiring" in summary strip; bigger back button
-  - Stock adjust page (stock/[id]): reads ?mode=remove&qty=N URL params on load to pre-fill Remove mode + quantity when navigating from expiry page; dynamic title ("Add Stock" / "Remove Stock"); plain-English reason labels ("Counting correction" → "I counted it wrong before", "Damaged / expired" → "Damaged or expired"); expiry checkbox label improved; wrapped in Suspense for useSearchParams
-  - Stock list page: "Adjust →" tiny text → › chevron (standard mobile tap affordance); bigger back button
-  - Dashboard: "Inspector coming?" card added (indigo, links to /settings#compliance) for quick PDF access
-  - Settings: Compliance Report section moved to top of page (above subscription/shop code), rewritten in plain English ("If a health inspector visits your shop, show them this PDF"), styled in indigo for visibility; old buried card removed
-
 - [x] Phase 22: Smart Catalog Import + Top Sellers in Sale
-  - Products page: "Import from catalog" bottom-sheet picks a catalog item → navigates to /products/new with name + barcode pre-filled → user fills price (mandatory), stock qty, expiry dates in one step
-  - Sale ProductPicker: fetches /api/products/popular (top 10 by qty sold last 30 days); shows "Top sellers" section above "All products" when no search active
-  - New routes: GET /api/catalog/importable, POST /api/products/bulk-import, GET /api/products/popular
-  - New component: CatalogImportSheet.tsx
-  - No migration needed — uses existing tables
-
 - [x] Phase 23: Barcode Scan Buttons — Products & Stock Pages
-  - Products page: "Scan" button in header → scans barcode → navigates to edit page (existing product) or Add Product with barcode + catalog name pre-filled (new product)
-  - Add Product page: "Scan" button next to barcode input → fills barcode field, auto-suggests product name from catalog
-  - Stock page: "Scan" button in header → scans barcode → navigates to stock adjust page; toast error if product not found
-  - New component: BarcodeScanButton.tsx (self-contained client component for server-rendered Products page)
-  - No migration needed — uses existing BarcodeScanner component and /api/products?barcode= endpoint
-
 - [x] Phase 24: Performance + Offline Hardening
-  - IndexedDB v3: added `settings` + `tellers` stores, product cache TTL (30 min staleness check)
-  - Service Worker v2: precaches app shell (/sale, /login, /dashboard, /offline.html) on install; offline fallback page for uncached routes; SW update notification banner
-  - Offline-first settings: sale page loads cached `low_stock_threshold` from IndexedDB before network fetch
-  - Offline-first tellers: TellerSelector falls back to IndexedDB cache when fetch fails
-  - Network error resilience: online sale POST failures auto-queue to offline sale queue (no data loss)
-  - Product cache staleness: ProductPicker warns "product list may be outdated" when using stale cache offline
-  - jspdf dynamic import: compliance PDF route lazy-loads jspdf/autoTable to reduce serverless cold start
-  - New file: `public/offline.html`
-  - No migrations needed
-
 - [x] UX Tweak: Floating "Start Sale" Button
-  - Added a blue floating action button (FAB) in bottom-right corner of all pages (except /sale itself)
-  - Positioned above BottomNav; hidden for tellers (they only see /sale)
-  - Modified: BottomNav.tsx — no new files or migrations
-
 - [x] Phase 25: Secure External API for Business Portal
-  - Bearer token auth (`EXTERNAL_API_KEY` env var) — same pattern as cron routes, server-to-server
-  - Auth guard: `src/lib/auth/external-api-guard.ts` — `requireExternalApi(request)` returns null (ok) or NextResponse (error)
-  - proxy.ts: `/api/external` added to PUBLIC_ROUTES (bypasses cookie session checks; own Bearer auth)
-  - Rate limited: 60 req/min per IP via existing `checkRateLimit()`
-  - 6 read-only GET endpoints under `/api/external/v1/`:
-    - `GET /overview` — platform stats (reuses `getOverviewStats()`)
-    - `GET /shops` — paginated shop list (reuses `listShops()`)
-    - `GET /shops/:id` — shop detail (reuses `getShopDetail()`)
-    - `GET /shops/:id/sales` — combined sales snapshot: today, weekly, recent, top products (reuses reports.ts)
-    - `GET /shops/:id/stock` — all products + stock levels + low-stock alerts (new `getProductsForShop()` in reports.ts)
-    - `GET /shops/:id/expiry` — expired + expiring-soon products (reuses `getExpiringProductsForShop()`)
-  - New type: `ShopProduct` in types/index.ts
-  - No migrations needed — reuses existing DB functions via admin (service role) client
-  - New files: 1 auth guard + 6 route handlers. Modified: proxy.ts, reports.ts, types/index.ts, .env.local.example
-
 - [x] Phase 26: In-App Daily Summary (Replace WhatsApp)
-  - Removed all WhatsApp/Twilio code: deleted `src/lib/whatsapp/`, `src/app/api/cron/daily-summary/`, `tests/unit/whatsapp-format.test.ts`; removed `twilio` dependency; cleaned WhatsApp fields from onboarding, settings, validation schemas, env files, vercel.json cron
-  - New `GET /api/summary/daily` endpoint: authenticated via `getShopAuth()`, returns sales + low stock + expiring products
-  - New `DailySummaryAlert.tsx` component: client-side 9pm SAST check + localStorage tracking; slide-down banner → modal with plain-English summary (revenue, top sellers, low stock, expiring); hidden for tellers
-  - Added to `src/app/(app)/layout.tsx`; slide-down animation in `globals.css`
-  - DB column `shops.whatsapp_number` kept (nullable, unused — no migration needed)
-
-All phases 1–26 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
-
 - [x] Phase 27a: i18n Infrastructure + Database + API
-  - Custom lightweight i18n: JSON translation files per namespace + React Context (`LanguageProvider`) + `t()` helper
-  - New `src/lib/i18n/` — types.ts, interpolate.ts, loader.ts, server.ts (code-split dynamic imports, in-memory cache, server-side locale detection)
-  - New `src/components/LanguageProvider.tsx` — React Context provider, `useTranslation()` hook, localStorage + dynamic HTML lang/dir
-  - 10 English namespace JSON files in `src/lib/i18n/translations/en/` (common, auth, sale, dashboard, settings, stock, products, tellers, expiry, summary)
-  - Migration 013: `shops.language` column (TEXT, default 'en', CHECK constraint for en/so/am/zu/ur)
-  - Updated: types/index.ts (Shop.language), validation schemas (onboarding + settings), settings API (GET/PATCH), onboarding API (POST), IndexedDB (CachedSettings.language + getCachedLanguage/cacheLanguage)
-  - LanguageProvider wired into `src/app/(app)/layout.tsx` with server-fetched initialLocale
-  - No UI changes yet — strings still hardcoded, framework ready for Phase 27b
-
 - [x] Phase 27b: Language Selection UI + Auth Page Translations
-  - New `src/components/LanguagePicker.tsx` — reusable picker with full (onboarding) + compact (login/settings) variants
-  - New `src/app/(auth)/layout.tsx` — wraps auth pages in LanguageProvider (localStorage-based, no server locale)
-  - Onboarding: new 'language' step before signup; selected language passed to POST /api/onboarding; all strings use t()
-  - Login: all strings use t(); compact LanguagePicker at bottom of page for pre-auth language switching
-  - Settings: Language section with compact LanguagePicker above shop name; auto-PATCH on change + setLocale() for instant UI update
-  - Updated `en/auth.json` with ~15 new keys (teller hints, password labels, error messages, step descriptions)
-  - 8 new translation JSON files: {so,am,zu,ur}/common.json + auth.json (Somali, Amharic, IsiZulu, Urdu)
-
 - [x] Phase 27c: Translate Core Pages (Sale + Dashboard + Stock + Summary)
-  - **27c.1 Sale flow + stock list page:** translated sale/page.tsx, sale/complete/page.tsx, TellerSelector, NewProductModal, ProductPicker, stock/page.tsx; converted CartItem + CartSummary to `'use client'` and translated; added 7 cart-related keys to `en/sale.json`; introduced `errorKey` state pattern so errors re-render on locale change
-  - **27c.2 Remaining client + dashboard tree:** translated stock/[id]/page.tsx (Adjust Stock: REASONS→REASON_KEYS const, tPlural for button labels + batch counts, errorKey/errorRaw state pairs), stock-take/page.tsx, BottomNav.tsx (labelKey field), OfflineBanner.tsx (converted to `'use client'`, 4 plural variants), DailySummaryAlert.tsx; dashboard: page.tsx calls `getServerLocale()` once and passes `locale` prop to each Suspense child; all 6 server children parallelize data + `getServerTranslations()` via `Promise.all`; expanded `en/stock.json` to ~140 keys covering adjust + stock-take; fixed `en/common.json` + `en/summary.json` plural suffixes (`_one`/`_other`) to match the simple interpolator contract
-  - **27c.3 Published 16 translation JSONs:** `{so,am,zu,ur}/{sale,dashboard,stock,summary}.json` mirror English key sets exactly; also backfilled `{so,am,zu,ur}/common.json` with the split `offline_banner_offline_pending_one/_other` + `dismiss` keys. Verification: `tsc --noEmit` clean, `vitest run` 156/156 green
-
 - [x] Phase 27d: Translate Remaining Pages + RTL Foundation
-  - **English namespace expansions:** `en/products.json` grew to ~57 keys (added `btn_scan_aria`, `empty_search`/`empty_no_search`, `edit_barcode_prefix`, `edit_loading`, `edit_error_load`, `btn_save_changes`, `error_expiry_partial`, full `import_*` set). `en/tellers.json` ~25 keys (`confirm_remove: "Remove {name}..."`, `has_login`/`no_login`, `add_desc`, `hint_password`). `en/expiry.json` gained `badge_tracked`, `total_stock`, `summary_*`, `empty_title`/`subtitle`, `expired_warning`, relative-date keys (`rel_yesterday`/`today`/`tomorrow`/`days_ago_other`/`in_days`/`in_weeks_one`/`other`), all `entry_*` labels. `en/settings.json` gained ~30 `subscribe_*` keys covering trial/active/cancelled/expired states, feature list, success/cancelled screens, PayFast error messages. `en/common.json` gained `error_page_title`/`desc`, `not_found_title`/`desc`, `btn_goto_dashboard`, `error_btn_try_again`.
-  - **Client component translations:** `products/new/page.tsx`, `products/[id]/page.tsx`, `tellers/page.tsx` (renamed `t` map variable to `teller` to avoid shadowing), `tellers/new/page.tsx`, `subscribe/page.tsx` (features rendered via `.map()` over key array; `tPlural('subscribe_trial_days_left', ...)`; `formatDate` falls back to `t('subscribe_soon')`), `settings/page.tsx` (introduced `statusLabel(status)` switch helper + `message: { type; key?; raw? }` shape with `messageText = raw || (key ? t(key) : '')`), `expiry/page.tsx` (module-level `groupConfig` → `groupColors` keyed by `labelKey`; extracted `formatExpiryLabel` into `useRelativeExpiryLabel()` hook closing over `t`/`tPlural`/`locale`; `errorKey` state pattern), `ExpiryEntryList.tsx` (converted to `'use client'`), `CatalogImportSheet.tsx`, `BarcodeScanButton.tsx`, `app/(app)/error.tsx`.
-  - **Server component translations:** `products/page.tsx` rewritten as server component using `Promise.all([listProducts(search), getServerTranslations(locale, ['products'])])` (matches dashboard pattern). `not-found.tsx` converted to async server component — `getServerLocale()` falls back safely to `en` when no auth.
-  - **Layout namespaces:** `app/(app)/layout.tsx` expanded preload to `['common', 'sale', 'dashboard', 'stock', 'summary', 'products', 'tellers', 'expiry', 'settings']` so all client pages have translations available without per-route loading.
-  - **RTL foundation:** `dir="rtl"` already set on `<html>` by `LanguageProvider` when Urdu is selected. Deep Tailwind `ml-`/`mr-` → `ms-`/`me-` class audit deferred to Phase 27e (tailwind v4 supports logical properties natively, but the codebase has ~100+ directional utility uses; changing them without visual QA risks breaking LTR layout).
-  - **Global error.tsx left in English intentionally:** it renders its own `<html><body>` root and may fire when `LanguageProvider` itself fails — hardcoded English is the defensive fallback.
-  - **Published 16 translation JSONs:** `{so,am,zu,ur}/{products,tellers,expiry,settings}.json` mirror the English key set exactly. Compliance PDF remains English-only (regulatory requirement).
-  - Verification: `tsc --noEmit` clean, `vitest run` 156/156 green.
-
 - [x] Phase 27e: Polish, Offline Hardening, Tests
-  - **Font support via `next/font/google`:** `src/app/layout.tsx` imports `Noto_Sans_Ethiopic` (weight 400/500/600/700, `ethiopic` subset) and `Noto_Nastaliq_Urdu` (weight 400/500/600/700, `arabic` subset), exposed as CSS variables `--font-ethiopic` and `--font-nastaliq` attached to `<html>`. Globals.css applies them conditionally via `:lang(am)` and `:lang(ur)` so English/Somali/IsiZulu keep the default Arial stack. Next's build pipeline self-hosts the fonts into `/_next/static/media/` — no `/public/fonts/` directory needed, which deviates from the original plan but achieves the same offline-ready outcome (the SW's cache-first handler for `/_next/static/` covers them).
-  - **SW cache bump to v3:** `public/sw.js` `CACHE = 'spazasync-v3'` forces clients to re-fetch and prune the old cache; added `/settings` to `PRECACHE_URLS` so the language picker is reachable offline on first install. Translation JSONs are dynamically `import()`ed into hashed Next.js chunks under `/_next/static/chunks/`, already covered by the existing cache-first handler — no per-file precache list maintenance needed.
-  - **English fallback:** already wired in `loader.ts:29-36` since Phase 27a (`try { dynamic import } catch { fall back to DEFAULT_LOCALE recursively }`). Verified by the new completeness tests.
-  - **New test file `tests/unit/i18n.test.ts` — 97 tests:** covers `t()` (missing keys, interpolation, multiple params, duplicate placeholders, number coercion, untouched unknown placeholders), `tPlural()` (picks `_one`/`_other`, base-key fallback, missing-key fallback, custom params merged with auto-injected count), and **translation key completeness** — for every non-English locale × namespace combination, asserts the key set exactly matches English AND every `{placeholder}` token is preserved. This completeness test caught real bugs:
-    - `am/common.json`, `ur/common.json`, `zu/common.json` were missing 6 Phase 27d keys (`error_page_title`, `error_page_desc`, `error_btn_try_again`, `not_found_title`, `not_found_desc`, `btn_goto_dashboard`) — backfilled.
-    - `zu/common.json` had the bare `offline_banner_offline_pending` key instead of the `_one`/`_other` split that Phase 27c.3 claimed to have backfilled — fixed.
-  - Verification: `tsc --noEmit` clean, `vitest run` 253/253 green (9 suites), `next build` succeeds (fonts fetched and bundled successfully).
+- [x] Phase 28: Profit Tracking (Opt-In Toggle)
+
+All phases 1–28 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
+
+### Phase 28 — Profit Tracking (2026-04-15)
+**What was built:** Opt-in `shops.profit_tracking_enabled` toggle. When on: `products.cost_price` becomes required on create/edit and `(unit_price - unit_cost) * qty` surfaces on TodaySummary (swap Tellers → Profit) and DailySummaryAlert modal. `sale_items.unit_cost` is snapshotted at sale time via `completeSale` so historical profit is immune to later cost edits. New migration `014_profit_tracking.sql`; new `tests/unit/profit.test.ts` (19 tests). All five locales (en/so/am/zu/ur) received profit/cost keys. Rule 8 (i18n Coverage) added to Workflow Orchestration Rules.
 
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 27e (2026-04-12)_
+_Last updated: Phase 28 (2026-04-15)_
 
 ```
 spaza shop/
@@ -429,7 +348,6 @@ spaza shop/
 ├── vitest.config.ts
 ├── .env.local.example
 ├── public/
-│   ├── file.svg, globe.svg, next.svg, vercel.svg, window.svg
 │   ├── manifest.json               # PWA manifest
 │   ├── offline.html                # Offline fallback page (self-contained)
 │   ├── sw.js                       # Service worker (precache + cache strategies)
@@ -653,7 +571,8 @@ spaza shop/
 │       ├── 010_product_name_unique.sql
 │       ├── 011_sale_batch_consumptions.sql
 │       ├── 012_offline_id_unique.sql
-│       └── 013_shop_language.sql
+│       ├── 013_shop_language.sql
+│       └── 014_profit_tracking.sql    # Phase 28 — profit tracking toggle + cost columns
 ├── data/
 │   └── sa-products.csv                    # 100 SA products with EAN-13 barcodes
 ├── scripts/
@@ -674,5 +593,6 @@ spaza shop/
         ├── payfast.test.ts               # 12 tests
         ├── admin.test.ts                 # 28 tests
         ├── batches.test.ts              # 14 tests
-        └── i18n.test.ts                  # 97 tests — t(), tPlural(), key completeness + placeholder preservation
+        ├── i18n.test.ts                  # 97 tests — t(), tPlural(), key completeness + placeholder preservation
+        └── profit.test.ts                # 19 tests — computeProfit() + cost_price/profit_tracking_enabled schema
 ```

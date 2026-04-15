@@ -8,6 +8,7 @@ interface SummaryResponse {
   sales: DailySummaryData
   lowStock: LowStockItem[]
   expiring: ExpiringProductAlert[]
+  profitTrackingEnabled: boolean
 }
 
 const LS_KEY = 'last_summary_seen'
@@ -112,7 +113,7 @@ export default function DailySummaryAlert() {
 
   // Modal
   if (showModal && data) {
-    const { sales, lowStock, expiring } = data
+    const { sales, lowStock, expiring, profitTrackingEnabled } = data
     const hasExpiring = expiring.some((e) => e.expiring_soon_qty > 0)
     const hasExpired = expiring.some((e) => e.expired_qty > 0)
 
@@ -143,6 +144,11 @@ export default function DailySummaryAlert() {
                     count: sales.salesCount,
                   })}
                 </p>
+                {profitTrackingEnabled && sales.hasProfitData && (
+                  <p className="text-green-700 text-sm font-medium mt-1">
+                    {t('profit_text', { amount: formatRand(sales.totalProfit) })}
+                  </p>
+                )}
                 {sales.topItems.length > 0 && (
                   <div className="mt-2">
                     <p className="text-green-700 text-sm font-medium">{t('top_sellers')}</p>

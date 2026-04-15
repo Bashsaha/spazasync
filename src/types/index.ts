@@ -24,6 +24,7 @@ export interface Shop {
   language: SupportedLocale
   access_granted: boolean
   admin_notes: string | null
+  profit_tracking_enabled: boolean
   created_at: string
 }
 
@@ -57,6 +58,7 @@ export interface Product {
   barcode: string | null
   name: string
   price: number   // stored as NUMERIC, parsed as number (ZAR rands)
+  cost_price: number | null   // wholesale / buy-in cost per unit — nullable
   stock_qty: number
   created_at: string
 }
@@ -77,6 +79,7 @@ export interface SaleItem {
   product_id: string
   quantity: number
   unit_price: number
+  unit_cost: number | null   // snapshot of product.cost_price at sale time
   subtotal: number
 }
 
@@ -131,6 +134,7 @@ export interface CreateProductInput {
   barcode: string
   name: string
   price: number
+  cost_price?: number | null
   stock_qty?: number
 }
 
@@ -178,6 +182,8 @@ export interface StockAdjustInput {
 export interface DailySummaryData {
   salesCount: number
   totalRevenue: number
+  totalProfit: number           // sum of (unit_price - unit_cost) * qty where unit_cost IS NOT NULL
+  hasProfitData: boolean        // true iff at least one sale_item this period had a non-null unit_cost
   topItems: Array<{ name: string; totalQty: number }>
   tellerCount: number
 }

@@ -37,12 +37,24 @@ export async function completeSale(input: CompleteSaleInput): Promise<Sale> {
 
   if (saleError) throw saleError
 
+  // Snapshot cost_price per product — keeps historical profit correct when
+  // the owner later edits the product's cost_price.
+  const productIds = Array.from(new Set(input.items.map((i) => i.product_id)))
+  const { data: costRows } = await supabase
+    .from('products')
+    .select('id, cost_price')
+    .in('id', productIds)
+  const costMap = new Map<string, number | null>(
+    (costRows ?? []).map((p) => [p.id as string, p.cost_price as number | null]),
+  )
+
   // 2. Insert sale items
   const saleItems = input.items.map((item) => ({
     sale_id: sale.id,
     product_id: item.product_id,
     quantity: item.quantity,
     unit_price: item.unit_price,
+    unit_cost: costMap.get(item.product_id) ?? null,
     subtotal: item.unit_price * item.quantity,
   }))
 

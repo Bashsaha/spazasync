@@ -14,7 +14,7 @@ export async function GET() {
 
   const { data: shop, error } = await auth.supabase
     .from('shops')
-    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, language, subscription_status, trial_ends_at, subscription_ends_at')
+    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, language, profit_tracking_enabled, subscription_status, trial_ends_at, subscription_ends_at')
     .eq('id', auth.shopId)
     .single()
 
@@ -22,7 +22,14 @@ export async function GET() {
     return NextResponse.json({ error: 'Shop not found' }, { status: 404 })
   }
 
-  return NextResponse.json(shop)
+  // Count products missing cost_price — used by UI to nudge owner when toggle is on
+  const { count: missingCostCount } = await auth.supabase
+    .from('products')
+    .select('id', { count: 'exact', head: true })
+    .eq('shop_id', auth.shopId)
+    .is('cost_price', null)
+
+  return NextResponse.json({ ...shop, products_missing_cost: missingCostCount ?? 0 })
 }
 
 /**
@@ -51,7 +58,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Only the shop owner can change settings' }, { status: 403 })
   }
 
-  const { name, low_stock_threshold, registration_number, location, language } = parsed
+  const { name, low_stock_threshold, registration_number, location, language, profit_tracking_enabled } = parsed
 
   const updatePayload: Record<string, unknown> = {
     name,
@@ -60,12 +67,15 @@ export async function PATCH(request: Request) {
     location: location ?? null,
   }
   if (language) updatePayload.language = language
+  if (typeof profit_tracking_enabled === 'boolean') {
+    updatePayload.profit_tracking_enabled = profit_tracking_enabled
+  }
 
   const { data: updated, error } = await admin
     .from('shops')
     .update(updatePayload)
     .eq('id', auth.shopId)
-    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, language')
+    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, language, profit_tracking_enabled')
     .single()
 
   if (error) {

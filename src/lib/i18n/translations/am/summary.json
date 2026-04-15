@@ -9,6 +9,7 @@
 
   "sales_text_one": "ዛሬ ከ{count} ሽያጭ {amount} አገኙ",
   "sales_text_other": "ዛሬ ከ{count} ሽያጮች {amount} አገኙ",
+  "profit_text": "የዛሬ ትርፍ: {amount}",
   "top_sellers": "ከፍተኛ ሽያጮች፡",
   "sold": "{name} \u2014 {count} ተሽጧል",
 

@@ -31,6 +31,7 @@
   "today_teller_one": "teller",
   "today_teller_other": "tellers",
   "today_no_sales": "No sales yet today",
+  "today_profit": "profit",
 
   "low_stock_title": "Stock running low",
   "low_stock_out_one": "{count} item out of stock",

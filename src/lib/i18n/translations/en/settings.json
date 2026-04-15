@@ -45,6 +45,14 @@
   "language_title": "Language",
   "language_change": "Change language",
 
+  "profit_tracking_title": "Profit tracking",
+  "profit_tracking_desc": "See how much profit you make each day. You'll need to enter a cost price for each product.",
+  "profit_tracking_on": "On",
+  "profit_tracking_off": "Off",
+  "profit_tracking_hint_missing_one": "{count} product still needs a cost price",
+  "profit_tracking_hint_missing_other": "{count} products still need a cost price",
+  "profit_tracking_fix_now": "Fix now \u2192",
+
   "subscribe_page_title": "Your Plan",
   "subscribe_trial_days_left_one": "You have {count} day left on your free trial.",
   "subscribe_trial_days_left_other": "You have {count} days left on your free trial.",
