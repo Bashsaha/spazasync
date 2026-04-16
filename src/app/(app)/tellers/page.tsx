@@ -8,7 +8,7 @@ import { ConfirmModal } from '@/components/ConfirmModal'
 import { useTranslation } from '@/components/LanguageProvider'
 
 export default function TellersPage() {
-  const { t } = useTranslation()
+  const { t } = useTranslation('tellers')
   const [tellers, setTellers] = useState<Teller[]>([])
   const [loading, setLoading] = useState(true)
   const [errorKey, setErrorKey] = useState('')

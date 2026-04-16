@@ -11,7 +11,7 @@ import {
 } from 'react'
 import type { SupportedLocale, TranslationNamespace, Translations } from '@/lib/i18n/types'
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES, LOCALE_META } from '@/lib/i18n/types'
-import { loadTranslations, clearTranslationCache } from '@/lib/i18n/loader'
+import { loadNamespacedTranslations, clearTranslationCache } from '@/lib/i18n/loader'
 import { t as tFn, tPlural as tPluralFn } from '@/lib/i18n/interpolate'
 
 const STORAGE_KEY = 'spazasync_lang'
@@ -19,6 +19,7 @@ const STORAGE_KEY = 'spazasync_lang'
 interface LanguageContextValue {
   locale: SupportedLocale
   translations: Translations
+  nsMap: Record<string, Translations>
   t: (key: string, params?: Record<string, string | number>) => string
   tPlural: (key: string, count: number, params?: Record<string, string | number>) => string
   setLocale: (locale: SupportedLocale) => void
@@ -28,14 +29,52 @@ interface LanguageContextValue {
 const LanguageContext = createContext<LanguageContextValue>({
   locale: DEFAULT_LOCALE,
   translations: {},
+  nsMap: {},
   t: (key) => key,
   tPlural: (key) => key,
   setLocale: () => {},
   isLoading: false,
 })
 
-export function useTranslation() {
-  return useContext(LanguageContext)
+export function useTranslation(namespace?: TranslationNamespace) {
+  const ctx = useContext(LanguageContext)
+
+  const t = useMemo(() => {
+    if (!namespace) return ctx.t
+    return (key: string, params?: Record<string, string | number>) => {
+      // 1. Try scoped namespace
+      const ns = ctx.nsMap[namespace]
+      if (ns && key in ns) return tFn(ns, key, params)
+      // 2. Try common namespace
+      const common = ctx.nsMap['common']
+      if (common && key in common) return tFn(common, key, params)
+      // 3. Fall back to flat merge
+      return ctx.t(key, params)
+    }
+  }, [namespace, ctx.nsMap, ctx.t])
+
+  const tPlural = useMemo(() => {
+    if (!namespace) return ctx.tPlural
+    return (key: string, count: number, params?: Record<string, string | number>) => {
+      const pluralKey = count === 1 ? `${key}_one` : `${key}_other`
+      const allParams = { count, ...params }
+      const ns = ctx.nsMap[namespace]
+      const common = ctx.nsMap['common']
+      // Try scoped namespace (plural then base)
+      if (ns && pluralKey in ns) return tFn(ns, pluralKey, allParams)
+      if (ns && key in ns) return tFn(ns, key, allParams)
+      // Try common namespace
+      if (common && pluralKey in common) return tFn(common, pluralKey, allParams)
+      if (common && key in common) return tFn(common, key, allParams)
+      // Flat fallback
+      return ctx.tPlural(key, count, params)
+    }
+  }, [namespace, ctx.nsMap, ctx.tPlural])
+
+  return useMemo(
+    () => ({ ...ctx, t, tPlural }),
+    [ctx, t, tPlural],
+  )
 }
 
 /** Read locale from localStorage synchronously (avoids flash of wrong language). */
@@ -68,17 +107,23 @@ export function LanguageProvider({
   const [locale, setLocaleState] = useState<SupportedLocale>(
     () => initialLocale ?? getStoredLocale(),
   )
-  const [translations, setTranslations] = useState<Translations>({})
+  const [nsMap, setNsMap] = useState<Record<string, Translations>>({})
   const [isLoading, setIsLoading] = useState(true)
+
+  // Derive flat translations from nsMap
+  const translations = useMemo(
+    () => Object.assign({}, ...Object.values(nsMap)) as Translations,
+    [nsMap],
+  )
 
   // Load translations when locale or namespaces change
   useEffect(() => {
     let cancelled = false
     setIsLoading(true)
 
-    loadTranslations(locale, namespaces).then((tr) => {
+    loadNamespacedTranslations(locale, namespaces).then((map) => {
       if (!cancelled) {
-        setTranslations(tr)
+        setNsMap(map)
         setIsLoading(false)
       }
     })
@@ -117,8 +162,8 @@ export function LanguageProvider({
   )
 
   const value = useMemo<LanguageContextValue>(
-    () => ({ locale, translations, t, tPlural, setLocale, isLoading }),
-    [locale, translations, t, tPlural, setLocale, isLoading],
+    () => ({ locale, translations, nsMap, t, tPlural, setLocale, isLoading }),
+    [locale, translations, nsMap, t, tPlural, setLocale, isLoading],
   )
 
   return (

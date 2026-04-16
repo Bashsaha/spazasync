@@ -22,7 +22,7 @@ interface ShopSettings {
 }
 
 export default function SettingsPage() {
-  const { t, tPlural, locale, setLocale } = useTranslation()
+  const { t, tPlural, locale, setLocale } = useTranslation('settings')
   const [settings, setSettings] = useState<ShopSettings | null>(null)
   const [name, setName] = useState('')
   const [threshold, setThreshold] = useState(5)

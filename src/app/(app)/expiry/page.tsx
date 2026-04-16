@@ -32,7 +32,7 @@ const groupColors: Record<UrgencyGroup, { bg: string; border: string; text: stri
 }
 
 function useRelativeExpiryLabel() {
-  const { t, tPlural, locale } = useTranslation()
+  const { t, tPlural, locale } = useTranslation('expiry')
 
   return function formatExpiryLabel(dateStr: string): string {
     const today = new Date()
@@ -57,7 +57,7 @@ function useRelativeExpiryLabel() {
 }
 
 function BatchRow({ batch }: { batch: BatchDetail }) {
-  const { tPlural } = useTranslation()
+  const { tPlural } = useTranslation('expiry')
   const formatLabel = useRelativeExpiryLabel()
   const statusColors: Record<string, string> = {
     expired: 'text-red-600',
@@ -81,7 +81,7 @@ function BatchRow({ batch }: { batch: BatchDetail }) {
 }
 
 function ProductCard({ product }: { product: ExpiryProductDetail }) {
-  const { t } = useTranslation()
+  const { t } = useTranslation('expiry')
   const [expanded, setExpanded] = useState(false)
   const config = groupColors[product.urgency]
 
@@ -154,7 +154,7 @@ function UrgencySection({
   urgency: UrgencyGroup
   products: ExpiryProductDetail[]
 }) {
-  const { t } = useTranslation()
+  const { t } = useTranslation('expiry')
   const [collapsed, setCollapsed] = useState(false)
   const config = groupColors[urgency]
 
@@ -188,7 +188,7 @@ function UrgencySection({
 }
 
 export default function ExpiryPage() {
-  const { t } = useTranslation()
+  const { t } = useTranslation('expiry')
   const [products, setProducts] = useState<ExpiryProductDetail[]>([])
   const [loading, setLoading] = useState(true)
   const [errorKey, setErrorKey] = useState('')

@@ -8,7 +8,7 @@ import { useTranslation } from '@/components/LanguageProvider'
 
 export default function StockTakePage() {
   const router = useRouter()
-  const { t, tPlural } = useTranslation()
+  const { t, tPlural } = useTranslation('stock')
   const [products, setProducts] = useState<Product[]>([])
   const [counts, setCounts] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(true)

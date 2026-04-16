@@ -40,7 +40,7 @@ function ProductRow({
 }
 
 export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
-  const { t } = useTranslation()
+  const { t } = useTranslation('sale')
   const [search, setSearch] = useState('')
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)

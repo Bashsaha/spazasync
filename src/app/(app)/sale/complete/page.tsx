@@ -8,7 +8,7 @@ import { useTranslation } from '@/components/LanguageProvider'
 function SaleCompleteContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { t } = useTranslation()
+  const { t } = useTranslation('sale')
 
   const totalRaw = searchParams.get('total')
   const total = totalRaw ? parseFloat(totalRaw) : 0

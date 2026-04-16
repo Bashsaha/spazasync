@@ -42,7 +42,7 @@ function formatRand(amount: number): string {
 }
 
 export default function DailySummaryAlert() {
-  const { t, tPlural } = useTranslation()
+  const { t, tPlural } = useTranslation('summary')
   const [visible, setVisible] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [loading, setLoading] = useState(false)

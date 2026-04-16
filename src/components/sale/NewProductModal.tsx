@@ -26,7 +26,7 @@ interface NewProductModalProps {
  * Lets the owner quick-create the product so the sale can continue.
  */
 export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }: NewProductModalProps) {
-  const { t } = useTranslation()
+  const { t } = useTranslation('products')
   const [name, setName] = useState(suggestedName ?? '')
   const [price, setPrice] = useState('')
   const [costPrice, setCostPrice] = useState('')

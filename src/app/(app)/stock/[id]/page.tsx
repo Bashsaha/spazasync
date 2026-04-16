@@ -46,7 +46,7 @@ function StockAdjustContent() {
   const router = useRouter()
   const params = useParams<{ id: string }>()
   const searchParams = useSearchParams()
-  const { t, tPlural } = useTranslation()
+  const { t, tPlural } = useTranslation('stock')
 
   const [product, setProduct] = useState<Product | null>(null)
   const [loadError, setLoadError] = useState(false)

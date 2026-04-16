@@ -7,7 +7,7 @@ import { useTranslation } from '@/components/LanguageProvider'
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
-  const { t } = useTranslation()
+  const { t } = useTranslation('products')
   const [productId, setProductId] = useState<string>('')
   const [product, setProduct] = useState<Product | null>(null)
   const [form, setForm] = useState({ name: '', price: '', cost_price: '', stock_qty: '' })

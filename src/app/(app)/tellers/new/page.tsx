@@ -6,7 +6,7 @@ import { useTranslation } from '@/components/LanguageProvider'
 
 export default function NewTellerPage() {
   const router = useRouter()
-  const { t } = useTranslation()
+  const { t } = useTranslation('tellers')
   const [form, setForm] = useState({ name: '', password: '' })
   const [errorKey, setErrorKey] = useState('')
   const [errorRaw, setErrorRaw] = useState('')

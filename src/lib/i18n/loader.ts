@@ -50,6 +50,20 @@ export async function loadTranslations(
   return Object.assign({}, ...results)
 }
 
+/**
+ * Load multiple namespaces and return them as a map keyed by namespace.
+ * Used by LanguageProvider for namespace-scoped lookups.
+ */
+export async function loadNamespacedTranslations(
+  locale: SupportedLocale,
+  namespaces: TranslationNamespace[],
+): Promise<Record<string, Translations>> {
+  const entries = await Promise.all(
+    namespaces.map(async (ns) => [ns, await loadTranslation(locale, ns)] as const),
+  )
+  return Object.fromEntries(entries)
+}
+
 /** Clear the in-memory cache (useful when switching locales). */
 export function clearTranslationCache(): void {
   cache.clear()

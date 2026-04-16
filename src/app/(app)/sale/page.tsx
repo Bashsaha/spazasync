@@ -23,7 +23,7 @@ export default function SalePage() {
   const { activeTeller, setActiveTeller, clearActiveTeller, isLoading, role } = useActiveTeller()
   const { items, total, addItem, removeItem, updateQty, clearCart } = useCart()
   const { addToast } = useToast()
-  const { t } = useTranslation()
+  const { t } = useTranslation('sale')
 
   const [isScannerOpen, setIsScannerOpen] = useState(false)
   const [isPickerOpen, setIsPickerOpen] = useState(false)

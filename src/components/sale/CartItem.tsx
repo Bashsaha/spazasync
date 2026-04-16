@@ -13,7 +13,7 @@ interface CartItemProps {
 
 export function CartItem({ item, onRemove, onUpdateQty, threshold = 5 }: CartItemProps) {
   const { product, quantity, subtotal } = item
-  const { t } = useTranslation()
+  const { t } = useTranslation('sale')
 
   function decrement() {
     if (quantity === 1) {

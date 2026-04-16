@@ -14,7 +14,7 @@ interface ExpiryEntryListProps {
 }
 
 export function ExpiryEntryList({ entries, onChange, totalStockQty }: ExpiryEntryListProps) {
-  const { t } = useTranslation()
+  const { t } = useTranslation('expiry')
   const today = new Date().toISOString().split('T')[0]
 
   const entryTotal = entries.reduce((sum, e) => {

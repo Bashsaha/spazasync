@@ -9,7 +9,7 @@ export default function SubscribePage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const status = searchParams.get('status')
-  const { t, tPlural, locale } = useTranslation()
+  const { t, tPlural, locale } = useTranslation('settings')
 
   const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null)
   const [loading, setLoading] = useState(true)

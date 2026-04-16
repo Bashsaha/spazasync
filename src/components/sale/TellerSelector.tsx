@@ -18,7 +18,7 @@ interface Props {
 export function TellerSelector({ onSelect, selectedId }: Props) {
   const [tellers, setTellers] = useState<Teller[]>([])
   const [loading, setLoading] = useState(true)
-  const { t } = useTranslation()
+  const { t } = useTranslation('sale')
 
   useEffect(() => {
     async function load() {

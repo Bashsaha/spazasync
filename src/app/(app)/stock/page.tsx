@@ -23,7 +23,7 @@ interface ExpiringProduct {
 export default function StockPage() {
   const router = useRouter()
   const { addToast } = useToast()
-  const { t } = useTranslation()
+  const { t } = useTranslation('stock')
   const [products, setProducts] = useState<ProductWithStock[]>([])
   const [threshold, setThreshold] = useState(5)
   const [tab, setTab] = useState<Tab>('all')

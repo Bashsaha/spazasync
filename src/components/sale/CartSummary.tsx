@@ -17,7 +17,7 @@ interface CartSummaryProps {
  * When aboveNav is true, positions itself above the BottomNav bar.
  */
 export function CartSummary({ total, itemCount, onCompleteSale, isSubmitting, aboveNav, hasOversellWarning }: CartSummaryProps) {
-  const { t, tPlural } = useTranslation()
+  const { t, tPlural } = useTranslation('sale')
 
   return (
     <div

@@ -6,7 +6,7 @@ import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
 import { useTranslation } from '@/components/LanguageProvider'
 
 export function BarcodeScanButton() {
-  const { t } = useTranslation()
+  const { t } = useTranslation('products')
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
 

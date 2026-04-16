@@ -14,7 +14,7 @@ interface ExpiryEntry {
 function NewProductContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { t } = useTranslation()
+  const { t } = useTranslation('products')
 
   const prefillBarcode = searchParams.get('barcode') ?? ''
   const prefillName = searchParams.get('name') ?? ''

@@ -11,7 +11,7 @@ interface CatalogItem {
 }
 
 export function CatalogImportSheet() {
-  const { t } = useTranslation()
+  const { t } = useTranslation('products')
   const [isOpen, setIsOpen] = useState(false)
   const [items, setItems] = useState<CatalogItem[]>([])
   const [loading, setLoading] = useState(false)

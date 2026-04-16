@@ -115,3 +115,11 @@ Also added `/auth/callback` to `PUBLIC_ROUTES` in middleware so the route is rea
 **Root cause:** Original migration (006) explicitly skipped RLS with comment "no RLS needed" — prioritized convenience over defense-in-depth.
 **Fix:** Added `ALTER TABLE admin_payments ENABLE ROW LEVEL SECURITY;` to migration 006. No policies added — with RLS on and zero policies, anon/authenticated clients get 0 rows. Service role bypasses RLS automatically.
 **Prevention rule:** Every table must have RLS enabled, even admin-only tables. "Only accessed by service role" is not a reason to skip RLS — it's a reason to enable RLS with no policies (zero-access default). Service role bypasses RLS anyway, so there's no downside.
+
+---
+
+## BUG-015: i18n flat namespace merge causes cross-page key collisions — wrong labels everywhere
+**Symptom:** On the Add Product page, the "Product name" label showed "Teller name" instead. The "Add Product" title showed "Add Teller". Similar collisions affected `title`, `search_placeholder`, `error_load`, `empty`, and other keys across Stock, Expiry, and Settings pages — all 5 languages affected.
+**Root cause:** `LanguageProvider` loaded all 9 translation namespaces and merged them into a single flat object via `Object.assign()`. Later namespaces overwrote earlier ones. Load order was `[common, sale, dashboard, stock, summary, products, tellers, expiry, settings]`, so `tellers` overwrote `products` keys (e.g. `label_name`), and `settings` overwrote `title` from every other namespace. 16 key collisions identified in total.
+**Fix:** Added `loadNamespacedTranslations()` to `loader.ts` which keeps translations keyed by namespace. Updated `LanguageProvider` to store a per-namespace map (`nsMap`). Changed `useTranslation(namespace?)` to resolve keys from the specified namespace first, then `common`, then flat fallback. Updated all 20 page/component files to pass their namespace: `useTranslation('products')`, `useTranslation('tellers')`, etc.
+**Prevention rule:** When adding new i18n keys, check for collisions with other namespace files — keys like `title`, `label_name`, `back`, `loading`, `empty`, `error_generic` are high-risk. Always pass a namespace to `useTranslation()` in page components. Never rely on flat-merge ordering for correct key resolution.
