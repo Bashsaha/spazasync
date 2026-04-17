@@ -25,5 +25,9 @@
   "expiring_item_expired": "{name} \u2014 {count} seluphelile",
   "expiring_item_soon": "{name} \u2014 {count} kuphela maduze",
 
-  "btn_close": "Ngiyaqonda"
+  "btn_close": "Ngiyaqonda",
+
+  "missing_cost_alert_one": "{count} umkhiqizo awunayo intengo yokuthengwa \u2014 inzuzo yakho ingase ingabi yiqiniso.",
+  "missing_cost_alert_other": "{count} imikhiqizo ayinayo intengo yokuthengwa \u2014 inzuzo yakho ingase ingabi yiqiniso.",
+  "missing_cost_btn": "Faka izintengo zokuthengwa \u2192"
 }

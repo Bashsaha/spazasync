@@ -29,9 +29,29 @@ export async function GET(request: Request) {
     const result = await listProductsWithStock(search)
     // Also fetch expiry count for the summary strip
     const stats = await getExpiryStats(shopId)
+
+    // Fetch profit tracking flag + count products missing cost price
+    const { data: shop } = await auth.supabase
+      .from('shops')
+      .select('profit_tracking_enabled')
+      .eq('id', shopId)
+      .single()
+
+    let productsMissingCost = 0
+    if (shop?.profit_tracking_enabled) {
+      const { count } = await auth.supabase
+        .from('products')
+        .select('id', { count: 'exact', head: true })
+        .eq('shop_id', shopId)
+        .is('cost_price', null)
+      productsMissingCost = count ?? 0
+    }
+
     return NextResponse.json({
       ...result,
       expiring_count: stats.expiringProducts + stats.expiredProducts,
+      profit_tracking_enabled: Boolean(shop?.profit_tracking_enabled),
+      products_missing_cost: productsMissingCost,
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'

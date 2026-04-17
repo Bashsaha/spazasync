@@ -113,5 +113,9 @@
   "stock_take_error_load": "እቃዎችን መጫን አልተቻለም። እባክዎ ያድሱ።",
   "stock_take_error_network": "የኔትወርክ ስህተት። ግንኙነትዎን ያረጋግጡ እና እንደገና ይሞክሩ።",
   "stock_take_error_save": "ማስቀመጥ አልተሳካም። እንደገና ይሞክሩ።",
-  "stock_take_empty": "ለመቁጠር እቃዎች የሉም። መጀመሪያ እቃዎችን ይጨምሩ።"
+  "stock_take_empty": "ለመቁጠር እቃዎች የሉም። መጀመሪያ እቃዎችን ይጨምሩ።",
+
+  "missing_cost_alert_one": "የትርፍ ክትትል በርቷል፣ ግን {count} እቃ ገና የግዢ ዋጋ የለውም። ትርፍዎ ትክክል እንዲሆን ያክሉ።",
+  "missing_cost_alert_other": "የትርፍ ክትትል በርቷል፣ ግን {count} እቃዎች ገና የግዢ ዋጋ የላቸውም። ትርፍዎ ትክክል እንዲሆን ያክሉ።",
+  "missing_cost_btn": "የግዢ ዋጋ ያክሉ \u2192"
 }

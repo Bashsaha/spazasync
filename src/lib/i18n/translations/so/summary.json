@@ -25,5 +25,9 @@
   "expiring_item_expired": "{name} \u2014 {count} dhacay",
   "expiring_item_soon": "{name} \u2014 {count} dhowaan dhacaya",
 
-  "btn_close": "Waan fahmay"
+  "btn_close": "Waan fahmay",
+
+  "missing_cost_alert_one": "{count} walax ma leh qiimaha iibsashada \u2014 faa'iidadaadu sax noqon mayso.",
+  "missing_cost_alert_other": "{count} walxood ma leh qiimaha iibsashada \u2014 faa'iidadaadu sax noqon mayso.",
+  "missing_cost_btn": "Ku dar qiimaha iibsashada \u2192"
 }

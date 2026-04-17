@@ -25,5 +25,9 @@
   "expiring_item_expired": "{name} \u2014 {count} میعاد ختم",
   "expiring_item_soon": "{name} \u2014 {count} جلد میعاد ختم",
 
-  "btn_close": "سمجھ گیا"
+  "btn_close": "سمجھ گیا",
+
+  "missing_cost_alert_one": "{count} پروڈکٹ میں خریداری کی قیمت نہیں ہے \u2014 آپ کا منافع درست نہیں ہو سکتا۔",
+  "missing_cost_alert_other": "{count} پروڈکٹس میں خریداری کی قیمت نہیں ہے \u2014 آپ کا منافع درست نہیں ہو سکتا۔",
+  "missing_cost_btn": "خریداری کی قیمتیں شامل کریں \u2192"
 }

@@ -16,11 +16,21 @@ export default function StockTakePage() {
   const [errorKey, setErrorKey] = useState<string | null>(null)
   const [errorRaw, setErrorRaw] = useState('')
   const [savedCount, setSavedCount] = useState<number | null>(null)
+  const [profitTrackingEnabled, setProfitTrackingEnabled] = useState(false)
+  const [productsMissingCost, setProductsMissingCost] = useState(0)
 
   useEffect(() => {
-    fetch('/api/products')
-      .then((r) => r.json())
-      .then((data) => setProducts((data.products ?? data) as Product[]))
+    Promise.all([
+      fetch('/api/products').then((r) => r.json()),
+      fetch('/api/settings').then((r) => r.json()).catch(() => null),
+    ])
+      .then(([productsData, settingsData]) => {
+        setProducts((productsData.products ?? productsData) as Product[])
+        if (settingsData) {
+          setProfitTrackingEnabled(Boolean(settingsData.profit_tracking_enabled))
+          setProductsMissingCost(settingsData.products_missing_cost ?? 0)
+        }
+      })
       .catch(() => setErrorKey('stock_take_error_load'))
       .finally(() => setIsLoading(false))
   }, [])
@@ -116,6 +126,19 @@ export default function StockTakePage() {
         <p className="text-gray-500 text-sm mb-6 ml-11">
           {t('stock_take_subtitle')}
         </p>
+
+        {/* Missing cost price alert */}
+        {!isLoading && profitTrackingEnabled && productsMissingCost > 0 && (
+          <Link
+            href="/products"
+            className="block bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4"
+          >
+            <p className="text-sm font-semibold text-amber-800">
+              {tPlural('missing_cost_alert', productsMissingCost, { count: productsMissingCost })}
+            </p>
+            <p className="text-xs text-amber-600 mt-1">{t('missing_cost_btn')}</p>
+          </Link>
+        )}
 
         {/* error banner */}
         {(errorKey || errorRaw) && (

@@ -320,17 +320,21 @@ At the start of every session:
 - [x] Phase 27d: Translate Remaining Pages + RTL Foundation
 - [x] Phase 27e: Polish, Offline Hardening, Tests
 - [x] Phase 28: Profit Tracking (Opt-In Toggle)
+- [x] Phase 29: Profit Tracking UX — Missing Cost Price Alerts
 
-All phases 1–28 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
+All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
 
 ### Phase 28 — Profit Tracking (2026-04-15)
 **What was built:** Opt-in `shops.profit_tracking_enabled` toggle. When on: `products.cost_price` becomes required on create/edit and `(unit_price - unit_cost) * qty` surfaces on TodaySummary (swap Tellers → Profit) and DailySummaryAlert modal. `sale_items.unit_cost` is snapshotted at sale time via `completeSale` so historical profit is immune to later cost edits. New migration `014_profit_tracking.sql`; new `tests/unit/profit.test.ts` (19 tests). All five locales (en/so/am/zu/ur) received profit/cost keys. Rule 8 (i18n Coverage) added to Workflow Orchestration Rules.
+
+### Phase 29 — Profit Tracking UX: Missing Cost Price Alerts (2026-04-17)
+**What was built:** When profit tracking is enabled and products are missing a cost price, amber alert banners now appear on the Stock page, Count Stock page, and Daily Summary modal — each linking to the Products page. The settings page missing-cost count now auto-refreshes via `visibilitychange` listener when the user returns from editing products. Stock API (`GET /api/stock`) and Daily Summary API (`GET /api/summary/daily`) extended with `profit_tracking_enabled` and `products_missing_cost` fields. All five locales (en/so/am/zu/ur) updated with `missing_cost_alert` and `missing_cost_btn` keys in both `stock.json` and `summary.json`. No new files or migrations. 272 tests pass, TypeScript clean.
 
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 28 (2026-04-15)_
+_Last updated: Phase 29 (2026-04-17)_
 
 ```
 spaza shop/

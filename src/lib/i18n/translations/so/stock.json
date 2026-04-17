@@ -113,5 +113,9 @@
   "stock_take_error_load": "Ma awoodin in la soo raro walxaha. Fadlan cusboonaysii.",
   "stock_take_error_network": "Cillad shabakad. Hubi xiriirkaaga oo isku day mar kale.",
   "stock_take_error_save": "Way fashilmay keydinta. Isku day mar kale.",
-  "stock_take_empty": "Walxo la tiriyo ma jiraan. Marka hore ku dar walxo."
+  "stock_take_empty": "Walxo la tiriyo ma jiraan. Marka hore ku dar walxo.",
+
+  "missing_cost_alert_one": "Raadraaca faa'iidada wuu shidanyahay, laakiin {count} walax wali ma leh qiimaha iibsashada. Ku dar si faa'iidadaadu saxan tahay.",
+  "missing_cost_alert_other": "Raadraaca faa'iidada wuu shidanyahay, laakiin {count} walxood wali ma leh qiimaha iibsashada. Ku dar si faa'iidadaadu saxan tahay.",
+  "missing_cost_btn": "Ku dar qiimaha iibsashada \u2192"
 }

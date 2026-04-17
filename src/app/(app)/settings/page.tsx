@@ -51,6 +51,22 @@ export default function SettingsPage() {
       .finally(() => setLoading(false))
   }, [])
 
+  // Re-fetch missing cost count when user returns from editing products
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState !== 'visible') return
+      fetch('/api/settings')
+        .then((r) => r.json())
+        .then((data: ShopSettings) => {
+          setSettings((prev) => prev ? { ...prev, products_missing_cost: data.products_missing_cost } : prev)
+          setProfitTracking(Boolean(data.profit_tracking_enabled))
+        })
+        .catch(() => {})
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [])
+
   async function handleProfitToggle(nextValue: boolean) {
     setProfitTracking(nextValue)
     const res = await fetch('/api/settings', {

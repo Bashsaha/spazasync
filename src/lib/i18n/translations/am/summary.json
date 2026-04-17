@@ -25,5 +25,9 @@
   "expiring_item_expired": "{name} \u2014 {count} ጊዜው አልፏል",
   "expiring_item_soon": "{name} \u2014 {count} በቅርቡ ጊዜው ያልፋል",
 
-  "btn_close": "ተረድቻለሁ"
+  "btn_close": "ተረድቻለሁ",
+
+  "missing_cost_alert_one": "{count} እቃ የግዢ ዋጋ ይጎድለዋል \u2014 ትርፍዎ ትክክል ላይሆን ይችላል።",
+  "missing_cost_alert_other": "{count} እቃዎች የግዢ ዋጋ ይጎድላቸዋል \u2014 ትርፍዎ ትክክል ላይሆን ይችላል።",
+  "missing_cost_btn": "የግዢ ዋጋ ያክሉ \u2192"
 }

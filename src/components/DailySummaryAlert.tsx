@@ -9,6 +9,7 @@ interface SummaryResponse {
   lowStock: LowStockItem[]
   expiring: ExpiringProductAlert[]
   profitTrackingEnabled: boolean
+  productsMissingCost: number
 }
 
 const LS_KEY = 'last_summary_seen'
@@ -113,7 +114,7 @@ export default function DailySummaryAlert() {
 
   // Modal
   if (showModal && data) {
-    const { sales, lowStock, expiring, profitTrackingEnabled } = data
+    const { sales, lowStock, expiring, profitTrackingEnabled, productsMissingCost } = data
     const hasExpiring = expiring.some((e) => e.expiring_soon_qty > 0)
     const hasExpired = expiring.some((e) => e.expired_qty > 0)
 
@@ -209,6 +210,19 @@ export default function DailySummaryAlert() {
                     ))}
                 </ul>
               </div>
+            )}
+
+            {/* Missing cost price alert */}
+            {profitTrackingEnabled && productsMissingCost > 0 && (
+              <a
+                href="/products"
+                className="block bg-amber-50 rounded-xl p-4"
+              >
+                <p className="text-amber-800 font-semibold text-sm">
+                  {tPlural('missing_cost_alert', productsMissingCost, { count: productsMissingCost })}
+                </p>
+                <p className="text-amber-600 text-xs mt-1">{t('missing_cost_btn')}</p>
+              </a>
             )}
           </div>
 

@@ -25,5 +25,9 @@
   "expiring_item_expired": "{name} \u2014 {count} expired",
   "expiring_item_soon": "{name} \u2014 {count} expiring soon",
 
-  "btn_close": "Got it"
+  "btn_close": "Got it",
+
+  "missing_cost_alert_one": "{count} product is missing a cost price \u2014 your profit may not be accurate.",
+  "missing_cost_alert_other": "{count} products are missing a cost price \u2014 your profit may not be accurate.",
+  "missing_cost_btn": "Add cost prices \u2192"
 }

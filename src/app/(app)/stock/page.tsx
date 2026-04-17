@@ -23,7 +23,7 @@ interface ExpiringProduct {
 export default function StockPage() {
   const router = useRouter()
   const { addToast } = useToast()
-  const { t } = useTranslation('stock')
+  const { t, tPlural } = useTranslation('stock')
   const [products, setProducts] = useState<ProductWithStock[]>([])
   const [threshold, setThreshold] = useState(5)
   const [tab, setTab] = useState<Tab>('all')
@@ -31,6 +31,10 @@ export default function StockPage() {
   const [loading, setLoading] = useState(true)
   const [errorKey, setErrorKey] = useState<string>('')
   const [scanning, setScanning] = useState(false)
+
+  // Profit tracking
+  const [profitTrackingEnabled, setProfitTrackingEnabled] = useState(false)
+  const [productsMissingCost, setProductsMissingCost] = useState(0)
 
   // Expiry data (loaded lazily when tab selected)
   const [expiringProducts, setExpiringProducts] = useState<ExpiringProduct[]>([])
@@ -40,10 +44,12 @@ export default function StockPage() {
   useEffect(() => {
     fetch('/api/stock')
       .then((r) => r.json())
-      .then((data: { products: ProductWithStock[]; threshold: number; expiring_count?: number }) => {
+      .then((data: { products: ProductWithStock[]; threshold: number; expiring_count?: number; profit_tracking_enabled?: boolean; products_missing_cost?: number }) => {
         setProducts(data.products ?? [])
         setThreshold(data.threshold ?? 5)
         setExpiryCount(data.expiring_count ?? 0)
+        setProfitTrackingEnabled(Boolean(data.profit_tracking_enabled))
+        setProductsMissingCost(data.products_missing_cost ?? 0)
         setLoading(false)
       })
       .catch(() => {
@@ -109,6 +115,19 @@ export default function StockPage() {
           {t('btn_scan')}
         </button>
       </div>
+
+      {/* Missing cost price alert */}
+      {!loading && profitTrackingEnabled && productsMissingCost > 0 && (
+        <Link
+          href="/products"
+          className="block bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4"
+        >
+          <p className="text-sm font-semibold text-amber-800">
+            {tPlural('missing_cost_alert', productsMissingCost, { count: productsMissingCost })}
+          </p>
+          <p className="text-xs text-amber-600 mt-1">{t('missing_cost_btn')}</p>
+        </Link>
+      )}
 
       {/* Summary strip */}
       {!loading && !errorKey && (

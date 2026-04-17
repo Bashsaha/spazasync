@@ -113,5 +113,9 @@
   "stock_take_error_load": "Akukwazanga ukulayisha imikhiqizo. Sicela uvuselele.",
   "stock_take_error_network": "Iphutha lenethiwekhi. Hlola uxhumano lwakho futhi uzame futhi.",
   "stock_take_error_save": "Kuhlulekile ukulondolozwa. Zama futhi.",
-  "stock_take_empty": "Ayikho imikhiqizo ongayibala. Qala ngokufaka imikhiqizo."
+  "stock_take_empty": "Ayikho imikhiqizo ongayibala. Qala ngokufaka imikhiqizo.",
+
+  "missing_cost_alert_one": "Ukulandelela inzuzo kuvuliwe, kodwa {count} umkhiqizo awunayo intengo yokuthengwa. Yifake ukuze inzuzo yakho ibe yiqiniso.",
+  "missing_cost_alert_other": "Ukulandelela inzuzo kuvuliwe, kodwa {count} imikhiqizo ayinayo intengo yokuthengwa. Yifake ukuze inzuzo yakho ibe yiqiniso.",
+  "missing_cost_btn": "Faka izintengo zokuthengwa \u2192"
 }

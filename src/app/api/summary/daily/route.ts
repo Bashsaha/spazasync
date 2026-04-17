@@ -32,7 +32,18 @@ export async function GET() {
       getExpiringProductsForShop(auth.shopId),
     ])
 
-    return NextResponse.json({ sales, lowStock, expiring, profitTrackingEnabled })
+    // Count products missing cost price when profit tracking is on
+    let productsMissingCost = 0
+    if (profitTrackingEnabled) {
+      const { count } = await auth.supabase
+        .from('products')
+        .select('id', { count: 'exact', head: true })
+        .eq('shop_id', auth.shopId)
+        .is('cost_price', null)
+      productsMissingCost = count ?? 0
+    }
+
+    return NextResponse.json({ sales, lowStock, expiring, profitTrackingEnabled, productsMissingCost })
   } catch (err) {
     console.error('Daily summary API error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
