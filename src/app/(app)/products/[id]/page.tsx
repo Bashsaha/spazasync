@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import type { Product } from '@/types'
+import type { Product, Supplier } from '@/types'
 import { useTranslation } from '@/components/LanguageProvider'
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
@@ -10,8 +11,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const { t } = useTranslation('products')
   const [productId, setProductId] = useState<string>('')
   const [product, setProduct] = useState<Product | null>(null)
-  const [form, setForm] = useState({ name: '', price: '', cost_price: '', stock_qty: '' })
+  const [form, setForm] = useState({ name: '', price: '', cost_price: '', stock_qty: '', supplier_id: '' })
   const [profitTracking, setProfitTracking] = useState(false)
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [errorKey, setErrorKey] = useState('')
   const [errorRaw, setErrorRaw] = useState('')
   const [loading, setLoading] = useState(false)
@@ -23,16 +25,19 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       Promise.all([
         fetch(`/api/products/${id}`).then((r) => r.json()),
         fetch('/api/settings').then((r) => (r.ok ? r.json() : null)),
+        fetch('/api/suppliers').then((r) => (r.ok ? r.json() : [])),
       ])
-        .then(([data, settings]: [Product, { profit_tracking_enabled?: boolean } | null]) => {
+        .then(([data, settings, sups]: [Product, { profit_tracking_enabled?: boolean } | null, Supplier[]]) => {
           setProduct(data)
           setForm({
             name: data.name,
             price: String(data.price),
             cost_price: data.cost_price != null ? String(data.cost_price) : '',
             stock_qty: String(data.stock_qty),
+            supplier_id: data.supplier_id ?? '',
           })
           if (settings?.profit_tracking_enabled) setProfitTracking(true)
+          setSuppliers(sups)
         })
         .catch(() => setLoadError(true))
     })
@@ -48,6 +53,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         name: form.name.trim(),
         price: parseFloat(form.price),
         stock_qty: parseInt(form.stock_qty, 10),
+        supplier_id: form.supplier_id || null,
       }
       if (profitTracking) {
         body.cost_price = form.cost_price.trim() !== '' ? parseFloat(form.cost_price) : null
@@ -163,6 +169,35 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             <p className="text-xs text-gray-400 mt-1">{t('hint_cost_price')}</p>
           </div>
         )}
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('label_supplier')} <span className="text-gray-400 font-normal">{t('label_optional')}</span>
+          </label>
+          <select
+            value={form.supplier_id}
+            onChange={(e) => setForm((f) => ({ ...f, supplier_id: e.target.value }))}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">{t('placeholder_supplier_none')}</option>
+            {suppliers.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+          <div className="flex items-center justify-between mt-1">
+            {suppliers.length === 0 && (
+              <span className="text-xs text-gray-400">{t('no_suppliers_hint')}</span>
+            )}
+            <Link
+              href="/suppliers"
+              className="text-xs text-blue-600 active:text-blue-700 ml-auto"
+            >
+              {t('link_manage_suppliers')} &rsaquo;
+            </Link>
+          </div>
+        </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_stock_qty')}</label>

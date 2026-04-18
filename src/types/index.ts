@@ -60,6 +60,7 @@ export interface Product {
   price: number   // stored as NUMERIC, parsed as number (ZAR rands)
   cost_price: number | null   // wholesale / buy-in cost per unit — nullable
   stock_qty: number
+  supplier_id: string | null  // last-known supplier (Phase 30b)
   created_at: string
 }
 
@@ -136,6 +137,7 @@ export interface CreateProductInput {
   price: number
   cost_price?: number | null
   stock_qty?: number
+  supplier_id?: string | null
 }
 
 export interface CompleteSaleInput {
@@ -357,4 +359,30 @@ export interface CreateSupplierInput {
   contact_number?: string | null
   type?: SupplierType | null
   location?: string | null
+}
+
+// --- Goods received (Phase 30b) ---
+
+export interface GoodsReceived {
+  id: string
+  shop_id: string
+  product_id: string
+  supplier_id: string | null
+  quantity: number
+  notes: string | null
+  received_by: string | null
+  received_at: string
+}
+
+export interface CreateGoodsReceivedInput {
+  product_id: string
+  quantity: number
+  supplier_id?: string | null
+  notes?: string | null
+}
+
+/** Goods received row joined with product + supplier names (for list/reports). */
+export interface GoodsReceivedWithNames extends GoodsReceived {
+  product_name: string
+  supplier_name: string | null
 }

@@ -54,6 +54,8 @@
   "adjust_reason_correction": "Ngangibalile kabi ngaphambilini",
   "adjust_reason_other": "Esinye isizathu",
   "adjust_expiry_checkbox": "Faka izinsuku zokuphela zalesi sitoki",
+  "adjust_label_supplier": "Lesi sitoki sivele kubani?",
+  "adjust_placeholder_supplier_none": "— Akekho umthumeli —",
   "adjust_btn_saving": "Kuyalondolozwa\u2026",
   "adjust_btn_add_units_pending": "Faka \u2026 amayunithi",
   "adjust_btn_remove_units_pending": "Khipha \u2026 amayunithi",

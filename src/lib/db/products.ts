@@ -31,6 +31,7 @@ export async function createProduct(input: {
   name: string
   price: number
   stock_qty: number
+  supplier_id?: string | null
 }): Promise<Product> {
   const supabase = await createClient()
   const {
@@ -49,10 +50,10 @@ export async function createProduct(input: {
   return data as Product
 }
 
-/** Update product name, price, and/or stock_qty. Barcode is immutable. */
+/** Update product name, price, stock_qty, and/or supplier. Barcode is immutable. */
 export async function updateProduct(
   id: string,
-  input: { name?: string; price?: number; stock_qty?: number },
+  input: { name?: string; price?: number; stock_qty?: number; supplier_id?: string | null },
 ): Promise<Product> {
   const supabase = await createClient()
   const { data, error } = await supabase

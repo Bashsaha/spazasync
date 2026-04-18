@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import type { Product, ProductBatch } from '@/types'
+import type { Product, ProductBatch, Supplier } from '@/types'
 import { formatZAR } from '@/lib/utils/currency'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { ExpiryEntryList } from '@/components/ExpiryEntryList'
@@ -47,8 +47,11 @@ function StockAdjustContent() {
   const params = useParams<{ id: string }>()
   const searchParams = useSearchParams()
   const { t, tPlural } = useTranslation('stock')
+  const { t: tSup } = useTranslation('products')
 
   const [product, setProduct] = useState<Product | null>(null)
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
+  const [selectedSupplierId, setSelectedSupplierId] = useState('')
   const [loadError, setLoadError] = useState(false)
   const [mode, setMode] = useState<Mode>(() => searchParams.get('mode') === 'remove' ? 'remove' : 'add')
   const [amount, setAmount] = useState(() => searchParams.get('qty') ?? '')
@@ -77,7 +80,10 @@ function StockAdjustContent() {
   useEffect(() => {
     fetch(`/api/products/${params.id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-      .then((data: Product) => setProduct(data))
+      .then((data: Product) => {
+        setProduct(data)
+        setSelectedSupplierId(data.supplier_id ?? '')
+      })
       .catch(() => setLoadError(true))
   }, [params.id])
 
@@ -90,6 +96,14 @@ function StockAdjustContent() {
       .catch(() => {})
   }, [params.id])
 
+  // Load suppliers (for the add-mode dropdown)
+  useEffect(() => {
+    fetch('/api/suppliers')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: Supplier[]) => setSuppliers(data))
+      .catch(() => {})
+  }, [])
+
   const parsedAmount = parseInt(amount, 10)
   const validAmount = !isNaN(parsedAmount) && parsedAmount > 0
 
@@ -101,6 +115,39 @@ function StockAdjustContent() {
 
   const wouldClamp =
     product && mode === 'remove' && validAmount && parsedAmount > product.stock_qty
+
+  /**
+   * Phase 30b: log the receipt + update product's last-known supplier when
+   * the user actually added stock. Runs best-effort after the main adjust
+   * succeeds — any error here is silent (audit trail only, not the main op).
+   */
+  async function logReceiptAndMaybeUpdateSupplier(productBefore: Product, quantityAdded: number) {
+    if (quantityAdded <= 0) return
+    try {
+      await fetch('/api/goods-received', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_id: productBefore.id,
+          quantity: quantityAdded,
+          supplier_id: selectedSupplierId || null,
+        }),
+      })
+      if ((selectedSupplierId || null) !== (productBefore.supplier_id ?? null)) {
+        await fetch(`/api/products/${productBefore.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: productBefore.name,
+            price: productBefore.price,
+            supplier_id: selectedSupplierId || null,
+          }),
+        })
+      }
+    } catch {
+      /* audit trail best-effort — don't block the UX */
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -164,6 +211,7 @@ function StockAdjustContent() {
       if (totalAdded > 0) {
         setResultQty(product.stock_qty + totalAdded)
         setDone(true)
+        await logReceiptAndMaybeUpdateSupplier(product, totalAdded)
       } else if (!saveErrorKey) {
         setSaveErrorKey('adjust_save_error_generic')
       }
@@ -188,6 +236,9 @@ function StockAdjustContent() {
       const updated: Product = await res.json()
       setResultQty(updated.stock_qty)
       setDone(true)
+      if (mode === 'add') {
+        await logReceiptAndMaybeUpdateSupplier(product, parsedAmount)
+      }
     } else {
       const body = await res.json().catch(() => ({}))
       if (body?.error) {
@@ -420,6 +471,32 @@ function StockAdjustContent() {
                 ))}
               </select>
             </div>
+
+            {/* Supplier (only when adding stock) */}
+            {mode === 'add' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('adjust_label_supplier')} <span className="text-gray-400 font-normal">{t('adjust_reason_optional')}</span>
+                </label>
+                <select
+                  value={selectedSupplierId}
+                  onChange={(e) => setSelectedSupplierId(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">{t('adjust_placeholder_supplier_none')}</option>
+                  {suppliers.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="flex items-center justify-end mt-1">
+                  <Link href="/suppliers" className="text-xs text-blue-600 active:text-blue-700">
+                    {tSup('link_manage_suppliers')} &rsaquo;
+                  </Link>
+                </div>
+              </div>
+            )}
 
             {/* Expiry dates (only when adding stock) */}
             {mode === 'add' && (

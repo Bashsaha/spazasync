@@ -54,6 +54,8 @@
   "adjust_reason_correction": "I counted it wrong before",
   "adjust_reason_other": "Another reason",
   "adjust_expiry_checkbox": "Add expiry dates for this stock",
+  "adjust_label_supplier": "Who did this stock come from?",
+  "adjust_placeholder_supplier_none": "\u2014 No supplier \u2014",
   "adjust_btn_saving": "Saving\u2026",
   "adjust_btn_add_units_pending": "Add \u2026 units",
   "adjust_btn_remove_units_pending": "Remove \u2026 units",

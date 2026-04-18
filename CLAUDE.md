@@ -85,6 +85,8 @@ SpazaSync is a mobile-first PWA for South African spaza shop and small retail ow
 - `sale_batch_consumptions` — sale_id, batch_id, product_id, qty_consumed, expiry_date; audit trail for FEFO batch deductions during sales; RLS via sales.shop_id join
 - `barcode_catalog` — barcode (unique), name, category; RLS SELECT for all, writes via admin client only (Phase 16a)
 - `suppliers` — shop_id, name, contact_number, type (wholesaler/distributor/farmer/other), location; unique(shop_id, LOWER(name)); RLS via user_in_shop(shop_id) (Phase 30a)
+- `goods_received` — shop_id, product_id, supplier_id (nullable), quantity, notes, received_by, received_at; RLS via user_in_shop(shop_id); text-only audit trail logged on every stock top-up (Phase 30b)
+- `products.supplier_id` — last-known supplier, nullable FK to suppliers (ON DELETE SET NULL) (Phase 30b)
 
 ### RLS helpers
 - `user_in_shop(shop_id)` — SECURITY DEFINER function
@@ -323,7 +325,7 @@ At the start of every session:
 - [x] Phase 28: Profit Tracking (Opt-In Toggle)
 - [x] Phase 29: Profit Tracking UX — Missing Cost Price Alerts
 - [x] Phase 30a: Supplier Directory — Database + API + Pages
-- [ ] Phase 30b: Traceability — Link Suppliers to Products & Stock + Goods Received Log
+- [x] Phase 30b: Traceability — Link Suppliers to Products & Stock + Goods Received Log
 - [ ] Phase 30c: Compliance PDF — Supplier Traceability Section
 
 All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
@@ -337,11 +339,14 @@ All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
 ### Phase 30a — Supplier Directory (2026-04-18)
 **What was built:** Foundation for Supplier Records & Traceability. New `suppliers` table with RLS (`user_in_shop(shop_id)`), case-insensitive unique name per shop. New `/suppliers` section (list page, `new` add form, `[id]` edit/delete) accessible via an emerald "My Suppliers" card on the Settings page (not added to BottomNav — 6 items is already max for non-technical users). Full CRUD API at `/api/suppliers` and `/api/suppliers/[id]` using shared `getShopAuth` + `parseBody` patterns. New `suppliers` i18n namespace in all five locales (en/so/am/zu/ur) with ~30 keys. New TypeScript types `Supplier` + `CreateSupplierInput`, Zod `createSupplierSchema` + `updateSupplierSchema`. New migration `015_suppliers.sql`. 280 tests pass (8 new from suppliers namespace parity), TypeScript clean.
 
+### Phase 30b — Traceability: Suppliers linked to Products + Goods Received Log (2026-04-18)
+**What was built:** Migration `016_goods_received.sql` adds `products.supplier_id` (nullable FK with ON DELETE SET NULL) and a new `goods_received(id, shop_id, product_id, supplier_id, quantity, notes, received_by, received_at)` table — text-only audit trail, no invoice photos (decided against due to Supabase Storage/egress cost). Optional Supplier dropdown added to product create/edit forms. Stock → Add mode now shows a Supplier dropdown (pre-filled from the product's last supplier) and, on successful adjust, best-effort POSTs to `/api/goods-received` + PATCHes `products.supplier_id` if changed. New `src/lib/db/goods-received.ts` (`logGoodsReceived`, `listGoodsReceived` with product+supplier joins) and new API route `src/app/api/goods-received/route.ts` (GET list with filters, POST create). New Zod `createGoodsReceivedSchema`. i18n parity maintained: 4 new keys in `products.json` and 2 in `stock.json` across all 5 locales. 280 tests pass, TypeScript clean.
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 30a (2026-04-18)_
+_Last updated: Phase 30b (2026-04-18)_
 
 ```
 spaza shop/
@@ -484,9 +489,11 @@ spaza shop/
 │   │       │   ├── route.ts               # GET list, POST create
 │   │       │   ├── me/route.ts
 │   │       │   └── [id]/route.ts          # PATCH deactivate
-│   │       └── suppliers/
-│   │           ├── route.ts               # GET list, POST create (Phase 30a)
-│   │           └── [id]/route.ts          # GET, PATCH, DELETE
+│   │       ├── suppliers/
+│   │       │   ├── route.ts               # GET list, POST create (Phase 30a)
+│   │       │   └── [id]/route.ts          # GET, PATCH, DELETE
+│   │       └── goods-received/
+│   │           └── route.ts               # GET list (with filters), POST create (Phase 30b)
 │   ├── components/
 │   │   ├── products/
 │   │   │   ├── CatalogImportSheet.tsx     # Bottom-sheet: search catalog, set prices, bulk import
@@ -549,6 +556,7 @@ spaza shop/
 │   │   │   ├── catalog.ts                 # Barcode catalog CRUD
 │   │   │   ├── batches.ts                 # Product batch CRUD + expiry stats
 │   │   │   ├── suppliers.ts               # Supplier CRUD (Phase 30a)
+│   │   │   ├── goods-received.ts          # Goods received log + list with joins (Phase 30b)
 │   │   │   └── compliance-report.ts       # Compliance PDF data fetcher
 │   │   ├── offline/
 │   │   │   ├── db.ts                      # IndexedDB via idb
@@ -592,7 +600,8 @@ spaza shop/
 │       ├── 012_offline_id_unique.sql
 │       ├── 013_shop_language.sql
 │       ├── 014_profit_tracking.sql    # Phase 28 — profit tracking toggle + cost columns
-│       └── 015_suppliers.sql           # Phase 30a — suppliers table + RLS
+│       ├── 015_suppliers.sql           # Phase 30a — suppliers table + RLS
+│       └── 016_goods_received.sql      # Phase 30b — products.supplier_id + goods_received table + RLS
 ├── data/
 │   └── sa-products.csv                    # 100 SA products with EAN-13 barcodes
 ├── scripts/

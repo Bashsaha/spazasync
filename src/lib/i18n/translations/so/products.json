@@ -31,6 +31,10 @@
   "label_opening_stock": "Alaabta furitaanka",
   "label_stock_qty": "Tirada alaabta",
   "label_expiry": "Ma taqaannaa taariikhaha dhicitaanka?",
+  "label_supplier": "Yaad ka iibsataa?",
+  "placeholder_supplier_none": "— Aan la dooran —",
+  "no_suppliers_hint": "Weli iibiyayaal lama keydin.",
+  "link_manage_suppliers": "Maareyn iibiyayaasha",
 
   "btn_save_product": "Ku dar Alaab",
   "btn_save_changes": "Keydi Bedelada",

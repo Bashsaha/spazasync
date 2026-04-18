@@ -31,6 +31,10 @@
   "label_opening_stock": "የመክፈቻ ስቶክ",
   "label_stock_qty": "የስቶክ መጠን",
   "label_expiry": "የማብቂያ ቀኖቹን ያውቃሉ?",
+  "label_supplier": "ከማን ነው የሚገዙት?",
+  "placeholder_supplier_none": "— አቅራቢ የለም —",
+  "no_suppliers_hint": "ገና አቅራቢዎች አልተመዘገቡም።",
+  "link_manage_suppliers": "አቅራቢዎችን አስተዳድር",
 
   "btn_save_product": "ምርት ጨምር",
   "btn_save_changes": "ለውጦችን አስቀምጥ",

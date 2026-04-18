@@ -31,6 +31,10 @@
   "label_opening_stock": "Isitokhu sokuvula",
   "label_stock_qty": "Inani lesitokhu",
   "label_expiry": "Uyazazi izinsuku zokuphelelwa yisikhathi?",
+  "label_supplier": "Ukuthenga kubani?",
+  "placeholder_supplier_none": "— Akekho umthumeli —",
+  "no_suppliers_hint": "Abekho abathumeli abagciniwe okwamanje.",
+  "link_manage_suppliers": "Phatha abathumeli",
 
   "btn_save_product": "Engeza Umkhiqizo",
   "btn_save_changes": "Londoloza Izinguquko",

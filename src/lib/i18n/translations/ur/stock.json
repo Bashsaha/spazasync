@@ -54,6 +54,8 @@
   "adjust_reason_correction": "پہلے غلط گنا تھا",
   "adjust_reason_other": "کوئی اور وجہ",
   "adjust_expiry_checkbox": "اس اسٹاک کے لیے میعاد ختم ہونے کی تاریخیں شامل کریں",
+  "adjust_label_supplier": "یہ اسٹاک کس سے آیا؟",
+  "adjust_placeholder_supplier_none": "— کوئی سپلائر نہیں —",
   "adjust_btn_saving": "محفوظ ہو رہا ہے\u2026",
   "adjust_btn_add_units_pending": "\u2026 یونٹ شامل کریں",
   "adjust_btn_remove_units_pending": "\u2026 یونٹ ہٹائیں",

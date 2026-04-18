@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ExpiryEntryList } from '@/components/ExpiryEntryList'
 import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
 import { useTranslation } from '@/components/LanguageProvider'
+import type { Supplier } from '@/types'
 
 interface ExpiryEntry {
   expiry_date: string
@@ -25,10 +27,12 @@ function NewProductContent() {
     price: '',
     cost_price: '',
     stock_qty: '0',
+    supplier_id: '',
   })
   const [profitTracking, setProfitTracking] = useState(false)
   const [trackExpiry, setTrackExpiry] = useState(false)
   const [expiryEntries, setExpiryEntries] = useState<ExpiryEntry[]>([])
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [errorKey, setErrorKey] = useState('')
   const [errorRaw, setErrorRaw] = useState('')
   const [loading, setLoading] = useState(false)
@@ -41,6 +45,13 @@ function NewProductContent() {
         if (data?.profit_tracking_enabled) setProfitTracking(true)
       })
       .catch(() => { /* default off */ })
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/suppliers')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: Supplier[]) => setSuppliers(data))
+      .catch(() => { /* non-critical */ })
   }, [])
 
   const stockQty = parseInt(form.stock_qty, 10) || 0
@@ -82,6 +93,7 @@ function NewProductContent() {
             ? parseFloat(form.cost_price)
             : null,
           stock_qty: hasExpiry ? 0 : stockQty,
+          supplier_id: form.supplier_id || null,
         }),
       })
       const data = await res.json()
@@ -197,6 +209,35 @@ function NewProductContent() {
             <p className="text-xs text-gray-400 mt-1">{t('hint_cost_price')}</p>
           </div>
         )}
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('label_supplier')} <span className="text-gray-400 font-normal">{t('label_optional')}</span>
+          </label>
+          <select
+            value={form.supplier_id}
+            onChange={(e) => setForm((f) => ({ ...f, supplier_id: e.target.value }))}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">{t('placeholder_supplier_none')}</option>
+            {suppliers.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+          <div className="flex items-center justify-between mt-1">
+            {suppliers.length === 0 && (
+              <span className="text-xs text-gray-400">{t('no_suppliers_hint')}</span>
+            )}
+            <Link
+              href="/suppliers"
+              className="text-xs text-blue-600 active:text-blue-700 ml-auto"
+            >
+              {t('link_manage_suppliers')} &rsaquo;
+            </Link>
+          </div>
+        </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_opening_stock')}</label>

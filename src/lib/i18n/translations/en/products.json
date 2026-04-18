@@ -31,6 +31,10 @@
   "label_opening_stock": "Opening stock",
   "label_stock_qty": "Stock quantity",
   "label_expiry": "Do you know the expiry dates?",
+  "label_supplier": "Who do you buy this from?",
+  "placeholder_supplier_none": "\u2014 No supplier \u2014",
+  "no_suppliers_hint": "No suppliers saved yet.",
+  "link_manage_suppliers": "Manage suppliers",
 
   "btn_save_product": "Add Product",
   "btn_save_changes": "Save Changes",

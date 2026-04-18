@@ -41,6 +41,7 @@ export const createProductSchema = z.object({
   price: z.number().positive('Price must be greater than zero'),
   cost_price: z.number().nonnegative('Cost price cannot be negative').nullable().optional(),
   stock_qty: z.number().int().min(0).default(0),
+  supplier_id: z.string().uuid().nullable().optional(),
 })
 
 export const updateProductSchema = createProductSchema.partial().omit({ barcode: true })
@@ -163,6 +164,17 @@ export const createSupplierSchema = z.object({
 })
 
 export const updateSupplierSchema = createSupplierSchema.partial()
+
+// ============================================================
+// Goods received (Phase 30b)
+// ============================================================
+
+export const createGoodsReceivedSchema = z.object({
+  product_id: z.string().uuid(),
+  quantity: z.number().int().positive('Quantity must be at least 1'),
+  supplier_id: z.string().uuid().nullable().optional(),
+  notes: z.string().max(500).nullable().optional().transform((v) => v?.trim() || null),
+})
 
 // ============================================================
 // Admin — Barcode Catalog

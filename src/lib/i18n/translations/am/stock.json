@@ -54,6 +54,8 @@
   "adjust_reason_correction": "ቀደም ሲል በስህተት ቆጠርኩት",
   "adjust_reason_other": "ሌላ ምክንያት",
   "adjust_expiry_checkbox": "ለዚህ ክምችት የማለቂያ ቀናት ጨምር",
+  "adjust_label_supplier": "ይህ ክምችት ከማን ነው የመጣው?",
+  "adjust_placeholder_supplier_none": "— አቅራቢ የለም —",
   "adjust_btn_saving": "በማስቀመጥ ላይ\u2026",
   "adjust_btn_add_units_pending": "\u2026 ዩኒት ጨምር",
   "adjust_btn_remove_units_pending": "\u2026 ዩኒት አስወግድ",

@@ -54,6 +54,8 @@
   "adjust_reason_correction": "Hore ayaan u tiriyey si qaldan",
   "adjust_reason_other": "Sabab kale",
   "adjust_expiry_checkbox": "Ku dar taariikhaha dhicitaanka kaydkan",
+  "adjust_label_supplier": "Kaydkan xaggee laga keenay?",
+  "adjust_placeholder_supplier_none": "\u2014 Aan la dooran \u2014",
   "adjust_btn_saving": "Waa la keydinayaa\u2026",
   "adjust_btn_add_units_pending": "Ku dar \u2026 unug",
   "adjust_btn_remove_units_pending": "Ka saar \u2026 unug",

@@ -31,6 +31,10 @@
   "label_opening_stock": "ابتدائی اسٹاک",
   "label_stock_qty": "اسٹاک کی مقدار",
   "label_expiry": "کیا آپ ختم ہونے کی تاریخیں جانتے ہیں؟",
+  "label_supplier": "آپ یہ کس سے خریدتے ہیں؟",
+  "placeholder_supplier_none": "— کوئی سپلائر نہیں —",
+  "no_suppliers_hint": "ابھی تک کوئی سپلائر محفوظ نہیں ہے۔",
+  "link_manage_suppliers": "سپلائرز کا انتظام کریں",
 
   "btn_save_product": "مصنوعات شامل کریں",
   "btn_save_changes": "تبدیلیاں محفوظ کریں",
