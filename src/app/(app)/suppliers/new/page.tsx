@@ -1,0 +1,131 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useTranslation } from '@/components/LanguageProvider'
+
+export default function NewSupplierPage() {
+  const router = useRouter()
+  const { t } = useTranslation('suppliers')
+  const [name, setName] = useState('')
+  const [contactNumber, setContactNumber] = useState('')
+  const [type, setType] = useState('')
+  const [location, setLocation] = useState('')
+  const [errorKey, setErrorKey] = useState('')
+  const [errorRaw, setErrorRaw] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setErrorKey('')
+    setErrorRaw('')
+    setLoading(true)
+    try {
+      const res = await fetch('/api/suppliers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          contact_number: contactNumber.trim() || null,
+          type: type || null,
+          location: location.trim() || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        if (res.status === 409) setErrorKey('error_duplicate')
+        else if (data.error) setErrorRaw(data.error)
+        else setErrorKey('error_create')
+        return
+      }
+      router.push('/suppliers')
+    } catch {
+      setErrorKey('error_generic')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const errorMessage = errorRaw || (errorKey ? t(errorKey) : '')
+
+  return (
+    <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+      <div className="flex items-center gap-3 mb-8">
+        <button onClick={() => router.back()} className="text-gray-400 active:text-gray-600 text-sm">
+          {t('back')}
+        </button>
+        <h1 className="text-2xl font-bold text-gray-900">{t('add_title')}</h1>
+      </div>
+
+      <p className="text-sm text-gray-500 mb-6">{t('add_desc')}</p>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_name')}</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={t('placeholder_name')}
+            required
+            maxLength={200}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('label_contact')} <span className="text-gray-400 font-normal">({t('type_none').toLowerCase()})</span>
+          </label>
+          <input
+            type="tel"
+            value={contactNumber}
+            onChange={(e) => setContactNumber(e.target.value)}
+            placeholder={t('placeholder_contact')}
+            maxLength={50}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('label_type')} <span className="text-gray-400 font-normal">({t('type_none').toLowerCase()})</span>
+          </label>
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          >
+            <option value="">{t('type_none')}</option>
+            <option value="wholesaler">{t('type_wholesaler')}</option>
+            <option value="distributor">{t('type_distributor')}</option>
+            <option value="farmer">{t('type_farmer')}</option>
+            <option value="other">{t('type_other')}</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('label_location')} <span className="text-gray-400 font-normal">({t('type_none').toLowerCase()})</span>
+          </label>
+          <input
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder={t('placeholder_location')}
+            maxLength={200}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        {errorMessage && <p className="text-red-600 text-sm">{errorMessage}</p>}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 min-h-[48px]"
+        >
+          {loading ? t('btn_creating') : t('btn_create')}
+        </button>
+      </form>
+    </main>
+  )
+}

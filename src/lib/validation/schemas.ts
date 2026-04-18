@@ -152,6 +152,19 @@ export const adminStoreListQuerySchema = z.object({
 })
 
 // ============================================================
+// Suppliers
+// ============================================================
+
+export const createSupplierSchema = z.object({
+  name: z.string().min(1, 'Supplier name is required').max(200),
+  contact_number: z.string().max(50).nullable().optional().transform((v) => v?.trim() || null),
+  type: z.enum(['wholesaler', 'distributor', 'farmer', 'other']).nullable().optional(),
+  location: z.string().max(200).nullable().optional().transform((v) => v?.trim() || null),
+})
+
+export const updateSupplierSchema = createSupplierSchema.partial()
+
+// ============================================================
 // Admin — Barcode Catalog
 // ============================================================
 

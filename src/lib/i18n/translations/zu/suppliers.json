@@ -1,0 +1,47 @@
+{
+  "title": "Abahlinzeki Bami",
+  "back": "\u2190 Emuva",
+  "btn_add": "+ Engeza Umhlinzeki",
+
+  "empty": "Awekho abahlinzeki okwamanje. Thepha + Engeza Umhlinzeki ukuze uqale.",
+  "empty_hint": "Engeza abantu noma izitolo othenga kuzo isitoko.",
+
+  "label_name": "Igama lomhlinzeki",
+  "placeholder_name": "isib. Makro, umlimi, njll.",
+  "label_contact": "Inombolo yocingo",
+  "placeholder_contact": "isib. 082 123 4567",
+  "label_type": "Uhlobo",
+  "type_wholesaler": "Umdayisi ngokuningi",
+  "type_distributor": "Umabeli",
+  "type_farmer": "Umlimi",
+  "type_other": "Okunye",
+  "type_none": "Akusetiwe",
+  "label_location": "Ikheli / Indawo",
+  "placeholder_location": "isib. 15 Main Rd, Salt River",
+
+  "add_title": "Engeza Umhlinzeki",
+  "add_desc": "Engeza umuntu othenga kuye isitoko. Igama kuphela elidingekayo.",
+  "btn_create": "Engeza Umhlinzeki",
+  "btn_creating": "Iyengeza\u2026",
+
+  "edit_title": "Hlela Umhlinzeki",
+  "btn_save": "Gcina Izinguquko",
+  "btn_saving": "Iyagcina\u2026",
+  "btn_delete": "Susa Umhlinzeki",
+  "confirm_delete": "Susa {name}? Imikhiqizo exhunywe kulo mhlinzeki izogcina imarekhodi yazo.",
+
+  "msg_created": "Umhlinzeki wengeziwe!",
+  "msg_saved": "Umhlinzeki ubuyekeziwe!",
+  "msg_deleted": "Umhlinzeki ususisiwe.",
+  "error_load": "Ayikwazanga ukulayisha abahlinzeki.",
+  "error_create": "Ayikwazanga ukwengeza umhlinzeki.",
+  "error_save": "Ayikwazanga ukugcina izinguquko.",
+  "error_delete": "Ayikwazanga ukususa umhlinzeki.",
+  "error_duplicate": "Usunaye umhlinzeki onalelo gama.",
+  "error_generic": "Kukhona okungahambanga kahle. Zama futhi.",
+
+  "settings_card_title": "Abahlinzeki Bami",
+  "settings_card_desc": "Gcina irekhodi yokuthi isitoko usithengaphi. Abahloli bangabuza ukuthi imikhiqizo yakho ivela kuphi.",
+  "settings_card_btn": "Phatha Abahlinzeki",
+  "loading": "Iyalayisha\u2026"
+}

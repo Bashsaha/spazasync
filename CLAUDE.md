@@ -84,6 +84,7 @@ SpazaSync is a mobile-first PWA for South African spaza shop and small retail ow
 - `admin_payments` — shop_id, amount, method (eft/cash/card/other), reference, notes, recorded_by, recorded_at (RLS enabled, no policies — service role only)
 - `sale_batch_consumptions` — sale_id, batch_id, product_id, qty_consumed, expiry_date; audit trail for FEFO batch deductions during sales; RLS via sales.shop_id join
 - `barcode_catalog` — barcode (unique), name, category; RLS SELECT for all, writes via admin client only (Phase 16a)
+- `suppliers` — shop_id, name, contact_number, type (wholesaler/distributor/farmer/other), location; unique(shop_id, LOWER(name)); RLS via user_in_shop(shop_id) (Phase 30a)
 
 ### RLS helpers
 - `user_in_shop(shop_id)` — SECURITY DEFINER function
@@ -321,6 +322,9 @@ At the start of every session:
 - [x] Phase 27e: Polish, Offline Hardening, Tests
 - [x] Phase 28: Profit Tracking (Opt-In Toggle)
 - [x] Phase 29: Profit Tracking UX — Missing Cost Price Alerts
+- [x] Phase 30a: Supplier Directory — Database + API + Pages
+- [ ] Phase 30b: Traceability — Link Suppliers to Products & Stock + Goods Received Log
+- [ ] Phase 30c: Compliance PDF — Supplier Traceability Section
 
 All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
 
@@ -330,11 +334,14 @@ All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
 ### Phase 29 — Profit Tracking UX: Missing Cost Price Alerts (2026-04-17)
 **What was built:** When profit tracking is enabled and products are missing a cost price, amber alert banners now appear on the Stock page, Count Stock page, and Daily Summary modal — each linking to the Products page. The settings page missing-cost count now auto-refreshes via `visibilitychange` listener when the user returns from editing products. Stock API (`GET /api/stock`) and Daily Summary API (`GET /api/summary/daily`) extended with `profit_tracking_enabled` and `products_missing_cost` fields. All five locales (en/so/am/zu/ur) updated with `missing_cost_alert` and `missing_cost_btn` keys in both `stock.json` and `summary.json`. No new files or migrations. 272 tests pass, TypeScript clean.
 
+### Phase 30a — Supplier Directory (2026-04-18)
+**What was built:** Foundation for Supplier Records & Traceability. New `suppliers` table with RLS (`user_in_shop(shop_id)`), case-insensitive unique name per shop. New `/suppliers` section (list page, `new` add form, `[id]` edit/delete) accessible via an emerald "My Suppliers" card on the Settings page (not added to BottomNav — 6 items is already max for non-technical users). Full CRUD API at `/api/suppliers` and `/api/suppliers/[id]` using shared `getShopAuth` + `parseBody` patterns. New `suppliers` i18n namespace in all five locales (en/so/am/zu/ur) with ~30 keys. New TypeScript types `Supplier` + `CreateSupplierInput`, Zod `createSupplierSchema` + `updateSupplierSchema`. New migration `015_suppliers.sql`. 280 tests pass (8 new from suppliers namespace parity), TypeScript clean.
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 29 (2026-04-17)_
+_Last updated: Phase 30a (2026-04-18)_
 
 ```
 spaza shop/
@@ -400,6 +407,10 @@ spaza shop/
 │   │   │   │   ├── page.tsx        # Teller list with remove
 │   │   │   │   ├── loading.tsx
 │   │   │   │   └── new/page.tsx    # Add teller form
+│   │   │   ├── suppliers/
+│   │   │   │   ├── page.tsx        # Supplier list (Phase 30a)
+│   │   │   │   ├── new/page.tsx    # Add supplier form (name required, rest optional)
+│   │   │   │   └── [id]/page.tsx   # Edit/delete supplier
 │   │   │   └── admin/
 │   │   │       ├── layout.tsx      # Admin layout (AdminNav + max-w-4xl)
 │   │   │       ├── loading.tsx
@@ -469,10 +480,13 @@ spaza shop/
 │   │       │   └── compliance-pdf/route.ts
 │   │       ├── settings/
 │   │       │   └── route.ts               # GET + PATCH shop settings
-│   │       └── tellers/
-│   │           ├── route.ts               # GET list, POST create
-│   │           ├── me/route.ts
-│   │           └── [id]/route.ts          # PATCH deactivate
+│   │       ├── tellers/
+│   │       │   ├── route.ts               # GET list, POST create
+│   │       │   ├── me/route.ts
+│   │       │   └── [id]/route.ts          # PATCH deactivate
+│   │       └── suppliers/
+│   │           ├── route.ts               # GET list, POST create (Phase 30a)
+│   │           └── [id]/route.ts          # GET, PATCH, DELETE
 │   ├── components/
 │   │   ├── products/
 │   │   │   ├── CatalogImportSheet.tsx     # Bottom-sheet: search catalog, set prices, bulk import
@@ -534,6 +548,7 @@ spaza shop/
 │   │   │   ├── admin.ts                   # Admin: overview, shops, payments, access, notes, subscription
 │   │   │   ├── catalog.ts                 # Barcode catalog CRUD
 │   │   │   ├── batches.ts                 # Product batch CRUD + expiry stats
+│   │   │   ├── suppliers.ts               # Supplier CRUD (Phase 30a)
 │   │   │   └── compliance-report.ts       # Compliance PDF data fetcher
 │   │   ├── offline/
 │   │   │   ├── db.ts                      # IndexedDB via idb
@@ -544,13 +559,13 @@ spaza shop/
 │   │   │   ├── loader.ts                  # loadTranslation(), loadTranslations() — dynamic import + cache
 │   │   │   ├── server.ts                  # getServerLocale(), getServerTranslations() — for server components
 │   │   │   └── translations/
-│   │   │       ├── en/                    # English namespace files (10 JSON files)
+│   │   │       ├── en/                    # English namespace files (11 JSON files)
 │   │   │       │   ├── common.json, auth.json, sale.json, dashboard.json, settings.json
-│   │   │       │   └── stock.json, products.json, tellers.json, expiry.json, summary.json
-│   │   │       ├── so/                    # Somali  (common, auth, sale, dashboard, stock, summary, products, tellers, expiry, settings)
-│   │   │       ├── am/                    # Amharic (common, auth, sale, dashboard, stock, summary, products, tellers, expiry, settings)
-│   │   │       ├── zu/                    # IsiZulu (common, auth, sale, dashboard, stock, summary, products, tellers, expiry, settings)
-│   │   │       └── ur/                    # Urdu    (common, auth, sale, dashboard, stock, summary, products, tellers, expiry, settings)
+│   │   │       │   └── stock.json, products.json, tellers.json, expiry.json, summary.json, suppliers.json
+│   │   │       ├── so/                    # Somali  (11 namespaces — adds suppliers in Phase 30a)
+│   │   │       ├── am/                    # Amharic (11 namespaces — adds suppliers in Phase 30a)
+│   │   │       ├── zu/                    # IsiZulu (11 namespaces — adds suppliers in Phase 30a)
+│   │   │       └── ur/                    # Urdu    (11 namespaces — adds suppliers in Phase 30a)
 │   │   ├── validation/
 │   │   │   └── schemas.ts                 # All Zod schemas
 │   │   └── utils/
@@ -576,7 +591,8 @@ spaza shop/
 │       ├── 011_sale_batch_consumptions.sql
 │       ├── 012_offline_id_unique.sql
 │       ├── 013_shop_language.sql
-│       └── 014_profit_tracking.sql    # Phase 28 — profit tracking toggle + cost columns
+│       ├── 014_profit_tracking.sql    # Phase 28 — profit tracking toggle + cost columns
+│       └── 015_suppliers.sql           # Phase 30a — suppliers table + RLS
 ├── data/
 │   └── sa-products.csv                    # 100 SA products with EAN-13 barcodes
 ├── scripts/

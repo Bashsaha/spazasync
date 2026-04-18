@@ -1,0 +1,47 @@
+{
+  "title": "My Suppliers",
+  "back": "\u2190 Back",
+  "btn_add": "+ Add Supplier",
+
+  "empty": "No suppliers yet. Tap + Add Supplier to add your first one.",
+  "empty_hint": "Add the people or shops you buy stock from.",
+
+  "label_name": "Supplier name",
+  "placeholder_name": "e.g. Makro, local farmer, etc.",
+  "label_contact": "Phone number",
+  "placeholder_contact": "e.g. 082 123 4567",
+  "label_type": "Type",
+  "type_wholesaler": "Wholesaler",
+  "type_distributor": "Distributor",
+  "type_farmer": "Farmer",
+  "type_other": "Other",
+  "type_none": "Not set",
+  "label_location": "Address / Location",
+  "placeholder_location": "e.g. 15 Main Rd, Salt River",
+
+  "add_title": "Add Supplier",
+  "add_desc": "Add someone you buy stock from. Only the name is required.",
+  "btn_create": "Add Supplier",
+  "btn_creating": "Adding\u2026",
+
+  "edit_title": "Edit Supplier",
+  "btn_save": "Save Changes",
+  "btn_saving": "Saving\u2026",
+  "btn_delete": "Delete Supplier",
+  "confirm_delete": "Delete {name}? Products linked to this supplier will keep their records.",
+
+  "msg_created": "Supplier added!",
+  "msg_saved": "Supplier updated!",
+  "msg_deleted": "Supplier deleted.",
+  "error_load": "Could not load suppliers.",
+  "error_create": "Could not add supplier.",
+  "error_save": "Could not save changes.",
+  "error_delete": "Could not delete supplier.",
+  "error_duplicate": "You already have a supplier with that name.",
+  "error_generic": "Something went wrong. Try again.",
+
+  "settings_card_title": "My Suppliers",
+  "settings_card_desc": "Keep a record of where you buy stock. Inspectors may ask where your products come from.",
+  "settings_card_btn": "Manage Suppliers",
+  "loading": "Loading\u2026"
+}

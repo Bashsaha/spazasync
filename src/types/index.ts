@@ -337,3 +337,24 @@ export interface AdminOverviewStats {
   manualOverrideShops: number
   recentSignUps: number
 }
+
+// --- Suppliers (Phase 30a) ---
+
+export type SupplierType = 'wholesaler' | 'distributor' | 'farmer' | 'other'
+
+export interface Supplier {
+  id: string
+  shop_id: string
+  name: string
+  contact_number: string | null
+  type: SupplierType | null
+  location: string | null
+  created_at: string
+}
+
+export interface CreateSupplierInput {
+  name: string
+  contact_number?: string | null
+  type?: SupplierType | null
+  location?: string | null
+}
