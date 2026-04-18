@@ -217,6 +217,91 @@ export async function GET() {
       y += 10
     }
 
+    // --- Section 4: Supplier Traceability ---
+    checkPageBreak(doc, y, 30)
+    y = getCurrentY(doc, y)
+
+    doc.setFontSize(13)
+    doc.setFont('helvetica', 'bold')
+    doc.text('4. Supplier Traceability Report', 14, y)
+    y += 2
+
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    doc.text(
+      `${data.suppliers.length} supplier${data.suppliers.length !== 1 ? 's' : ''}, ${data.goodsReceived.length} receipt${data.goodsReceived.length !== 1 ? 's' : ''} in the last 30 days`,
+      14,
+      y + 4,
+    )
+    y += 8
+
+    // Sub-section: Supplier directory
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Supplier Directory', 14, y)
+    y += 2
+
+    if (data.suppliers.length > 0) {
+      autoTable(doc, {
+        startY: y + 2,
+        head: [['Name', 'Type', 'Contact', 'Location']],
+        body: data.suppliers.map((s) => [
+          s.name,
+          s.type ?? '—',
+          s.contact_number ?? '—',
+          s.location ?? '—',
+        ]),
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [245, 247, 250] },
+        margin: { left: 14, right: 14 },
+      })
+      y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8
+    } else {
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'normal')
+      y += 6
+      doc.text('No suppliers on file.', 14, y)
+      y += 8
+    }
+
+    // Sub-section: Goods received log
+    checkPageBreak(doc, y, 30)
+    y = getCurrentY(doc, y)
+
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Goods Received Log (Last 30 Days)', 14, y)
+    y += 2
+
+    if (data.goodsReceived.length > 0) {
+      autoTable(doc, {
+        startY: y + 2,
+        head: [['Date', 'Item', 'Qty', 'Supplier', 'Notes']],
+        body: data.goodsReceived.map((g) => [
+          g.date,
+          g.product_name,
+          `+${g.quantity}`,
+          g.supplier_name ?? '—',
+          g.notes ?? '—',
+        ]),
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [245, 247, 250] },
+        margin: { left: 14, right: 14 },
+        columnStyles: {
+          4: { cellWidth: 40 }, // Notes column wider
+        },
+      })
+      y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10
+    } else {
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'normal')
+      y += 6
+      doc.text('No goods received logged in the last 30 days.', 14, y)
+      y += 10
+    }
+
     // --- Footer ---
     const pageCount = doc.getNumberOfPages()
     for (let i = 1; i <= pageCount; i++) {

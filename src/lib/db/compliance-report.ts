@@ -22,6 +22,19 @@ export interface ComplianceReportData {
     quantity: number
   }>
   stockMovement: StockMovementEntry[]
+  suppliers: Array<{
+    name: string
+    type: string | null
+    contact_number: string | null
+    location: string | null
+  }>
+  goodsReceived: Array<{
+    date: string // YYYY-MM-DD in SAST
+    product_name: string
+    quantity: number
+    supplier_name: string | null
+    notes: string | null
+  }>
   generatedAt: string // ISO string
 }
 
@@ -37,8 +50,15 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
   const thirtyDaysAgoISO = thirtyDaysAgo.toISOString()
 
   // Run all queries in parallel
-  const [shopResult, productsResult, batchesResult, adjustmentsResult, salesResult] =
-    await Promise.all([
+  const [
+    shopResult,
+    productsResult,
+    batchesResult,
+    adjustmentsResult,
+    salesResult,
+    suppliersResult,
+    goodsReceivedResult,
+  ] = await Promise.all([
       // Shop info
       supabase
         .from('shops')
@@ -76,6 +96,21 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
         .eq('shop_id', shopId)
         .gte('completed_at', thirtyDaysAgoISO)
         .order('completed_at', { ascending: false }),
+
+      // Supplier directory
+      supabase
+        .from('suppliers')
+        .select('name, type, contact_number, location')
+        .eq('shop_id', shopId)
+        .order('name', { ascending: true }),
+
+      // Goods received (last 30 days) with product + supplier names
+      supabase
+        .from('goods_received')
+        .select('received_at, quantity, notes, products(name), suppliers(name)')
+        .eq('shop_id', shopId)
+        .gte('received_at', thirtyDaysAgoISO)
+        .order('received_at', { ascending: false }),
     ])
 
   if (shopResult.error) throw shopResult.error
@@ -134,11 +169,34 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
   // Sort by date descending
   movements.sort((a, b) => b.date.localeCompare(a.date))
 
+  // Build supplier directory
+  const suppliers = (suppliersResult.data ?? []).map((s) => ({
+    name: s.name,
+    type: s.type,
+    contact_number: s.contact_number,
+    location: s.location,
+  }))
+
+  // Build goods received log
+  const goodsReceived = (goodsReceivedResult.data ?? []).map((g) => {
+    const productRaw = g.products as unknown as { name: string } | null
+    const supplierRaw = g.suppliers as unknown as { name: string } | null
+    return {
+      date: formatInTimeZone(new Date(g.received_at), SAST_TZ, 'yyyy-MM-dd'),
+      product_name: productRaw?.name ?? 'Unknown',
+      quantity: g.quantity,
+      supplier_name: supplierRaw?.name ?? null,
+      notes: g.notes,
+    }
+  })
+
   return {
     shop: shopResult.data,
     inventory,
     expiryBatches,
     stockMovement: movements,
+    suppliers,
+    goodsReceived,
     generatedAt: new Date().toISOString(),
   }
 }

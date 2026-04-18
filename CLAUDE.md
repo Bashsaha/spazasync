@@ -326,7 +326,7 @@ At the start of every session:
 - [x] Phase 29: Profit Tracking UX — Missing Cost Price Alerts
 - [x] Phase 30a: Supplier Directory — Database + API + Pages
 - [x] Phase 30b: Traceability — Link Suppliers to Products & Stock + Goods Received Log
-- [ ] Phase 30c: Compliance PDF — Supplier Traceability Section
+- [x] Phase 30c: Compliance PDF — Supplier Traceability Section
 
 All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
 
@@ -342,11 +342,14 @@ All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
 ### Phase 30b — Traceability: Suppliers linked to Products + Goods Received Log (2026-04-18)
 **What was built:** Migration `016_goods_received.sql` adds `products.supplier_id` (nullable FK with ON DELETE SET NULL) and a new `goods_received(id, shop_id, product_id, supplier_id, quantity, notes, received_by, received_at)` table — text-only audit trail, no invoice photos (decided against due to Supabase Storage/egress cost). Optional Supplier dropdown added to product create/edit forms. Stock → Add mode now shows a Supplier dropdown (pre-filled from the product's last supplier) and, on successful adjust, best-effort POSTs to `/api/goods-received` + PATCHes `products.supplier_id` if changed. New `src/lib/db/goods-received.ts` (`logGoodsReceived`, `listGoodsReceived` with product+supplier joins) and new API route `src/app/api/goods-received/route.ts` (GET list with filters, POST create). New Zod `createGoodsReceivedSchema`. i18n parity maintained: 4 new keys in `products.json` and 2 in `stock.json` across all 5 locales. 280 tests pass, TypeScript clean.
 
+### Phase 30c — Compliance PDF: Supplier Traceability Section (2026-04-19)
+**What was built:** Compliance PDF gains a new "4. Supplier Traceability Report" section with two sub-tables: **Supplier Directory** (Name, Type, Contact, Location) and **Goods Received Log (Last 30 Days)** (Date, Item, Qty, Supplier, Notes). `ComplianceReportData` extended with `suppliers` and `goodsReceived` arrays — both populated in parallel with the existing queries in `getComplianceReportData`. Summary line reports counts (e.g. "3 suppliers, 12 receipts in the last 30 days"). No new files, no migrations, no i18n keys (compliance PDF is server-rendered English-only, per existing pattern). 280 tests pass, TypeScript clean.
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 30b (2026-04-18)_
+_Last updated: Phase 30c (2026-04-19)_
 
 ```
 spaza shop/
