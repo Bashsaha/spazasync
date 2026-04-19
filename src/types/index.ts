@@ -25,6 +25,8 @@ export interface Shop {
   access_granted: boolean
   admin_notes: string | null
   profit_tracking_enabled: boolean
+  has_fridge: boolean
+  has_freezer: boolean
   created_at: string
 }
 
@@ -385,4 +387,46 @@ export interface CreateGoodsReceivedInput {
 export interface GoodsReceivedWithNames extends GoodsReceived {
   product_name: string
   supplier_name: string | null
+}
+
+// --- Daily checklist (Phase 31) ---
+
+export type ExpiredItemsAction = 'none_found' | 'removed' | 'skipped'
+
+export interface DailyChecklist {
+  id: string
+  shop_id: string
+  date: string                // YYYY-MM-DD (SAST)
+  fridge_ok: boolean | null
+  fridge_temp: number | null
+  freezer_ok: boolean | null
+  freezer_temp: number | null
+  surfaces_cleaned: boolean | null
+  floor_cleaned: boolean | null
+  storage_clean: boolean | null
+  expired_items_action: ExpiredItemsAction | null
+  completed_by: string | null
+  completed_at: string
+  updated_at: string
+}
+
+export interface DailyChecklistInput {
+  fridge_ok?: boolean | null
+  fridge_temp?: number | null
+  freezer_ok?: boolean | null
+  freezer_temp?: number | null
+  surfaces_cleaned?: boolean | null
+  floor_cleaned?: boolean | null
+  storage_clean?: boolean | null
+  expired_items_action?: ExpiredItemsAction | null
+}
+
+export interface ChecklistStats {
+  completedDays: number     // days with a row present in the window
+  totalDays: number         // window size (e.g. 30)
+  compliancePct: number     // 0..100, completedDays/totalDays * 100, rounded
+  cleaningRate: number      // 0..100, pct of completed days where all 3 cleaning booleans true
+  avgFridgeTemp: number | null
+  avgFreezerTemp: number | null
+  outOfRangeDays: number    // count of completed days where fridge outside 1-5 OR freezer > -18
 }

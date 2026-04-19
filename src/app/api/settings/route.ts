@@ -14,7 +14,7 @@ export async function GET() {
 
   const { data: shop, error } = await auth.supabase
     .from('shops')
-    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, language, profit_tracking_enabled, subscription_status, trial_ends_at, subscription_ends_at')
+    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, language, profit_tracking_enabled, has_fridge, has_freezer, subscription_status, trial_ends_at, subscription_ends_at')
     .eq('id', auth.shopId)
     .single()
 
@@ -58,7 +58,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Only the shop owner can change settings' }, { status: 403 })
   }
 
-  const { name, low_stock_threshold, registration_number, location, language, profit_tracking_enabled } = parsed
+  const { name, low_stock_threshold, registration_number, location, language, profit_tracking_enabled, has_fridge, has_freezer } = parsed
 
   const updatePayload: Record<string, unknown> = {
     name,
@@ -70,12 +70,14 @@ export async function PATCH(request: Request) {
   if (typeof profit_tracking_enabled === 'boolean') {
     updatePayload.profit_tracking_enabled = profit_tracking_enabled
   }
+  if (typeof has_fridge === 'boolean') updatePayload.has_fridge = has_fridge
+  if (typeof has_freezer === 'boolean') updatePayload.has_freezer = has_freezer
 
   const { data: updated, error } = await admin
     .from('shops')
     .update(updatePayload)
     .eq('id', auth.shopId)
-    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, language, profit_tracking_enabled')
+    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, language, profit_tracking_enabled, has_fridge, has_freezer')
     .single()
 
   if (error) {

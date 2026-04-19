@@ -1,0 +1,68 @@
+{
+  "title": "Today's Checklist",
+  "subtitle": "Tick these each morning. Takes 30 seconds.",
+  "back": "← Back",
+  "date_today": "Today, {date}",
+
+  "section_temps": "Temperature Checks",
+  "section_cleaning": "Cleaning",
+  "section_expired": "Expired Items",
+
+  "q_fridge": "Fridge temperature OK? (1–5°C)",
+  "q_fridge_hint": "Tap Yes if your fridge feels cold. Add the reading if you have a thermometer.",
+  "q_freezer": "Freezer temperature OK? (below -18°C)",
+  "q_freezer_hint": "Tap Yes if ice cream is rock-hard. Add the reading if you have a thermometer.",
+  "label_temp": "Actual reading (°C)",
+  "placeholder_temp": "e.g. 4",
+  "temp_optional": "Optional",
+
+  "q_surfaces": "Surfaces and counters cleaned?",
+  "q_floor": "Floor swept and cleaned?",
+  "q_storage": "Food storage areas organised and clean?",
+
+  "q_expired": "Any expired items removed today?",
+  "expired_hint_one": "{count} product has items that are expired or expire today.",
+  "expired_hint_other": "{count} products have items that are expired or expire today.",
+  "expired_list_item": "{name} — earliest expiry {date}",
+
+  "opt_yes": "Yes",
+  "opt_no": "No",
+  "opt_none_found": "No expired items",
+  "opt_removed": "Yes, removed",
+  "opt_skipped": "Not checked today",
+
+  "btn_save": "Save Checklist",
+  "btn_saving": "Saving…",
+  "msg_saved": "Checklist saved. Thank you!",
+  "msg_save_failed": "Could not save checklist. Try again.",
+  "msg_load_failed": "Could not load today's checklist.",
+
+  "loading": "Loading…",
+  "empty_today": "No checklist saved yet for today.",
+
+  "history_title": "Checklist History",
+  "history_subtitle": "Last {days} days",
+  "history_stats_compliance": "Completed {done} of {total} days — {pct}% compliance",
+  "history_stats_cleaning": "Cleaning done: {pct}% of completed days",
+  "history_stats_avg_fridge": "Average fridge: {temp}°C",
+  "history_stats_avg_freezer": "Average freezer: {temp}°C",
+  "history_stats_out_of_range_one": "{count} day with a temperature out of range",
+  "history_stats_out_of_range_other": "{count} days with temperatures out of range",
+  "history_missed": "No checklist",
+  "history_done": "Done",
+  "history_partial": "Saved",
+  "history_link": "View full history",
+  "history_back": "← Back to dashboard",
+
+  "status_done": "Today's checklist done ✓",
+  "status_todo": "Do today's checklist — takes 30 seconds",
+  "status_reminder": "Reminder: you haven't done today's checklist yet",
+
+  "settings_section": "Shop equipment",
+  "settings_section_desc": "Turn these off if your shop does not have one — they will disappear from the daily checklist.",
+  "settings_has_fridge": "I have a fridge",
+  "settings_has_freezer": "I have a freezer",
+
+  "dashboard_card_title": "Today's Checklist",
+  "dashboard_card_desc": "Temperature & cleaning checks — 30 seconds."
+}

@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { formatInTimeZone } from 'date-fns-tz'
 import { SAST_TZ } from '@/lib/utils/date'
-import type { StockMovementEntry } from '@/types'
+import type { StockMovementEntry, DailyChecklist, ChecklistStats } from '@/types'
+import { computeChecklistStats } from '@/lib/checklist/stats'
 
 export interface ComplianceReportData {
   shop: {
@@ -35,6 +36,10 @@ export interface ComplianceReportData {
     supplier_name: string | null
     notes: string | null
   }>
+  checklistHistory: DailyChecklist[]
+  checklistStats: ChecklistStats
+  hasFridge: boolean
+  hasFreezer: boolean
   generatedAt: string // ISO string
 }
 
@@ -50,6 +55,10 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
   const thirtyDaysAgoISO = thirtyDaysAgo.toISOString()
 
   // Run all queries in parallel
+  const checklistFrom = new Date()
+  checklistFrom.setDate(checklistFrom.getDate() - 29)
+  const checklistFromDate = formatInTimeZone(checklistFrom, SAST_TZ, 'yyyy-MM-dd')
+
   const [
     shopResult,
     productsResult,
@@ -58,11 +67,12 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
     salesResult,
     suppliersResult,
     goodsReceivedResult,
+    checklistResult,
   ] = await Promise.all([
       // Shop info
       supabase
         .from('shops')
-        .select('name, code, registration_number, location')
+        .select('name, code, registration_number, location, has_fridge, has_freezer')
         .eq('id', shopId)
         .single(),
 
@@ -111,6 +121,14 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
         .eq('shop_id', shopId)
         .gte('received_at', thirtyDaysAgoISO)
         .order('received_at', { ascending: false }),
+
+      // Daily checklists (last 30 days)
+      supabase
+        .from('daily_checklists')
+        .select('*')
+        .eq('shop_id', shopId)
+        .gte('date', checklistFromDate)
+        .order('date', { ascending: false }),
     ])
 
   if (shopResult.error) throw shopResult.error
@@ -190,13 +208,31 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
     }
   })
 
+  // Build checklist history + stats
+  const checklistHistory = (checklistResult.data ?? []) as DailyChecklist[]
+  const checklistStats = computeChecklistStats(checklistHistory, 30)
+
+  const shopRow = shopResult.data as typeof shopResult.data & {
+    has_fridge?: boolean
+    has_freezer?: boolean
+  }
+
   return {
-    shop: shopResult.data,
+    shop: {
+      name: shopRow.name,
+      code: shopRow.code,
+      registration_number: shopRow.registration_number,
+      location: shopRow.location,
+    },
     inventory,
     expiryBatches,
     stockMovement: movements,
     suppliers,
     goodsReceived,
+    checklistHistory,
+    checklistStats,
+    hasFridge: shopRow.has_fridge !== false,
+    hasFreezer: shopRow.has_freezer !== false,
     generatedAt: new Date().toISOString(),
   }
 }

@@ -1,0 +1,68 @@
+{
+  "title": "آج کی چیک لسٹ",
+  "subtitle": "ہر صبح ٹک کریں۔ 30 سیکنڈ لگتے ہیں۔",
+  "back": "← واپس",
+  "date_today": "آج, {date}",
+
+  "section_temps": "درجہ حرارت کی جانچ",
+  "section_cleaning": "صفائی",
+  "section_expired": "میعاد ختم شدہ اشیاء",
+
+  "q_fridge": "فرج کا درجہ حرارت ٹھیک ہے؟ (1–5°C)",
+  "q_fridge_hint": "اگر فرج ٹھنڈا ہے تو ہاں دبائیں۔ اگر آپ کے پاس تھرمومیٹر ہے تو ریڈنگ لکھیں۔",
+  "q_freezer": "فریزر کا درجہ حرارت ٹھیک ہے؟ (-18°C سے کم)",
+  "q_freezer_hint": "اگر آئس کریم سخت ہے تو ہاں دبائیں۔ اگر تھرمومیٹر ہے تو ریڈنگ لکھیں۔",
+  "label_temp": "اصل ریڈنگ (°C)",
+  "placeholder_temp": "مثلاً: 4",
+  "temp_optional": "اختیاری",
+
+  "q_surfaces": "سطحیں اور کاؤنٹرز صاف ہیں؟",
+  "q_floor": "فرش جھاڑ کر صاف کیا گیا؟",
+  "q_storage": "کھانے کے ذخیرے کی جگہیں منظم اور صاف ہیں؟",
+
+  "q_expired": "آج کوئی میعاد ختم اشیاء ہٹائی گئیں؟",
+  "expired_hint_one": "{count} مصنوعہ ایسا ہے جس کی میعاد ختم یا آج ختم ہوتی ہے۔",
+  "expired_hint_other": "{count} مصنوعات ایسی ہیں جن کی میعاد ختم یا آج ختم ہوتی ہے۔",
+  "expired_list_item": "{name} — سب سے پہلے ختم ہونے والی {date}",
+
+  "opt_yes": "ہاں",
+  "opt_no": "نہیں",
+  "opt_none_found": "کوئی میعاد ختم اشیاء نہیں",
+  "opt_removed": "ہاں, ہٹا دی گئیں",
+  "opt_skipped": "آج جانچ نہیں کی",
+
+  "btn_save": "چیک لسٹ محفوظ کریں",
+  "btn_saving": "محفوظ ہو رہی ہے…",
+  "msg_saved": "چیک لسٹ محفوظ ہو گئی۔ شکریہ!",
+  "msg_save_failed": "چیک لسٹ محفوظ نہیں ہو سکی۔ دوبارہ کوشش کریں۔",
+  "msg_load_failed": "آج کی چیک لسٹ لوڈ نہیں ہو سکی۔",
+
+  "loading": "لوڈ ہو رہا ہے…",
+  "empty_today": "ابھی تک آج کی چیک لسٹ محفوظ نہیں کی گئی۔",
+
+  "history_title": "چیک لسٹ کی تاریخ",
+  "history_subtitle": "پچھلے {days} دن",
+  "history_stats_compliance": "{total} میں سے {done} دن مکمل ہوئے — {pct}% تعمیل",
+  "history_stats_cleaning": "صفائی مکمل: مکمل دنوں کا {pct}%",
+  "history_stats_avg_fridge": "اوسط فرج: {temp}°C",
+  "history_stats_avg_freezer": "اوسط فریزر: {temp}°C",
+  "history_stats_out_of_range_one": "{count} دن درجہ حرارت حد سے باہر",
+  "history_stats_out_of_range_other": "{count} دن درجہ حرارت حد سے باہر",
+  "history_missed": "چیک لسٹ نہیں",
+  "history_done": "مکمل",
+  "history_partial": "محفوظ شدہ",
+  "history_link": "مکمل تاریخ دیکھیں",
+  "history_back": "← ڈیش بورڈ پر واپس",
+
+  "status_done": "آج کی چیک لسٹ مکمل ✓",
+  "status_todo": "آج کی چیک لسٹ کریں — 30 سیکنڈ",
+  "status_reminder": "یاد دہانی: آپ نے آج کی چیک لسٹ ابھی نہیں کی",
+
+  "settings_section": "دکان کا سامان",
+  "settings_section_desc": "اگر آپ کی دکان میں یہ نہیں ہے تو بند کریں — روزانہ کی چیک لسٹ سے غائب ہو جائیں گے۔",
+  "settings_has_fridge": "میرے پاس فرج ہے",
+  "settings_has_freezer": "میرے پاس فریزر ہے",
+
+  "dashboard_card_title": "آج کی چیک لسٹ",
+  "dashboard_card_desc": "درجہ حرارت اور صفائی کی جانچ — 30 سیکنڈ۔"
+}

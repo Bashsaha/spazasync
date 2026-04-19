@@ -15,6 +15,8 @@ interface ShopSettings {
   location: string | null
   language: string | null
   profit_tracking_enabled: boolean
+  has_fridge: boolean
+  has_freezer: boolean
   products_missing_cost: number
   subscription_status: string | null
   trial_ends_at: string | null
@@ -24,6 +26,7 @@ interface ShopSettings {
 export default function SettingsPage() {
   const { t, tPlural, locale, setLocale } = useTranslation('settings')
   const { t: tSup } = useTranslation('suppliers')
+  const { t: tChk } = useTranslation('checklist')
   const [settings, setSettings] = useState<ShopSettings | null>(null)
   const [name, setName] = useState('')
   const [threshold, setThreshold] = useState(5)
@@ -31,6 +34,8 @@ export default function SettingsPage() {
   const [location, setLocation] = useState('')
   const [language, setLanguage] = useState<SupportedLocale>(locale)
   const [profitTracking, setProfitTracking] = useState(false)
+  const [hasFridge, setHasFridge] = useState(true)
+  const [hasFreezer, setHasFreezer] = useState(true)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [downloading, setDownloading] = useState(false)
@@ -46,6 +51,8 @@ export default function SettingsPage() {
         setRegNumber(data.registration_number ?? '')
         setLocation(data.location ?? '')
         setProfitTracking(Boolean(data.profit_tracking_enabled))
+        setHasFridge(data.has_fridge !== false)
+        setHasFreezer(data.has_freezer !== false)
         if (data.language) setLanguage(data.language as SupportedLocale)
       })
       .catch(() => setMessage({ type: 'err', key: 'msg_load_failed' }))
@@ -91,6 +98,34 @@ export default function SettingsPage() {
     }
   }
 
+  async function handleEquipmentToggle(kind: 'fridge' | 'freezer', nextValue: boolean) {
+    if (kind === 'fridge') setHasFridge(nextValue)
+    else setHasFreezer(nextValue)
+
+    const payload = {
+      name: name.trim() || settings?.name,
+      low_stock_threshold: threshold,
+      registration_number: regNumber.trim() || null,
+      location: location.trim() || null,
+      language,
+      has_fridge: kind === 'fridge' ? nextValue : hasFridge,
+      has_freezer: kind === 'freezer' ? nextValue : hasFreezer,
+    }
+    const res = await fetch('/api/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (res.ok) {
+      const updated: ShopSettings = await res.json()
+      setSettings((prev) => (prev ? { ...prev, ...updated } : updated))
+    } else {
+      if (kind === 'fridge') setHasFridge(!nextValue)
+      else setHasFreezer(!nextValue)
+      setMessage({ type: 'err', key: 'msg_save_failed' })
+    }
+  }
+
   async function handleLanguageChange(newLang: SupportedLocale) {
     setLanguage(newLang)
     setLocale(newLang)
@@ -123,6 +158,8 @@ export default function SettingsPage() {
         location: location.trim() || null,
         language,
         profit_tracking_enabled: profitTracking,
+        has_fridge: hasFridge,
+        has_freezer: hasFreezer,
       }),
     })
 
@@ -276,6 +313,54 @@ export default function SettingsPage() {
             })}
           </a>
         )}
+      </div>
+
+      {/* Shop equipment (fridge / freezer toggles) */}
+      <div className="bg-white border border-gray-100 rounded-2xl px-4 py-4 mb-6">
+        <p className="font-semibold text-gray-900 mb-1">{tChk('settings_section')}</p>
+        <p className="text-xs text-gray-500 mb-4">{tChk('settings_section_desc')}</p>
+
+        <div className="flex items-center justify-between py-2">
+          <p className="text-sm text-gray-800">{tChk('settings_has_fridge')}</p>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={hasFridge}
+            onClick={() => handleEquipmentToggle('fridge', !hasFridge)}
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${
+              hasFridge ? 'bg-green-500' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                hasFridge ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between py-2 border-t border-gray-100 pt-3">
+          <p className="text-sm text-gray-800">{tChk('settings_has_freezer')}</p>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={hasFreezer}
+            onClick={() => handleEquipmentToggle('freezer', !hasFreezer)}
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${
+              hasFreezer ? 'bg-green-500' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                hasFreezer ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+
+        <a href="/checklist/history" className="block text-sm text-blue-600 mt-4">
+          {tChk('history_link')} →
+        </a>
       </div>
 
       {/* Subscription status */}

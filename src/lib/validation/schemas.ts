@@ -110,6 +110,8 @@ export const updateShopSettingsSchema = z.object({
   location: z.string().max(200).nullable().optional(),
   language: languageEnum.optional(),
   profit_tracking_enabled: z.boolean().optional(),
+  has_fridge: z.boolean().optional(),
+  has_freezer: z.boolean().optional(),
 })
 
 // ============================================================
@@ -174,6 +176,32 @@ export const createGoodsReceivedSchema = z.object({
   quantity: z.number().int().positive('Quantity must be at least 1'),
   supplier_id: z.string().uuid().nullable().optional(),
   notes: z.string().max(500).nullable().optional().transform((v) => v?.trim() || null),
+})
+
+// ============================================================
+// Daily checklist (Phase 31)
+// ============================================================
+
+// Accept reasonable temp range and clamp to NUMERIC(4,1): -99.9 .. 99.9
+const tempField = z
+  .number()
+  .min(-99.9)
+  .max(99.9)
+  .nullable()
+  .optional()
+
+export const upsertChecklistSchema = z.object({
+  fridge_ok: z.boolean().nullable().optional(),
+  fridge_temp: tempField,
+  freezer_ok: z.boolean().nullable().optional(),
+  freezer_temp: tempField,
+  surfaces_cleaned: z.boolean().nullable().optional(),
+  floor_cleaned: z.boolean().nullable().optional(),
+  storage_clean: z.boolean().nullable().optional(),
+  expired_items_action: z
+    .enum(['none_found', 'removed', 'skipped'])
+    .nullable()
+    .optional(),
 })
 
 // ============================================================

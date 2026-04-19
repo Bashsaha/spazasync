@@ -1,0 +1,68 @@
+{
+  "title": "Liiska Maanta",
+  "subtitle": "Subax walba calaamadee. Wuxuu qaataa 30 ilbiriqsi.",
+  "back": "← Dib u noqo",
+  "date_today": "Maanta, {date}",
+
+  "section_temps": "Hubinta Heerkulka",
+  "section_cleaning": "Nadaafada",
+  "section_expired": "Alaabta Dhacday",
+
+  "q_fridge": "Heerkulka Fridge-ga miyuu fiican yahay? (1–5°C)",
+  "q_fridge_hint": "Taabo Haa haddii fridge-gaagu qabow yahay. Kudar akhriska haddii aad haysato heerkul-qiyaasiye.",
+  "q_freezer": "Heerkulka Freezer-ka miyuu fiican yahay? (ka hooseeya -18°C)",
+  "q_freezer_hint": "Taabo Haa haddii aaskiriimka uu adag yahay. Kudar akhriska haddii aad haysato heerkul-qiyaasiye.",
+  "label_temp": "Akhriska dhabta ah (°C)",
+  "placeholder_temp": "tusaale: 4",
+  "temp_optional": "Ikhtiyaari",
+
+  "q_surfaces": "Dusha & miisaska waa la nadiifiyay?",
+  "q_floor": "Dhulka waa la xaaqay oo la nadiifiyay?",
+  "q_storage": "Goobaha kaydinta cuntadu waa habaysan yihiin oo nadiif ah?",
+
+  "q_expired": "Alaab dhacday oo la saaray maanta ma jiraan?",
+  "expired_hint_one": "Waxaa jira {count} badeecad oo dhacday ama maanta dhacaysa.",
+  "expired_hint_other": "Waxaa jira {count} badeecadood oo dhacday ama maanta dhacaya.",
+  "expired_list_item": "{name} — taariikhda ugu hore {date}",
+
+  "opt_yes": "Haa",
+  "opt_no": "Maya",
+  "opt_none_found": "Alaab dhacday ma jirin",
+  "opt_removed": "Haa, waa la saaray",
+  "opt_skipped": "Maanta lama hubin",
+
+  "btn_save": "Kaydi Liiska",
+  "btn_saving": "Waa la kaydiyaa…",
+  "msg_saved": "Liiska waa la kaydiyay. Mahadsanid!",
+  "msg_save_failed": "Liiska lama kaydin karin. Isku day mar kale.",
+  "msg_load_failed": "Liiska maanta lama soo rari karin.",
+
+  "loading": "Waa la soo rarayaa…",
+  "empty_today": "Wali ma jiro liis maanta loo kaydiyay.",
+
+  "history_title": "Taariikhda Liiska",
+  "history_subtitle": "{days} maalmood ee ugu dambeeyay",
+  "history_stats_compliance": "Waa la dhameystiray {done} maalmood oo ka mid ah {total} — {pct}% u hoggaansanaan",
+  "history_stats_cleaning": "Nadaafad la sameeyay: {pct}% maalmaha la dhameystiray",
+  "history_stats_avg_fridge": "Celceliska fridge-ga: {temp}°C",
+  "history_stats_avg_freezer": "Celceliska freezer-ka: {temp}°C",
+  "history_stats_out_of_range_one": "{count} maalin heerkulka ka baxsan kala duwanaanta",
+  "history_stats_out_of_range_other": "{count} maalmood heerkulka ka baxsan kala duwanaanta",
+  "history_missed": "Liis ma jiro",
+  "history_done": "La dhameystiray",
+  "history_partial": "La kaydiyay",
+  "history_link": "Arag taariikhda oo dhan",
+  "history_back": "← Ku noqo dashboard-ka",
+
+  "status_done": "Liiska maanta waa la dhameystiray ✓",
+  "status_todo": "Samee liiska maanta — wuxuu qaataa 30 ilbiriqsi",
+  "status_reminder": "Xasuusin: wali ma aadan samayn liiska maanta",
+
+  "settings_section": "Qalabka dukaanka",
+  "settings_section_desc": "Dami kuwan haddii dukaankaagu mid aanu lahayn — waxay ka bixi doonaan liiska maalinlaha ah.",
+  "settings_has_fridge": "Waxaan leeyahay fridge",
+  "settings_has_freezer": "Waxaan leeyahay freezer",
+
+  "dashboard_card_title": "Liiska Maanta",
+  "dashboard_card_desc": "Hubinta heerkulka & nadaafada — 30 ilbiriqsi."
+}

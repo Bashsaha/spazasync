@@ -8,6 +8,7 @@ import { ExpiringAlert } from '@/components/dashboard/ExpiringAlert'
 import { WeeklyChartSection } from '@/components/dashboard/WeeklyChartSection'
 import { TopProducts } from '@/components/dashboard/TopProducts'
 import { LatestSales } from '@/components/dashboard/LatestSales'
+import { ChecklistStatus } from '@/components/dashboard/ChecklistStatus'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 
 export default async function DashboardPage() {
@@ -39,7 +40,7 @@ export default async function DashboardPage() {
   const shopCode = shop?.code ?? ''
 
   const locale = await getServerLocale()
-  const { t, tPlural } = await getServerTranslations(locale, ['dashboard'])
+  const { t, tPlural } = await getServerTranslations(locale, ['dashboard', 'checklist'])
 
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
@@ -80,6 +81,13 @@ export default async function DashboardPage() {
           </a>
         )
       })()}
+
+      {/* Daily checklist status — streams in */}
+      {shop?.id && (
+        <Suspense fallback={<Skeleton className="h-14 rounded-2xl mb-4" />}>
+          <ChecklistStatus shopId={shop.id} locale={locale} />
+        </Suspense>
+      )}
 
       {/* Today's summary — streams in */}
       {shop?.id && (
@@ -160,6 +168,17 @@ export default async function DashboardPage() {
             <p className="text-gray-400 text-sm">{t('card_count_stock_desc')}</p>
           </div>
           <span className="text-3xl">📋</span>
+        </a>
+
+        <a
+          href="/checklist"
+          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:bg-gray-50"
+        >
+          <div>
+            <p className="font-bold text-gray-900">{t('dashboard_card_title')}</p>
+            <p className="text-gray-400 text-sm">{t('dashboard_card_desc')}</p>
+          </div>
+          <span className="text-3xl">✅</span>
         </a>
 
         <a

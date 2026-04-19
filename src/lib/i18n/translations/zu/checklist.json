@@ -1,0 +1,68 @@
+{
+  "title": "Uhlu Lwanamuhla",
+  "subtitle": "Maka lezi zinto njalo ekuseni. Kuthatha imizuzwana engu-30.",
+  "back": "← Emuva",
+  "date_today": "Namuhla, {date}",
+
+  "section_temps": "Ukuhlolwa Kwezinga Lokushisa",
+  "section_cleaning": "Ukuhlanzeka",
+  "section_expired": "Izinto Eziphelelwe Yisikhathi",
+
+  "q_fridge": "Izinga lokushisa lefriji lilungile? (1–5°C)",
+  "q_fridge_hint": "Thepha Yebo uma ifriji yakho ibanda kakhulu. Faka isibalo uma uneThemomitha.",
+  "q_freezer": "Izinga lokushisa le-freezer lilungile? (ngaphansi kuka -18°C)",
+  "q_freezer_hint": "Thepha Yebo uma u-ice cream uqinile. Faka isibalo uma uneThemomitha.",
+  "label_temp": "Isibalo esibonayo (°C)",
+  "placeholder_temp": "isib: 4",
+  "temp_optional": "Ngokuzithandela",
+
+  "q_surfaces": "Izingqondolo namakhawuntala kuhlanjiwe?",
+  "q_floor": "Iphansi lishanyelwe futhi lahlanzwa?",
+  "q_storage": "Izindawo zokugcina ukudla zihlelekile futhi zihlanzekile?",
+
+  "q_expired": "Ikhona into ephelelwe yisikhathi esisusiwe namuhla?",
+  "expired_hint_one": "Kukhona umkhiqizo ongu-{count} onokuphelelwa yisikhathi noma ophelela namuhla.",
+  "expired_hint_other": "Kukhona imikhiqizo engu-{count} enokuphelelwa yisikhathi noma ephelela namuhla.",
+  "expired_list_item": "{name} — ukuphela kokuqala {date}",
+
+  "opt_yes": "Yebo",
+  "opt_no": "Cha",
+  "opt_none_found": "Akukho okuphelelwe yisikhathi",
+  "opt_removed": "Yebo, kususiwe",
+  "opt_skipped": "Akuhloliwe namuhla",
+
+  "btn_save": "Gcina Uhlu",
+  "btn_saving": "Iyagcina…",
+  "msg_saved": "Uhlu lugciniwe. Siyabonga!",
+  "msg_save_failed": "Ayikwazanga ukugcina uhlu. Zama futhi.",
+  "msg_load_failed": "Ayikwazanga ukulayisha uhlu lwanamuhla.",
+
+  "loading": "Iyalayisha…",
+  "empty_today": "Alukho uhlu olugciniwe namuhla okwamanje.",
+
+  "history_title": "Umlando Wohlu",
+  "history_subtitle": "Izinsuku ezingu-{days} ezidlule",
+  "history_stats_compliance": "Kuqedwe izinsuku ezingu-{done} kwezingu-{total} — {pct}% ukuhambisana",
+  "history_stats_cleaning": "Ukuhlanza kwenziwe: {pct}% yezinsuku ezigcinene",
+  "history_stats_avg_fridge": "Isilinganiso sefriji: {temp}°C",
+  "history_stats_avg_freezer": "Isilinganiso se-freezer: {temp}°C",
+  "history_stats_out_of_range_one": "{count} usuku olunezinga lokushisa elingaphandle kwebanga",
+  "history_stats_out_of_range_other": "{count} izinsuku ezinamazinga okushisa angaphandle kwebanga",
+  "history_missed": "Alukho uhlu",
+  "history_done": "Kuqediwe",
+  "history_partial": "Kugciniwe",
+  "history_link": "Buka umlando ophelele",
+  "history_back": "← Buyela ku-dashboard",
+
+  "status_done": "Uhlu lwanamuhla luqediwe ✓",
+  "status_todo": "Yenza uhlu lwanamuhla — kuthatha imizuzwana engu-30",
+  "status_reminder": "Isikhumbuzo: awukenzi uhlu lwanamuhla",
+
+  "settings_section": "Izinsiza zesitolo",
+  "settings_section_desc": "Vala lezi uma isitolo sakho singenaso — ziyosuswa ohlwini lwansuku zonke.",
+  "settings_has_fridge": "Nginefriji",
+  "settings_has_freezer": "Ngine-freezer",
+
+  "dashboard_card_title": "Uhlu Lwanamuhla",
+  "dashboard_card_desc": "Ukuhlolwa kokushisa nokuhlanzeka — imizuzwana engu-30."
+}

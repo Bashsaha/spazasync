@@ -302,6 +302,108 @@ export async function GET() {
       y += 10
     }
 
+    // --- Section 5: Daily Compliance Log ---
+    checkPageBreak(doc, y, 30)
+    y = getCurrentY(doc, y)
+
+    doc.setFontSize(13)
+    doc.setFont('helvetica', 'bold')
+    doc.text('5. Daily Compliance Log (Last 30 Days)', 14, y)
+    y += 2
+
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    const s = data.checklistStats
+    doc.text(
+      `Completed ${s.completedDays} of ${s.totalDays} days — ${s.compliancePct}% compliance`,
+      14,
+      y + 4,
+    )
+    y += 6
+    const detailLines: string[] = []
+    if (s.avgFridgeTemp !== null) detailLines.push(`Avg fridge: ${s.avgFridgeTemp}°C`)
+    if (s.avgFreezerTemp !== null) detailLines.push(`Avg freezer: ${s.avgFreezerTemp}°C`)
+    detailLines.push(`Cleaning: ${s.cleaningRate}% of completed days`)
+    if (s.outOfRangeDays > 0) {
+      detailLines.push(`${s.outOfRangeDays} day(s) temperature out of range`)
+    }
+    doc.text(detailLines.join('   |   '), 14, y + 4)
+    y += 8
+
+    // Build 30-day gap-filled table rows (most recent first)
+    const checklistByDate = new Map(data.checklistHistory.map((c) => [c.date, c]))
+    const tableBody: Array<Array<string>> = []
+    for (let i = 0; i < 30; i += 1) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      const ds = formatSAST(d, 'yyyy-MM-dd')
+      const entry = checklistByDate.get(ds)
+      if (!entry) {
+        tableBody.push([ds, 'MISSED', '—', '—', '—', '—'])
+        continue
+      }
+      const fridgeCell = entry.fridge_temp !== null ? `${entry.fridge_temp}°C` : (entry.fridge_ok === true ? 'OK' : entry.fridge_ok === false ? 'NO' : '—')
+      const freezerCell = entry.freezer_temp !== null ? `${entry.freezer_temp}°C` : (entry.freezer_ok === true ? 'OK' : entry.freezer_ok === false ? 'NO' : '—')
+      const cleaningCount = [entry.surfaces_cleaned, entry.floor_cleaned, entry.storage_clean].filter((v) => v === true).length
+      const cleaningCell = `${cleaningCount}/3`
+      const expiredCell =
+        entry.expired_items_action === 'removed' ? 'Removed'
+        : entry.expired_items_action === 'none_found' ? 'None'
+        : entry.expired_items_action === 'skipped' ? 'Skipped'
+        : '—'
+      const allCleaned = cleaningCount === 3
+      const expiredOk = entry.expired_items_action === 'removed' || entry.expired_items_action === 'none_found'
+      const statusCell = allCleaned && expiredOk ? 'DONE' : 'PARTIAL'
+      tableBody.push([ds, statusCell, fridgeCell, freezerCell, cleaningCell, expiredCell])
+    }
+
+    autoTable(doc, {
+      startY: y,
+      head: [['Date', 'Status', 'Fridge', 'Freezer', 'Cleaning', 'Expired Items']],
+      body: tableBody,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+      margin: { left: 14, right: 14 },
+      didParseCell(hookData) {
+        if (hookData.section !== 'body') return
+        const row = hookData.row.raw as string[]
+        const status = row[1]
+        // Whole-row red wash for missed days
+        if (status === 'MISSED') {
+          hookData.cell.styles.textColor = [220, 38, 38]
+          if (hookData.column.index === 1) hookData.cell.styles.fontStyle = 'bold'
+          return
+        }
+        // Amber for out-of-range temps
+        if (hookData.column.index === 2) {
+          const v = row[2]
+          const n = Number(v.replace('°C', ''))
+          if (!Number.isNaN(n) && (n < 1 || n > 5)) {
+            hookData.cell.styles.textColor = [217, 119, 6]
+            hookData.cell.styles.fontStyle = 'bold'
+          }
+        }
+        if (hookData.column.index === 3) {
+          const v = row[3]
+          const n = Number(v.replace('°C', ''))
+          if (!Number.isNaN(n) && n > -18) {
+            hookData.cell.styles.textColor = [217, 119, 6]
+            hookData.cell.styles.fontStyle = 'bold'
+          }
+        }
+        // Partial status in amber
+        if (hookData.column.index === 1 && status === 'PARTIAL') {
+          hookData.cell.styles.textColor = [217, 119, 6]
+        }
+        if (hookData.column.index === 1 && status === 'DONE') {
+          hookData.cell.styles.textColor = [22, 163, 74]
+          hookData.cell.styles.fontStyle = 'bold'
+        }
+      },
+    })
+    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10
+
     // --- Footer ---
     const pageCount = doc.getNumberOfPages()
     for (let i = 1; i <= pageCount; i++) {
