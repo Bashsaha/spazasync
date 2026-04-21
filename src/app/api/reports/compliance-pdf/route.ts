@@ -2,8 +2,28 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getComplianceReportData } from '@/lib/db/compliance-report'
 import { formatSAST } from '@/lib/utils/date'
+import { DOCUMENT_TYPES } from '@/lib/validation/schemas'
+import { computeDocumentStatus, EXPIRY_WARNING_DAYS, OWNER_ID_WARNING_DAYS } from '@/lib/compliance/document-status'
+import type { DocumentType } from '@/types'
 // jsPDF + autoTable are dynamically imported inside GET() to reduce cold start
 import type { jsPDF } from 'jspdf'
+
+const DOCUMENT_LABELS: Record<DocumentType, string> = {
+  municipal_registration: 'Municipal Registration',
+  coa: 'Certificate of Acceptability (CoA)',
+  cipc: 'CIPC Registration',
+  business_license: 'Business License',
+  owner_id: 'Owner Documentation',
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  valid: 'Valid',
+  expired: 'Expired',
+  pending: 'Pending',
+  not_registered: 'Not Registered',
+  not_required: 'Not Required',
+  on_file: 'On File',
+}
 
 /**
  * GET /api/reports/compliance-pdf
@@ -399,6 +419,76 @@ export async function GET() {
         if (hookData.column.index === 1 && status === 'DONE') {
           hookData.cell.styles.textColor = [22, 163, 74]
           hookData.cell.styles.fontStyle = 'bold'
+        }
+      },
+    })
+    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10
+
+    // --- Section 6: Business Registration Status ---
+    checkPageBreak(doc, y, 30)
+    y = getCurrentY(doc, y)
+
+    doc.setFontSize(13)
+    doc.setFont('helvetica', 'bold')
+    doc.text('6. Business Registration Status', 14, y)
+    y += 2
+
+    const docSummary = computeDocumentStatus(data.businessDocuments, today)
+    const expiredCount = docSummary.expired.length
+    const expiringSoonCount = docSummary.expiringSoon.length
+    const onFileCount = docSummary.totalLogged
+
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(0)
+    doc.text(
+      `${onFileCount} of ${DOCUMENT_TYPES.length} documents on file — ${docSummary.validCount} valid, ${expiringSoonCount} expiring within 30 days, ${expiredCount} expired`,
+      14,
+      y + 4,
+    )
+    y += 8
+
+    const docByType = new Map(data.businessDocuments.map((d) => [d.document_type, d]))
+    const docTableBody: Array<Array<string>> = DOCUMENT_TYPES.map((type) => {
+      const entry = docByType.get(type)
+      if (!entry) {
+        return [DOCUMENT_LABELS[type], 'Not Logged', '—', '—']
+      }
+      const expiry = entry.expiry_date ?? '—'
+      let statusCell = STATUS_LABELS[entry.status] ?? entry.status
+      if (entry.expiry_date) {
+        const daysOut = Math.round(
+          (Date.parse(entry.expiry_date) - Date.parse(today)) / (1000 * 60 * 60 * 24),
+        )
+        const window = type === 'owner_id' ? OWNER_ID_WARNING_DAYS : EXPIRY_WARNING_DAYS
+        if (daysOut < 0 && entry.status !== 'expired') {
+          statusCell = 'Expired'
+        } else if (daysOut >= 0 && daysOut <= window && entry.status === 'valid') {
+          statusCell = `Expiring in ${daysOut}d`
+        }
+      }
+      return [DOCUMENT_LABELS[type], statusCell, entry.reference_number ?? '—', expiry]
+    })
+
+    autoTable(doc, {
+      startY: y,
+      head: [['Document', 'Status', 'Reference Number', 'Expiry Date']],
+      body: docTableBody,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+      margin: { left: 14, right: 14 },
+      didParseCell(hookData) {
+        if (hookData.section !== 'body' || hookData.column.index !== 1) return
+        const val = hookData.cell.raw as string
+        if (val === 'Expired' || val === 'Not Registered' || val === 'Not Logged') {
+          hookData.cell.styles.textColor = [220, 38, 38]
+          hookData.cell.styles.fontStyle = 'bold'
+        } else if (val.startsWith('Expiring in') || val === 'Pending') {
+          hookData.cell.styles.textColor = [217, 119, 6]
+          hookData.cell.styles.fontStyle = 'bold'
+        } else if (val === 'Valid' || val === 'On File' || val === 'Not Required') {
+          hookData.cell.styles.textColor = [22, 163, 74]
         }
       },
     })

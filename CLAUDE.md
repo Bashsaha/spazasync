@@ -89,6 +89,7 @@ SpazaSync is a mobile-first PWA for South African spaza shop and small retail ow
 - `products.supplier_id` — last-known supplier, nullable FK to suppliers (ON DELETE SET NULL) (Phase 30b)
 - `daily_checklists` — shop_id, date (SAST), fridge_ok/fridge_temp, freezer_ok/freezer_temp, surfaces_cleaned, floor_cleaned, storage_clean, expired_items_action ('none_found'|'removed'|'skipped'), completed_by, completed_at, updated_at; UNIQUE(shop_id, date); RLS via user_in_shop(shop_id) (Phase 31)
 - `shops.has_fridge` / `shops.has_freezer` — NOT NULL DEFAULT true; toggle to hide irrelevant blocks from the daily checklist (Phase 31)
+- `business_documents` — shop_id, document_type ('municipal_registration'|'coa'|'cipc'|'business_license'|'owner_id'), status ('valid'|'expired'|'pending'|'not_registered'|'not_required'|'on_file'), reference_number, date_issued, expiry_date, notes, created_at, updated_at; UNIQUE(shop_id, document_type) — one row per doc type per shop, enables upsert; index (shop_id, expiry_date); RLS via user_in_shop(shop_id) (Phase 32)
 
 ### RLS helpers
 - `user_in_shop(shop_id)` — SECURITY DEFINER function
@@ -330,6 +331,7 @@ At the start of every session:
 - [x] Phase 30b: Traceability — Link Suppliers to Products & Stock + Goods Received Log
 - [x] Phase 30c: Compliance PDF — Supplier Traceability Section
 - [x] Phase 31: Daily Compliance Checklist
+- [x] Phase 32: Business Compliance Profile
 
 All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
 
@@ -348,6 +350,9 @@ All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
 ### Phase 30c — Compliance PDF: Supplier Traceability Section (2026-04-19)
 **What was built:** Compliance PDF gains a new "4. Supplier Traceability Report" section with two sub-tables: **Supplier Directory** (Name, Type, Contact, Location) and **Goods Received Log (Last 30 Days)** (Date, Item, Qty, Supplier, Notes). `ComplianceReportData` extended with `suppliers` and `goodsReceived` arrays — both populated in parallel with the existing queries in `getComplianceReportData`. Summary line reports counts (e.g. "3 suppliers, 12 receipts in the last 30 days"). No new files, no migrations, no i18n keys (compliance PDF is server-rendered English-only, per existing pattern). 280 tests pass, TypeScript clean.
 
+### Phase 32 — Business Compliance Profile (2026-04-21)
+**What was built:** A Business Documents section so owners can track the 5 South African compliance documents (Municipal Registration, Certificate of Acceptability, CIPC, Business License, Owner ID/permit) in one place. Migration `018_business_documents.sql` adds `business_documents` (UNIQUE(shop_id, document_type), RLS via `user_in_shop`, updated_at trigger). Pure helper `src/lib/compliance/document-status.ts` computes the dashboard traffic light (red if any expired/past-due; amber if expiring ≤30 days, 60 days for owner_id permits, or pending/not_registered/missing types; green if all logged + valid; grey if empty). New pages: `/documents` (list with hero summary + 5 cards), `/documents/[type]` (adaptive form per type — owner_id has SA-citizen "ID on file" boolean vs Foreign-national permit type + expiry; coa/business_license get expiry; municipal/cipc are status-only). New API: `GET /api/business-documents` and `GET/PUT/DELETE /api/business-documents/[type]` with PUT = upsert. New async server component `DocumentComplianceStatus` injected into the dashboard via Suspense (mirrors `ChecklistStatus` — no cron, computed every dashboard load). Settings page gains an emerald "My Business Documents" card between Compliance PDF and My Suppliers. Compliance PDF gains **Section 6: Business Registration Status** — table of all 5 documents with colour-coded status (green Valid/On File, amber Expiring/Pending, red Expired/Not Registered/Not Logged) plus summary line (`X of 5 on file — Y valid, Z expiring, W expired`). New `documents` i18n namespace (~60 keys) across all 5 locales; `'documents'` added to `TranslationNamespace` union and `LanguageProvider` namespaces. Decisions: text-only (no photo uploads — matches Phase 30b cost stance); SA-citizen ID stored as boolean only (POPIA — no digits); single phase rather than split. 327 tests pass (+15 new business-documents logic tests + 2 new i18n parity), TypeScript clean.
+
 ### Phase 31 — Daily Compliance Checklist (2026-04-19)
 **What was built:** A 30-second daily habit flow covering R638's temperature-monitoring and cleaning requirements. Migration `017_daily_checklists.sql` adds a `daily_checklists` table (UPSERT per shop per date, UNIQUE(shop_id, date), RLS via `user_in_shop`) plus `shops.has_fridge` / `has_freezer` toggles. New pages: `/checklist` (conditional fridge/freezer + cleaning + expired items blocks, pre-fills from today's row), `/checklist/history` (30-day gap-filled view, stats header, expandable rows). New server component `ChecklistStatus` injected into the dashboard — green "done" pill, blue prompt before 10 AM SAST, amber reminder after. Settings page gains a "Shop equipment" section with fridge/freezer toggles + link to history. Compliance PDF gains **Section 5: Daily Compliance Log** — 30-day gap-filled table with DONE/PARTIAL/MISSED status, red for missed days, amber for out-of-range temps. New `checklist` i18n namespace (~55 keys) across all 5 locales; `'checklist'` added to `TranslationNamespace` + `LanguageProvider` namespaces. Pure helpers (`fridgeInRange`, `freezerInRange`, `computeChecklistStats`) live in `src/lib/checklist/stats.ts` so tests don't need the server Supabase import; `src/lib/db/daily-checklist.ts` re-exports them. Decision: **in-app reminder only** (no Web Push) to avoid VAPID/service-worker infrastructure — dashboard banner after 10 AM SAST satisfies the spec. Decision: **no new BottomNav tab** (6 is max for non-technical users) — checklist surfaces via dashboard card + `ChecklistStatus` banner. 304 tests pass (+24 from 280: 16 checklist + 8 i18n parity), TypeScript clean.
 
@@ -355,7 +360,7 @@ All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
 
 ## Current File Tree
 
-_Last updated: Phase 31 (2026-04-19)_
+_Last updated: Phase 32 (2026-04-21)_
 
 ```
 spaza shop/
@@ -429,6 +434,10 @@ spaza shop/
 │   │   │   │   ├── page.tsx        # Daily checklist form (Phase 31)
 │   │   │   │   ├── loading.tsx
 │   │   │   │   └── history/page.tsx # 30-day history + stats
+│   │   │   ├── documents/
+│   │   │   │   ├── page.tsx        # Business documents list + hero (Phase 32)
+│   │   │   │   ├── loading.tsx
+│   │   │   │   └── [type]/page.tsx # Adaptive edit form per document type
 │   │   │   └── admin/
 │   │   │       ├── layout.tsx      # Admin layout (AdminNav + max-w-4xl)
 │   │   │       ├── loading.tsx
@@ -507,9 +516,12 @@ spaza shop/
 │   │       │   └── [id]/route.ts          # GET, PATCH, DELETE
 │   │       ├── goods-received/
 │   │       │   └── route.ts               # GET list (with filters), POST create (Phase 30b)
-│   │       └── daily-checklist/
-│   │           ├── route.ts               # GET today + expiring, POST upsert (Phase 31)
-│   │           └── history/route.ts       # GET 30-day gap-filled + stats
+│   │       ├── daily-checklist/
+│   │       │   ├── route.ts               # GET today + expiring, POST upsert (Phase 31)
+│   │       │   └── history/route.ts       # GET 30-day gap-filled + stats
+│   │       └── business-documents/
+│   │           ├── route.ts               # GET list (Phase 32)
+│   │           └── [type]/route.ts        # GET single, PUT upsert, DELETE
 │   ├── components/
 │   │   ├── products/
 │   │   │   ├── CatalogImportSheet.tsx     # Bottom-sheet: search catalog, set prices, bulk import
@@ -531,6 +543,7 @@ spaza shop/
 │   │   │   ├── LowStockAlert.tsx          # Async server — low/out-of-stock alert
 │   │   │   ├── ExpiringAlert.tsx          # Async server — expiring products alert
 │   │   │   ├── ChecklistStatus.tsx        # Async server — daily checklist status (Phase 31)
+│   │   │   ├── DocumentComplianceStatus.tsx # Async server — business docs traffic light (Phase 32)
 │   │   │   ├── WeeklyChartSection.tsx     # Async server — wraps WeeklySalesChart
 │   │   │   ├── TopProducts.tsx            # Async server — top products this week
 │   │   │   └── LatestSales.tsx            # Async server — recent sales + empty state
@@ -575,25 +588,29 @@ spaza shop/
 │   │   │   ├── suppliers.ts               # Supplier CRUD (Phase 30a)
 │   │   │   ├── goods-received.ts          # Goods received log + list with joins (Phase 30b)
 │   │   │   ├── daily-checklist.ts         # Checklist DB CRUD (Phase 31) — re-exports stats helpers
+│   │   │   ├── business-documents.ts      # Business document CRUD (Phase 32) — re-exports computeDocumentStatus
 │   │   │   └── compliance-report.ts       # Compliance PDF data fetcher
 │   │   ├── offline/
 │   │   │   ├── db.ts                      # IndexedDB via idb
 │   │   │   └── sync.ts                    # syncPendingSales
 │   │   ├── checklist/
 │   │   │   └── stats.ts                   # Pure helpers: fridgeInRange, freezerInRange, computeChecklistStats (Phase 31)
+│   │   ├── compliance/
+│   │   │   └── document-status.ts         # Pure helper: computeDocumentStatus + warning windows (Phase 32)
 │   │   ├── i18n/
 │   │   │   ├── types.ts                   # SupportedLocale, LOCALE_META, TranslationNamespace
 │   │   │   ├── interpolate.ts             # t(), tPlural() — string interpolation helpers
 │   │   │   ├── loader.ts                  # loadTranslation(), loadTranslations() — dynamic import + cache
 │   │   │   ├── server.ts                  # getServerLocale(), getServerTranslations() — for server components
 │   │   │   └── translations/
-│   │   │       ├── en/                    # English namespace files (12 JSON files)
+│   │   │       ├── en/                    # English namespace files (13 JSON files)
 │   │   │       │   ├── common.json, auth.json, sale.json, dashboard.json, settings.json
-│   │   │       │   └── stock.json, products.json, tellers.json, expiry.json, summary.json, suppliers.json, checklist.json
-│   │   │       ├── so/                    # Somali  (12 namespaces — adds checklist in Phase 31)
-│   │   │       ├── am/                    # Amharic (12 namespaces — adds checklist in Phase 31)
-│   │   │       ├── zu/                    # IsiZulu (12 namespaces — adds checklist in Phase 31)
-│   │   │       └── ur/                    # Urdu    (12 namespaces — adds checklist in Phase 31)
+│   │   │       │   ├── stock.json, products.json, tellers.json, expiry.json, summary.json
+│   │   │       │   └── suppliers.json, checklist.json, documents.json
+│   │   │       ├── so/                    # Somali  (13 namespaces — adds documents in Phase 32)
+│   │   │       ├── am/                    # Amharic (13 namespaces — adds documents in Phase 32)
+│   │   │       ├── zu/                    # IsiZulu (13 namespaces — adds documents in Phase 32)
+│   │   │       └── ur/                    # Urdu    (13 namespaces — adds documents in Phase 32)
 │   │   ├── validation/
 │   │   │   └── schemas.ts                 # All Zod schemas
 │   │   └── utils/
@@ -622,7 +639,8 @@ spaza shop/
 │       ├── 014_profit_tracking.sql    # Phase 28 — profit tracking toggle + cost columns
 │       ├── 015_suppliers.sql           # Phase 30a — suppliers table + RLS
 │       ├── 016_goods_received.sql      # Phase 30b — products.supplier_id + goods_received table + RLS
-│       └── 017_daily_checklists.sql    # Phase 31 — daily_checklists table + shops.has_fridge/has_freezer
+│       ├── 017_daily_checklists.sql    # Phase 31 — daily_checklists table + shops.has_fridge/has_freezer
+│       └── 018_business_documents.sql  # Phase 32 — business_documents table + RLS + updated_at trigger
 ├── data/
 │   └── sa-products.csv                    # 100 SA products with EAN-13 barcodes
 ├── scripts/
@@ -643,7 +661,8 @@ spaza shop/
         ├── payfast.test.ts               # 12 tests
         ├── admin.test.ts                 # 28 tests
         ├── batches.test.ts              # 14 tests
-        ├── i18n.test.ts                  # 113 tests — t(), tPlural(), key completeness + placeholder preservation
+        ├── i18n.test.ts                  # 121 tests — t(), tPlural(), key completeness + placeholder preservation
         ├── profit.test.ts                # 19 tests — computeProfit() + cost_price/profit_tracking_enabled schema
-        └── checklist.test.ts             # 16 tests — fridgeInRange, freezerInRange, computeChecklistStats (Phase 31)
+        ├── checklist.test.ts             # 16 tests — fridgeInRange, freezerInRange, computeChecklistStats (Phase 31)
+        └── business-documents.test.ts    # 15 tests — computeDocumentStatus traffic-light rules (Phase 32)
 ```

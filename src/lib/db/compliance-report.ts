@@ -1,7 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { formatInTimeZone } from 'date-fns-tz'
 import { SAST_TZ } from '@/lib/utils/date'
-import type { StockMovementEntry, DailyChecklist, ChecklistStats } from '@/types'
+import type {
+  StockMovementEntry,
+  DailyChecklist,
+  ChecklistStats,
+  BusinessDocument,
+} from '@/types'
 import { computeChecklistStats } from '@/lib/checklist/stats'
 
 export interface ComplianceReportData {
@@ -40,6 +45,7 @@ export interface ComplianceReportData {
   checklistStats: ChecklistStats
   hasFridge: boolean
   hasFreezer: boolean
+  businessDocuments: BusinessDocument[]
   generatedAt: string // ISO string
 }
 
@@ -68,6 +74,7 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
     suppliersResult,
     goodsReceivedResult,
     checklistResult,
+    businessDocumentsResult,
   ] = await Promise.all([
       // Shop info
       supabase
@@ -129,6 +136,13 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
         .eq('shop_id', shopId)
         .gte('date', checklistFromDate)
         .order('date', { ascending: false }),
+
+      // Business documents (all)
+      supabase
+        .from('business_documents')
+        .select('*')
+        .eq('shop_id', shopId)
+        .order('document_type'),
     ])
 
   if (shopResult.error) throw shopResult.error
@@ -212,6 +226,9 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
   const checklistHistory = (checklistResult.data ?? []) as DailyChecklist[]
   const checklistStats = computeChecklistStats(checklistHistory, 30)
 
+  // Business documents
+  const businessDocuments = (businessDocumentsResult.data ?? []) as BusinessDocument[]
+
   const shopRow = shopResult.data as typeof shopResult.data & {
     has_fridge?: boolean
     has_freezer?: boolean
@@ -233,6 +250,7 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
     checklistStats,
     hasFridge: shopRow.has_fridge !== false,
     hasFreezer: shopRow.has_freezer !== false,
+    businessDocuments,
     generatedAt: new Date().toISOString(),
   }
 }

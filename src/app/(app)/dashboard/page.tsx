@@ -9,6 +9,7 @@ import { WeeklyChartSection } from '@/components/dashboard/WeeklyChartSection'
 import { TopProducts } from '@/components/dashboard/TopProducts'
 import { LatestSales } from '@/components/dashboard/LatestSales'
 import { ChecklistStatus } from '@/components/dashboard/ChecklistStatus'
+import { DocumentComplianceStatus } from '@/components/dashboard/DocumentComplianceStatus'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 
 export default async function DashboardPage() {
@@ -86,6 +87,13 @@ export default async function DashboardPage() {
       {shop?.id && (
         <Suspense fallback={<Skeleton className="h-14 rounded-2xl mb-4" />}>
           <ChecklistStatus shopId={shop.id} locale={locale} />
+        </Suspense>
+      )}
+
+      {/* Business documents compliance status — streams in */}
+      {shop?.id && (
+        <Suspense fallback={<Skeleton className="h-14 rounded-2xl mb-4" />}>
+          <DocumentComplianceStatus locale={locale} />
         </Suspense>
       )}
 

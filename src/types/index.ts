@@ -421,6 +421,61 @@ export interface DailyChecklistInput {
   expired_items_action?: ExpiredItemsAction | null
 }
 
+// --- Business documents (Phase 32) ---
+
+export type DocumentType =
+  | 'municipal_registration'
+  | 'coa'
+  | 'cipc'
+  | 'business_license'
+  | 'owner_id'
+
+export type DocumentStatus =
+  | 'valid'
+  | 'expired'
+  | 'pending'
+  | 'not_registered'
+  | 'not_required'
+  | 'on_file'
+
+export interface BusinessDocument {
+  id: string
+  shop_id: string
+  document_type: DocumentType
+  status: DocumentStatus
+  reference_number: string | null
+  date_issued: string | null        // YYYY-MM-DD
+  expiry_date: string | null        // YYYY-MM-DD
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface UpsertBusinessDocumentInput {
+  status: DocumentStatus
+  reference_number?: string | null
+  date_issued?: string | null
+  expiry_date?: string | null
+  notes?: string | null
+}
+
+export type DocumentOverallStatus = 'grey' | 'green' | 'amber' | 'red'
+
+export interface DocumentExpiryWarning {
+  document_type: DocumentType
+  expiry_date: string
+  days_remaining: number             // negative if already expired
+}
+
+export interface DocumentStatusSummary {
+  overall: DocumentOverallStatus
+  totalLogged: number                // rows present
+  validCount: number                 // status in ('valid','on_file')
+  expiringSoon: DocumentExpiryWarning[]
+  expired: DocumentExpiryWarning[]
+  missing: DocumentType[]            // document_types with no row yet
+}
+
 export interface ChecklistStats {
   completedDays: number     // days with a row present in the window
   totalDays: number         // window size (e.g. 30)

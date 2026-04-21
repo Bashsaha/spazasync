@@ -26,6 +26,7 @@ interface ShopSettings {
 export default function SettingsPage() {
   const { t, tPlural, locale, setLocale } = useTranslation('settings')
   const { t: tSup } = useTranslation('suppliers')
+  const { t: tDoc } = useTranslation('documents')
   const { t: tChk } = useTranslation('checklist')
   const [settings, setSettings] = useState<ShopSettings | null>(null)
   const [name, setName] = useState('')
@@ -250,6 +251,25 @@ export default function SettingsPage() {
           {downloading ? t('btn_generating_report') : t('btn_download_report')}
         </button>
       </div>
+
+      {/* My Business Documents */}
+      <a
+        href="/documents"
+        className="block bg-emerald-50 border border-emerald-100 rounded-2xl px-4 py-4 mb-6 active:bg-emerald-100"
+      >
+        <div className="flex items-start gap-3">
+          <span className="text-2xl">📄</span>
+          <div className="flex-1">
+            <p className="font-bold text-emerald-900">{tDoc('settings_card_title')}</p>
+            <p className="text-sm text-emerald-700 mt-0.5">
+              {tDoc('settings_card_desc')}
+            </p>
+            <span className="inline-block mt-2 text-sm font-semibold text-emerald-600">
+              {tDoc('settings_card_btn')} &rsaquo;
+            </span>
+          </div>
+        </div>
+      </a>
 
       {/* My Suppliers */}
       <a

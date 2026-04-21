@@ -205,6 +205,55 @@ export const upsertChecklistSchema = z.object({
 })
 
 // ============================================================
+// Business documents (Phase 32)
+// ============================================================
+
+export const DOCUMENT_TYPES = [
+  'municipal_registration',
+  'coa',
+  'cipc',
+  'business_license',
+  'owner_id',
+] as const
+
+export const DOCUMENT_STATUSES = [
+  'valid',
+  'expired',
+  'pending',
+  'not_registered',
+  'not_required',
+  'on_file',
+] as const
+
+export const documentTypeSchema = z.enum(DOCUMENT_TYPES)
+
+export const upsertBusinessDocumentSchema = z.object({
+  status: z.enum(DOCUMENT_STATUSES),
+  reference_number: z
+    .string()
+    .max(100)
+    .nullable()
+    .optional()
+    .transform((v) => v?.trim() || null),
+  date_issued: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use date format YYYY-MM-DD')
+    .nullable()
+    .optional(),
+  expiry_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use date format YYYY-MM-DD')
+    .nullable()
+    .optional(),
+  notes: z
+    .string()
+    .max(500)
+    .nullable()
+    .optional()
+    .transform((v) => v?.trim() || null),
+})
+
+// ============================================================
 // Admin — Barcode Catalog
 // ============================================================
 
