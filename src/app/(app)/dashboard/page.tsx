@@ -10,6 +10,8 @@ import { TopProducts } from '@/components/dashboard/TopProducts'
 import { LatestSales } from '@/components/dashboard/LatestSales'
 import { ChecklistStatus } from '@/components/dashboard/ChecklistStatus'
 import { DocumentComplianceStatus } from '@/components/dashboard/DocumentComplianceStatus'
+import { PestControlReminder } from '@/components/dashboard/PestControlReminder'
+import { WasteConfirmReminder } from '@/components/dashboard/WasteConfirmReminder'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 
 export default async function DashboardPage() {
@@ -94,6 +96,20 @@ export default async function DashboardPage() {
       {shop?.id && (
         <Suspense fallback={<Skeleton className="h-14 rounded-2xl mb-4" />}>
           <DocumentComplianceStatus locale={locale} />
+        </Suspense>
+      )}
+
+      {/* Pest control overdue reminder — streams in, returns null when fresh */}
+      {shop?.id && (
+        <Suspense fallback={null}>
+          <PestControlReminder shopId={shop.id} locale={locale} />
+        </Suspense>
+      )}
+
+      {/* Waste arrangement confirmation reminder — streams in, returns null when fresh */}
+      {shop?.id && (
+        <Suspense fallback={null}>
+          <WasteConfirmReminder shopId={shop.id} locale={locale} />
         </Suspense>
       )}
 

@@ -19,6 +19,8 @@
   "q_surfaces": "Dusha & miisaska waa la nadiifiyay?",
   "q_floor": "Dhulka waa la xaaqay oo la nadiifiyay?",
   "q_storage": "Goobaha kaydinta cuntadu waa habaysan yihiin oo nadiif ah?",
+  "q_waste_bins": "Qashinka waa la daadiyay oo goobtu nadiif tahay?",
+  "q_waste_bins_hint": "Qashinka guddaha iyo dibadda — baakadaha la saaray, goobtu la xaaqay.",
 
   "q_expired": "Alaab dhacday oo la saaray maanta ma jiraan?",
   "expired_hint_one": "Waxaa jira {count} badeecad oo dhacday ama maanta dhacaysa.",

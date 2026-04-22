@@ -28,6 +28,7 @@ export default function SettingsPage() {
   const { t: tSup } = useTranslation('suppliers')
   const { t: tDoc } = useTranslation('documents')
   const { t: tChk } = useTranslation('checklist')
+  const { t: tWp } = useTranslation('waste-pest')
   const [settings, setSettings] = useState<ShopSettings | null>(null)
   const [name, setName] = useState('')
   const [threshold, setThreshold] = useState(5)
@@ -266,6 +267,25 @@ export default function SettingsPage() {
             </p>
             <span className="inline-block mt-2 text-sm font-semibold text-emerald-600">
               {tDoc('settings_card_btn')} &rsaquo;
+            </span>
+          </div>
+        </div>
+      </a>
+
+      {/* My Waste & Pest Management */}
+      <a
+        href="/waste-pest"
+        className="block bg-emerald-50 border border-emerald-100 rounded-2xl px-4 py-4 mb-6 active:bg-emerald-100"
+      >
+        <div className="flex items-start gap-3">
+          <span className="text-2xl">🧹</span>
+          <div className="flex-1">
+            <p className="font-bold text-emerald-900">{tWp('settings_card_title')}</p>
+            <p className="text-sm text-emerald-700 mt-0.5">
+              {tWp('settings_card_desc')}
+            </p>
+            <span className="inline-block mt-2 text-sm font-semibold text-emerald-600">
+              {tWp('settings_card_btn')} &rsaquo;
             </span>
           </div>
         </div>

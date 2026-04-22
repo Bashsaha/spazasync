@@ -37,7 +37,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen bg-gray-50">
       <LanguageProvider
         initialLocale={initialLocale}
-        namespaces={['common', 'sale', 'dashboard', 'stock', 'summary', 'products', 'tellers', 'expiry', 'settings', 'suppliers', 'checklist', 'documents']}
+        namespaces={['common', 'sale', 'dashboard', 'stock', 'summary', 'products', 'tellers', 'expiry', 'settings', 'suppliers', 'checklist', 'documents', 'waste-pest']}
       >
         <ToastProvider>
           {role !== 'teller' && <DailySummaryAlert />}

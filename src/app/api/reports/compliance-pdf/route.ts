@@ -494,6 +494,159 @@ export async function GET() {
     })
     y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10
 
+    // --- Section 7: Waste & Pest Management ---
+    checkPageBreak(doc, y, 30)
+    y = getCurrentY(doc, y)
+
+    doc.setFontSize(13)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(0)
+    doc.text('7. Waste & Pest Management', 14, y)
+    y += 2
+
+    // Summary line
+    const waste = data.wasteManagement
+    const pestCount = data.pestControlLogs.length
+    const binsPct = data.wasteBinsCompliance.pct
+    const binsTotal = data.wasteBinsCompliance.totalDays
+    const binsOk = data.wasteBinsCompliance.okDays
+
+    const summaryPieces: string[] = []
+    if (waste) {
+      const freq = String(waste.frequency).replace('_', ' ')
+      const removal = String(waste.removal_type).replace('_', ' ')
+      const confirmed = waste.last_confirmed_date
+        ? `confirmed ${Math.max(0, Math.round((Date.parse(today) - Date.parse(waste.last_confirmed_date)) / 86400000))} days ago`
+        : 'never confirmed'
+      summaryPieces.push(`Waste: ${removal} ${freq} (${confirmed})`)
+    } else {
+      summaryPieces.push('Waste: no arrangement recorded')
+    }
+    summaryPieces.push(`Pest control: ${pestCount} visit${pestCount !== 1 ? 's' : ''} in last 6 months`)
+    summaryPieces.push(`Bins compliance: ${binsPct}%`)
+
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    doc.text(summaryPieces.join('.  '), 14, y + 4)
+    y += 10
+
+    // Sub-section: Waste Arrangement
+    checkPageBreak(doc, y, 20)
+    y = getCurrentY(doc, y)
+
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Waste Arrangement', 14, y)
+    y += 2
+
+    if (waste) {
+      const wasteRows: string[][] = [
+        ['Removal type', String(waste.removal_type).replace('_', ' ')],
+        ['Frequency', String(waste.frequency).replace('_', ' ')],
+        ['Provider', waste.provider_name ?? '—'],
+        ['Last confirmed', waste.last_confirmed_date ?? 'Never'],
+      ]
+      autoTable(doc, {
+        startY: y + 2,
+        head: [['Field', 'Value']],
+        body: wasteRows,
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [245, 247, 250] },
+        margin: { left: 14, right: 14 },
+        didParseCell(hookData) {
+          if (hookData.section !== 'body' || hookData.column.index !== 1) return
+          if (hookData.row.index === 3) {
+            const v = hookData.cell.raw as string
+            if (v === 'Never') {
+              hookData.cell.styles.textColor = [220, 38, 38]
+              hookData.cell.styles.fontStyle = 'bold'
+            } else if (v && v !== '—') {
+              const days = Math.round(
+                (Date.parse(today) - Date.parse(v)) / (1000 * 60 * 60 * 24),
+              )
+              if (days >= 30) {
+                hookData.cell.styles.textColor = [217, 119, 6]
+                hookData.cell.styles.fontStyle = 'bold'
+              } else {
+                hookData.cell.styles.textColor = [22, 163, 74]
+              }
+            }
+          }
+        },
+      })
+      y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8
+    } else {
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'normal')
+      y += 6
+      doc.setTextColor(220, 38, 38)
+      doc.text('No waste removal arrangement on file.', 14, y)
+      doc.setTextColor(0)
+      y += 8
+    }
+
+    // Sub-section: Pest Control History
+    checkPageBreak(doc, y, 20)
+    y = getCurrentY(doc, y)
+
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Pest Control History (Last 6 Months)', 14, y)
+    y += 2
+
+    if (pestCount > 0) {
+      autoTable(doc, {
+        startY: y + 2,
+        head: [['Date', 'Provider', 'Treatment', 'Notes']],
+        body: data.pestControlLogs.map((p) => [
+          p.visit_date,
+          p.provider_name,
+          p.treatment_type,
+          p.notes ?? '—',
+        ]),
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [245, 247, 250] },
+        margin: { left: 14, right: 14 },
+        columnStyles: {
+          3: { cellWidth: 50 },
+        },
+      })
+      y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8
+    } else {
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'normal')
+      y += 6
+      doc.setTextColor(220, 38, 38)
+      doc.text('No pest control visits recorded in the last 6 months.', 14, y)
+      doc.setTextColor(0)
+      y += 8
+    }
+
+    // Sub-section: Waste Bin Daily Compliance
+    checkPageBreak(doc, y, 16)
+    y = getCurrentY(doc, y)
+
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Daily Waste Bin Compliance (30 Days)', 14, y)
+    y += 2
+
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    const binsTone: [number, number, number] =
+      binsPct >= 90 ? [22, 163, 74] : binsPct >= 70 ? [217, 119, 6] : [220, 38, 38]
+    doc.setTextColor(binsTone[0], binsTone[1], binsTone[2])
+    doc.setFont('helvetica', 'bold')
+    const binsLine = binsTotal > 0
+      ? `Waste bins emptied and area clean on ${binsOk} of ${binsTotal} days (${binsPct}%)`
+      : 'No bin checks logged in the last 30 days'
+    doc.text(binsLine, 14, y + 4)
+    doc.setTextColor(0)
+    doc.setFont('helvetica', 'normal')
+    y += 10
+
     // --- Footer ---
     const pageCount = doc.getNumberOfPages()
     for (let i = 1; i <= pageCount; i++) {

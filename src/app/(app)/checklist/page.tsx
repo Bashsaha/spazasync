@@ -82,6 +82,7 @@ export default function ChecklistPage() {
   const [surfaces, setSurfaces] = useState<YesNo>(null)
   const [floor, setFloor] = useState<YesNo>(null)
   const [storage, setStorage] = useState<YesNo>(null)
+  const [wasteBinsOk, setWasteBinsOk] = useState<YesNo>(null)
   const [expiredAction, setExpiredAction] = useState<ExpiredItemsAction | null>(null)
 
   useEffect(() => {
@@ -101,6 +102,7 @@ export default function ChecklistPage() {
           setSurfaces(c.surfaces_cleaned)
           setFloor(c.floor_cleaned)
           setStorage(c.storage_clean)
+          setWasteBinsOk(c.waste_bins_ok ?? null)
           setExpiredAction(c.expired_items_action)
         }
       })
@@ -123,6 +125,7 @@ export default function ChecklistPage() {
           surfaces_cleaned: surfaces,
           floor_cleaned: floor,
           storage_clean: storage,
+          waste_bins_ok: wasteBinsOk,
           expired_items_action: expiredAction,
         }),
       })
@@ -267,6 +270,16 @@ export default function ChecklistPage() {
             <YesNoButtons
               value={storage}
               onChange={setStorage}
+              yesLabel={t('opt_yes')}
+              noLabel={t('opt_no')}
+            />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-800">{t('q_waste_bins')}</p>
+            <p className="text-xs text-gray-400 mb-2">{t('q_waste_bins_hint')}</p>
+            <YesNoButtons
+              value={wasteBinsOk}
+              onChange={setWasteBinsOk}
               yesLabel={t('opt_yes')}
               noLabel={t('opt_no')}
             />

@@ -404,6 +404,7 @@ export interface DailyChecklist {
   surfaces_cleaned: boolean | null
   floor_cleaned: boolean | null
   storage_clean: boolean | null
+  waste_bins_ok: boolean | null   // Phase 33 — "waste bins emptied and area clean?"
   expired_items_action: ExpiredItemsAction | null
   completed_by: string | null
   completed_at: string
@@ -418,6 +419,7 @@ export interface DailyChecklistInput {
   surfaces_cleaned?: boolean | null
   floor_cleaned?: boolean | null
   storage_clean?: boolean | null
+  waste_bins_ok?: boolean | null
   expired_items_action?: ExpiredItemsAction | null
 }
 
@@ -484,4 +486,42 @@ export interface ChecklistStats {
   avgFridgeTemp: number | null
   avgFreezerTemp: number | null
   outOfRangeDays: number    // count of completed days where fridge outside 1-5 OR freezer > -18
+}
+
+// --- Waste & pest control (Phase 33) ---
+
+export interface PestControlLog {
+  id: string
+  shop_id: string
+  visit_date: string           // YYYY-MM-DD
+  provider_name: string
+  treatment_type: string
+  notes: string | null
+  created_by: string | null
+  created_at: string
+}
+
+export interface CreatePestControlLogInput {
+  visit_date: string
+  provider_name: string
+  treatment_type: string
+  notes?: string | null
+}
+
+export type WasteRemovalType = 'municipal' | 'private' | 'self_disposal'
+export type WasteFrequency = 'daily' | 'weekly' | 'twice_weekly' | 'monthly' | 'other'
+
+export interface WasteManagement {
+  shop_id: string
+  removal_type: WasteRemovalType
+  frequency: WasteFrequency
+  provider_name: string | null
+  last_confirmed_date: string | null   // YYYY-MM-DD (SAST)
+  updated_at: string
+}
+
+export interface UpsertWasteManagementInput {
+  removal_type: WasteRemovalType
+  frequency: WasteFrequency
+  provider_name?: string | null
 }

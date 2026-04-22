@@ -45,6 +45,7 @@ export async function upsertChecklist(
     surfaces_cleaned: input.surfaces_cleaned ?? null,
     floor_cleaned: input.floor_cleaned ?? null,
     storage_clean: input.storage_clean ?? null,
+    waste_bins_ok: input.waste_bins_ok ?? null,
     expired_items_action: input.expired_items_action ?? null,
     completed_by: userId,
     updated_at: new Date().toISOString(),

@@ -36,5 +36,6 @@ export type TranslationNamespace =
   | 'suppliers'
   | 'checklist'
   | 'documents'
+  | 'waste-pest'
 
 export type Translations = Record<string, string>

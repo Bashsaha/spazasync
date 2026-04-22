@@ -6,6 +6,8 @@ import type {
   DailyChecklist,
   ChecklistStats,
   BusinessDocument,
+  PestControlLog,
+  WasteManagement,
 } from '@/types'
 import { computeChecklistStats } from '@/lib/checklist/stats'
 
@@ -46,6 +48,13 @@ export interface ComplianceReportData {
   hasFridge: boolean
   hasFreezer: boolean
   businessDocuments: BusinessDocument[]
+  pestControlLogs: PestControlLog[]
+  wasteManagement: WasteManagement | null
+  wasteBinsCompliance: {
+    totalDays: number
+    okDays: number
+    pct: number // 0–100
+  }
   generatedAt: string // ISO string
 }
 
@@ -75,6 +84,8 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
     goodsReceivedResult,
     checklistResult,
     businessDocumentsResult,
+    pestControlLogsResult,
+    wasteManagementResult,
   ] = await Promise.all([
       // Shop info
       supabase
@@ -143,6 +154,26 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
         .select('*')
         .eq('shop_id', shopId)
         .order('document_type'),
+
+      // Pest control logs (last 180 days)
+      (async () => {
+        const sixMonthsAgo = new Date()
+        sixMonthsAgo.setDate(sixMonthsAgo.getDate() - 180)
+        const sixMonthsAgoDate = formatInTimeZone(sixMonthsAgo, SAST_TZ, 'yyyy-MM-dd')
+        return supabase
+          .from('pest_control_logs')
+          .select('*')
+          .eq('shop_id', shopId)
+          .gte('visit_date', sixMonthsAgoDate)
+          .order('visit_date', { ascending: false })
+      })(),
+
+      // Waste management singleton
+      supabase
+        .from('waste_management')
+        .select('*')
+        .eq('shop_id', shopId)
+        .maybeSingle(),
     ])
 
   if (shopResult.error) throw shopResult.error
@@ -229,6 +260,22 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
   // Business documents
   const businessDocuments = (businessDocumentsResult.data ?? []) as BusinessDocument[]
 
+  // Pest control logs
+  const pestControlLogs = (pestControlLogsResult.data ?? []) as PestControlLog[]
+
+  // Waste management
+  const wasteManagement =
+    (wasteManagementResult.data as WasteManagement | null) ?? null
+
+  // Waste bin compliance % over the 30-day checklist window
+  const binsTotal = checklistHistory.filter((c) => c.waste_bins_ok !== null).length
+  const binsOk = checklistHistory.filter((c) => c.waste_bins_ok === true).length
+  const wasteBinsCompliance = {
+    totalDays: binsTotal,
+    okDays: binsOk,
+    pct: binsTotal > 0 ? Math.round((binsOk / binsTotal) * 100) : 0,
+  }
+
   const shopRow = shopResult.data as typeof shopResult.data & {
     has_fridge?: boolean
     has_freezer?: boolean
@@ -251,6 +298,9 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
     hasFridge: shopRow.has_fridge !== false,
     hasFreezer: shopRow.has_freezer !== false,
     businessDocuments,
+    pestControlLogs,
+    wasteManagement,
+    wasteBinsCompliance,
     generatedAt: new Date().toISOString(),
   }
 }

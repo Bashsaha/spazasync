@@ -19,6 +19,8 @@
   "q_surfaces": "Izingqondolo namakhawuntala kuhlanjiwe?",
   "q_floor": "Iphansi lishanyelwe futhi lahlanzwa?",
   "q_storage": "Izindawo zokugcina ukudla zihlelekile futhi zihlanzekile?",
+  "q_waste_bins": "Amabhokisi kadoti akhishiwe futhi indawo ihlanzekile?",
+  "q_waste_bins_hint": "Amabhokisi angaphakathi nangaphandle — amasaka akhishiwe, indawo ishanyelwe.",
 
   "q_expired": "Ikhona into ephelelwe yisikhathi esisusiwe namuhla?",
   "expired_hint_one": "Kukhona umkhiqizo ongu-{count} onokuphelelwa yisikhathi noma ophelela namuhla.",

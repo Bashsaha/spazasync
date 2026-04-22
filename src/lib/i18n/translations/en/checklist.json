@@ -19,6 +19,8 @@
   "q_surfaces": "Surfaces and counters cleaned?",
   "q_floor": "Floor swept and cleaned?",
   "q_storage": "Food storage areas organised and clean?",
+  "q_waste_bins": "Waste bins emptied and area clean?",
+  "q_waste_bins_hint": "Outside and inside bins — bags out, area swept.",
 
   "q_expired": "Any expired items removed today?",
   "expired_hint_one": "{count} product has items that are expired or expire today.",

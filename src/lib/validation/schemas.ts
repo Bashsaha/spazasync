@@ -198,6 +198,7 @@ export const upsertChecklistSchema = z.object({
   surfaces_cleaned: z.boolean().nullable().optional(),
   floor_cleaned: z.boolean().nullable().optional(),
   storage_clean: z.boolean().nullable().optional(),
+  waste_bins_ok: z.boolean().nullable().optional(),
   expired_items_action: z
     .enum(['none_found', 'removed', 'skipped'])
     .nullable()
@@ -274,4 +275,36 @@ export const adminUpdateSubscriptionSchema = z.object({
   subscription_status: z.enum(['trialing', 'active', 'cancelled', 'expired', 'manual_override']),
   subscription_ends_at: z.string().datetime().optional(),
   trial_ends_at: z.string().datetime().optional(),
+})
+
+// ============================================================
+// Waste & pest control (Phase 33)
+// ============================================================
+
+export const WASTE_REMOVAL_TYPES = ['municipal', 'private', 'self_disposal'] as const
+export const WASTE_FREQUENCIES = ['daily', 'weekly', 'twice_weekly', 'monthly', 'other'] as const
+
+export const createPestControlLogSchema = z.object({
+  visit_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use date format YYYY-MM-DD'),
+  provider_name: z.string().min(1, 'Provider name is required').max(100),
+  treatment_type: z.string().min(1, 'Treatment type is required').max(100),
+  notes: z
+    .string()
+    .max(500)
+    .nullable()
+    .optional()
+    .transform((v) => v?.trim() || null),
+})
+
+export const upsertWasteManagementSchema = z.object({
+  removal_type: z.enum(WASTE_REMOVAL_TYPES),
+  frequency: z.enum(WASTE_FREQUENCIES),
+  provider_name: z
+    .string()
+    .max(200)
+    .nullable()
+    .optional()
+    .transform((v) => v?.trim() || null),
 })

@@ -18,6 +18,7 @@ function row(overrides: Partial<DailyChecklist> = {}): DailyChecklist {
     surfaces_cleaned: true,
     floor_cleaned: true,
     storage_clean: true,
+    waste_bins_ok: null,
     expired_items_action: 'none_found',
     completed_by: 'u',
     completed_at: '2026-04-19T06:00:00Z',
