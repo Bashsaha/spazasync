@@ -1,4 +1,4 @@
-# SpazaSync
+# Movestock
 
 A mobile-first PWA for South African spaza shop and small retail owners. Scan barcodes, track sales, manage stock, and receive daily WhatsApp summaries — all from a smartphone.
 

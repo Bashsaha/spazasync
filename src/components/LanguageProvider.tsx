@@ -14,6 +14,8 @@ import { DEFAULT_LOCALE, SUPPORTED_LOCALES, LOCALE_META } from '@/lib/i18n/types
 import { loadNamespacedTranslations, clearTranslationCache } from '@/lib/i18n/loader'
 import { t as tFn, tPlural as tPluralFn } from '@/lib/i18n/interpolate'
 
+// Intentionally not renamed during Phase 34b rebrand — changing this key would
+// silently reset every user's language preference to the default on next load.
 const STORAGE_KEY = 'spazasync_lang'
 
 interface LanguageContextValue {

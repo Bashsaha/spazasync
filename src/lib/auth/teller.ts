@@ -8,6 +8,12 @@
  *
  * Pattern: {name-slug}@shop-{shop-code}.spazasync.app
  * Example:  maria-dlamini@shop-cape99.spazasync.app
+ *
+ * NOTE: The domain `spazasync.app` is intentionally NOT renamed to `movestock.app`
+ * during the Phase 34b rebrand. Every live teller account has a Supabase auth
+ * record keyed to this exact synthetic email. Renaming the domain would invalidate
+ * all existing teller logins across every shop. The domain is internal infrastructure
+ * — it is never shown to tellers or shop owners.
  */
 
 import { createAdminClient } from '@/lib/supabase/admin'

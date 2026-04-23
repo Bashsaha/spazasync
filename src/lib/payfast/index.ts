@@ -73,7 +73,7 @@ export function buildCheckoutParams(input: {
     email_address: userEmail,
     m_payment_id: shopId,
     amount: parseFloat(price).toFixed(2),
-    item_name: 'SpazaSync Monthly Plan',
+    item_name: 'Movestock Monthly Plan',
     subscription_type: '1',
     billing_date: new Date().toISOString().split('T')[0],
     recurring_amount: parseFloat(price).toFixed(2),

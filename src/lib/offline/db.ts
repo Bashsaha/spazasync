@@ -7,6 +7,10 @@
  *   pending_sales — keyed by offline_id (UUID generated locally)
  *   products      — cached product list for offline browsing/barcode lookup
  *   cart          — current cart state for crash recovery
+ *
+ * NOTE: DB_NAME is intentionally kept as 'spazasync' during the Phase 34b rebrand.
+ * Renaming it would create a new empty database on every existing device — all
+ * pending offline sales and cached products would be lost.
  */
 import { openDB } from 'idb'
 import type { PendingSale, Product, CartItem, Teller } from '@/types'

@@ -109,7 +109,7 @@ describe('buildCheckoutParams', () => {
     expect(params.name_last).toBe('Smith')
     expect(params.amount).toBe('349.99')
     expect(params.recurring_amount).toBe('349.99')
-    expect(params.item_name).toBe('SpazaSync Monthly Plan')
+    expect(params.item_name).toBe('Movestock Monthly Plan')
     expect(params.subscription_type).toBe('1')
     expect(params.frequency).toBe('3')
     expect(params.cycles).toBe('0')

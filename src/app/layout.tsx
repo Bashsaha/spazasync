@@ -18,13 +18,13 @@ const notoNastaliqUrdu = Noto_Nastaliq_Urdu({
 })
 
 export const metadata: Metadata = {
-  title: 'SpazaSync',
+  title: 'Movestock',
   description: 'Sales and stock management for your spaza shop',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'SpazaSync',
+    title: 'Movestock',
   },
 }
 

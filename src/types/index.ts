@@ -1,5 +1,5 @@
 // ============================================================
-// SpazaSync — Shared TypeScript Types
+// Movestock — Shared TypeScript Types
 // ============================================================
 
 import type { SupportedLocale } from '@/lib/i18n/types'

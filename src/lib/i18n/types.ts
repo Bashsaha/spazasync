@@ -1,5 +1,5 @@
 // ============================================================
-// SpazaSync — i18n Type Definitions
+// Movestock — i18n Type Definitions
 // ============================================================
 
 export type SupportedLocale = 'en' | 'so' | 'am' | 'zu' | 'ur'

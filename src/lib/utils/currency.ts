@@ -1,5 +1,5 @@
 /**
- * Currency utilities for SpazaSync.
+ * Currency utilities for Movestock.
  * All amounts are stored in ZAR (South African Rand) as NUMERIC(10,2).
  * Display formatting uses the Intl API with `af-ZA` locale and `ZAR` currency.
  */

@@ -19,7 +19,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo / App name */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-blue-600">SpazaSync</h1>
+          <h1 className="text-3xl font-bold text-blue-600">Movestock</h1>
           <p className="text-gray-500 mt-1 text-sm">{t('login_subtitle')}</p>
         </div>
 

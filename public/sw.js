@@ -1,5 +1,5 @@
 /**
- * SpazaSync Service Worker
+ * Movestock Service Worker
  *
  * Strategy:
  *  - install         → precache app shell + offline fallback
@@ -9,7 +9,7 @@
  *  - navigation      → network-first, fall back to cache, then /offline.html
  */
 
-const CACHE = 'spazasync-v3'
+const CACHE = 'movestock-v1'
 
 /** Critical routes precached on install so the app works offline from first install. */
 const PRECACHE_URLS = [

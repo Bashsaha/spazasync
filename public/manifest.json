@@ -1,6 +1,6 @@
 {
-  "name": "SpazaSync",
-  "short_name": "SpazaSync",
+  "name": "Movestock",
+  "short_name": "Movestock",
   "description": "Sales and stock management for your spaza shop",
   "start_url": "/sale",
   "display": "standalone",
