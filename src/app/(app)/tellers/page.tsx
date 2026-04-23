@@ -79,9 +79,10 @@ export default function TellersPage() {
           ))}
         </div>
       ) : tellers.length === 0 ? (
-        <p className="text-center text-gray-400 text-sm mt-12">
-          {t('empty')}
-        </p>
+        <div className="text-center mt-12">
+          <p className="text-gray-400 text-sm">{t('empty')}</p>
+          <p className="text-gray-300 text-xs mt-1">{t('empty_hint')}</p>
+        </div>
       ) : (
         <ul className="space-y-2">
           {tellers.map((teller) => (

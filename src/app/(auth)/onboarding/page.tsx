@@ -19,8 +19,19 @@ export default function OnboardingPage() {
   const [registrationNumber, setRegistrationNumber] = useState('')
   const [location, setLocation] = useState('')
   const [generatedCode, setGeneratedCode] = useState('')
+  const [codeCopied, setCodeCopied] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  async function handleCopyCode() {
+    try {
+      await navigator.clipboard.writeText(generatedCode)
+      setCodeCopied(true)
+      setTimeout(() => setCodeCopied(false), 2000)
+    } catch {
+      /* clipboard blocked — silent fail; the code is still visible to read */
+    }
+  }
 
   function handleLanguageContinue() {
     setLocale(selectedLanguage)
@@ -152,7 +163,18 @@ export default function OnboardingPage() {
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                 <p className="text-sm text-gray-600 mb-1">{t('shop_created_text')}</p>
                 <p className="text-3xl font-bold text-blue-600 tracking-wider">{generatedCode}</p>
-                <p className="text-xs text-gray-500 mt-2">
+                <button
+                  type="button"
+                  onClick={handleCopyCode}
+                  className={`mt-3 text-sm font-semibold px-4 py-2 rounded-xl transition-colors ${
+                    codeCopied
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-white border border-blue-300 text-blue-700 active:bg-blue-100'
+                  }`}
+                >
+                  {codeCopied ? `✓ ${t('shop_created_copied')}` : `📋 ${t('shop_created_copy')}`}
+                </button>
+                <p className="text-xs text-gray-500 mt-3">
                   {t('shop_created_subtext')}
                 </p>
               </div>

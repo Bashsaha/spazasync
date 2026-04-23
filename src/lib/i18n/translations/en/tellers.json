@@ -4,6 +4,7 @@
   "btn_add": "+ Add",
 
   "empty": "No tellers yet. Tap + Add to create one.",
+  "empty_hint": "Tellers can run sales on this phone with their own login.",
   "has_login": "Has own login",
   "no_login": "No login",
   "btn_remove": "Remove",

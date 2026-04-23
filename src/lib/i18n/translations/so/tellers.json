@@ -4,6 +4,7 @@
   "btn_add": "+ Ku dar",
 
   "empty": "Weli shaqaale ma jiraan. Riix + Ku dar si aad u abuurto.",
+  "empty_hint": "Shaqaalaha waxay iibin karaan taleefankan iyaga oo isticmaala soo-galitaankooda.",
   "has_login": "Waxay leedahay gal u gaar ah",
   "no_login": "Gal ma leh",
   "btn_remove": "Ka saar",

@@ -1,8 +1,11 @@
 'use client'
 
+import { useTranslation } from '@/components/LanguageProvider'
+
 interface ConfirmModalProps {
   message: string
   confirmLabel?: string
+  cancelLabel?: string
   onConfirm: () => void
   onCancel: () => void
   isDestructive?: boolean
@@ -11,14 +14,20 @@ interface ConfirmModalProps {
 /**
  * Bottom-sheet style confirmation dialog.
  * Replaces browser confirm() for a consistent mobile-friendly experience.
+ *
+ * Default labels resolve through i18n so the modal stays localized in all
+ * five supported languages even when callers don't pass explicit labels.
  */
 export function ConfirmModal({
   message,
-  confirmLabel = 'Confirm',
+  confirmLabel,
+  cancelLabel,
   onConfirm,
   onCancel,
   isDestructive = false,
 }: ConfirmModalProps) {
+  const { t } = useTranslation('common')
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/40"
@@ -37,13 +46,13 @@ export function ConfirmModal({
                 : 'bg-blue-600 active:bg-blue-700'
             }`}
           >
-            {confirmLabel}
+            {confirmLabel ?? t('confirm')}
           </button>
           <button
             onClick={onCancel}
             className="w-full py-3 rounded-xl font-semibold text-gray-600 bg-gray-100 active:bg-gray-200"
           >
-            Cancel
+            {cancelLabel ?? t('cancel')}
           </button>
         </div>
       </div>

@@ -4,6 +4,7 @@
   "btn_add": "+ Engeza",
 
   "empty": "Abekho abathengisi okwamanje. Thepha + Engeza ukudala oyedwa.",
+  "empty_hint": "Abathengisi bangenza ukudayisa kuleli foni ngokungena kwabo.",
   "has_login": "Unokungena kwakhe",
   "no_login": "Akukho ukungena",
   "btn_remove": "Susa",
