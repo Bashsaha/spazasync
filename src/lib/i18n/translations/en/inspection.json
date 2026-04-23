@@ -1,0 +1,49 @@
+{
+  "title": "Prepare for Inspection",
+  "subtitle": "Your compliance score and what to fix before an inspector arrives.",
+  "back": "← Back",
+
+  "score_label": "Compliance Score",
+  "score_out_of": "out of 100",
+  "band_ready": "You are inspection-ready",
+  "band_improving": "A few things to tidy up",
+  "band_urgent": "Urgent: fix these before an inspector visits",
+
+  "pre_check_header": "Inspection-day checklist",
+  "pc_municipal": "Municipal registration on file",
+  "pc_coa": "Certificate of Acceptability valid",
+  "pc_checklist_week": "Daily checklists completed this week",
+  "pc_suppliers": "All stock items have supplier records",
+  "pc_no_expired": "No expired items in stock",
+  "pc_pest": "Pest control up to date",
+  "pc_temp_today": "Temperature logs recorded today",
+  "fix_now": "Fix now",
+  "ok": "Done",
+
+  "download_pdf": "Download Report PDF",
+  "download_hint": "A full compliance report you can show the inspector.",
+
+  "breakdown_header": "How your score is calculated",
+  "breakdown_contribution": "{score}/100 × {weight}% weight",
+  "cat_checklist": "Daily checklists",
+  "cat_expiry": "No expired stock",
+  "cat_suppliers": "Supplier records",
+  "cat_documents": "Business documents",
+  "cat_waste_pest": "Waste & pest control",
+
+  "tip_checklist": "Log a daily checklist every morning — you are at {pct}%.",
+  "tip_expiry": "{count} expired items still in stock. Remove them from the shelves.",
+  "tip_suppliers": "Add a supplier to {count} more products.",
+  "tip_documents": "Log your business documents and keep them valid.",
+  "tip_waste_pest": "Record pest control visits and confirm your waste arrangement monthly.",
+
+  "monthly_alert_title": "Your monthly compliance score",
+  "monthly_alert_body": "Your score for last month was {score}/100. {tip}",
+  "monthly_alert_tip_good": "Great work — keep it up.",
+  "monthly_alert_tip_improve": "Here is what to work on.",
+  "monthly_cta_view": "View full report",
+  "monthly_cta_dismiss": "Later",
+
+  "loading": "Loading your score…",
+  "error_load": "Could not load your score. Try again."
+}

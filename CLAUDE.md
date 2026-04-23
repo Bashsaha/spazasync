@@ -336,6 +336,7 @@ At the start of every session:
 - [x] Phase 31: Daily Compliance Checklist
 - [x] Phase 32: Business Compliance Profile
 - [x] Phase 33: Waste Management & Pest Control Log
+- [x] Phase 34a: Compliance Score & Inspection Readiness
 
 All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
 
@@ -363,11 +364,14 @@ All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
 ### Phase 33 — Waste Management & Pest Control Log (2026-04-22)
 **What was built:** The last items on the R638 inspector checklist — waste disposal and pest control — delivered across three surfaces. Migration `019_waste_pest.sql` adds (1) a `waste_bins_ok BOOLEAN` column to `daily_checklists` so the existing daily flow covers bin hygiene, (2) a `pest_control_logs` table (multi-row log per shop: visit_date, provider_name, treatment_type free-text, notes) with an index on (shop_id, visit_date DESC), and (3) a `waste_management` singleton table (shop_id PK; removal_type CHECK municipal/private/self_disposal; frequency CHECK daily/weekly/twice_weekly/monthly/other; last_confirmed_date for the monthly "still active" stamp). All RLS via `user_in_shop(shop_id)`. Pure helpers in `src/lib/compliance/waste-pest-status.ts` (`daysSince`, `isPestOverdue` at 90-day threshold, `isWasteConfirmationStale` at 30-day threshold) — no Supabase imports so tests don't need mocks. New hub page `/waste-pest` with two emerald cards showing live status pills (red/amber/green), plus sub-pages `/waste-pest/pest` (list + delete via ConfirmModal), `/waste-pest/pest/new` (form with 5 treatment pills), and `/waste-pest/waste` (singleton upsert form + big "Confirm still active" button that turns amber when stale). Two new async server components `PestControlReminder` + `WasteConfirmReminder` injected into the dashboard via Suspense — return null when fresh, amber banner when overdue/stale/missing. Daily checklist page gains a third Cleaning question ("Waste bins emptied and area clean?"). Settings page gets an emerald "My Waste & Pest Management" card between Documents and Suppliers. Compliance PDF gains **Section 7: Waste & Pest Management** — waste arrangement summary (removal type/frequency/provider/last-confirmed colour-coded), 6-month pest visit table, and daily bin-compliance % over the 30-day window (green ≥90%, amber ≥70%, red <70%). New `waste-pest` i18n namespace (~60 keys) across all 5 locales; `'waste-pest'` added to `TranslationNamespace` + `LanguageProvider` namespaces; 2 new keys (`q_waste_bins`, `q_waste_bins_hint`) added to `checklist.json` in all 5 locales. Decisions: **text-only, no photo uploads** (matches Phase 30b cost stance on Supabase Storage); **monthly confirmation surfaces in both places** (dashboard banner + big button on waste page); **single combined hub** rather than two separate Settings cards (one emerald card, two sub-links). 356 tests pass (+29 from 327: 21 waste-pest logic + 8 i18n parity for the new namespace), TypeScript clean.
 
+### Phase 34a — Compliance Score & Inspection Readiness (2026-04-22)
+**What was built:** The summary layer over Phases 17–33 — a single 0–100 score that tells the owner "how close am I to inspection-ready?" plus a one-tap inspection-day flow. **No new tables, no migrations** — pure composition over existing helpers. New pure helper `src/lib/compliance/score.ts` (`computeComplianceScore`) with weights checklist 25 + expiry 20 + suppliers 20 + documents 20 + waste/pest 15 = 100 and bands green ≥80 / amber ≥50 / red <50. Each category returns a `tipKey` when score < 100. New thin DB wrapper `src/lib/db/compliance-score.ts` (`getComplianceScore`) runs 4 parallel queries (expired batches, products total, products w/ supplier, last pest visit) + reuses `computeChecklistStats` + `computeDocumentStatus` + waste/pest staleness checks. New API `GET /api/compliance-score` for client consumers. New page `/inspection` (server component) with circular score badge, big "Download Report PDF" CTA, 7-row pre-check (Municipal/CoA/Checklist this week/Suppliers/No expired/Pest/Temp today) with ✅/❌ + Fix Now links, and a per-category breakdown. New `ComplianceScoreCard` async server component injected at the top of the dashboard via Suspense (above ChecklistStatus); tappable, links to `/inspection`. New `MonthlyComplianceAlert` client component mounted in `(app)/layout.tsx` next to `DailySummaryAlert` — once-per-SAST-month banner via `localStorage` key `mvs_monthly_alert_last_shown_YYYY_MM`, opens modal with score ring + top 2 weakest categories, CTA to `/inspection`. Compliance PDF gains **Section 1: Compliance Score** at the top (big colour-coded number + band label + per-category contribution table); existing sections renumbered 1→2 through 7→8 (titles unchanged, only numeric prefix). `getComplianceReportData` extended with `scoreInputs` + `score` so PDF and app share one computation path. Dashboard "Inspector Mode" card href flipped from `/settings#compliance` → `/inspection`. New `inspection` i18n namespace (~35 keys) across all 5 locales; 2 new keys (`score_card_title`, `score_card_hint`) added to `dashboard.json` in all 5 locales; `'inspection'` added to `TranslationNamespace` + `LanguageProvider` namespaces. New types `ComplianceScoreResult`, `ComplianceScoreCategory`, `ComplianceScoreInputs`, `ComplianceScoreBand`, `ComplianceScoreCategoryKey`. Decisions: **monthly summary = in-app modal only** (mirrors Phase 26 pattern — no WhatsApp/Twilio); **inspection is a dedicated page** (owner hands phone to inspector); **score is a pure function** so dashboard/inspection page/PDF/monthly modal all show the same number. Dashboard inconsistency-test fix: empty-shop overall is 40 not 20 (suppliers + expiry both contribute 20 when no products and no expired batches). 381 tests pass (+25 from 356: 17 compliance-score + 8 i18n parity for the inspection namespace), TypeScript clean.
+
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 33 (2026-04-22)_
+_Last updated: Phase 34a (2026-04-23)_
 
 ```
 spaza shop/
@@ -451,6 +455,9 @@ spaza shop/
 │   │   │   │   │   ├── page.tsx    # Pest visit list + per-row delete
 │   │   │   │   │   └── new/page.tsx # Add visit form (treatment suggestion pills)
 │   │   │   │   └── waste/page.tsx  # Singleton upsert + "Confirm still active"
+│   │   │   ├── inspection/
+│   │   │   │   ├── page.tsx        # Score badge + pre-check + Download PDF (Phase 34a)
+│   │   │   │   └── loading.tsx
 │   │   │   └── admin/
 │   │   │       ├── layout.tsx      # Admin layout (AdminNav + max-w-4xl)
 │   │   │       ├── loading.tsx
@@ -538,9 +545,11 @@ spaza shop/
 │   │       ├── pest-control/
 │   │       │   ├── route.ts               # GET list, POST create (Phase 33)
 │   │       │   └── [id]/route.ts          # DELETE visit
-│   │       └── waste-management/
-│   │           ├── route.ts               # GET single, PUT upsert (Phase 33)
-│   │           └── confirm/route.ts       # POST — stamp today as last_confirmed_date
+│   │       ├── waste-management/
+│   │       │   ├── route.ts               # GET single, PUT upsert (Phase 33)
+│   │       │   └── confirm/route.ts       # POST — stamp today as last_confirmed_date
+│   │       └── compliance-score/
+│   │           └── route.ts               # GET compliance score JSON (Phase 34a)
 │   ├── components/
 │   │   ├── products/
 │   │   │   ├── CatalogImportSheet.tsx     # Bottom-sheet: search catalog, set prices, bulk import
@@ -565,6 +574,7 @@ spaza shop/
 │   │   │   ├── DocumentComplianceStatus.tsx # Async server — business docs traffic light (Phase 32)
 │   │   │   ├── PestControlReminder.tsx    # Async server — 90-day pest visit amber banner (Phase 33)
 │   │   │   ├── WasteConfirmReminder.tsx   # Async server — 30-day waste confirmation banner (Phase 33)
+│   │   │   ├── ComplianceScoreCard.tsx    # Async server — circular score ring at top of dashboard (Phase 34a)
 │   │   │   ├── WeeklyChartSection.tsx     # Async server — wraps WeeklySalesChart
 │   │   │   ├── TopProducts.tsx            # Async server — top products this week
 │   │   │   └── LatestSales.tsx            # Async server — recent sales + empty state
@@ -578,6 +588,7 @@ spaza shop/
 │   │   ├── OfflineSyncProvider.tsx
 │   │   ├── ServiceWorkerRegistrar.tsx
 │   │   ├── DailySummaryAlert.tsx          # In-app daily summary (9pm SAST banner + modal)
+│   │   ├── MonthlyComplianceAlert.tsx     # Once-per-month compliance score banner + modal (Phase 34a)
 │   │   └── LanguageProvider.tsx           # i18n React Context + useTranslation() hook
 │   ├── hooks/
 │   │   ├── useActiveTeller.ts
@@ -612,7 +623,8 @@ spaza shop/
 │   │   │   ├── business-documents.ts      # Business document CRUD (Phase 32) — re-exports computeDocumentStatus
 │   │   │   ├── pest-control.ts            # Pest log CRUD + getLastVisitDate (Phase 33)
 │   │   │   ├── waste-management.ts        # Waste singleton get/upsert + confirmStillActive (Phase 33)
-│   │   │   └── compliance-report.ts       # Compliance PDF data fetcher
+│   │   │   ├── compliance-report.ts       # Compliance PDF data fetcher (extended with score in Phase 34a)
+│   │   │   └── compliance-score.ts        # getComplianceScore() — parallel queries + score composition (Phase 34a)
 │   │   ├── offline/
 │   │   │   ├── db.ts                      # IndexedDB via idb
 │   │   │   └── sync.ts                    # syncPendingSales
@@ -620,21 +632,22 @@ spaza shop/
 │   │   │   └── stats.ts                   # Pure helpers: fridgeInRange, freezerInRange, computeChecklistStats (Phase 31)
 │   │   ├── compliance/
 │   │   │   ├── document-status.ts         # Pure helper: computeDocumentStatus + warning windows (Phase 32)
-│   │   │   └── waste-pest-status.ts       # Pure helper: daysSince, isPestOverdue, isWasteConfirmationStale (Phase 33)
+│   │   │   ├── waste-pest-status.ts       # Pure helper: daysSince, isPestOverdue, isWasteConfirmationStale (Phase 33)
+│   │   │   └── score.ts                   # Pure helper: computeComplianceScore + weights + bandFor (Phase 34a)
 │   │   ├── i18n/
 │   │   │   ├── types.ts                   # SupportedLocale, LOCALE_META, TranslationNamespace
 │   │   │   ├── interpolate.ts             # t(), tPlural() — string interpolation helpers
 │   │   │   ├── loader.ts                  # loadTranslation(), loadTranslations() — dynamic import + cache
 │   │   │   ├── server.ts                  # getServerLocale(), getServerTranslations() — for server components
 │   │   │   └── translations/
-│   │   │       ├── en/                    # English namespace files (14 JSON files)
+│   │   │       ├── en/                    # English namespace files (15 JSON files)
 │   │   │       │   ├── common.json, auth.json, sale.json, dashboard.json, settings.json
 │   │   │       │   ├── stock.json, products.json, tellers.json, expiry.json, summary.json
-│   │   │       │   └── suppliers.json, checklist.json, documents.json, waste-pest.json
-│   │   │       ├── so/                    # Somali  (14 namespaces — adds waste-pest in Phase 33)
-│   │   │       ├── am/                    # Amharic (14 namespaces — adds waste-pest in Phase 33)
-│   │   │       ├── zu/                    # IsiZulu (14 namespaces — adds waste-pest in Phase 33)
-│   │   │       └── ur/                    # Urdu    (14 namespaces — adds waste-pest in Phase 33)
+│   │   │       │   └── suppliers.json, checklist.json, documents.json, waste-pest.json, inspection.json
+│   │   │       ├── so/                    # Somali  (15 namespaces — adds inspection in Phase 34a)
+│   │   │       ├── am/                    # Amharic (15 namespaces — adds inspection in Phase 34a)
+│   │   │       ├── zu/                    # IsiZulu (15 namespaces — adds inspection in Phase 34a)
+│   │   │       └── ur/                    # Urdu    (15 namespaces — adds inspection in Phase 34a)
 │   │   ├── validation/
 │   │   │   └── schemas.ts                 # All Zod schemas
 │   │   └── utils/
@@ -686,9 +699,10 @@ spaza shop/
         ├── payfast.test.ts               # 12 tests
         ├── admin.test.ts                 # 28 tests
         ├── batches.test.ts              # 14 tests
-        ├── i18n.test.ts                  # 121 tests — t(), tPlural(), key completeness + placeholder preservation
+        ├── i18n.test.ts                  # 137 tests — t(), tPlural(), key completeness + placeholder preservation
         ├── profit.test.ts                # 19 tests — computeProfit() + cost_price/profit_tracking_enabled schema
         ├── checklist.test.ts             # 16 tests — fridgeInRange, freezerInRange, computeChecklistStats (Phase 31)
         ├── business-documents.test.ts    # 15 tests — computeDocumentStatus traffic-light rules (Phase 32)
-        └── waste-pest.test.ts             # 21 tests — daysSince, isPestOverdue, isWasteConfirmationStale (Phase 33)
+        ├── waste-pest.test.ts            # 21 tests — daysSince, isPestOverdue, isWasteConfirmationStale (Phase 33)
+        └── compliance-score.test.ts      # 17 tests — computeComplianceScore weights, bands, categories (Phase 34a)
 ```

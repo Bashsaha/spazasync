@@ -110,7 +110,7 @@ describe('translation key completeness', () => {
   const enNamespaces = listNamespaces(DEFAULT_LOCALE)
   const nonEnLocales = SUPPORTED_LOCALES.filter((l) => l !== DEFAULT_LOCALE)
 
-  it('English has all 14 expected namespaces', () => {
+  it('English has all 15 expected namespaces', () => {
     expect(enNamespaces.sort()).toEqual(
       [
         'auth',
@@ -119,6 +119,7 @@ describe('translation key completeness', () => {
         'dashboard',
         'documents',
         'expiry',
+        'inspection',
         'products',
         'sale',
         'settings',
@@ -184,7 +185,7 @@ describe('loader English fallback', () => {
     // fallback is never needed in normal operation.
     for (const locale of SUPPORTED_LOCALES) {
       const namespaces = listNamespaces(locale)
-      expect(namespaces.length, `${locale} is missing namespaces`).toBe(14)
+      expect(namespaces.length, `${locale} is missing namespaces`).toBe(15)
     }
   })
 })

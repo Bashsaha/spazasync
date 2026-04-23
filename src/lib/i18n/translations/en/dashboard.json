@@ -22,7 +22,10 @@
   "card_settings": "Settings",
   "card_settings_desc": "Change your shop name, stock alerts and more",
   "card_inspector": "Inspector coming?",
-  "card_inspector_desc": "Download your compliance report PDF \u2014 ready in seconds",
+  "card_inspector_desc": "Download your compliance report PDF — ready in seconds",
+
+  "score_card_title": "Compliance Score",
+  "score_card_hint": "Tap to see what to fix before an inspector arrives",
 
   "today": "Today",
   "today_made": "made",
@@ -40,7 +43,7 @@
   "low_stock_low_other": "{count} items almost out",
   "low_stock_badge_out": "out",
   "low_stock_badge_left": "{count} left",
-  "low_stock_more": "+{count} more\u2026",
+  "low_stock_more": "+{count} more…",
 
   "expiring_title": "Products expiring soon",
   "expiring_expired": "{count} expired",

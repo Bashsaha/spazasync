@@ -22,7 +22,10 @@
   "card_settings": "Xulashooyin",
   "card_settings_desc": "Beddel magaca dukaanka, digniinta kaydka iyo wax badan",
   "card_inspector": "Kormeere ma imanayaa?",
-  "card_inspector_desc": "Soo dejiso warbixinta raaliyaynta PDF \u2014 diyaar ilbiriqsiyo gudahood",
+  "card_inspector_desc": "Soo dejiso warbixinta raaliyaynta PDF — diyaar ilbiriqsiyo gudahood",
+
+  "score_card_title": "Dhibcaha U Hoggaansanaanta",
+  "score_card_hint": "Taabo si aad u aragto waxa aad u baahan tahay inaad hagaajiso ka hor kormeeraha",
 
   "today": "Maanta",
   "today_made": "kasbaday",
@@ -40,7 +43,7 @@
   "low_stock_low_other": "{count} walxood ayaa ku dhow dhammaad",
   "low_stock_badge_out": "dhammaaday",
   "low_stock_badge_left": "{count} ayaa hadhay",
-  "low_stock_more": "+{count} oo kale\u2026",
+  "low_stock_more": "+{count} oo kale…",
 
   "expiring_title": "Walxo dhowaan dhacaya",
   "expiring_expired": "{count} ayaa dhacay",

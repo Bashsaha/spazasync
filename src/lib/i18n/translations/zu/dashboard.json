@@ -22,7 +22,10 @@
   "card_settings": "Izilungiselelo",
   "card_settings_desc": "Shintsha igama lesitolo, izexwayiso zesitoki nokunye",
   "card_inspector": "Umhloli uyeza?",
-  "card_inspector_desc": "Landa umbiko wokulandela umthetho we-PDF \u2014 ulungile emasekhondini",
+  "card_inspector_desc": "Landa umbiko wokulandela umthetho we-PDF — ulungile emasekhondini",
+
+  "score_card_title": "Amaphuzu Okulandela Imithetho",
+  "score_card_hint": "Chofoza ukubona okumele ukulungise ngaphambi kokuba umhloli afike",
 
   "today": "Namuhla",
   "today_made": "utholile",
@@ -40,7 +43,7 @@
   "low_stock_low_other": "{count} izinto ziseduze nokuphela",
   "low_stock_badge_out": "iphelile",
   "low_stock_badge_left": "kusele {count}",
-  "low_stock_more": "+{count} okunye\u2026",
+  "low_stock_more": "+{count} okunye…",
 
   "expiring_title": "Imikhiqizo eseduze nokuphela",
   "expiring_expired": "{count} seluphelile",

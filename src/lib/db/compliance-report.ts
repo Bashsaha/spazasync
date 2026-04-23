@@ -8,8 +8,13 @@ import type {
   BusinessDocument,
   PestControlLog,
   WasteManagement,
+  ComplianceScoreInputs,
+  ComplianceScoreResult,
 } from '@/types'
 import { computeChecklistStats } from '@/lib/checklist/stats'
+import { computeDocumentStatus } from '@/lib/compliance/document-status'
+import { isPestOverdue, isWasteConfirmationStale } from '@/lib/compliance/waste-pest-status'
+import { computeComplianceScore } from '@/lib/compliance/score'
 
 export interface ComplianceReportData {
   shop: {
@@ -55,6 +60,8 @@ export interface ComplianceReportData {
     okDays: number
     pct: number // 0–100
   }
+  scoreInputs: ComplianceScoreInputs
+  score: ComplianceScoreResult
   generatedAt: string // ISO string
 }
 
@@ -74,6 +81,8 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
   checklistFrom.setDate(checklistFrom.getDate() - 29)
   const checklistFromDate = formatInTimeZone(checklistFrom, SAST_TZ, 'yyyy-MM-dd')
 
+  const todaySAST = formatInTimeZone(new Date(), SAST_TZ, 'yyyy-MM-dd')
+
   const [
     shopResult,
     productsResult,
@@ -86,6 +95,9 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
     businessDocumentsResult,
     pestControlLogsResult,
     wasteManagementResult,
+    expiredBatchesCountResult,
+    productsTotalCountResult,
+    productsWithSupplierCountResult,
   ] = await Promise.all([
       // Shop info
       supabase
@@ -174,6 +186,27 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
         .select('*')
         .eq('shop_id', shopId)
         .maybeSingle(),
+
+      // Expired-batch count (batches with quantity > 0 AND expiry_date < today)
+      supabase
+        .from('product_batches')
+        .select('id', { count: 'exact', head: true })
+        .eq('shop_id', shopId)
+        .gt('quantity', 0)
+        .lt('expiry_date', todaySAST),
+
+      // Total products
+      supabase
+        .from('products')
+        .select('id', { count: 'exact', head: true })
+        .eq('shop_id', shopId),
+
+      // Products with a supplier_id
+      supabase
+        .from('products')
+        .select('id', { count: 'exact', head: true })
+        .eq('shop_id', shopId)
+        .not('supplier_id', 'is', null),
     ])
 
   if (shopResult.error) throw shopResult.error
@@ -281,6 +314,22 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
     has_freezer?: boolean
   }
 
+  // Compose compliance score from the same helpers used elsewhere
+  const docSummary = computeDocumentStatus(businessDocuments, todaySAST)
+  const lastPestVisit = pestControlLogs[0]?.visit_date ?? null
+  const lastWasteConfirmed = wasteManagement?.last_confirmed_date ?? null
+
+  const scoreInputs: ComplianceScoreInputs = {
+    checklistCompliancePct: checklistStats.compliancePct,
+    expiredBatchCount: expiredBatchesCountResult.count ?? 0,
+    productCount: productsTotalCountResult.count ?? 0,
+    productsWithSupplier: productsWithSupplierCountResult.count ?? 0,
+    documentOverall: docSummary.overall,
+    pestOverdue: isPestOverdue(lastPestVisit, todaySAST),
+    wasteStale: isWasteConfirmationStale(lastWasteConfirmed, todaySAST),
+  }
+  const score = computeComplianceScore(scoreInputs)
+
   return {
     shop: {
       name: shopRow.name,
@@ -301,6 +350,8 @@ export async function getComplianceReportData(shopId: string): Promise<Complianc
     pestControlLogs,
     wasteManagement,
     wasteBinsCompliance,
+    scoreInputs,
+    score,
     generatedAt: new Date().toISOString(),
   }
 }

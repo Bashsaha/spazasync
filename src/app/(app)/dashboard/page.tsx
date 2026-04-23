@@ -9,6 +9,7 @@ import { WeeklyChartSection } from '@/components/dashboard/WeeklyChartSection'
 import { TopProducts } from '@/components/dashboard/TopProducts'
 import { LatestSales } from '@/components/dashboard/LatestSales'
 import { ChecklistStatus } from '@/components/dashboard/ChecklistStatus'
+import { ComplianceScoreCard } from '@/components/dashboard/ComplianceScoreCard'
 import { DocumentComplianceStatus } from '@/components/dashboard/DocumentComplianceStatus'
 import { PestControlReminder } from '@/components/dashboard/PestControlReminder'
 import { WasteConfirmReminder } from '@/components/dashboard/WasteConfirmReminder'
@@ -84,6 +85,13 @@ export default async function DashboardPage() {
           </a>
         )
       })()}
+
+      {/* Compliance score card — streams in, headline summary */}
+      {shop?.id && (
+        <Suspense fallback={<Skeleton className="h-20 rounded-2xl mb-4" />}>
+          <ComplianceScoreCard shopId={shop.id} locale={locale} />
+        </Suspense>
+      )}
 
       {/* Daily checklist status — streams in */}
       {shop?.id && (
@@ -239,7 +247,7 @@ export default async function DashboardPage() {
         </a>
 
         <a
-          href="/settings#compliance"
+          href="/inspection"
           className="flex items-center justify-between bg-indigo-50 rounded-2xl p-5 border border-indigo-100 shadow-sm active:bg-indigo-100"
         >
           <div>

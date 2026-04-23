@@ -22,7 +22,10 @@
   "card_settings": "سیٹنگز",
   "card_settings_desc": "اپنی دکان کا نام، اسٹاک الرٹس اور مزید تبدیل کریں",
   "card_inspector": "معائنہ کار آ رہا ہے؟",
-  "card_inspector_desc": "اپنی کمپلائنس رپورٹ PDF ڈاؤن لوڈ کریں \u2014 سیکنڈوں میں تیار",
+  "card_inspector_desc": "اپنی کمپلائنس رپورٹ PDF ڈاؤن لوڈ کریں — سیکنڈوں میں تیار",
+
+  "score_card_title": "تعمیل اسکور",
+  "score_card_hint": "معائنہ کار کے آنے سے پہلے کیا درست کرنا ہے دیکھنے کے لیے ٹیپ کریں",
 
   "today": "آج",
   "today_made": "کمائے",
@@ -40,7 +43,7 @@
   "low_stock_low_other": "{count} چیزیں تقریباً ختم",
   "low_stock_badge_out": "ختم",
   "low_stock_badge_left": "{count} باقی",
-  "low_stock_more": "+{count} مزید\u2026",
+  "low_stock_more": "+{count} مزید…",
 
   "expiring_title": "میعاد ختم ہونے والی پروڈکٹس",
   "expiring_expired": "{count} کی میعاد ختم",

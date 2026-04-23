@@ -525,3 +525,42 @@ export interface UpsertWasteManagementInput {
   frequency: WasteFrequency
   provider_name?: string | null
 }
+
+// --- Compliance score (Phase 34a) ---
+
+export type ComplianceScoreCategoryKey =
+  | 'checklist'
+  | 'expiry'
+  | 'suppliers'
+  | 'documents'
+  | 'waste_pest'
+
+export type ComplianceScoreBand = 'green' | 'amber' | 'red'
+
+/** Inputs for the pure `computeComplianceScore` helper — all already derivable from existing queries. */
+export interface ComplianceScoreInputs {
+  checklistCompliancePct: number      // 0–100 — reuse computeChecklistStats.compliancePct
+  expiredBatchCount: number           // count of batches with quantity > 0 AND expiry_date < today
+  productCount: number                // total products in shop
+  productsWithSupplier: number        // products where supplier_id IS NOT NULL
+  documentOverall: DocumentOverallStatus  // from computeDocumentStatus
+  pestOverdue: boolean                // isPestOverdue(lastVisit, today)
+  wasteStale: boolean                 // isWasteConfirmationStale(lastConfirmed, today)
+}
+
+export interface ComplianceScoreCategory {
+  key: ComplianceScoreCategoryKey
+  weight: number                      // 0–100 (sums to 100 across all categories)
+  score: number                       // 0–100 within category
+  weighted: number                    // score * weight / 100 — category contribution to overall
+  /** i18n key in the `inspection` namespace; null when score == 100 (no tip needed). */
+  tipKey: string | null
+  /** Optional params for the tip's i18n interpolation. */
+  tipParams?: Record<string, number>
+}
+
+export interface ComplianceScoreResult {
+  overall: number                     // 0–100 rounded
+  band: ComplianceScoreBand
+  categories: ComplianceScoreCategory[]
+}

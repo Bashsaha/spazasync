@@ -5,6 +5,7 @@ import { ToastProvider } from '@/components/Toast'
 import { LanguageProvider } from '@/components/LanguageProvider'
 import { BottomNav } from '@/components/BottomNav'
 import DailySummaryAlert from '@/components/DailySummaryAlert'
+import MonthlyComplianceAlert from '@/components/MonthlyComplianceAlert'
 import type { SupportedLocale } from '@/lib/i18n/types'
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '@/lib/i18n/types'
 
@@ -37,10 +38,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen bg-gray-50">
       <LanguageProvider
         initialLocale={initialLocale}
-        namespaces={['common', 'sale', 'dashboard', 'stock', 'summary', 'products', 'tellers', 'expiry', 'settings', 'suppliers', 'checklist', 'documents', 'waste-pest']}
+        namespaces={['common', 'sale', 'dashboard', 'stock', 'summary', 'products', 'tellers', 'expiry', 'settings', 'suppliers', 'checklist', 'documents', 'waste-pest', 'inspection']}
       >
         <ToastProvider>
           {role !== 'teller' && <DailySummaryAlert />}
+          {role !== 'teller' && <MonthlyComplianceAlert />}
           <OfflineSyncProvider>
             {children}
           </OfflineSyncProvider>

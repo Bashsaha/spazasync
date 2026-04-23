@@ -22,7 +22,10 @@
   "card_settings": "ቅንብሮች",
   "card_settings_desc": "የሱቅ ስምዎን፣ የክምችት ማስጠንቀቂያዎችን እና ሌሎችን ይቀይሩ",
   "card_inspector": "ተቆጣጣሪ ይመጣል?",
-  "card_inspector_desc": "የፈቃድ ሪፖርት PDF ያውርዱ \u2014 በሰከንዶች ዝግጁ",
+  "card_inspector_desc": "የፈቃድ ሪፖርት PDF ያውርዱ — በሰከንዶች ዝግጁ",
+
+  "score_card_title": "የአገዛዝ ነጥብ",
+  "score_card_hint": "ተቆጣጣሪ ከመምጣቱ በፊት ምን ማስተካከል እንዳለብዎ ለማየት ይንኩ",
 
   "today": "ዛሬ",
   "today_made": "አገኙ",
@@ -40,7 +43,7 @@
   "low_stock_low_other": "{count} እቃዎች ሊያልቁ ነው",
   "low_stock_badge_out": "አልቋል",
   "low_stock_badge_left": "{count} ይቀራል",
-  "low_stock_more": "+{count} ተጨማሪ\u2026",
+  "low_stock_more": "+{count} ተጨማሪ…",
 
   "expiring_title": "ጊዜያቸው የሚያልቅ እቃዎች",
   "expiring_expired": "{count} ጊዜያቸው አልፏል",

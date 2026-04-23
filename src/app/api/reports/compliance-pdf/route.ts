@@ -4,7 +4,7 @@ import { getComplianceReportData } from '@/lib/db/compliance-report'
 import { formatSAST } from '@/lib/utils/date'
 import { DOCUMENT_TYPES } from '@/lib/validation/schemas'
 import { computeDocumentStatus, EXPIRY_WARNING_DAYS, OWNER_ID_WARNING_DAYS } from '@/lib/compliance/document-status'
-import type { DocumentType } from '@/types'
+import type { ComplianceScoreCategoryKey, DocumentType } from '@/types'
 // jsPDF + autoTable are dynamically imported inside GET() to reduce cold start
 import type { jsPDF } from 'jspdf'
 
@@ -23,6 +23,26 @@ const STATUS_LABELS: Record<string, string> = {
   not_registered: 'Not Registered',
   not_required: 'Not Required',
   on_file: 'On File',
+}
+
+const SCORE_CATEGORY_LABELS: Record<ComplianceScoreCategoryKey, string> = {
+  checklist: 'Daily checklists',
+  expiry: 'No expired stock',
+  suppliers: 'Supplier records',
+  documents: 'Business documents',
+  waste_pest: 'Waste & pest control',
+}
+
+const BAND_LABELS: Record<'green' | 'amber' | 'red', string> = {
+  green: 'Inspection-ready',
+  amber: 'A few things to tidy up',
+  red: 'Urgent: fix before an inspection',
+}
+
+const BAND_COLORS: Record<'green' | 'amber' | 'red', [number, number, number]> = {
+  green: [22, 163, 74],
+  amber: [217, 119, 6],
+  red: [220, 38, 38],
 }
 
 /**
@@ -98,10 +118,90 @@ export async function GET() {
     doc.line(14, y, pageWidth - 14, y)
     y += 8
 
-    // --- Section 1: Current Inventory ---
+    // --- Section 1: Compliance Score ---
     doc.setFontSize(13)
     doc.setFont('helvetica', 'bold')
-    doc.text('1. Current Inventory', 14, y)
+    doc.setTextColor(0)
+    doc.text('1. Compliance Score', 14, y)
+    y += 6
+
+    const scoreColor = BAND_COLORS[data.score.band]
+    const bandLabel = BAND_LABELS[data.score.band]
+
+    // Big score number, colour-coded by band
+    doc.setFontSize(28)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(scoreColor[0], scoreColor[1], scoreColor[2])
+    doc.text(`${data.score.overall} / 100`, 14, y + 8)
+
+    // Band label next to the score
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    doc.text(bandLabel, 70, y + 8)
+
+    doc.setTextColor(0)
+    y += 14
+
+    // Per-category breakdown
+    const missingSuppliers = Math.max(
+      0,
+      data.scoreInputs.productCount - data.scoreInputs.productsWithSupplier,
+    )
+    autoTable(doc, {
+      startY: y,
+      head: [['Category', 'Score', 'Weight', 'Contribution', 'Tip']],
+      body: data.score.categories.map((c) => {
+        const tip =
+          c.tipKey === 'tip_checklist'
+            ? `Log a daily checklist on more days (currently ${data.scoreInputs.checklistCompliancePct}%)`
+            : c.tipKey === 'tip_expiry'
+              ? `Remove ${data.scoreInputs.expiredBatchCount} expired batch${data.scoreInputs.expiredBatchCount !== 1 ? 'es' : ''} from stock`
+              : c.tipKey === 'tip_suppliers'
+                ? `Add a supplier to ${missingSuppliers} more product${missingSuppliers !== 1 ? 's' : ''}`
+                : c.tipKey === 'tip_documents'
+                  ? 'Update business documents (some are missing, expiring, or expired)'
+                  : c.tipKey === 'tip_waste_pest'
+                    ? 'Confirm waste arrangement and log a recent pest control visit'
+                    : '—'
+        return [
+          SCORE_CATEGORY_LABELS[c.key],
+          `${c.score}/100`,
+          `${c.weight}%`,
+          c.weighted.toFixed(1),
+          tip,
+        ]
+      }),
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+      margin: { left: 14, right: 14 },
+      columnStyles: {
+        4: { cellWidth: 70 },
+      },
+      didParseCell(hookData) {
+        if (hookData.section !== 'body' || hookData.column.index !== 1) return
+        const v = hookData.cell.raw as string
+        const n = parseInt(v.split('/')[0], 10)
+        if (n === 100) {
+          hookData.cell.styles.textColor = [22, 163, 74]
+          hookData.cell.styles.fontStyle = 'bold'
+        } else if (n >= 50) {
+          hookData.cell.styles.textColor = [217, 119, 6]
+        } else {
+          hookData.cell.styles.textColor = [220, 38, 38]
+          hookData.cell.styles.fontStyle = 'bold'
+        }
+      },
+    })
+    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10
+
+    // --- Section 2: Current Inventory ---
+    checkPageBreak(doc, y, 30)
+    y = getCurrentY(doc, y)
+
+    doc.setFontSize(13)
+    doc.setFont('helvetica', 'bold')
+    doc.text('2. Current Inventory', 14, y)
     y += 2
 
     doc.setFontSize(9)
@@ -131,13 +231,13 @@ export async function GET() {
       y += 10
     }
 
-    // --- Section 2: Expiry Register ---
+    // --- Section 3: Expiry Register ---
     checkPageBreak(doc, y, 30)
     y = getCurrentY(doc, y)
 
     doc.setFontSize(13)
     doc.setFont('helvetica', 'bold')
-    doc.text('2. Expiry Register', 14, y)
+    doc.text('3. Expiry Register', 14, y)
     y += 2
 
     const today = formatSAST(now, 'yyyy-MM-dd')
@@ -193,13 +293,13 @@ export async function GET() {
       y += 10
     }
 
-    // --- Section 3: Stock Movement (30 days) ---
+    // --- Section 4: Stock Movement (30 days) ---
     checkPageBreak(doc, y, 30)
     y = getCurrentY(doc, y)
 
     doc.setFontSize(13)
     doc.setFont('helvetica', 'bold')
-    doc.text('3. Stock Movement (Last 30 Days)', 14, y)
+    doc.text('4. Stock Movement (Last 30 Days)', 14, y)
     y += 2
 
     doc.setFontSize(9)
@@ -237,13 +337,13 @@ export async function GET() {
       y += 10
     }
 
-    // --- Section 4: Supplier Traceability ---
+    // --- Section 5: Supplier Traceability ---
     checkPageBreak(doc, y, 30)
     y = getCurrentY(doc, y)
 
     doc.setFontSize(13)
     doc.setFont('helvetica', 'bold')
-    doc.text('4. Supplier Traceability Report', 14, y)
+    doc.text('5. Supplier Traceability Report', 14, y)
     y += 2
 
     doc.setFontSize(9)
@@ -322,13 +422,13 @@ export async function GET() {
       y += 10
     }
 
-    // --- Section 5: Daily Compliance Log ---
+    // --- Section 6: Daily Compliance Log ---
     checkPageBreak(doc, y, 30)
     y = getCurrentY(doc, y)
 
     doc.setFontSize(13)
     doc.setFont('helvetica', 'bold')
-    doc.text('5. Daily Compliance Log (Last 30 Days)', 14, y)
+    doc.text('6. Daily Compliance Log (Last 30 Days)', 14, y)
     y += 2
 
     doc.setFontSize(9)
@@ -424,13 +524,13 @@ export async function GET() {
     })
     y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10
 
-    // --- Section 6: Business Registration Status ---
+    // --- Section 7: Business Registration Status ---
     checkPageBreak(doc, y, 30)
     y = getCurrentY(doc, y)
 
     doc.setFontSize(13)
     doc.setFont('helvetica', 'bold')
-    doc.text('6. Business Registration Status', 14, y)
+    doc.text('7. Business Registration Status', 14, y)
     y += 2
 
     const docSummary = computeDocumentStatus(data.businessDocuments, today)
@@ -494,14 +594,14 @@ export async function GET() {
     })
     y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10
 
-    // --- Section 7: Waste & Pest Management ---
+    // --- Section 8: Waste & Pest Management ---
     checkPageBreak(doc, y, 30)
     y = getCurrentY(doc, y)
 
     doc.setFontSize(13)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(0)
-    doc.text('7. Waste & Pest Management', 14, y)
+    doc.text('8. Waste & Pest Management', 14, y)
     y += 2
 
     // Summary line
