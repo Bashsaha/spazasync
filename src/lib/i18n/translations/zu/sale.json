@@ -59,6 +59,11 @@
   "picker_no_products": "Ayikho imikhiqizo etholiwe.",
   "picker_top_sellers": "Abadayisa kakhulu",
   "picker_all_products": "Yonke imikhiqizo",
+  "picker_in_cart": "Ekhathini yakho",
+  "picker_clear_search": "Susa",
+
+  "btn_scanning": "Iskena…",
+  "cart_add_five": "Engeza okungu-5",
 
   "teller_loading": "Kulayishwa abasebenzi\u2026",
   "teller_none": "Basekho abasebenzi.",

@@ -27,6 +27,7 @@ export default function SalePage() {
 
   const [isScannerOpen, setIsScannerOpen] = useState(false)
   const [isPickerOpen, setIsPickerOpen] = useState(false)
+  const [isScanLoading, setIsScanLoading] = useState(false)
   const [unknownBarcode, setUnknownBarcode] = useState<string | null>(null)
   const [catalogSuggestion, setCatalogSuggestion] = useState<{ barcode: string; name: string } | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -64,6 +65,7 @@ export default function SalePage() {
   // ── Barcode scan handler ───────────────────────────────────────────────────
 
   async function handleScan(barcode: string) {
+    setIsScanLoading(true)
     // The SW caches /api/products responses so this works offline too
     try {
       const res = await fetch(`/api/products?barcode=${encodeURIComponent(barcode)}`)
@@ -92,6 +94,8 @@ export default function SalePage() {
       }
       setCatalogSuggestion(null)
       setUnknownBarcode(barcode)
+    } finally {
+      setIsScanLoading(false)
     }
   }
 
@@ -240,10 +244,23 @@ export default function SalePage() {
         <div className="flex gap-3 mb-6">
           <button
             onClick={() => setIsScannerOpen(true)}
-            className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold py-4 rounded-2xl active:bg-blue-700 text-base"
+            disabled={isScanLoading}
+            className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold py-4 rounded-2xl active:bg-blue-700 text-base disabled:opacity-60"
           >
-            <span className="text-lg">📷</span>
-            {t('btn_scan')}
+            {isScanLoading ? (
+              <>
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>
+                {t('btn_scanning')}
+              </>
+            ) : (
+              <>
+                <span className="text-lg">📷</span>
+                {t('btn_scan')}
+              </>
+            )}
           </button>
           <button
             onClick={() => setIsPickerOpen(true)}
@@ -292,7 +309,11 @@ export default function SalePage() {
 
       {/* manual product picker */}
       {isPickerOpen && (
-        <ProductPicker onSelect={handleProductSelect} onClose={() => setIsPickerOpen(false)} />
+        <ProductPicker
+          onSelect={handleProductSelect}
+          onClose={() => setIsPickerOpen(false)}
+          recentIds={items.map((i) => i.product.id)}
+        />
       )}
 
       {/* bottom-sheet: unknown barcode → quick-create product */}

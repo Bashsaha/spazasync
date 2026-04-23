@@ -14,6 +14,7 @@
   "q_freezer_hint": "Taabo Haa haddii aaskiriimka uu adag yahay. Kudar akhriska haddii aad haysato heerkul-qiyaasiye.",
   "label_temp": "Akhriska dhabta ah (°C)",
   "placeholder_temp": "tusaale: 4",
+  "placeholder_freezer_temp": "tusaale: -20",
   "temp_optional": "Ikhtiyaari",
 
   "q_surfaces": "Dusha & miisaska waa la nadiifiyay?",

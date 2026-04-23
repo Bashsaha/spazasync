@@ -48,6 +48,7 @@ function StockAdjustContent() {
   const searchParams = useSearchParams()
   const { t, tPlural } = useTranslation('stock')
   const { t: tSup } = useTranslation('products')
+  const todayStr = new Date().toISOString().split('T')[0]
 
   const [product, setProduct] = useState<Product | null>(null)
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
@@ -508,7 +509,7 @@ function StockAdjustContent() {
                     onChange={(e) => {
                       setTrackAddExpiry(e.target.checked)
                       if (e.target.checked && addExpiryEntries.length === 0) {
-                        setAddExpiryEntries([{ expiry_date: '', quantity: '' }])
+                        setAddExpiryEntries([{ expiry_date: todayStr, quantity: '' }])
                       }
                     }}
                     className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -561,7 +562,11 @@ function StockAdjustContent() {
               <h2 className="text-lg font-bold text-gray-900">{t('batches_title')}</h2>
               <button
                 type="button"
-                onClick={() => setShowAddBatch(!showAddBatch)}
+                onClick={() => {
+                  const next = !showAddBatch
+                  setShowAddBatch(next)
+                  if (next && !batchDate) setBatchDate(todayStr)
+                }}
                 className="text-sm font-semibold text-blue-600 active:text-blue-700"
               >
                 {showAddBatch ? t('batches_btn_cancel') : t('batches_btn_add')}

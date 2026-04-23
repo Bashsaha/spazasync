@@ -59,6 +59,11 @@
   "picker_no_products": "No products found.",
   "picker_top_sellers": "Top sellers",
   "picker_all_products": "All products",
+  "picker_in_cart": "In your cart",
+  "picker_clear_search": "Clear",
+
+  "btn_scanning": "Scanning…",
+  "cart_add_five": "Add 5 more",
 
   "teller_loading": "Loading tellers\u2026",
   "teller_none": "No tellers yet.",

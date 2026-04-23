@@ -119,5 +119,7 @@
 
   "missing_cost_alert_one": "Ukulandelela inzuzo kuvuliwe, kodwa {count} umkhiqizo awunayo intengo yokuthengwa. Yifake ukuze inzuzo yakho ibe yiqiniso.",
   "missing_cost_alert_other": "Ukulandelela inzuzo kuvuliwe, kodwa {count} imikhiqizo ayinayo intengo yokuthengwa. Yifake ukuze inzuzo yakho ibe yiqiniso.",
-  "missing_cost_btn": "Faka izintengo zokuthengwa \u2192"
+  "missing_cost_btn": "Faka izintengo zokuthengwa \u2192",
+  "stock_take_progress": "{counted} kwe-{total} kubalwe",
+  "stock_take_mark_all_correct": "Konke kulungile — maka njengokubalwe"
 }

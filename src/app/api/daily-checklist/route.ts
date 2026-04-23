@@ -4,6 +4,7 @@ import { parseBody } from '@/lib/utils/api'
 import { upsertChecklistSchema } from '@/lib/validation/schemas'
 import {
   getTodayChecklist,
+  getPreviousTemps,
   upsertChecklist,
   todaySAST,
 } from '@/lib/db/daily-checklist'
@@ -21,7 +22,7 @@ export async function GET() {
 
   const date = todaySAST()
 
-  const [shopResult, checklist, expiring] = await Promise.all([
+  const [shopResult, checklist, expiring, previousTemps] = await Promise.all([
     auth.supabase
       .from('shops')
       .select('has_fridge, has_freezer')
@@ -29,6 +30,7 @@ export async function GET() {
       .single(),
     getTodayChecklist(auth.shopId, date),
     listExpiringProducts(auth.shopId),
+    getPreviousTemps(auth.shopId, date),
   ])
 
   const hasFridge = shopResult.data?.has_fridge ?? true
@@ -46,6 +48,7 @@ export async function GET() {
     hasFridge,
     hasFreezer,
     expiringToday,
+    previousTemps,
   })
 }
 

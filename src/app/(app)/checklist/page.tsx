@@ -20,6 +20,7 @@ interface ChecklistResponse {
   hasFridge: boolean
   hasFreezer: boolean
   expiringToday: ExpiringTodayItem[]
+  previousTemps?: { fridge_temp: number | null; freezer_temp: number | null }
 }
 
 type YesNo = true | false | null
@@ -104,6 +105,14 @@ export default function ChecklistPage() {
           setStorage(c.storage_clean)
           setWasteBinsOk(c.waste_bins_ok ?? null)
           setExpiredAction(c.expired_items_action)
+        } else if (json.previousTemps) {
+          // Pre-fill yesterday's temps so owners with stable fridges don't retype
+          if (json.previousTemps.fridge_temp !== null) {
+            setFridgeTemp(String(json.previousTemps.fridge_temp))
+          }
+          if (json.previousTemps.freezer_temp !== null) {
+            setFreezerTemp(String(json.previousTemps.freezer_temp))
+          }
         }
       })
       .catch(() => setErrorKey('msg_load_failed'))
@@ -234,7 +243,7 @@ export default function ChecklistPage() {
                 inputMode="decimal"
                 value={freezerTemp}
                 onChange={(e) => setFreezerTemp(e.target.value)}
-                placeholder="-20"
+                placeholder={t('placeholder_freezer_temp')}
                 className="w-28 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>

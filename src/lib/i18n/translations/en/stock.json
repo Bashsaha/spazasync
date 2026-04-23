@@ -116,6 +116,8 @@
   "stock_take_error_network": "Network error. Check your connection and try again.",
   "stock_take_error_save": "Failed to save. Try again.",
   "stock_take_empty": "No products to count. Add some products first.",
+  "stock_take_progress": "{counted} of {total} counted",
+  "stock_take_mark_all_correct": "All correct — mark as counted",
 
   "missing_cost_alert_one": "Profit tracking is on, but {count} product doesn't have a cost price yet. Add one so your profit is accurate.",
   "missing_cost_alert_other": "Profit tracking is on, but {count} products don't have a cost price yet. Add them so your profit is accurate.",

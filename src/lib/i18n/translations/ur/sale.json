@@ -59,6 +59,11 @@
   "picker_no_products": "کوئی پروڈکٹ نہیں ملی۔",
   "picker_top_sellers": "سب سے زیادہ فروخت ہونے والی",
   "picker_all_products": "تمام پروڈکٹس",
+  "picker_in_cart": "آپ کی ٹوکری میں",
+  "picker_clear_search": "صاف کریں",
+
+  "btn_scanning": "اسکین ہو رہا ہے…",
+  "cart_add_five": "5 مزید شامل کریں",
 
   "teller_loading": "ٹیلرز لوڈ ہو رہے ہیں\u2026",
   "teller_none": "ابھی کوئی ٹیلر نہیں۔",

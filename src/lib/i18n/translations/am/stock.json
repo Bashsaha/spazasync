@@ -119,5 +119,7 @@
 
   "missing_cost_alert_one": "የትርፍ ክትትል በርቷል፣ ግን {count} እቃ ገና የግዢ ዋጋ የለውም። ትርፍዎ ትክክል እንዲሆን ያክሉ።",
   "missing_cost_alert_other": "የትርፍ ክትትል በርቷል፣ ግን {count} እቃዎች ገና የግዢ ዋጋ የላቸውም። ትርፍዎ ትክክል እንዲሆን ያክሉ።",
-  "missing_cost_btn": "የግዢ ዋጋ ያክሉ \u2192"
+  "missing_cost_btn": "የግዢ ዋጋ ያክሉ \u2192",
+  "stock_take_progress": "{counted} ከ{total} ቆጠሩ",
+  "stock_take_mark_all_correct": "ሁሉም ትክክል — እንደቆጠሩ ምልክት ያድርጉ"
 }

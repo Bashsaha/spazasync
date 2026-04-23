@@ -59,6 +59,11 @@
   "picker_no_products": "ምንም እቃ አልተገኘም።",
   "picker_top_sellers": "ከፍተኛ ሽያጮች",
   "picker_all_products": "ሁሉም እቃዎች",
+  "picker_in_cart": "ቅርጫትዎ ውስጥ",
+  "picker_clear_search": "አጽዳ",
+
+  "btn_scanning": "በቃኝ ላይ…",
+  "cart_add_five": "5 ጨምር",
 
   "teller_loading": "አገልጋዮችን በመጫን ላይ\u2026",
   "teller_none": "ገና አገልጋይ የለም።",

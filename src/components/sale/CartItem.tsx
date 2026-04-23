@@ -49,7 +49,7 @@ export function CartItem({ item, onRemove, onUpdateQty, threshold = 5 }: CartIte
       </div>
 
       {/* qty controls */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         <button
           onClick={decrement}
           aria-label={t('cart_decrease_qty')}
@@ -64,6 +64,13 @@ export function CartItem({ item, onRemove, onUpdateQty, threshold = 5 }: CartIte
           className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 font-bold text-lg leading-none active:bg-gray-200"
         >
           +
+        </button>
+        <button
+          onClick={() => onUpdateQty(product.id, quantity + 5)}
+          aria-label={t('cart_add_five')}
+          className="h-8 px-2 rounded-full bg-blue-50 text-blue-700 font-bold text-xs leading-none active:bg-blue-100"
+        >
+          +5
         </button>
       </div>
 

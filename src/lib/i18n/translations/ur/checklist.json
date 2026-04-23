@@ -14,6 +14,7 @@
   "q_freezer_hint": "اگر آئس کریم سخت ہے تو ہاں دبائیں۔ اگر تھرمومیٹر ہے تو ریڈنگ لکھیں۔",
   "label_temp": "اصل ریڈنگ (°C)",
   "placeholder_temp": "مثلاً: 4",
+  "placeholder_freezer_temp": "مثلاً -20",
   "temp_optional": "اختیاری",
 
   "q_surfaces": "سطحیں اور کاؤنٹرز صاف ہیں؟",

@@ -119,5 +119,7 @@
 
   "missing_cost_alert_one": "Raadraaca faa'iidada wuu shidanyahay, laakiin {count} walax wali ma leh qiimaha iibsashada. Ku dar si faa'iidadaadu saxan tahay.",
   "missing_cost_alert_other": "Raadraaca faa'iidada wuu shidanyahay, laakiin {count} walxood wali ma leh qiimaha iibsashada. Ku dar si faa'iidadaadu saxan tahay.",
-  "missing_cost_btn": "Ku dar qiimaha iibsashada \u2192"
+  "missing_cost_btn": "Ku dar qiimaha iibsashada \u2192",
+  "stock_take_progress": "{counted} ka {total} ayaa la tiriyay",
+  "stock_take_mark_all_correct": "Dhammaan sax — u calaamadee sida la tiriyay"
 }

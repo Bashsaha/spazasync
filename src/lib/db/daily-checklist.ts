@@ -27,6 +27,30 @@ export async function getTodayChecklist(shopId: string, date: string): Promise<D
   return (data as DailyChecklist | null) ?? null
 }
 
+/**
+ * Most recent fridge/freezer reading from past checklists (excluding `excludeDate`).
+ * Used to pre-fill today's form so owners with stable temperatures don't retype.
+ */
+export async function getPreviousTemps(
+  shopId: string,
+  excludeDate: string,
+): Promise<{ fridge_temp: number | null; freezer_temp: number | null }> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('daily_checklists')
+    .select('fridge_temp, freezer_temp')
+    .eq('shop_id', shopId)
+    .neq('date', excludeDate)
+    .or('fridge_temp.not.is.null,freezer_temp.not.is.null')
+    .order('date', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  return {
+    fridge_temp: (data?.fridge_temp as number | null) ?? null,
+    freezer_temp: (data?.freezer_temp as number | null) ?? null,
+  }
+}
+
 /** Upsert today's checklist. One row per shop per day. */
 export async function upsertChecklist(
   shopId: string,

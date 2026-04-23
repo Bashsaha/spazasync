@@ -41,6 +41,16 @@ export default function StockTakePage() {
     setCounts((prev) => ({ ...prev, [productId]: value }))
   }
 
+  function markAllCorrect() {
+    const next: Record<string, string> = { ...counts }
+    for (const p of products) {
+      if (next[p.id] === undefined || next[p.id] === '') {
+        next[p.id] = String(p.stock_qty)
+      }
+    }
+    setCounts(next)
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setErrorKey(null)
@@ -159,6 +169,20 @@ export default function StockTakePage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} id="stock-take-form">
+            {/* progress + mark all correct */}
+            <div className="flex items-center justify-between mb-3 px-1">
+              <p className="text-sm font-medium text-gray-600">
+                {t('stock_take_progress', { counted: countedItems, total: products.length })}
+              </p>
+              <button
+                type="button"
+                onClick={markAllCorrect}
+                className="text-xs font-semibold text-blue-600 active:text-blue-700"
+              >
+                {t('stock_take_mark_all_correct')}
+              </button>
+            </div>
+
             {/* table header */}
             <div className="flex items-center px-4 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">
               <span className="flex-1">{t('stock_take_col_product')}</span>

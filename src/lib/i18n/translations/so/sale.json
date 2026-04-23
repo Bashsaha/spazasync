@@ -59,6 +59,11 @@
   "picker_no_products": "Walax lama helin.",
   "picker_top_sellers": "Walxaha sida ugu wanaagsan u iibsada",
   "picker_all_products": "Dhammaan walxaha",
+  "picker_in_cart": "Koobkaaga ku jira",
+  "picker_clear_search": "Tirtir",
+
+  "btn_scanning": "Waa la sawiraa…",
+  "cart_add_five": "Ku dar 5 oo kale",
 
   "teller_loading": "Waa la soo rarayaa shaqaalaha\u2026",
   "teller_none": "Weli shaqaale ma jiro.",

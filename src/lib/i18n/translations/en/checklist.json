@@ -14,6 +14,7 @@
   "q_freezer_hint": "Tap Yes if ice cream is rock-hard. Add the reading if you have a thermometer.",
   "label_temp": "Actual reading (°C)",
   "placeholder_temp": "e.g. 4",
+  "placeholder_freezer_temp": "e.g. -20",
   "temp_optional": "Optional",
 
   "q_surfaces": "Surfaces and counters cleaned?",
