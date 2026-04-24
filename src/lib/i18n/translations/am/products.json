@@ -35,6 +35,7 @@
   "placeholder_supplier_none": "— አቅራቢ የለም —",
   "no_suppliers_hint": "ገና አቅራቢዎች አልተመዘገቡም።",
   "link_manage_suppliers": "አቅራቢዎችን አስተዳድር",
+  "btn_add_supplier": "+ አዲስ አቅራቢ",
 
   "btn_save_product": "ምርት ጨምር",
   "btn_save_changes": "ለውጦችን አስቀምጥ",

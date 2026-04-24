@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ExpiryEntryList } from '@/components/ExpiryEntryList'
 import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
+import { NewSupplierModal } from '@/components/NewSupplierModal'
 import { useTranslation } from '@/components/LanguageProvider'
 import type { Supplier } from '@/types'
 
@@ -37,6 +38,7 @@ function NewProductContent() {
   const [errorRaw, setErrorRaw] = useState('')
   const [loading, setLoading] = useState(false)
   const [scanning, setScanning] = useState(false)
+  const [showNewSupplier, setShowNewSupplier] = useState(false)
 
   useEffect(() => {
     fetch('/api/settings')
@@ -230,12 +232,21 @@ function NewProductContent() {
             {suppliers.length === 0 && (
               <span className="text-xs text-gray-400">{t('no_suppliers_hint')}</span>
             )}
-            <Link
-              href="/suppliers"
-              className="text-xs text-blue-600 active:text-blue-700 ml-auto"
-            >
-              {t('link_manage_suppliers')} &rsaquo;
-            </Link>
+            <div className="flex items-center gap-3 ml-auto">
+              <button
+                type="button"
+                onClick={() => setShowNewSupplier(true)}
+                className="text-xs font-semibold text-blue-600 active:text-blue-700"
+              >
+                {t('btn_add_supplier')}
+              </button>
+              <Link
+                href="/suppliers"
+                className="text-xs text-blue-600 active:text-blue-700"
+              >
+                {t('link_manage_suppliers')} &rsaquo;
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -293,6 +304,17 @@ function NewProductContent() {
         <BarcodeScanner
           onScan={handleBarcodeScan}
           onClose={() => setScanning(false)}
+        />
+      )}
+
+      {showNewSupplier && (
+        <NewSupplierModal
+          onCreated={(s) => {
+            setSuppliers((prev) => [...prev, s].sort((a, b) => a.name.localeCompare(b.name)))
+            setForm((f) => ({ ...f, supplier_id: s.id }))
+            setShowNewSupplier(false)
+          }}
+          onDismiss={() => setShowNewSupplier(false)}
         />
       )}
     </main>

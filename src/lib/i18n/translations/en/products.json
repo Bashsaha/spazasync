@@ -35,6 +35,7 @@
   "placeholder_supplier_none": "\u2014 No supplier \u2014",
   "no_suppliers_hint": "No suppliers saved yet.",
   "link_manage_suppliers": "Manage suppliers",
+  "btn_add_supplier": "+ New supplier",
 
   "btn_save_product": "Add Product",
   "btn_save_changes": "Save Changes",

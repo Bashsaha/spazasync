@@ -7,6 +7,7 @@ import type { Product, ProductBatch, Supplier } from '@/types'
 import { formatZAR } from '@/lib/utils/currency'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { ExpiryEntryList } from '@/components/ExpiryEntryList'
+import { NewSupplierModal } from '@/components/NewSupplierModal'
 import { useTranslation } from '@/components/LanguageProvider'
 
 interface ExpiryEntry {
@@ -77,6 +78,7 @@ function StockAdjustContent() {
   const [batchErrorKey, setBatchErrorKey] = useState<string | null>(null)
   const [batchErrorRaw, setBatchErrorRaw] = useState('')
   const [discardingId, setDiscardingId] = useState<string | null>(null)
+  const [showNewSupplier, setShowNewSupplier] = useState(false)
 
   useEffect(() => {
     fetch(`/api/products/${params.id}`)
@@ -491,7 +493,14 @@ function StockAdjustContent() {
                     </option>
                   ))}
                 </select>
-                <div className="flex items-center justify-end mt-1">
+                <div className="flex items-center justify-end gap-3 mt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowNewSupplier(true)}
+                    className="text-xs font-semibold text-blue-600 active:text-blue-700"
+                  >
+                    {tSup('btn_add_supplier')}
+                  </button>
                   <Link href="/suppliers" className="text-xs text-blue-600 active:text-blue-700">
                     {tSup('link_manage_suppliers')} &rsaquo;
                   </Link>
@@ -678,6 +687,17 @@ function StockAdjustContent() {
               isDestructive
               onConfirm={() => handleDiscardBatch(discardingId)}
               onCancel={() => setDiscardingId(null)}
+            />
+          )}
+
+          {showNewSupplier && (
+            <NewSupplierModal
+              onCreated={(s) => {
+                setSuppliers((prev) => [...prev, s].sort((a, b) => a.name.localeCompare(b.name)))
+                setSelectedSupplierId(s.id)
+                setShowNewSupplier(false)
+              }}
+              onDismiss={() => setShowNewSupplier(false)}
             />
           )}
         </>
