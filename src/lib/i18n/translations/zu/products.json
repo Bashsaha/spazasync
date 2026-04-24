@@ -36,6 +36,12 @@
   "no_suppliers_hint": "Abekho abathumeli abagciniwe okwamanje.",
   "link_manage_suppliers": "Phatha abathumeli",
   "btn_add_supplier": "+ Umthumeli omusha",
+  "missing_cost_banner": "{count} imikhiqizo isadinga intengo yokuthengwa.",
+  "missing_cost_filter_btn": "Khombisa kuphela imikhiqizo engenayo intengo yokuthengwa →",
+  "missing_cost_filter_active": "Ikhombisa {count} imikhiqizo esadinga intengo yokuthengwa.",
+  "missing_cost_show_all": "← Khombisa yonke imikhiqizo",
+  "missing_cost_all_done": "Yonke imikhiqizo manje inentengo yokuthengwa.",
+  "missing_cost_pill": "Ayikho intengo",
 
   "btn_save_product": "Engeza Umkhiqizo",
   "btn_save_changes": "Londoloza Izinguquko",

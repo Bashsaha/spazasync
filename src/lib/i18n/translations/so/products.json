@@ -36,6 +36,12 @@
   "no_suppliers_hint": "Weli iibiyayaal lama keydin.",
   "link_manage_suppliers": "Maareyn iibiyayaasha",
   "btn_add_supplier": "+ Iibiye cusub",
+  "missing_cost_banner": "{count} walxood wali waxay u baahan yihiin qiimaha iibsashada.",
+  "missing_cost_filter_btn": "Tus kaliya alaabta aan lahayn qiimo iibsasho →",
+  "missing_cost_filter_active": "Waxaa la tusinayaa {count} alaab oo wali u baahan qiimaha iibsashada.",
+  "missing_cost_show_all": "← Tus dhammaan alaabta",
+  "missing_cost_all_done": "Dhammaan alaabtu hadda way leeyihiin qiimaha iibsashada.",
+  "missing_cost_pill": "Qiimo la’aan",
 
   "btn_save_product": "Ku dar Alaab",
   "btn_save_changes": "Keydi Bedelada",

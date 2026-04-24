@@ -2,12 +2,19 @@ import { createClient } from '@/lib/supabase/server'
 import type { Product } from '@/types'
 
 /** List all products for the current user's shop, optionally filtered by name or barcode. */
-export async function listProducts(search?: string): Promise<Product[]> {
+export async function listProducts(
+  search?: string,
+  opts?: { missingCost?: boolean },
+): Promise<Product[]> {
   const supabase = await createClient()
-  const base = supabase.from('products').select('*').order('name')
-  const { data } = search?.trim()
-    ? await base.or(`name.ilike.%${search.trim()}%,barcode.ilike.%${search.trim()}%`)
-    : await base
+  let query = supabase.from('products').select('*').order('name')
+  if (search?.trim()) {
+    query = query.or(`name.ilike.%${search.trim()}%,barcode.ilike.%${search.trim()}%`)
+  }
+  if (opts?.missingCost) {
+    query = query.is('cost_price', null)
+  }
+  const { data } = await query
   return (data as Product[]) ?? []
 }
 

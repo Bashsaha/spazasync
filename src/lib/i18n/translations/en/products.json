@@ -36,6 +36,12 @@
   "no_suppliers_hint": "No suppliers saved yet.",
   "link_manage_suppliers": "Manage suppliers",
   "btn_add_supplier": "+ New supplier",
+  "missing_cost_banner": "{count} products still need a cost price.",
+  "missing_cost_filter_btn": "Show only products missing a cost price →",
+  "missing_cost_filter_active": "Showing {count} products that still need a cost price.",
+  "missing_cost_show_all": "← Show all products",
+  "missing_cost_all_done": "All products have cost prices now.",
+  "missing_cost_pill": "No cost",
 
   "btn_save_product": "Add Product",
   "btn_save_changes": "Save Changes",

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/components/LanguageProvider'
 import { useToast } from '@/components/Toast'
+import { emitDataChanged } from '@/lib/events'
 
 function todayYmd(): string {
   const d = new Date()
@@ -51,6 +52,7 @@ export default function NewPestControlVisitPage() {
         setErrorKey('msg_save_failed')
         return
       }
+      emitDataChanged()
       addToast(t('msg_visit_saved'), 'success')
       router.push('/waste-pest/pest')
     } catch {

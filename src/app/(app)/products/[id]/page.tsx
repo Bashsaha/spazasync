@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import type { Product, Supplier } from '@/types'
 import { NewSupplierModal } from '@/components/NewSupplierModal'
 import { useTranslation } from '@/components/LanguageProvider'
+import { emitDataChanged } from '@/lib/events'
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -71,6 +72,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         else setErrorKey('error_generic')
         return
       }
+      emitDataChanged()
+      router.refresh()
       router.push('/products')
     } catch {
       setErrorKey('error_network')
@@ -88,6 +91,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         setErrorKey('error_delete')
         return
       }
+      emitDataChanged()
+      router.refresh()
       router.push('/products')
     } catch {
       setErrorKey('error_network')

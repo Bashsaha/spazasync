@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { Product } from '@/types'
 import { useTranslation } from '@/components/LanguageProvider'
+import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
+import { emitDataChanged } from '@/lib/events'
 
 export default function StockTakePage() {
   const router = useRouter()
@@ -19,10 +21,10 @@ export default function StockTakePage() {
   const [profitTrackingEnabled, setProfitTrackingEnabled] = useState(false)
   const [productsMissingCost, setProductsMissingCost] = useState(0)
 
-  useEffect(() => {
+  const loadStockTake = useCallback(() => {
     Promise.all([
-      fetch('/api/products').then((r) => r.json()),
-      fetch('/api/settings').then((r) => r.json()).catch(() => null),
+      fetch('/api/products', { cache: 'no-store' }).then((r) => r.json()),
+      fetch('/api/settings', { cache: 'no-store' }).then((r) => r.json()).catch(() => null),
     ])
       .then(([productsData, settingsData]) => {
         setProducts((productsData.products ?? productsData) as Product[])
@@ -30,10 +32,17 @@ export default function StockTakePage() {
           setProfitTrackingEnabled(Boolean(settingsData.profit_tracking_enabled))
           setProductsMissingCost(settingsData.products_missing_cost ?? 0)
         }
+        setErrorKey(null)
       })
       .catch(() => setErrorKey('stock_take_error_load'))
       .finally(() => setIsLoading(false))
   }, [])
+
+  useEffect(() => {
+    loadStockTake()
+  }, [loadStockTake])
+
+  useRefetchOnVisible(loadStockTake)
 
   const countedItems = Object.values(counts).filter((v) => v !== '').length
 
@@ -83,6 +92,7 @@ export default function StockTakePage() {
         return
       }
       setSavedCount(entries.length)
+      emitDataChanged()
     } catch {
       setErrorKey('stock_take_error_network')
     } finally {
@@ -140,7 +150,7 @@ export default function StockTakePage() {
         {/* Missing cost price alert */}
         {!isLoading && profitTrackingEnabled && productsMissingCost > 0 && (
           <Link
-            href="/products"
+            href="/products?missing_cost=1"
             className="block bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4"
           >
             <p className="text-sm font-semibold text-amber-800">

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/components/LanguageProvider'
+import { emitDataChanged } from '@/lib/events'
 
 export default function NewTellerPage() {
   const router = useRouter()
@@ -29,6 +30,7 @@ export default function NewTellerPage() {
         else setErrorKey('error_create')
         return
       }
+      emitDataChanged()
       router.push('/tellers')
     } catch {
       setErrorKey('error_network')

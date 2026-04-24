@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { ProductWithStock } from '@/lib/db/stock'
 import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
 import { useToast } from '@/components/Toast'
 import { useTranslation } from '@/components/LanguageProvider'
+import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
 
 type Tab = 'all' | 'low' | 'expiring'
 
@@ -41,8 +42,8 @@ export default function StockPage() {
   const [expiryCount, setExpiryCount] = useState(0)
   const [expiryLoaded, setExpiryLoaded] = useState(false)
 
-  useEffect(() => {
-    fetch('/api/stock')
+  const loadStock = useCallback(() => {
+    fetch('/api/stock', { cache: 'no-store' })
       .then((r) => r.json())
       .then((data: { products: ProductWithStock[]; threshold: number; expiring_count?: number; profit_tracking_enabled?: boolean; products_missing_cost?: number }) => {
         setProducts(data.products ?? [])
@@ -50,6 +51,7 @@ export default function StockPage() {
         setExpiryCount(data.expiring_count ?? 0)
         setProfitTrackingEnabled(Boolean(data.profit_tracking_enabled))
         setProductsMissingCost(data.products_missing_cost ?? 0)
+        setExpiryLoaded(false)
         setLoading(false)
       })
       .catch(() => {
@@ -58,10 +60,16 @@ export default function StockPage() {
       })
   }, [])
 
+  useEffect(() => {
+    loadStock()
+  }, [loadStock])
+
+  useRefetchOnVisible(loadStock)
+
   // Load expiring products when switching to the Expiring tab
   useEffect(() => {
     if (tab !== 'expiring' || expiryLoaded) return
-    fetch('/api/stock?expiring=1')
+    fetch('/api/stock?expiring=1', { cache: 'no-store' })
       .then((r) => r.json())
       .then((data: { expiring_products: ExpiringProduct[] }) => {
         setExpiringProducts(data.expiring_products ?? [])
@@ -119,7 +127,7 @@ export default function StockPage() {
       {/* Missing cost price alert */}
       {!loading && profitTrackingEnabled && productsMissingCost > 0 && (
         <Link
-          href="/products"
+          href="/products?missing_cost=1"
           className="block bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4"
         >
           <p className="text-sm font-semibold text-amber-800">

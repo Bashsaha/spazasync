@@ -8,6 +8,7 @@ import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
 import { NewSupplierModal } from '@/components/NewSupplierModal'
 import { useTranslation } from '@/components/LanguageProvider'
 import type { Supplier } from '@/types'
+import { emitDataChanged } from '@/lib/events'
 
 interface ExpiryEntry {
   expiry_date: string
@@ -124,6 +125,8 @@ function NewProductContent() {
         }
       }
 
+      emitDataChanged()
+      router.refresh()
       router.push('/products')
     } catch {
       setErrorKey('error_network')

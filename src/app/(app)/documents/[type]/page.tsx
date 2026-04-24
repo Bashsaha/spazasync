@@ -6,6 +6,7 @@ import { useTranslation } from '@/components/LanguageProvider'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import type { BusinessDocument, DocumentStatus, DocumentType } from '@/types'
 import { DOCUMENT_TYPES } from '@/lib/validation/schemas'
+import { emitDataChanged } from '@/lib/events'
 
 const STATUS_OPTIONS: Record<DocumentType, DocumentStatus[]> = {
   municipal_registration: ['valid', 'pending', 'not_registered'],
@@ -161,6 +162,7 @@ export default function EditDocumentPage() {
       }
       setDoc(data as BusinessDocument)
       setMessage('msg_saved')
+      emitDataChanged()
     } catch {
       setErrorKey('error_generic')
     } finally {
@@ -172,6 +174,7 @@ export default function EditDocumentPage() {
     try {
       const res = await fetch(`/api/business-documents/${docType}`, { method: 'DELETE' })
       if (res.ok || res.status === 204) {
+        emitDataChanged()
         router.push('/documents')
       } else {
         setErrorKey('error_clear')

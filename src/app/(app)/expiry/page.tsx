@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { ExpiryProductDetail, BatchDetail } from '@/types'
 import { useTranslation } from '@/components/LanguageProvider'
+import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
 
 type UrgencyGroup = 'expired' | 'expiring_soon' | 'ok'
 
@@ -193,8 +194,8 @@ export default function ExpiryPage() {
   const [loading, setLoading] = useState(true)
   const [errorKey, setErrorKey] = useState('')
 
-  useEffect(() => {
-    fetch('/api/stock/expiry')
+  const loadExpiry = useCallback(() => {
+    fetch('/api/stock/expiry', { cache: 'no-store' })
       .then((r) => r.json())
       .then((data: { products: ExpiryProductDetail[] }) => {
         setProducts(data.products ?? [])
@@ -205,6 +206,12 @@ export default function ExpiryPage() {
         setLoading(false)
       })
   }, [])
+
+  useEffect(() => {
+    loadExpiry()
+  }, [loadExpiry])
+
+  useRefetchOnVisible(loadExpiry)
 
   const expired = products.filter((p) => p.urgency === 'expired')
   const expiringSoon = products.filter((p) => p.urgency === 'expiring_soon')

@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { Supplier } from '@/types'
 import { Skeleton } from '@/components/Skeleton'
 import { useTranslation } from '@/components/LanguageProvider'
+import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
 
 export default function SuppliersPage() {
   const { t } = useTranslation('suppliers')
@@ -12,15 +13,22 @@ export default function SuppliersPage() {
   const [loading, setLoading] = useState(true)
   const [errorKey, setErrorKey] = useState('')
 
-  useEffect(() => {
-    fetch('/api/suppliers')
+  const loadSuppliers = useCallback(() => {
+    fetch('/api/suppliers', { cache: 'no-store' })
       .then(async (res) => {
         if (!res.ok) throw new Error()
         setSuppliers(await res.json())
+        setErrorKey('')
       })
       .catch(() => setErrorKey('error_load'))
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    loadSuppliers()
+  }, [loadSuppliers])
+
+  useRefetchOnVisible(loadSuppliers)
 
   const typeLabel = (type: string | null) => {
     if (!type) return t('type_none')

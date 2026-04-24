@@ -36,6 +36,12 @@
   "no_suppliers_hint": "ገና አቅራቢዎች አልተመዘገቡም።",
   "link_manage_suppliers": "አቅራቢዎችን አስተዳድር",
   "btn_add_supplier": "+ አዲስ አቅራቢ",
+  "missing_cost_banner": "{count} እቃዎች አሁንም የግዢ ዋጋ ያስፈልጋቸዋል።",
+  "missing_cost_filter_btn": "የግዢ ዋጋ የሌላቸውን እቃዎች ብቻ አሳይ →",
+  "missing_cost_filter_active": "አሁንም የግዢ ዋጋ የሚያስፈልጋቸው {count} እቃዎች እየታዩ ነው።",
+  "missing_cost_show_all": "← ሁሉንም እቃዎች አሳይ",
+  "missing_cost_all_done": "ሁሉም እቃዎች አሁን የግዢ ዋጋ አላቸው።",
+  "missing_cost_pill": "ዋጋ የለም",
 
   "btn_save_product": "ምርት ጨምር",
   "btn_save_changes": "ለውጦችን አስቀምጥ",

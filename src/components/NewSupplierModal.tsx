@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { Supplier } from '@/types'
 import { useTranslation } from '@/components/LanguageProvider'
+import { emitDataChanged } from '@/lib/events'
 
 interface NewSupplierModalProps {
   onCreated: (supplier: Supplier) => void
@@ -44,6 +45,7 @@ export function NewSupplierModal({ onCreated, onDismiss }: NewSupplierModalProps
         else setErrorKey('error_create')
         return
       }
+      emitDataChanged()
       onCreated(data as Supplier)
     } catch {
       setErrorKey('error_generic')

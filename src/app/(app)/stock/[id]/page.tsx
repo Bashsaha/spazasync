@@ -9,6 +9,7 @@ import { ConfirmModal } from '@/components/ConfirmModal'
 import { ExpiryEntryList } from '@/components/ExpiryEntryList'
 import { NewSupplierModal } from '@/components/NewSupplierModal'
 import { useTranslation } from '@/components/LanguageProvider'
+import { emitDataChanged } from '@/lib/events'
 
 interface ExpiryEntry {
   expiry_date: string
@@ -215,6 +216,7 @@ function StockAdjustContent() {
         setResultQty(product.stock_qty + totalAdded)
         setDone(true)
         await logReceiptAndMaybeUpdateSupplier(product, totalAdded)
+        emitDataChanged()
       } else if (!saveErrorKey) {
         setSaveErrorKey('adjust_save_error_generic')
       }
@@ -242,6 +244,7 @@ function StockAdjustContent() {
       if (mode === 'add') {
         await logReceiptAndMaybeUpdateSupplier(product, parsedAmount)
       }
+      emitDataChanged()
     } else {
       const body = await res.json().catch(() => ({}))
       if (body?.error) {
@@ -281,6 +284,7 @@ function StockAdjustContent() {
       setBatchDate('')
       setBatchQty('')
       setShowAddBatch(false)
+      emitDataChanged()
     } else {
       const body = await res.json().catch(() => ({}))
       if (body?.error) {
@@ -302,6 +306,7 @@ function StockAdjustContent() {
     if (res.ok) {
       setBatches((prev) => prev.filter((b) => b.id !== batchId))
       setProduct((p) => (p ? { ...p, stock_qty: Math.max(0, p.stock_qty - batch.quantity) } : p))
+      emitDataChanged()
     }
     setDiscardingId(null)
   }

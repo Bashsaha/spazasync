@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/components/LanguageProvider'
+import { emitDataChanged } from '@/lib/events'
 
 export default function NewSupplierPage() {
   const router = useRouter()
@@ -38,6 +39,7 @@ export default function NewSupplierPage() {
         else setErrorKey('error_create')
         return
       }
+      emitDataChanged()
       router.push('/suppliers')
     } catch {
       setErrorKey('error_generic')

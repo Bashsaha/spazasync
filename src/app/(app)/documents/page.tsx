@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useTranslation } from '@/components/LanguageProvider'
 import { Skeleton } from '@/components/Skeleton'
 import type { BusinessDocument, DocumentType } from '@/types'
 import { DOCUMENT_TYPES } from '@/lib/validation/schemas'
 import { computeDocumentStatus } from '@/lib/compliance/document-status'
+import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
 
 function todayYmd(): string {
   const d = new Date()
@@ -50,15 +51,22 @@ export default function DocumentsPage() {
   const [loading, setLoading] = useState(true)
   const [errorKey, setErrorKey] = useState('')
 
-  useEffect(() => {
-    fetch('/api/business-documents')
+  const loadDocs = useCallback(() => {
+    fetch('/api/business-documents', { cache: 'no-store' })
       .then(async (res) => {
         if (!res.ok) throw new Error()
         setDocs(await res.json())
+        setErrorKey('')
       })
       .catch(() => setErrorKey('error_load'))
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    loadDocs()
+  }, [loadDocs])
+
+  useRefetchOnVisible(loadDocs)
 
   const today = todayYmd()
   const docByType = useMemo(() => {

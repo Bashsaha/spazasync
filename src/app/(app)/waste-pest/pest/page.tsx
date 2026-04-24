@@ -1,12 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useTranslation } from '@/components/LanguageProvider'
 import { useToast } from '@/components/Toast'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { Skeleton } from '@/components/Skeleton'
 import type { PestControlLog } from '@/types'
+import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
+import { emitDataChanged } from '@/lib/events'
 
 export default function PestControlListPage() {
   const { t, locale } = useTranslation('waste-pest')
@@ -18,16 +20,23 @@ export default function PestControlListPage() {
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
 
-  useEffect(() => {
-    fetch('/api/pest-control')
+  const loadPest = useCallback(() => {
+    fetch('/api/pest-control', { cache: 'no-store' })
       .then(async (r) => {
         if (!r.ok) throw new Error()
         const json = (await r.json()) as { logs: PestControlLog[] }
         setLogs(json.logs)
+        setErrorKey(null)
       })
       .catch(() => setErrorKey('msg_load_failed'))
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    loadPest()
+  }, [loadPest])
+
+  useRefetchOnVisible(loadPest)
 
   async function handleDelete() {
     if (!confirmId) return
@@ -36,6 +45,7 @@ export default function PestControlListPage() {
       const res = await fetch(`/api/pest-control/${confirmId}`, { method: 'DELETE' })
       if (!res.ok) throw new Error()
       setLogs((prev) => prev.filter((l) => l.id !== confirmId))
+      emitDataChanged()
       addToast(t('msg_visit_deleted'), 'success')
     } catch {
       addToast(t('error_generic'), 'error')

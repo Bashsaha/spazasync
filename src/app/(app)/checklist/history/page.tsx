@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from '@/components/LanguageProvider'
 import type { DailyChecklist, ChecklistStats } from '@/types'
+import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
 
 interface HistoryEntry {
   date: string
@@ -46,16 +47,22 @@ export default function ChecklistHistoryPage() {
   const [data, setData] = useState<HistoryResponse | null>(null)
   const [expanded, setExpanded] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetch('/api/daily-checklist/history?days=30')
+  const loadHistory = useCallback(() => {
+    fetch('/api/daily-checklist/history?days=30', { cache: 'no-store' })
       .then(async (r) => {
         if (!r.ok) throw new Error('load')
         return r.json() as Promise<HistoryResponse>
       })
-      .then(setData)
+      .then((d) => { setData(d); setErrorKey(null) })
       .catch(() => setErrorKey('msg_load_failed'))
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    loadHistory()
+  }, [loadHistory])
+
+  useRefetchOnVisible(loadHistory)
 
   const localeTag = locale === 'en' ? 'en-ZA' : locale
 

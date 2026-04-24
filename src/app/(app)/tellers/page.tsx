@@ -1,11 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { Teller } from '@/types'
 import { Skeleton } from '@/components/Skeleton'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { useTranslation } from '@/components/LanguageProvider'
+import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
+import { emitDataChanged } from '@/lib/events'
 
 export default function TellersPage() {
   const { t } = useTranslation('tellers')
@@ -16,10 +18,10 @@ export default function TellersPage() {
   const [pendingRemove, setPendingRemove] = useState<Teller | null>(null)
   const [removing, setRemoving] = useState(false)
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/tellers')
+      const res = await fetch('/api/tellers', { cache: 'no-store' })
       const data = await res.json()
       if (!res.ok) {
         if (data.error) setErrorRaw(data.error)
@@ -27,14 +29,18 @@ export default function TellersPage() {
         return
       }
       setTellers(data as Teller[])
+      setErrorKey('')
+      setErrorRaw('')
     } catch {
       setErrorKey('error_generic')
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [load])
+
+  useRefetchOnVisible(load)
 
   async function confirmDeactivate() {
     if (!pendingRemove) return
@@ -42,6 +48,7 @@ export default function TellersPage() {
     const res = await fetch(`/api/tellers/${pendingRemove.id}`, { method: 'PATCH' })
     if (res.ok) {
       setTellers((prev) => prev.filter((t) => t.id !== pendingRemove.id))
+      emitDataChanged()
     } else {
       const data = await res.json()
       if (data.error) setErrorRaw(data.error)

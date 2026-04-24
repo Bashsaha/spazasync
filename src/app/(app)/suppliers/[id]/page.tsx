@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import type { Supplier } from '@/types'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { useTranslation } from '@/components/LanguageProvider'
+import { emitDataChanged } from '@/lib/events'
 
 export default function EditSupplierPage() {
   const router = useRouter()
@@ -65,6 +66,7 @@ export default function EditSupplierPage() {
       }
       setSupplier(data as Supplier)
       setMessage('msg_saved')
+      emitDataChanged()
     } catch {
       setErrorKey('error_generic')
     } finally {
@@ -76,6 +78,7 @@ export default function EditSupplierPage() {
     try {
       const res = await fetch(`/api/suppliers/${params.id}`, { method: 'DELETE' })
       if (res.ok || res.status === 204) {
+        emitDataChanged()
         router.push('/suppliers')
       } else {
         setErrorKey('error_delete')

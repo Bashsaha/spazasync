@@ -6,6 +6,7 @@ import { useTranslation } from '@/components/LanguageProvider'
 import { useToast } from '@/components/Toast'
 import { Skeleton } from '@/components/Skeleton'
 import type { WasteManagement, WasteFrequency, WasteRemovalType } from '@/types'
+import { emitDataChanged } from '@/lib/events'
 
 const REMOVAL_TYPES: WasteRemovalType[] = ['municipal', 'private', 'self_disposal']
 const FREQUENCIES: WasteFrequency[] = ['daily', 'weekly', 'twice_weekly', 'monthly', 'other']
@@ -75,6 +76,7 @@ export default function WasteManagementPage() {
       }
       const updated = (await res.json()) as WasteManagement
       setWaste(updated)
+      emitDataChanged()
       addToast(t('msg_waste_saved'), 'success')
     } catch {
       setErrorKey('msg_save_failed')
@@ -90,6 +92,7 @@ export default function WasteManagementPage() {
       if (!res.ok) throw new Error()
       const updated = (await res.json()) as WasteManagement
       setWaste(updated)
+      emitDataChanged()
       addToast(t('msg_confirmed'), 'success')
     } catch {
       addToast(t('error_generic'), 'error')

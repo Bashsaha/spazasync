@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/components/LanguageProvider'
 import { useToast } from '@/components/Toast'
 import type { DailyChecklist, ExpiredItemsAction } from '@/types'
+import { emitDataChanged } from '@/lib/events'
 
 interface ExpiringTodayItem {
   product_id: string
@@ -144,6 +145,7 @@ export default function ChecklistPage() {
       }
       const saved = (await res.json()) as DailyChecklist
       setData((prev) => (prev ? { ...prev, checklist: saved } : prev))
+      emitDataChanged()
       addToast(t('msg_saved'), 'success')
       router.push('/dashboard')
     } catch {
