@@ -60,5 +60,9 @@
   "latest_sales_title": "Latest sales",
   "latest_sales_by": "by {name}",
   "latest_sales_none": "No sales recorded yet. Start your first sale!",
-  "latest_sales_ago": "{time} ago"
+  "latest_sales_ago": "{time} ago",
+  "latest_sales_see_all": "See all →",
+
+  "card_sales_history": "Sales History",
+  "card_sales_history_desc": "Pick a day to see every sale and profit"
 }

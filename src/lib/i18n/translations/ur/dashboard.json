@@ -60,5 +60,9 @@
   "latest_sales_title": "حالیہ فروختیں",
   "latest_sales_by": "{name} کی طرف سے",
   "latest_sales_none": "ابھی تک کوئی فروخت ریکارڈ نہیں ہوئی۔ اپنی پہلی فروخت شروع کریں!",
-  "latest_sales_ago": "{time} پہلے"
+  "latest_sales_ago": "{time} پہلے",
+  "latest_sales_see_all": "سب دیکھیں →",
+
+  "card_sales_history": "فروخت کی تاریخ",
+  "card_sales_history_desc": "ہر فروخت اور منافع دیکھنے کے لیے دن منتخب کریں"
 }

@@ -15,6 +15,7 @@ import { NewProductModal } from '@/components/sale/NewProductModal'
 import { ProductPicker } from '@/components/sale/ProductPicker'
 import { enqueueSale, getCachedProductByBarcode, getCachedSettings, cacheSettings } from '@/lib/offline/db'
 import { createClient } from '@/lib/supabase/client'
+import { emitDataChanged } from '@/lib/events'
 import type { Product } from '@/types'
 
 export default function SalePage() {
@@ -172,6 +173,7 @@ export default function SalePage() {
         return
       }
 
+      emitDataChanged()
       clearCart()
       router.push(`/sale/complete?total=${encodeURIComponent(total.toFixed(2))}`)
     } catch {

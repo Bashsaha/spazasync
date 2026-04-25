@@ -26,6 +26,7 @@ export type TranslationNamespace =
   | 'common'
   | 'auth'
   | 'sale'
+  | 'sales'
   | 'dashboard'
   | 'settings'
   | 'stock'

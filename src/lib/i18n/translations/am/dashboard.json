@@ -60,5 +60,9 @@
   "latest_sales_title": "የቅርብ ሽያጮች",
   "latest_sales_by": "በ{name}",
   "latest_sales_none": "ገና ሽያጭ አልተመዘገበም። የመጀመሪያ ሽያጭዎን ይጀምሩ!",
-  "latest_sales_ago": "ከ{time} በፊት"
+  "latest_sales_ago": "ከ{time} በፊት",
+  "latest_sales_see_all": "ሁሉንም ይመልከቱ →",
+
+  "card_sales_history": "የሽያጭ ታሪክ",
+  "card_sales_history_desc": "ቀን ይምረጡ እና እያንዳንዱን ሽያጭ እና ትርፍ ይመልከቱ"
 }

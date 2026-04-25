@@ -214,6 +214,17 @@ export default async function DashboardPage() {
         </a>
 
         <a
+          href="/sales"
+          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:bg-gray-50"
+        >
+          <div>
+            <p className="font-bold text-gray-900">{t('card_sales_history')}</p>
+            <p className="text-gray-400 text-sm">{t('card_sales_history_desc')}</p>
+          </div>
+          <span className="text-3xl">📈</span>
+        </a>
+
+        <a
           href="/products"
           className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:bg-gray-50"
         >

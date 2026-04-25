@@ -342,6 +342,9 @@ At the start of every session:
 - [x] UX Tweak: ConfirmModal i18n + Onboarding Polish
 - [x] UX Tweak: Inline "Add supplier" modal
 - [x] UX Tweak: Auto-refresh lists + filtered missing-cost view
+- [x] Phase 35a: Sales History Page (daily drill-down)
+- [ ] Phase 35b: Teller Name Display Fix
+- [ ] Phase 35c: Monthly Sales & Profit PDF
 
 All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
 
@@ -392,6 +395,9 @@ All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
 ### UX Tweak — Inline "Add supplier" modal (2026-04-24)
 **What was built:** Fixed a broken mid-flow: on `/stock/[id]` (and the product new/edit forms), the "Manage suppliers" link dumped users to the `/suppliers` list, whose back button is hardcoded to `/settings` — so after adding a supplier mid-stock-top-up the user landed in Settings and lost their stock page entirely. New shared component `src/components/NewSupplierModal.tsx` — bottom-sheet (mirrors the `NewProductModal` pattern from the sale page) with the full supplier form (name required, phone/type/location optional), POSTs to `/api/suppliers`, calls `onCreated(supplier)`. Wired into three pages — `stock/[id]`, `products/new`, `products/[id]` — each now shows a **+ New supplier** button alongside the existing **Manage suppliers ›** link. On save the new supplier is pushed into local `suppliers` state (sorted by name) and auto-selected in the dropdown. One new i18n key `products.btn_add_supplier` in all 5 locales (en/so/am/zu/ur); the modal itself reuses existing `suppliers` namespace keys (add_title/add_desc/label_*/placeholder_*/type_*/btn_create/btn_creating/error_*). "Manage suppliers" link kept intact — it's still the right path when the user genuinely wants to edit/delete existing records; the underlying `/suppliers` back-to-Settings behaviour is unchanged since the fast path no longer touches that page. 381 tests pass (137 i18n parity), TypeScript clean.
 
+### Phase 35a — Sales History Page (2026-04-25)
+**What was built:** Owner-facing daily sales drill-down. New page `/sales` (client component) with native `<input type="date">` (default = today SAST), URL state `?date=YYYY-MM-DD`, prev/next day buttons (next disabled on today), and a 2- or 3-column totals strip (Sales · Revenue · Profit — profit hidden when tracking off). Each sale row is collapsible — collapsed shows `R total · HH:mm · teller`, expanded lists every line item with qty, name, unit price, cost, subtotal, and line profit (green pill). Teller name fallback renders localised "No teller recorded" instead of a bare em-dash so legacy sales with `teller_id = null` are explicit. New pure helper `computeSaleProfit(items)` returns null when *any* line has null `unit_cost` (profit tracking incomplete) — `computeDailyTotals(sales, profitTrackingOn)` propagates the same null-safety so the UI can show an amber "cost price missing on some items" warning rather than a misleading zero. New DB helper `src/lib/db/sales-history.ts` (`listSalesForDate` runs one query joining `sales → tellers(name)` and `sale_items → products(name, barcode)`). New API route `src/app/api/sales/by-date/route.ts` — `GET ?date=YYYY-MM-DD` via `getShopAuth` + 400 on bad date. Dashboard integration: new "Sales History" nav card above Products, and `LatestSales` gains a `See all →` link + uses the same "No teller recorded" fallback (fixes the `—` the user was seeing). `emitDataChanged()` added to the online sale-completion path in `/sale/page.tsx` so the history page refetches live via the existing event bus. New `sales` i18n namespace (30 keys) across all 5 locales; `'sales'` added to `TranslationNamespace` union + `LanguageProvider` namespaces array in `(app)/layout.tsx`. `dashboard.json` gains 3 new keys (`latest_sales_see_all`, `card_sales_history`, `card_sales_history_desc`) in all 5 locales. i18n parity test updated (expected namespace count 15 → 16). New types `SaleItemWithProduct`, `SaleWithDetails`, `DailySalesTotals`. **No migration required** — all data derived from existing `sales` + `sale_items` + `tellers` + `products` tables. 389 tests pass (was 381 — +8 from the new `sales` namespace parity rows), TypeScript clean. Phase 35b (teller-null root cause investigation) and 35c (monthly PDF) still pending — plan in [tasks/todo.md](tasks/todo.md).
+
 ### UX Tweak — Auto-refresh lists + filtered missing-cost view (2026-04-24)
 **What was built:** Two-part fix for "I edit a product with a missing cost price and the list just stays the same — how do I know it's done?"
 1. **Dedicated filtered view.** `/products` now accepts a `?missing_cost=1` query param that filters the server-side DB query (`listProducts(search, { missingCost })`) to products where `cost_price IS NULL`. All four banners that previously dumped users onto the full list — Stock page, Stock-take page, Settings card, DailySummaryAlert modal — now link to `/products?missing_cost=1`. The Products page shows a contextual amber banner ("N products still need a cost price" with a "Show only missing" toggle), a green "All products have cost prices now" confirmation when the filter is empty, and a small amber "No cost" pill on each row of the full list so the state is visible without tapping in. After saving a fix the user lands back on the filtered list — the product they just fixed is physically gone from it.
@@ -404,7 +410,7 @@ All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
 
 ## Current File Tree
 
-_Last updated: UX Tweak — Auto-refresh lists + filtered missing-cost view (2026-04-24)_
+_Last updated: Phase 35a — Sales History Page (2026-04-25)_
 
 ```
 spaza shop/
@@ -491,6 +497,8 @@ spaza shop/
 │   │   │   ├── inspection/
 │   │   │   │   ├── page.tsx        # Score badge + pre-check + Download PDF (Phase 34a)
 │   │   │   │   └── loading.tsx
+│   │   │   ├── sales/
+│   │   │   │   └── page.tsx        # Sales history with date picker + drill-down (Phase 35a)
 │   │   │   └── admin/
 │   │   │       ├── layout.tsx      # Admin layout (AdminNav + max-w-4xl)
 │   │   │       ├── loading.tsx
@@ -516,7 +524,8 @@ spaza shop/
 │   │       │   ├── popular/route.ts       # GET top 10 product IDs by sales (last 30 days)
 │   │       │   └── bulk-import/route.ts   # POST bulk-import from catalog (price required)
 │   │       ├── sales/
-│   │       │   └── route.ts               # POST — complete sale (uses decrement_stock_fefo)
+│   │       │   ├── route.ts               # POST — complete sale (uses decrement_stock_fefo)
+│   │       │   └── by-date/route.ts       # GET ?date=YYYY-MM-DD — day's sales + totals (Phase 35a)
 │   │       ├── batches/
 │   │       │   ├── route.ts               # GET list, POST add batch
 │   │       │   └── [id]/route.ts          # DELETE — discard batch
@@ -646,6 +655,7 @@ spaza shop/
 │   │   ├── db/
 │   │   │   ├── products.ts
 │   │   │   ├── sales.ts                   # completeSale (uses decrement_stock_fefo)
+│   │   │   ├── sales-history.ts           # listSalesForDate + computeSaleProfit + computeDailyTotals (Phase 35a)
 │   │   │   ├── stock-take.ts
 │   │   │   ├── stock.ts
 │   │   │   ├── reports.ts                 # Daily sales, low stock, weekly, top products, expiring alerts
@@ -675,14 +685,14 @@ spaza shop/
 │   │   │   ├── loader.ts                  # loadTranslation(), loadTranslations() — dynamic import + cache
 │   │   │   ├── server.ts                  # getServerLocale(), getServerTranslations() — for server components
 │   │   │   └── translations/
-│   │   │       ├── en/                    # English namespace files (15 JSON files)
-│   │   │       │   ├── common.json, auth.json, sale.json, dashboard.json, settings.json
+│   │   │       ├── en/                    # English namespace files (16 JSON files)
+│   │   │       │   ├── common.json, auth.json, sale.json, sales.json, dashboard.json, settings.json
 │   │   │       │   ├── stock.json, products.json, tellers.json, expiry.json, summary.json
 │   │   │       │   └── suppliers.json, checklist.json, documents.json, waste-pest.json, inspection.json
-│   │   │       ├── so/                    # Somali  (15 namespaces — adds inspection in Phase 34a)
-│   │   │       ├── am/                    # Amharic (15 namespaces — adds inspection in Phase 34a)
-│   │   │       ├── zu/                    # IsiZulu (15 namespaces — adds inspection in Phase 34a)
-│   │   │       └── ur/                    # Urdu    (15 namespaces — adds inspection in Phase 34a)
+│   │   │       ├── so/                    # Somali  (16 namespaces — adds sales in Phase 35a)
+│   │   │       ├── am/                    # Amharic (16 namespaces — adds sales in Phase 35a)
+│   │   │       ├── zu/                    # IsiZulu (16 namespaces — adds sales in Phase 35a)
+│   │   │       └── ur/                    # Urdu    (16 namespaces — adds sales in Phase 35a)
 │   │   ├── events.ts                      # Tiny in-tab event bus for mutation → list refresh
 │   │   ├── validation/
 │   │   │   └── schemas.ts                 # All Zod schemas

@@ -60,5 +60,9 @@
   "latest_sales_title": "Iibinta ugu dambeysay",
   "latest_sales_by": "oo uu sameeyay {name}",
   "latest_sales_none": "Weli iib lama diiwaangelin. Bilow iibintaada ugu horreysa!",
-  "latest_sales_ago": "{time} ka hor"
+  "latest_sales_ago": "{time} ka hor",
+  "latest_sales_see_all": "Arag dhammaan →",
+
+  "card_sales_history": "Taariikhda iibka",
+  "card_sales_history_desc": "Dooro maalin si aad u aragto iibka iyo faa'iidada"
 }

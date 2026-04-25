@@ -60,5 +60,9 @@
   "latest_sales_title": "Okudayisiwe kamuva",
   "latest_sales_by": "ngu-{name}",
   "latest_sales_none": "Akukho ukudayisa okurekhodiwe okwamanje. Qala ukudayisa kwakho kokuqala!",
-  "latest_sales_ago": "kudlule {time}"
+  "latest_sales_ago": "kudlule {time}",
+  "latest_sales_see_all": "Bonisa konke →",
+
+  "card_sales_history": "Umlando wokudayisa",
+  "card_sales_history_desc": "Khetha usuku ukuze ubone konke ukudayisa nenzuzo"
 }

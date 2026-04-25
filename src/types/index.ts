@@ -211,6 +211,40 @@ export interface RecentSale {
   teller_name: string | null
 }
 
+// --- Sales history (Phase 35a) ---
+
+export interface SaleItemWithProduct {
+  id: string
+  product_id: string
+  product_name: string
+  product_barcode: string | null
+  quantity: number
+  unit_price: number
+  unit_cost: number | null
+  subtotal: number
+  /** (unit_price − unit_cost) * quantity — null when unit_cost is null */
+  line_profit: number | null
+}
+
+export interface SaleWithDetails {
+  id: string
+  total: number
+  completed_at: string
+  teller_id: string | null
+  teller_name: string | null
+  items: SaleItemWithProduct[]
+  /** Σ(line_profit) across items — null if ANY line has null unit_cost and profit tracking is on */
+  profit: number | null
+}
+
+export interface DailySalesTotals {
+  saleCount: number
+  revenue: number
+  /** null when profit tracking off OR when any sale that day has missing cost data */
+  profit: number | null
+  uniqueTellers: number
+}
+
 export interface TopProduct {
   name: string
   totalQty: number
