@@ -56,32 +56,29 @@ Owner-facing reporting layer. Three sub-phases, each shippable independently. **
 
 ---
 
-### Phase 35c — Monthly Sales & Profit PDF
+### Phase 35c — Monthly Sales & Profit PDF ✅ DONE
 
 **Goal:** one downloadable PDF per calendar month covering every sale, profit, and per-teller summary. Same visual style as the compliance PDF so the owner recognises it.
 
-- [ ] New DB helper `src/lib/db/monthly-sales-report.ts`:
-  - `getMonthlySalesReport(shopId, year, month)` returns `{ shop, month, sales, perDay, perTeller, totals, profitTrackingEnabled }`.
-  - `sales`: array of `{ date, time, teller_name, items: [{ name, qty, unit_price, unit_cost, line_profit }], total, profit }`.
-  - `perDay`: array of `{ date, sale_count, revenue, profit }`.
-  - `perTeller`: array of `{ teller_name, sale_count, revenue, profit }` — top-of-report summary so owner can see "who sold what".
-  - `totals`: `{ total_sales, total_revenue, total_profit, days_with_sales }`.
-- [ ] New API route `src/app/api/reports/monthly-sales-pdf/route.ts` — `GET ?year=YYYY&month=MM`. Streams a `Blob` with `Content-Disposition: attachment; filename="movestock-sales-{year}-{month}.pdf"`.
-  - Follow compliance-pdf pattern: `const jsPDFMod = (await import('jspdf')).default; const autoTableMod = (await import('jspdf-autotable')).default;` — keeps cold-start lean.
-  - Layout:
-    1. Header: "Movestock — Sales Report" · shop name · month label (e.g. "April 2026").
-    2. Summary box: `Total sales: N · Revenue: R… · Profit: R… · Active days: N/30`.
-    3. Per-teller table: Teller · Sales · Revenue · Profit. Sorted by revenue desc.
-    4. Per-day table: Date · Weekday · Sales · Revenue · Profit. Chronological. Highlight best/worst day in amber/green.
-    5. Detailed sales log: Date · Time · Teller · Items (summarised as "3× Bread, 2× Milk") · Total · Profit. One row per sale, paginated by autoTable.
-    6. Footer: "Generated DD MMM YYYY HH:mm · Movestock — Small Business Dashboard"
-  - When profit tracking is off, hide profit columns entirely (don't show "—").
-- [ ] Button on /sales page: "Download this month's report (PDF)". Also a "Previous month" button (so end-of-April you can grab March's report). Visible on the last day of the month especially (but always available).
-- [ ] Subscription gate: same pattern as compliance PDF — if `subscription_status !== 'active'` AND not in trial, return 402. (Check how the compliance PDF handles this.)
-- [ ] Test stub `tests/unit/monthly-sales-report.test.ts` — 3–5 unit tests for the aggregation helper (empty month, mixed profit-tracked and untracked items, per-teller roll-up).
-- [ ] 3 new i18n keys in `sales.json`: `download_pdf_btn`, `download_pdf_prev_month_btn`, `download_pdf_generating`. (Button labels — PDF body itself is English-only, matches compliance PDF precedent.)
+- [x] New DB helper `src/lib/db/monthly-sales-report.ts` — `getMonthlySalesReport()` + pure `aggregateMonthlyReport()`.
+- [x] New API route `src/app/api/reports/monthly-sales-pdf/route.ts` — `GET ?year=YYYY&month=MM`, dynamic jspdf import, 5-section PDF (Header · Summary · Per-teller · Per-day · Detailed log · Footer on every page).
+- [x] Profit columns hidden entirely when profit tracking is off.
+- [x] Buttons on /sales page: "Download this month (PDF)" + "Previous month (PDF)" — month derived from the currently-viewed date.
+- [x] Subscription gate inherited from proxy (same as compliance-pdf — no extra code).
+- [x] Test stub `tests/unit/monthly-sales-report.test.ts` — 5 tests (empty, rollups, null-cost propagation, null-teller bucket, profit-off).
+- [x] 5 new i18n keys in `sales.json` (title, desc, this_month, prev_month, generating) × 5 locales.
+- [x] 394 tests pass, TypeScript clean.
 
-**Acceptance:** download button produces a PDF that opens in any mobile PDF viewer, totals match the /sales page when summed across the month, profit ties out to `Σ((unit_price - unit_cost) × qty)` across all line items for sales in that month.
+**Acceptance:** download button produces a PDF that opens in any mobile PDF viewer, totals match the /sales page when summed, profit ties out to `Σ((unit_price - unit_cost) × qty)`. ✅
+
+---
+
+## Phase 35 summary
+
+All three sub-phases of Phase 35 are now complete. Owners can:
+- See every sale for any chosen day at `/sales` with full drill-down (35a)
+- Trust that new sales always record the teller (null-teller gap hardened in 35b)
+- Download a per-month PDF with per-day, per-teller, and full detail breakdown (35c)
 
 ---
 

@@ -29,5 +29,10 @@
   "items_title": "Alaabta la iibiyay",
   "expand": "Muuji alaabta",
   "collapse": "Qari alaabta",
-  "profit_unavailable": "Alaabta qaar qiimaha iibsashada kama lahan — faa'iido lama tusin"
+  "profit_unavailable": "Alaabta qaar qiimaha iibsashada kama lahan — faa'iido lama tusin",
+  "download_pdf_title": "Warbixin iibka bishaba",
+  "download_pdf_desc": "Soo deji PDF ah oo ay ku jiraan dhammaan iibka, dakhliga iyo faa'iidada bishaba.",
+  "download_pdf_this_month": "Soo deji bishan (PDF)",
+  "download_pdf_prev_month": "Bishii hore (PDF)",
+  "download_pdf_generating": "Diyaarinaya…"
 }

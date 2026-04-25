@@ -29,5 +29,10 @@
   "items_title": "Izimpahla ezidayisiwe",
   "expand": "Bonisa izimpahla",
   "collapse": "Fihla izimpahla",
-  "profit_unavailable": "Intengo yokuthengwa ayikho kwezinye izimpahla — inzuzo ayiboniswa"
+  "profit_unavailable": "Intengo yokuthengwa ayikho kwezinye izimpahla — inzuzo ayiboniswa",
+  "download_pdf_title": "Umbiko wokudayisa wenyanga",
+  "download_pdf_desc": "Landa i-PDF enakho konke ukudayisa, imali engenile nenzuzo yenyanga yonke.",
+  "download_pdf_this_month": "Landa le nyanga (PDF)",
+  "download_pdf_prev_month": "Inyanga edlule (PDF)",
+  "download_pdf_generating": "Iyalungiselela…"
 }

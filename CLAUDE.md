@@ -344,7 +344,7 @@ At the start of every session:
 - [x] UX Tweak: Auto-refresh lists + filtered missing-cost view
 - [x] Phase 35a: Sales History Page (daily drill-down)
 - [x] Phase 35b: Teller Name Display Fix + teller gate hardening
-- [ ] Phase 35c: Monthly Sales & Profit PDF
+- [x] Phase 35c: Monthly Sales & Profit PDF
 
 All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
 
@@ -395,6 +395,9 @@ All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
 ### UX Tweak — Inline "Add supplier" modal (2026-04-24)
 **What was built:** Fixed a broken mid-flow: on `/stock/[id]` (and the product new/edit forms), the "Manage suppliers" link dumped users to the `/suppliers` list, whose back button is hardcoded to `/settings` — so after adding a supplier mid-stock-top-up the user landed in Settings and lost their stock page entirely. New shared component `src/components/NewSupplierModal.tsx` — bottom-sheet (mirrors the `NewProductModal` pattern from the sale page) with the full supplier form (name required, phone/type/location optional), POSTs to `/api/suppliers`, calls `onCreated(supplier)`. Wired into three pages — `stock/[id]`, `products/new`, `products/[id]` — each now shows a **+ New supplier** button alongside the existing **Manage suppliers ›** link. On save the new supplier is pushed into local `suppliers` state (sorted by name) and auto-selected in the dropdown. One new i18n key `products.btn_add_supplier` in all 5 locales (en/so/am/zu/ur); the modal itself reuses existing `suppliers` namespace keys (add_title/add_desc/label_*/placeholder_*/type_*/btn_create/btn_creating/error_*). "Manage suppliers" link kept intact — it's still the right path when the user genuinely wants to edit/delete existing records; the underlying `/suppliers` back-to-Settings behaviour is unchanged since the fast path no longer touches that page. 381 tests pass (137 i18n parity), TypeScript clean.
 
+### Phase 35c — Monthly Sales & Profit PDF (2026-04-25)
+**What was built:** One downloadable PDF per calendar month covering every sale, profit, and per-teller breakdown. New DB helper `src/lib/db/monthly-sales-report.ts` exposes `getMonthlySalesReport(supabase, shopId, year, month)` (one round-trip Supabase query joining sales → tellers → sale_items → products) and a pure `aggregateMonthlyReport(sales, shop, year, month)` that rolls sales into: per-day rows (date + weekday + sale_count + revenue + profit), per-teller rows (sorted by revenue desc, null-teller bucket = "No teller recorded"), and totals (total_sales / total_revenue / total_profit / days_with_sales). Null-profit propagation matches the daily helper — ANY line item with null `unit_cost` turns that day / teller / month's profit to null so the PDF shows "profit unavailable" rather than a misleading zero. New API route `src/app/api/reports/monthly-sales-pdf/route.ts` — `GET ?year=YYYY&month=MM` with owner/admin role check; dynamically imports `jspdf` + `jspdf-autotable` to keep cold-start lean (mirrors compliance-pdf pattern). PDF layout: centred header (Movestock — Sales Report · shop name · "April 2026" · shop code) → Summary box (total sales · revenue · profit · "N of 30 active days") → **Sales by teller** table (sorted by revenue) → **Sales by day** table (chronological, best revenue day highlighted green) → **All sales** detailed log (date, time, teller, items-summarised-as-"3× Bread, 2× Milk (+1 more)", total, profit) → footer on every page with generation timestamp + page N of M. When profit tracking is off, every profit column is hidden entirely (no `—` placeholders). Subscription gating is inherited from the proxy (expired sub → redirect to /subscribe, same as compliance-pdf). Button wired into `/sales` page: "Download this month (PDF)" + "Previous month (PDF)" — month is derived from the currently-viewed date so the buttons always match what the owner is looking at. 5 new i18n keys in `sales.json` (`download_pdf_title`, `download_pdf_desc`, `download_pdf_this_month`, `download_pdf_prev_month`, `download_pdf_generating`) across all 5 locales. PDF body itself stays English-only (matches compliance PDF precedent — regulators & accountants need one canonical format). New test file `tests/unit/monthly-sales-report.test.ts` — 5 tests covering empty-month, full-rollup, null-cost propagation, null-teller bucketing, profit-tracking-off. 394 tests pass (+5 from 389), TypeScript clean. **No migration** — purely derived from existing `sales` + `sale_items` + `tellers` + `products` + `shops` tables. Phase 35 is now complete (all three sub-phases shipped).
+
 ### Phase 35b — Teller Name Display Fix + teller gate hardening (2026-04-25)
 **What was built:** Root-cause investigation for the user's "some sales don't show the teller" report. Supabase REST audit (`GET /sales?teller_id=is.null`) found **12 null-teller rows** spanning 2026-03-24 → 2026-04-24, all from the online path (`offline_id = null`). Owner write path is already gated at [sale/page.tsx:203](src/app/(app)/sale/page.tsx#L203) — an owner cannot reach the cart UI without picking a teller. **Teller-role write path had no equivalent gate** — if `/api/tellers/me` auto-select failed (network blip, deactivated mid-session), the teller would hit the cart with `activeTeller = null` and could POST a null-teller sale. Added a second gate at [sale/page.tsx:211](src/app/(app)/sale/page.tsx#L211): `if (role === 'teller' && !activeTeller)` → block the sale UI with a localised "Could not load your teller record — sign out and back in" screen. One new i18n key `sale.teller_record_missing` in all 5 locales. Display fallback was already shipped in 35a (`LatestSales` + `/sales` render the localised "No teller recorded" string instead of bare `—`). Schema left alone on purpose — `completeSaleSchema.teller_id: null` stays valid so offline-queue replay and legacy rows continue to work; the 12 historical null-teller rows aren't rewritten. New `bugs.md` entry BUG-016 with full investigation notes + prevention rule ("any write-site with a nullable FK MUST have a UI gate; never tighten the Zod schema to non-null"). 145 i18n parity tests pass, TypeScript clean. No migration.
 
@@ -413,7 +416,7 @@ All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
 
 ## Current File Tree
 
-_Last updated: Phase 35b — Teller Name Display Fix + teller gate hardening (2026-04-25)_
+_Last updated: Phase 35c — Monthly Sales & Profit PDF (2026-04-25)_
 
 ```
 spaza shop/
@@ -569,7 +572,8 @@ spaza shop/
 │   │       │               ├── stock/route.ts  # GET products + stock levels
 │   │       │               └── expiry/route.ts # GET expiring products
 │   │       ├── reports/
-│   │       │   └── compliance-pdf/route.ts
+│   │       │   ├── compliance-pdf/route.ts
+│   │       │   └── monthly-sales-pdf/route.ts   # GET ?year=YYYY&month=MM — sales + profit PDF (Phase 35c)
 │   │       ├── settings/
 │   │       │   └── route.ts               # GET + PATCH shop settings
 │   │       ├── tellers/
@@ -659,6 +663,7 @@ spaza shop/
 │   │   │   ├── products.ts
 │   │   │   ├── sales.ts                   # completeSale (uses decrement_stock_fefo)
 │   │   │   ├── sales-history.ts           # listSalesForDate + computeSaleProfit + computeDailyTotals (Phase 35a)
+│   │   │   ├── monthly-sales-report.ts    # getMonthlySalesReport + aggregateMonthlyReport (Phase 35c)
 │   │   │   ├── stock-take.ts
 │   │   │   ├── stock.ts
 │   │   │   ├── reports.ts                 # Daily sales, low stock, weekly, top products, expiring alerts
@@ -753,5 +758,6 @@ spaza shop/
         ├── checklist.test.ts             # 16 tests — fridgeInRange, freezerInRange, computeChecklistStats (Phase 31)
         ├── business-documents.test.ts    # 15 tests — computeDocumentStatus traffic-light rules (Phase 32)
         ├── waste-pest.test.ts            # 21 tests — daysSince, isPestOverdue, isWasteConfirmationStale (Phase 33)
-        └── compliance-score.test.ts      # 17 tests — computeComplianceScore weights, bands, categories (Phase 34a)
+        ├── compliance-score.test.ts      # 17 tests — computeComplianceScore weights, bands, categories (Phase 34a)
+        └── monthly-sales-report.test.ts   # 5 tests — aggregateMonthlyReport (empty, rollups, null-cost, null-teller, profit-off) (Phase 35c)
 ```

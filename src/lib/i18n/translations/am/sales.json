@@ -29,5 +29,10 @@
   "items_title": "የተሸጡ እቃዎች",
   "expand": "እቃዎችን አሳይ",
   "collapse": "እቃዎችን ደብቅ",
-  "profit_unavailable": "በአንዳንድ እቃዎች ላይ የግዢ ዋጋ የለም — ትርፍ አይታይም"
+  "profit_unavailable": "በአንዳንድ እቃዎች ላይ የግዢ ዋጋ የለም — ትርፍ አይታይም",
+  "download_pdf_title": "የወሩ የሽያጭ ሪፖርት",
+  "download_pdf_desc": "ለሙሉ ወር ሁሉንም ሽያጭ፣ ገቢ እና ትርፍ ያለው PDF ያውርዱ።",
+  "download_pdf_this_month": "ይህን ወር ያውርዱ (PDF)",
+  "download_pdf_prev_month": "ያለፈው ወር (PDF)",
+  "download_pdf_generating": "በመዘጋጀት ላይ…"
 }

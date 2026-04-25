@@ -97,6 +97,13 @@ function SalesHistoryContent() {
     }
   })()
 
+  // Month derived from the currently-viewed date (so the button labels match what you're looking at).
+  const [viewedYear, viewedMonth] = date.split('-').map((n) => parseInt(n, 10))
+  const prevMonthDate = new Date(Date.UTC(viewedYear, viewedMonth - 2, 1))
+  const prevYear = prevMonthDate.getUTCFullYear()
+  const prevMonth = prevMonthDate.getUTCMonth() + 1
+  const pdfUrl = (y: number, m: number) => `/api/reports/monthly-sales-pdf?year=${y}&month=${m}`
+
   const profitTrackingOn = Boolean(data?.profit_tracking_enabled)
   const totals = data?.totals
   const sales = data?.sales ?? []
@@ -181,6 +188,26 @@ function SalesHistoryContent() {
           {t('profit_unavailable')}
         </p>
       )}
+
+      {/* Monthly PDF downloads — full-page reload is fine, browser will trigger download */}
+      <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-5 shadow-sm">
+        <p className="text-sm font-semibold text-gray-900">{t('download_pdf_title')}</p>
+        <p className="text-xs text-gray-500 mt-0.5">{t('download_pdf_desc')}</p>
+        <div className="flex flex-col sm:flex-row gap-2 mt-3">
+          <a
+            href={pdfUrl(viewedYear, viewedMonth)}
+            className="flex-1 text-center bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-xl active:bg-blue-700"
+          >
+            {t('download_pdf_this_month')}
+          </a>
+          <a
+            href={pdfUrl(prevYear, prevMonth)}
+            className="flex-1 text-center bg-white border border-gray-200 text-gray-700 text-sm font-semibold py-2.5 rounded-xl active:bg-gray-50"
+          >
+            {t('download_pdf_prev_month')}
+          </a>
+        </div>
+      </div>
 
       {/* Loading */}
       {loading && (

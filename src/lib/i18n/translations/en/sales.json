@@ -29,5 +29,10 @@
   "items_title": "Items sold",
   "expand": "Show items",
   "collapse": "Hide items",
-  "profit_unavailable": "Cost price missing on some items — profit not shown"
+  "profit_unavailable": "Cost price missing on some items — profit not shown",
+  "download_pdf_title": "Monthly sales report",
+  "download_pdf_desc": "Download a PDF with every sale, revenue and profit for a whole month.",
+  "download_pdf_this_month": "Download this month (PDF)",
+  "download_pdf_prev_month": "Previous month (PDF)",
+  "download_pdf_generating": "Preparing…"
 }

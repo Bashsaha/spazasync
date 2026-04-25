@@ -29,5 +29,10 @@
   "items_title": "فروخت شدہ اشیاء",
   "expand": "اشیاء دکھائیں",
   "collapse": "اشیاء چھپائیں",
-  "profit_unavailable": "کچھ اشیاء پر خریداری کی قیمت نہیں ہے — منافع نہیں دکھایا گیا"
+  "profit_unavailable": "کچھ اشیاء پر خریداری کی قیمت نہیں ہے — منافع نہیں دکھایا گیا",
+  "download_pdf_title": "ماہانہ فروخت کی رپورٹ",
+  "download_pdf_desc": "پورے مہینے کی ہر فروخت، آمدنی اور منافع کے ساتھ پی ڈی ایف ڈاؤن لوڈ کریں۔",
+  "download_pdf_this_month": "یہ مہینہ ڈاؤن لوڈ کریں (PDF)",
+  "download_pdf_prev_month": "پچھلا مہینہ (PDF)",
+  "download_pdf_generating": "تیار کیا جا رہا ہے…"
 }
