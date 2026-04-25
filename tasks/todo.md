@@ -37,21 +37,22 @@ Owner-facing reporting layer. Three sub-phases, each shippable independently. **
 
 ---
 
-### Phase 35b — Teller Name Display Fix
+### Phase 35b — Teller Name Display Fix ✅ DONE
 
-**Goal:** dashboard `LatestSales` + new /sales page never show a bare `—` for teller — either show the real name or a clear "No teller recorded" fallback. Root-cause investigation first, then fix.
+**Investigation outcome:**
+- [x] Queried Supabase REST → 12 sales with `teller_id IS NULL`, spanning 2026-03-24 → 2026-04-24, all online (no offline_id).
+- [x] Confirmed `completeSaleSchema` allows `teller_id: null` (intentional — supports offline-queue replay and edge cases).
+- [x] FK is `REFERENCES tellers(id)` default `NO ACTION`, so deleting a teller doesn't nullify sales (it's blocked instead).
+- [x] Owner gate at [sale/page.tsx:203](src/app/(app)/sale/page.tsx#L203) already prevents owners from reaching the cart without a teller.
+- [x] **Teller gate was missing** — if `/api/tellers/me` auto-select failed, a teller could submit null-teller sales. Added second gate at [sale/page.tsx:211](src/app/(app)/sale/page.tsx#L211) → localised "Could not load your teller record" block screen.
 
-- [ ] Query Supabase REST to check how many sales have `teller_id IS NULL` (service role, read-only):
-  `curl -s "$URL/rest/v1/sales?select=id&teller_id=is.null&limit=5"` — if >0, some sales genuinely have no teller.
-- [ ] Check whether `src/lib/db/sales.ts` `completeSale` requires teller_id: if optional, leave as-is (owners may sell without selecting a teller in some flows). If mandatory, the null rows are purely legacy.
-- [ ] Decision tree:
-  - If null-teller rows are legacy only → display "No teller recorded" (i18n `sale_no_teller`) instead of `—`.
-  - If new sales are still landing without teller → check `TellerSelector` guard + offline sync path (`src/lib/offline/sync.ts`) — offline sales may be syncing without teller_id. Fix at the write site.
-- [ ] Update `LatestSales.tsx`: `{sale.teller_name ?? t('sale_no_teller')}` — pass locale down, import `getServerTranslations` for server component.
-- [ ] Update the new /sales page to use the same fallback (/sales is client, so `useTranslation`).
-- [ ] Add a brief `tasks/bugs.md` entry documenting the investigation outcome + the prevention rule ("always require teller_id when completing a sale" or "legacy sales will show 'No teller recorded'").
+**Fix:**
+- [x] Display fallback: LatestSales + /sales page render localised "No teller recorded" instead of `—` (done in 35a, verified in 35b).
+- [x] Teller gate added (new `sale.teller_record_missing` key × 5 locales).
+- [x] Schema unchanged (leaving `teller_id` nullable supports legacy rows + offline-queue replay).
+- [x] `tasks/bugs.md` BUG-016 entry with full findings + prevention rule.
 
-**Acceptance:** no `—` or empty text visible anywhere sales are listed. Null-teller sales render "No teller recorded" in the user's language.
+**Acceptance:** no `—` or empty text visible. Null-teller sales render "No teller recorded". Tellers with failed auto-select see a clear block screen instead of the cart. ✅
 
 ---
 

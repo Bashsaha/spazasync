@@ -210,6 +210,16 @@ export default function SalePage() {
     )
   }
 
+  // ── Teller auto-select failed — block sale UI until their record loads ───
+  // Prevents null-teller sales if /api/tellers/me had a transient failure.
+  if (role === 'teller' && !activeTeller) {
+    return (
+      <main className="px-4 pt-10 pb-24 max-w-lg mx-auto text-center">
+        <p className="text-red-500 text-sm">{t('teller_record_missing')}</p>
+      </main>
+    )
+  }
+
   // ── Main sale UI ───────────────────────────────────────────────────────────
 
   return (

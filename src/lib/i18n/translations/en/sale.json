@@ -2,6 +2,7 @@
   "title": "Sale",
   "start_sale": "Start a Sale",
   "select_teller": "Select who is serving today.",
+  "teller_record_missing": "Could not load your teller record. Sign out and back in.",
   "change_teller": "Change teller",
   "serving": "Serving:",
 

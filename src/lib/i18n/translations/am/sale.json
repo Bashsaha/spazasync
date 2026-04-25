@@ -2,6 +2,7 @@
   "title": "ሽያጭ",
   "start_sale": "ሽያጭ ጀምር",
   "select_teller": "ዛሬ የሚያገለግለውን ይምረጡ።",
+  "teller_record_missing": "የእርስዎን የሻጭ መዝገብ መጫን አልተቻለም። ውጡ እና እንደገና ይግቡ።",
   "change_teller": "አገልጋይ ቀይር",
   "serving": "አገልግሎት የሚሰጠው፡",
 
