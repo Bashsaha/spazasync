@@ -39,13 +39,30 @@ export function useActiveTeller(): ActiveTellerState {
       setRole(userRole ?? null)
 
       if (userRole === 'owner') {
-        // 1. Re-hydrate from sessionStorage if the owner explicitly picked a teller earlier.
+        // Always fetch the latest tellers list — we need it both to validate any
+        // sessionStorage hydration and to find the owner's own teller row.
+        let tellers: Teller[] = []
+        try {
+          const res = await fetch('/api/tellers', { cache: 'no-store' })
+          if (res.ok) tellers = (await res.json()) as Teller[]
+        } catch {
+          // Network issue — fall through to TellerSelector
+        }
+
+        // 1. Re-hydrate from sessionStorage only if it's still a valid, active teller
+        //    in the current shop's roster (handles stale entries after re-login or
+        //    teller deactivation).
         const stored = sessionStorage.getItem(SESSION_KEY)
         if (stored) {
           try {
-            setActiveTellerState(JSON.parse(stored) as Teller)
-            setIsLoading(false)
-            return
+            const parsed = JSON.parse(stored) as Teller | null
+            const stillValid = parsed?.id && tellers.some((t) => t.id === parsed.id && t.active)
+            if (stillValid) {
+              setActiveTellerState(parsed)
+              setIsLoading(false)
+              return
+            }
+            sessionStorage.removeItem(SESSION_KEY)
           } catch {
             sessionStorage.removeItem(SESSION_KEY)
           }
@@ -54,18 +71,10 @@ export function useActiveTeller(): ActiveTellerState {
         // 2. Auto-select the owner's own teller row (created on onboarding) so sales
         //    land under their name instead of forcing them through the selector or
         //    (worse) going in with teller_id = null.
-        try {
-          const res = await fetch('/api/tellers')
-          if (res.ok) {
-            const tellers = (await res.json()) as Teller[]
-            const ownerTeller = tellers.find((t) => t.user_id === user.id && t.active)
-            if (ownerTeller) {
-              setActiveTellerState(ownerTeller)
-              sessionStorage.setItem(SESSION_KEY, JSON.stringify(ownerTeller))
-            }
-          }
-        } catch {
-          // Network issue — fall through to TellerSelector (no auto-select)
+        const ownerTeller = tellers.find((t) => t.user_id === user.id && t.active)
+        if (ownerTeller) {
+          setActiveTellerState(ownerTeller)
+          sessionStorage.setItem(SESSION_KEY, JSON.stringify(ownerTeller))
         }
         setIsLoading(false)
       } else if (userRole === 'teller') {
