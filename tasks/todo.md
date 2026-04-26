@@ -1,91 +1,79 @@
 # Movestock — Task Tracking
 
-## Phase 35 — Sales History + Monthly Sales & Profit PDF
+## Phase 36 — WhatsApp-style UX Restructure
 
-Owner-facing reporting layer. Three sub-phases, each shippable independently. **DO NOT auto-start a sub-phase — wait for explicit go-ahead between each one per the Phase Gating rule.**
+Three-part overhaul. **DO NOT auto-start a sub-phase — wait for explicit go-ahead between each one per the Phase Gating rule.**
 
 ### Context
 
-- The dashboard's `LatestSales` card ([src/components/dashboard/LatestSales.tsx:33](src/components/dashboard/LatestSales.tsx#L33)) already renders `{sale.teller_name ?? '—'}`. User reports "it does not show the teller's name" — means joined `teller_name` is coming back null for some sales. Most likely legacy sales with `teller_id = null` (the TellerSelector is mandatory on `/sale` now but wasn't always). Need to investigate + fix display.
-- `sale_items.unit_cost` is snapshotted at sale time ([Phase 28 — CLAUDE.md](CLAUDE.md)). So per-sale profit = Σ(`(unit_price − unit_cost) × quantity`) for each line item. Works retroactively for sales made after Phase 28.
-- Compliance PDF ([src/app/api/reports/compliance-pdf/route.ts](src/app/api/reports/compliance-pdf/route.ts)) is the reference pattern for PDF generation — dynamic `jspdf` + `jspdf-autotable` import inside the route.
-- Owners are non-technical. Date picker must be big, obvious, plain-English. No jargon like "date range" — say "Pick a day".
+- The dashboard pre-rebuild had 9 nav cards + 13 alert/data sections. New users couldn't tell what to look at.
+- Bottom nav had 6 tabs with Stock and Products as separate tabs even though they manage the same data.
+- The "+" floating icon for sales had no label; non-technical users didn't know what it did.
+- Compliance features (checklist/docs/pest/waste/inspection) were buried across multiple cards and the Settings page.
+- Sales feature (date drill-down + monthly PDF) was reachable only via a dashboard nav card.
+- Tellers had no easy way to switch user when handing the phone to/from the owner.
+- All access was binary: tellers see /sale only, owners see everything. No middle ground.
+
+### Phase 36a — Navigation Restructure & Dashboard Cleanup ✅ DONE
+
+- [x] 5-tab BottomNav (Home / Sales / Inventory / Manage / Settings) with `matches` arrays for deep-route active state
+- [x] Extended FAB pill button "🛒 New Sale" with visible label
+- [x] Unified ComplianceCard (replaces 5 separate alert components)
+- [x] /inventory hub (summary strip + 5 tiles)
+- [x] /manage hub (Staff + Compliance tiles)
+- [x] /sales hub rewrite (was drill-down, now landing); drill-down moved to /sales/history
+- [x] Dashboard slimmed to 5 informational cards
+- [x] Weekly chart + Top products moved to /sales hub
+- [x] Proxy bug fix: `pathname.startsWith('/sale')` matched /sales — tightened to exact + trailing-slash
+- [x] 2 new i18n namespaces (`inventory`, `manage`) × 5 locales = 10 new files
+- [x] dashboard.json + sales.json updated in 5 locales (key removals + additions)
+- [x] i18n parity test updated (16 → 18 namespaces)
+- [x] 410 tests pass, TypeScript clean
+
+**Acceptance:** open /dashboard → 5 cards visible (no nav cards), bottom nav shows 5 tabs, FAB shows "🛒 New Sale" label, ComplianceCard shows alerts list OR all-clear with PDF link. Tap Inventory tab → 3-col summary + 5 tiles. Tap Sales tab → Start Sale CTA + today + chart + top + recent + View by date. ✅
 
 ---
 
-### Phase 35a — Sales History Page (daily drill-down) ✅ DONE
+### Phase 36b — Switch User (PENDING — wait for go)
 
-**Goal:** owner picks any date, sees every sale for that date with full detail. Lives at `/sales`.
+**Goal:** make it easy for the owner to hand the phone to a teller (or vice versa) without losing track of who's signed in.
 
-- [x] Decide: "Sales" as 6th BottomNav tab OR linked via a dashboard card. **Dashboard card only.**
-- [x] New DB helper `src/lib/db/sales-history.ts` — `listSalesForDate`, `computeSaleProfit`, `computeDailyTotals`.
-- [x] New page `src/app/(app)/sales/page.tsx` (client, native date picker, URL state, totals strip, collapsible sale rows).
-- [x] New API route `src/app/api/sales/by-date/route.ts` — `GET ?date=YYYY-MM-DD`.
-- [x] Dashboard nav card "Sales History" + "See all →" in LatestSales card.
-- [x] Wire `useRefetchOnVisible` + `emitDataChanged()` on sale-completion POST for live refresh.
-- [x] New `sales` i18n namespace (30 keys) across all 5 locales.
-- [x] `'sales'` added to `TranslationNamespace` union + `LanguageProvider` namespaces array.
-- [x] Types: `SaleWithDetails`, `SaleItemWithProduct`, `DailySalesTotals`.
-- [x] i18n parity test updated (15 → 16 namespaces).
-- [x] Typecheck clean, 389 tests pass.
+- [ ] Login page remembers the last 1–3 people who signed in on this device (just `shop_code + display_name + role` in localStorage; never the password)
+- [ ] Tap a remembered user → fills the login form ready for them to type their password
+- [ ] In-app "Switch user" entry point (signs out, redirects to login)
+- [ ] Decide where the entry point lives: avatar in a top app bar OR an item under /settings (TBD with user)
+- [ ] No schema change
 
-**Acceptance:** open /sales → today's sales appear → pick yesterday → yesterday's sales load → tap a sale → line items with profit visible → all 5 locales render native strings. ✅
-
-**Notes for future sub-phases:**
-- LatestSales no longer shows bare `—` for null-teller sales — it renders localised "No teller recorded". Phase 35b can still investigate *why* some sales land with `teller_id = null` (likely legacy + potentially offline-sync edge case) and add a prevention rule.
-- Offline sale completion doesn't currently emit `data-changed` (happens via background sync). Low priority — the `visibilitychange` listener catches it anyway.
+**Open questions:** Top app bar with avatar (1A) vs Settings page entry (1B)? User answered **1A** — but we deferred building the top app bar to 36b/36c so the structural slot opens up here.
 
 ---
 
-### Phase 35b — Teller Name Display Fix ✅ DONE
+### Phase 36c — Teller Access Requests + Notifications (PENDING — wait for go)
 
-**Investigation outcome:**
-- [x] Queried Supabase REST → 12 sales with `teller_id IS NULL`, spanning 2026-03-24 → 2026-04-24, all online (no offline_id).
-- [x] Confirmed `completeSaleSchema` allows `teller_id: null` (intentional — supports offline-queue replay and edge cases).
-- [x] FK is `REFERENCES tellers(id)` default `NO ACTION`, so deleting a teller doesn't nullify sales (it's blocked instead).
-- [x] Owner gate at [sale/page.tsx:203](src/app/(app)/sale/page.tsx#L203) already prevents owners from reaching the cart without a teller.
-- [x] **Teller gate was missing** — if `/api/tellers/me` auto-select failed, a teller could submit null-teller sales. Added second gate at [sale/page.tsx:211](src/app/(app)/sale/page.tsx#L211) → localised "Could not load your teller record" block screen.
+**Goal:** tellers stay bare-minimum (sales only) by default but can request inventory access from the owner. Owner gets a real-time notification, accepts or rejects.
 
-**Fix:**
-- [x] Display fallback: LatestSales + /sales page render localised "No teller recorded" instead of `—` (done in 35a, verified in 35b).
-- [x] Teller gate added (new `sale.teller_record_missing` key × 5 locales).
-- [x] Schema unchanged (leaving `teller_id` nullable supports legacy rows + offline-queue replay).
-- [x] `tasks/bugs.md` BUG-016 entry with full findings + prevention rule.
+- [ ] New `access_requests` table + RLS + migration (status enum, expires_at)
+- [ ] Teller sees 2 bottom-nav tabs: Sales + Inventory (locked)
+- [ ] Tapping locked Inventory → "Request access" screen → POSTs to /api/access-requests
+- [ ] Real-time notification via Supabase Realtime (zero Vercel cost — listens directly to access_requests inserts)
+- [ ] Floating bell icon on owner pages with badge count + tap → modal listing pending requests
+- [ ] Accept/reject buttons in modal → time-limited grant (4h auto-expire) OR owner can revoke from a list under Manage → Staff
+- [ ] When granted, teller can access /inventory and sub-routes; locked again after expiry/revoke
+- [ ] Offline behaviour: hide "Request access" button when navigator.onLine === false; tellers can still do sales offline
+- [ ] All 5 locales updated
 
-**Acceptance:** no `—` or empty text visible. Null-teller sales render "No teller recorded". Tellers with failed auto-select see a clear block screen instead of the cart. ✅
-
----
-
-### Phase 35c — Monthly Sales & Profit PDF ✅ DONE
-
-**Goal:** one downloadable PDF per calendar month covering every sale, profit, and per-teller summary. Same visual style as the compliance PDF so the owner recognises it.
-
-- [x] New DB helper `src/lib/db/monthly-sales-report.ts` — `getMonthlySalesReport()` + pure `aggregateMonthlyReport()`.
-- [x] New API route `src/app/api/reports/monthly-sales-pdf/route.ts` — `GET ?year=YYYY&month=MM`, dynamic jspdf import, 5-section PDF (Header · Summary · Per-teller · Per-day · Detailed log · Footer on every page).
-- [x] Profit columns hidden entirely when profit tracking is off.
-- [x] Buttons on /sales page: "Download this month (PDF)" + "Previous month (PDF)" — month derived from the currently-viewed date.
-- [x] Subscription gate inherited from proxy (same as compliance-pdf — no extra code).
-- [x] Test stub `tests/unit/monthly-sales-report.test.ts` — 5 tests (empty, rollups, null-cost propagation, null-teller bucket, profit-off).
-- [x] 5 new i18n keys in `sales.json` (title, desc, this_month, prev_month, generating) × 5 locales.
-- [x] 394 tests pass, TypeScript clean.
-
-**Acceptance:** download button produces a PDF that opens in any mobile PDF viewer, totals match the /sales page when summed, profit ties out to `Σ((unit_price - unit_cost) × qty)`. ✅
-
----
-
-## Phase 35 summary
-
-All three sub-phases of Phase 35 are now complete. Owners can:
-- See every sale for any chosen day at `/sales` with full drill-down (35a)
-- Trust that new sales always record the teller (null-teller gap hardened in 35b)
-- Download a per-month PDF with per-day, per-teller, and full detail breakdown (35c)
+**Open questions resolved:**
+- Notifications icon location: top app bar (option A)
+- Teller bottom nav: 2 tabs (Sales + locked Inventory)
+- Access duration: time-limited (4h) AND owner can revoke
+- Real-time vs polling: Supabase Realtime (free tier covers far more concurrent connections than launch will need)
 
 ---
 
 ## Phase Completion Protocol Reminder
 
-After each sub-phase (35a, 35b, 35c): run the full protocol in CLAUDE.md — Glob, file-tree diff, Living Scope check-off, "What was built" note, commit, push, checklist output. **STOP** after each — wait for user to say "start 35b" / "start 35c".
+After each sub-phase: run the full protocol in CLAUDE.md — Glob, file-tree diff, Living Scope check-off, "What was built" note, commit, push, checklist output. **STOP** after each — wait for user to say "start 36b" / "start 36c".
 
 ---
 
-Phases 1–34b + recent UX Tweaks complete. See [ARCHIVE.md](../ARCHIVE.md) for detailed phase summaries.
+Phases 1–35c + recent UX Tweaks complete. See [ARCHIVE.md](../ARCHIVE.md) for detailed phase summaries.

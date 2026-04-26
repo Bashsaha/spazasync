@@ -9,23 +9,16 @@
   "sub_subscription": "subscription",
   "sub_tap_subscribe": "Tap here to subscribe and keep using Movestock.",
 
-  "card_start_sale": "Start a Sale",
-  "card_start_sale_desc": "Scan products and record a sale",
-  "card_check_stock": "Check Stock",
-  "card_check_stock_desc": "See what you have left",
-  "card_count_stock": "Count Stock",
-  "card_count_stock_desc": "Go through your products and update the numbers",
-  "card_products": "Products",
-  "card_products_desc": "Add or change the products you sell",
-  "card_staff": "Staff",
-  "card_staff_desc": "Manage the people who use the till",
-  "card_settings": "Settings",
-  "card_settings_desc": "Change your shop name, stock alerts and more",
-  "card_inspector": "Inspector coming?",
-  "card_inspector_desc": "Download your compliance report PDF — ready in seconds",
-
-  "score_card_title": "Compliance Score",
-  "score_card_hint": "Tap to see what to fix before an inspector arrives",
+  "compliance_action_title": "Action needed",
+  "compliance_action_checklist": "Daily checklist not done today",
+  "compliance_action_documents_one": "{count} business document needs attention",
+  "compliance_action_documents_other": "{count} business documents need attention",
+  "compliance_action_pest": "Pest control visit overdue",
+  "compliance_action_waste": "Waste arrangement needs confirming",
+  "compliance_action_more_one": "+{count} more",
+  "compliance_action_more_other": "+{count} more",
+  "compliance_clear_title": "All compliance up to date",
+  "compliance_clear_hint": "Tap to download your inspector PDF",
 
   "today": "Today",
   "today_made": "made",
@@ -49,20 +42,9 @@
   "expiring_expired": "{count} expired",
   "expiring_soon": "{count} expiring soon",
 
-  "weekly_title": "This week",
-  "weekly_revenue": "Revenue",
-  "weekly_sales": "Sales",
-
-  "top_products_title": "Top sellers this week",
-  "top_products_sold": "sold",
-  "top_products_none": "No sales this week",
-
   "latest_sales_title": "Latest sales",
   "latest_sales_by": "by {name}",
   "latest_sales_none": "No sales recorded yet. Start your first sale!",
   "latest_sales_ago": "{time} ago",
-  "latest_sales_see_all": "See all →",
-
-  "card_sales_history": "Sales History",
-  "card_sales_history_desc": "Pick a day to see every sale and profit"
+  "latest_sales_see_all": "See all →"
 }

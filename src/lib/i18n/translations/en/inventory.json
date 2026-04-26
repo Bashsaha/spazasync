@@ -1,0 +1,20 @@
+{
+  "title": "Inventory",
+  "hint": "Everything you sell, in one place",
+
+  "summary_total_one": "Product",
+  "summary_total_other": "Products",
+  "summary_low": "Low",
+  "summary_expiring": "Expiring",
+
+  "card_stock": "Check Stock",
+  "card_stock_desc": "See what you have left",
+  "card_products": "Products",
+  "card_products_desc": "Add or change the items you sell",
+  "card_count": "Count Stock",
+  "card_count_desc": "Update real numbers from a stock take",
+  "card_expiry": "Expiry Dates",
+  "card_expiry_desc": "Track when products will go bad",
+  "card_suppliers": "Suppliers",
+  "card_suppliers_desc": "People who supply your stock"
+}

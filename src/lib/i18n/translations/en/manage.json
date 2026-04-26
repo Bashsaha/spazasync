@@ -1,0 +1,9 @@
+{
+  "title": "Manage",
+  "hint": "Staff and compliance",
+
+  "card_staff": "Manage Staff",
+  "card_staff_desc": "People who run sales on your phone",
+  "card_compliance": "Manage Compliance",
+  "card_compliance_desc": "Documents, daily checks, inspector report"
+}

@@ -8,18 +8,34 @@ interface NavItem {
   href: string
   labelKey: string
   icon: string
+  /** Other path prefixes that should also light this tab as active. */
+  matches?: string[]
 }
 
 const ownerNav: NavItem[] = [
   { href: '/dashboard', labelKey: 'nav_home', icon: '🏠' },
-  { href: '/sale', labelKey: 'nav_sale', icon: '🧾' },
-  { href: '/stock', labelKey: 'nav_stock', icon: '📦' },
-  { href: '/products', labelKey: 'nav_products', icon: '🏷️' },
-  { href: '/tellers', labelKey: 'nav_staff', icon: '👤' },
-  { href: '/settings', labelKey: 'nav_settings', icon: '⚙️' },
+  {
+    href: '/sales',
+    labelKey: 'nav_sales',
+    icon: '🧾',
+    matches: ['/sales'],
+  },
+  {
+    href: '/inventory',
+    labelKey: 'nav_inventory',
+    icon: '📦',
+    matches: ['/inventory', '/products', '/stock', '/stock-take', '/expiry', '/suppliers'],
+  },
+  {
+    href: '/manage',
+    labelKey: 'nav_manage',
+    icon: '👤',
+    matches: ['/manage', '/tellers', '/inspection', '/checklist', '/documents', '/waste-pest'],
+  },
+  { href: '/settings', labelKey: 'nav_settings', icon: '⚙️', matches: ['/settings', '/subscribe'] },
 ]
 
-const adminExtra: NavItem = { href: '/admin', labelKey: 'nav_admin', icon: '🛡️' }
+const adminExtra: NavItem = { href: '/admin', labelKey: 'nav_admin', icon: '🛡️', matches: ['/admin'] }
 
 interface BottomNavProps {
   role: string
@@ -36,20 +52,21 @@ export function BottomNav({ role, hasShop }: BottomNavProps) {
   if (role === 'admin' && !hasShop) return null
 
   const items = role === 'admin' ? [...ownerNav, adminExtra] : ownerNav
-  const onSalePage = pathname.startsWith('/sale')
+  const onSalePage = pathname.startsWith('/sale') && !pathname.startsWith('/sales')
 
   return (
     <>
       {!onSalePage && (
         <Link
           href="/sale"
-          className="fixed z-50 right-4 bg-blue-600 text-white rounded-full shadow-lg active:bg-blue-700 transition-colors flex items-center justify-center w-14 h-14"
+          className="fixed z-50 right-4 bg-blue-600 text-white rounded-full shadow-lg active:bg-blue-700 transition-colors flex items-center gap-2 pl-4 pr-5 h-14"
           style={{ bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
           aria-label={t('nav_start_sale')}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
           </svg>
+          <span className="text-sm font-bold whitespace-nowrap">{t('nav_new_sale')}</span>
         </Link>
       )}
       <nav
@@ -59,10 +76,16 @@ export function BottomNav({ role, hasShop }: BottomNavProps) {
       >
         <div className="max-w-lg mx-auto flex items-center justify-around">
           {items.map((item) => {
-            const isActive =
-              item.href === '/dashboard'
-                ? pathname === '/dashboard'
-                : pathname.startsWith(item.href)
+            const isActive = (() => {
+              if (item.href === '/dashboard') return pathname === '/dashboard'
+              const prefixes = item.matches ?? [item.href]
+              return prefixes.some((p) =>
+                p === '/sales'
+                  // /sales must NOT light up while on /sale (the actual sale flow)
+                  ? pathname === '/sales' || pathname.startsWith('/sales/')
+                  : pathname === p || pathname.startsWith(p + '/'),
+              )
+            })()
             const label = t(item.labelKey)
 
             return (

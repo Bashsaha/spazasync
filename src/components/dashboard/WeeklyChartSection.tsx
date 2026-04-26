@@ -7,7 +7,7 @@ export async function WeeklyChartSection({ shopId, locale }: { shopId: string; l
   try {
     const [weeklyData, { t }] = await Promise.all([
       getWeeklySalesForShop(shopId),
-      getServerTranslations(locale, ['dashboard']),
+      getServerTranslations(locale, ['sales']),
     ])
 
     return (
@@ -15,7 +15,14 @@ export async function WeeklyChartSection({ shopId, locale }: { shopId: string; l
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
           {t('weekly_title')}
         </p>
-        <WeeklySalesChart data={weeklyData} />
+        <WeeklySalesChart
+          data={weeklyData}
+          labels={{
+            noData: t('weekly_no_data'),
+            saleOne: t('weekly_sale_one'),
+            saleOther: t('weekly_sale_other'),
+          }}
+        />
       </div>
     )
   } catch {

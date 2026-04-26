@@ -1,6 +1,25 @@
 {
-  "title": "Sales history",
+  "title": "Sales",
+  "hint": "Today's sales, this week, and history",
   "back": "← Back",
+
+  "hub_start_sale": "Start a Sale",
+  "hub_start_sale_desc": "Scan products and record a sale",
+  "hub_view_history": "View by date",
+  "hub_view_history_desc": "See every sale on any chosen day",
+
+  "weekly_title": "This week",
+  "weekly_revenue": "Revenue",
+  "weekly_sales": "Sales",
+  "weekly_no_data": "No sales this week yet",
+  "weekly_sale_one": "sale",
+  "weekly_sale_other": "sales",
+
+  "top_products_title": "Top sellers this week",
+  "top_products_sold": "sold",
+  "top_products_none": "No sales this week",
+
+  "history_title": "Sales history",
   "pick_date": "Pick a day",
   "today": "Today",
   "yesterday": "Yesterday",

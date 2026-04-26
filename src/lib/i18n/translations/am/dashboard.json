@@ -9,23 +9,16 @@
   "sub_subscription": "ምዝገባዎ",
   "sub_tap_subscribe": "Movestock መጠቀም ለመቀጠል እዚህ ይንኩ እና ይመዝገቡ።",
 
-  "card_start_sale": "ሽያጭ ጀምር",
-  "card_start_sale_desc": "እቃዎችን ቃኝ እና ሽያጭ መዝግብ",
-  "card_check_stock": "ክምችት ይመልከቱ",
-  "card_check_stock_desc": "ምን እንደሚቀርዎት ይመልከቱ",
-  "card_count_stock": "ክምችት ቁጠር",
-  "card_count_stock_desc": "እቃዎችዎን ይመልከቱ እና ቁጥሮችን ያዘምኑ",
-  "card_products": "እቃዎች",
-  "card_products_desc": "የሚሸጧቸውን እቃዎች ይጨምሩ ወይም ይቀይሩ",
-  "card_staff": "ሰራተኞች",
-  "card_staff_desc": "መመዝገቢያውን የሚጠቀሙ ሰዎችን ያስተዳድሩ",
-  "card_settings": "ቅንብሮች",
-  "card_settings_desc": "የሱቅ ስምዎን፣ የክምችት ማስጠንቀቂያዎችን እና ሌሎችን ይቀይሩ",
-  "card_inspector": "ተቆጣጣሪ ይመጣል?",
-  "card_inspector_desc": "የፈቃድ ሪፖርት PDF ያውርዱ — በሰከንዶች ዝግጁ",
-
-  "score_card_title": "የአገዛዝ ነጥብ",
-  "score_card_hint": "ተቆጣጣሪ ከመምጣቱ በፊት ምን ማስተካከል እንዳለብዎ ለማየት ይንኩ",
+  "compliance_action_title": "እርምጃ ያስፈልጋል",
+  "compliance_action_checklist": "የዕለት ቼክሊስት ዛሬ አልተሰራም",
+  "compliance_action_documents_one": "{count} የንግድ ሰነድ ትኩረት ይፈልጋል",
+  "compliance_action_documents_other": "{count} የንግድ ሰነዶች ትኩረት ይፈልጋሉ",
+  "compliance_action_pest": "የተባይ ቁጥጥር ጉብኝት ጊዜው አልፎበታል",
+  "compliance_action_waste": "የቆሻሻ ዝግጅት ማረጋገጫ ይፈልጋል",
+  "compliance_action_more_one": "+{count} ተጨማሪ",
+  "compliance_action_more_other": "+{count} ተጨማሪ",
+  "compliance_clear_title": "ሁሉም ተገዢነት ወቅታዊ ነው",
+  "compliance_clear_hint": "የተቆጣጣሪ PDF ለማውረድ ይንኩ",
 
   "today": "ዛሬ",
   "today_made": "አገኙ",
@@ -49,20 +42,9 @@
   "expiring_expired": "{count} ጊዜያቸው አልፏል",
   "expiring_soon": "{count} በቅርቡ ጊዜያቸው ያልፋል",
 
-  "weekly_title": "ይህ ሳምንት",
-  "weekly_revenue": "ገቢ",
-  "weekly_sales": "ሽያጮች",
-
-  "top_products_title": "በዚህ ሳምንት ከፍተኛ ሽያጭ ያላቸው",
-  "top_products_sold": "ተሽጧል",
-  "top_products_none": "በዚህ ሳምንት ሽያጭ የለም",
-
   "latest_sales_title": "የቅርብ ሽያጮች",
   "latest_sales_by": "በ{name}",
   "latest_sales_none": "ገና ሽያጭ አልተመዘገበም። የመጀመሪያ ሽያጭዎን ይጀምሩ!",
   "latest_sales_ago": "ከ{time} በፊት",
-  "latest_sales_see_all": "ሁሉንም ይመልከቱ →",
-
-  "card_sales_history": "የሽያጭ ታሪክ",
-  "card_sales_history_desc": "ቀን ይምረጡ እና እያንዳንዱን ሽያጭ እና ትርፍ ይመልከቱ"
+  "latest_sales_see_all": "ሁሉንም ይመልከቱ →"
 }

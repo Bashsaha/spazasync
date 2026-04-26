@@ -9,23 +9,16 @@
   "sub_subscription": "qoraalkaaga",
   "sub_tap_subscribe": "Taabo halkan si aad u rukumo oo aad u sii isticmaashid Movestock.",
 
-  "card_start_sale": "Bilow Iib",
-  "card_start_sale_desc": "Sawir walxaha oo diiwaan geli iibin",
-  "card_check_stock": "Hubi Kaydka",
-  "card_check_stock_desc": "Eeg waxa aad haysato",
-  "card_count_stock": "Tiri Kaydka",
-  "card_count_stock_desc": "Mari walxahaaga oo cusboonaysii tirooyinka",
-  "card_products": "Walxaha",
-  "card_products_desc": "Ku dar ama beddel walxaha aad iibiso",
-  "card_staff": "Shaqaale",
-  "card_staff_desc": "Maamul dadka isticmaala xisaabiyaha",
-  "card_settings": "Xulashooyin",
-  "card_settings_desc": "Beddel magaca dukaanka, digniinta kaydka iyo wax badan",
-  "card_inspector": "Kormeere ma imanayaa?",
-  "card_inspector_desc": "Soo dejiso warbixinta raaliyaynta PDF — diyaar ilbiriqsiyo gudahood",
-
-  "score_card_title": "Dhibcaha U Hoggaansanaanta",
-  "score_card_hint": "Taabo si aad u aragto waxa aad u baahan tahay inaad hagaajiso ka hor kormeeraha",
+  "compliance_action_title": "Wax baa loo baahan yahay",
+  "compliance_action_checklist": "Hubinta maalintii lama dhammeeyn maanta",
+  "compliance_action_documents_one": "{count} warqad ganacsi ayaa u baahan dareen",
+  "compliance_action_documents_other": "{count} warqado ganacsi ayaa u baahan dareen",
+  "compliance_action_pest": "Booqashada xakamaynta cayayaanka waa daahday",
+  "compliance_action_waste": "Habka qashinka wuxuu u baahan yahay xaqiijin",
+  "compliance_action_more_one": "+{count} kale",
+  "compliance_action_more_other": "+{count} kale",
+  "compliance_clear_title": "Raaliyaynta oo dhan way fiican tahay",
+  "compliance_clear_hint": "Taabo si aad u soo dejiso PDF kormeere",
 
   "today": "Maanta",
   "today_made": "kasbaday",
@@ -49,20 +42,9 @@
   "expiring_expired": "{count} ayaa dhacay",
   "expiring_soon": "{count} ayaa dhowaan dhacaya",
 
-  "weekly_title": "Toddobaadkan",
-  "weekly_revenue": "Dakhliga",
-  "weekly_sales": "Iibinta",
-
-  "top_products_title": "Walxaha ugu badnaa iibka toddobaadkan",
-  "top_products_sold": "la iibiyay",
-  "top_products_none": "Toddobaadkan iib lama sameyn",
-
   "latest_sales_title": "Iibinta ugu dambeysay",
   "latest_sales_by": "oo uu sameeyay {name}",
   "latest_sales_none": "Weli iib lama diiwaangelin. Bilow iibintaada ugu horreysa!",
   "latest_sales_ago": "{time} ka hor",
-  "latest_sales_see_all": "Arag dhammaan →",
-
-  "card_sales_history": "Taariikhda iibka",
-  "card_sales_history_desc": "Dooro maalin si aad u aragto iibka iyo faa'iidada"
+  "latest_sales_see_all": "Arag dhammaan →"
 }

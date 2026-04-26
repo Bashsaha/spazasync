@@ -1,12 +1,16 @@
 {
   "nav_home": "ہوم",
   "nav_sale": "فروخت",
+  "nav_sales": "فروخت",
   "nav_stock": "اسٹاک",
   "nav_products": "مصنوعات",
+  "nav_inventory": "اسٹاک",
   "nav_staff": "عملہ",
+  "nav_manage": "انتظام",
   "nav_admin": "ایڈمن",
   "nav_settings": "ترتیبات",
   "nav_start_sale": "فروخت شروع کریں",
+  "nav_new_sale": "نئی فروخت",
 
   "back": "واپس",
   "save": "محفوظ کریں",

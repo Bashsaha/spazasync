@@ -1,0 +1,20 @@
+{
+  "title": "ክምችት",
+  "hint": "የሚሸጡት ሁሉ በአንድ ቦታ",
+
+  "summary_total_one": "ምርት",
+  "summary_total_other": "ምርቶች",
+  "summary_low": "ዝቅተኛ",
+  "summary_expiring": "እያለቀ",
+
+  "card_stock": "ክምችት ይመልከቱ",
+  "card_stock_desc": "ምን እንደቀረዎት ይይቱ",
+  "card_products": "ምርቶች",
+  "card_products_desc": "የሚሸጧቸውን ምርቶች ይጨምሩ ወይም ይቀይሩ",
+  "card_count": "ክምችት ቆጥር",
+  "card_count_desc": "ከእውነተኛ ቆጠራ ቁጥሮችን ያዘምኑ",
+  "card_expiry": "የማብቂያ ቀኖች",
+  "card_expiry_desc": "ምርቶች መቼ እንደሚበላሹ ይከታተሉ",
+  "card_suppliers": "አቅራቢዎች",
+  "card_suppliers_desc": "ለክምችትዎ የሚያቀርቡ ሰዎች"
+}

@@ -15,14 +15,24 @@ interface TooltipPayload {
   payload?: WeeklyDataPoint
 }
 
+interface ChartLabels {
+  noData: string
+  saleOne: string
+  saleOther: string
+}
+
 function CustomTooltip({
   active,
   payload,
   label,
+  saleOne,
+  saleOther,
 }: {
   active?: boolean
   payload?: TooltipPayload[]
   label?: string
+  saleOne: string
+  saleOther: string
 }) {
   if (!active || !payload || payload.length === 0) return null
   const revenue = payload[0]?.value ?? 0
@@ -31,18 +41,24 @@ function CustomTooltip({
     <div className="bg-white border border-gray-100 rounded-xl px-3 py-2 shadow-sm text-xs">
       <p className="font-semibold text-gray-700">{label}</p>
       <p className="text-blue-700">R {Number(revenue).toFixed(2)}</p>
-      <p className="text-gray-400">{salesCount} {salesCount === 1 ? 'sale' : 'sales'}</p>
+      <p className="text-gray-400">{salesCount} {salesCount === 1 ? saleOne : saleOther}</p>
     </div>
   )
 }
 
-export function WeeklySalesChart({ data }: { data: WeeklyDataPoint[] }) {
+export function WeeklySalesChart({
+  data,
+  labels,
+}: {
+  data: WeeklyDataPoint[]
+  labels: ChartLabels
+}) {
   const hasData = data.some((d) => d.revenue > 0)
 
   if (!hasData) {
     return (
       <div className="h-40 flex items-center justify-center text-sm text-gray-300">
-        No sales this week yet
+        {labels.noData}
       </div>
     )
   }
@@ -62,7 +78,10 @@ export function WeeklySalesChart({ data }: { data: WeeklyDataPoint[] }) {
           tickLine={false}
           tickFormatter={(v: number) => (v >= 1000 ? `R${(v / 1000).toFixed(0)}k` : `R${v}`)}
         />
-        <Tooltip content={<CustomTooltip />} cursor={{ fill: '#eff6ff' }} />
+        <Tooltip
+          content={<CustomTooltip saleOne={labels.saleOne} saleOther={labels.saleOther} />}
+          cursor={{ fill: '#eff6ff' }}
+        />
         <Bar dataKey="revenue" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={36} />
       </BarChart>
     </ResponsiveContainer>

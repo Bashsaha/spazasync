@@ -1,6 +1,25 @@
 {
-  "title": "فروخت کی تاریخ",
+  "title": "فروخت",
+  "hint": "آج کی فروخت، اس ہفتے، اور تاریخ",
   "back": "← واپس",
+
+  "hub_start_sale": "فروخت شروع کریں",
+  "hub_start_sale_desc": "پروڈکٹس اسکین کریں اور فروخت ریکارڈ کریں",
+  "hub_view_history": "تاریخ کے حساب سے دیکھیں",
+  "hub_view_history_desc": "کسی بھی منتخب دن کی ہر فروخت دیکھیں",
+
+  "weekly_title": "اس ہفتے",
+  "weekly_revenue": "آمدنی",
+  "weekly_sales": "فروختیں",
+  "weekly_no_data": "اس ہفتے ابھی تک کوئی فروخت نہیں",
+  "weekly_sale_one": "فروخت",
+  "weekly_sale_other": "فروختیں",
+
+  "top_products_title": "اس ہفتے سب سے زیادہ بکنے والی",
+  "top_products_sold": "فروخت ہوئیں",
+  "top_products_none": "اس ہفتے کوئی فروخت نہیں",
+
+  "history_title": "فروخت کی تاریخ",
   "pick_date": "دن منتخب کریں",
   "today": "آج",
   "yesterday": "کل",

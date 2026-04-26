@@ -1,0 +1,20 @@
+{
+  "title": "Kaydka",
+  "hint": "Wax kasta oo aad iibiso, hal meel",
+
+  "summary_total_one": "Walax",
+  "summary_total_other": "Walxood",
+  "summary_low": "Hooseeya",
+  "summary_expiring": "Dhacaya",
+
+  "card_stock": "Hubi Kaydka",
+  "card_stock_desc": "Eeg waxa aad haysato",
+  "card_products": "Walxaha",
+  "card_products_desc": "Ku dar ama beddel walxaha aad iibiso",
+  "card_count": "Tiri Kaydka",
+  "card_count_desc": "Cusboonaysii tirooyinka kayd dhabta ah",
+  "card_expiry": "Taariikhaha Dhicitaanka",
+  "card_expiry_desc": "La socod marka walxuhu dhacayaan",
+  "card_suppliers": "Alaabbixiyeyaasha",
+  "card_suppliers_desc": "Dadka ku siiya kaydkaaga"
+}

@@ -9,23 +9,16 @@
   "sub_subscription": "سبسکرپشن",
   "sub_tap_subscribe": "Movestock استعمال جاری رکھنے کے لیے یہاں ٹیپ کریں اور سبسکرائب کریں۔",
 
-  "card_start_sale": "فروخت شروع کریں",
-  "card_start_sale_desc": "پروڈکٹس اسکین کریں اور فروخت ریکارڈ کریں",
-  "card_check_stock": "اسٹاک چیک کریں",
-  "card_check_stock_desc": "دیکھیں آپ کے پاس کیا باقی ہے",
-  "card_count_stock": "اسٹاک گنیں",
-  "card_count_stock_desc": "اپنی پروڈکٹس سے گزریں اور تعداد اپ ڈیٹ کریں",
-  "card_products": "پروڈکٹس",
-  "card_products_desc": "جو پروڈکٹس آپ بیچتے ہیں انہیں شامل یا تبدیل کریں",
-  "card_staff": "عملہ",
-  "card_staff_desc": "ٹل استعمال کرنے والے لوگوں کا انتظام کریں",
-  "card_settings": "سیٹنگز",
-  "card_settings_desc": "اپنی دکان کا نام، اسٹاک الرٹس اور مزید تبدیل کریں",
-  "card_inspector": "معائنہ کار آ رہا ہے؟",
-  "card_inspector_desc": "اپنی کمپلائنس رپورٹ PDF ڈاؤن لوڈ کریں — سیکنڈوں میں تیار",
-
-  "score_card_title": "تعمیل اسکور",
-  "score_card_hint": "معائنہ کار کے آنے سے پہلے کیا درست کرنا ہے دیکھنے کے لیے ٹیپ کریں",
+  "compliance_action_title": "کارروائی درکار",
+  "compliance_action_checklist": "آج کی روزانہ چیک لسٹ مکمل نہیں",
+  "compliance_action_documents_one": "{count} کاروباری دستاویز کو توجہ درکار ہے",
+  "compliance_action_documents_other": "{count} کاروباری دستاویزات کو توجہ درکار ہے",
+  "compliance_action_pest": "کیڑے مار کنٹرول کا دورہ تاخیر کا شکار",
+  "compliance_action_waste": "فضلہ کے انتظام کی تصدیق درکار",
+  "compliance_action_more_one": "+{count} مزید",
+  "compliance_action_more_other": "+{count} مزید",
+  "compliance_clear_title": "تمام تعمیل اپ ٹو ڈیٹ ہے",
+  "compliance_clear_hint": "اپنی انسپکٹر PDF ڈاؤن لوڈ کرنے کے لیے ٹیپ کریں",
 
   "today": "آج",
   "today_made": "کمائے",
@@ -49,20 +42,9 @@
   "expiring_expired": "{count} کی میعاد ختم",
   "expiring_soon": "{count} جلد میعاد ختم",
 
-  "weekly_title": "اس ہفتے",
-  "weekly_revenue": "آمدنی",
-  "weekly_sales": "فروختیں",
-
-  "top_products_title": "اس ہفتے سب سے زیادہ بکنے والی",
-  "top_products_sold": "فروخت ہوئیں",
-  "top_products_none": "اس ہفتے کوئی فروخت نہیں",
-
   "latest_sales_title": "حالیہ فروختیں",
   "latest_sales_by": "{name} کی طرف سے",
   "latest_sales_none": "ابھی تک کوئی فروخت ریکارڈ نہیں ہوئی۔ اپنی پہلی فروخت شروع کریں!",
   "latest_sales_ago": "{time} پہلے",
-  "latest_sales_see_all": "سب دیکھیں →",
-
-  "card_sales_history": "فروخت کی تاریخ",
-  "card_sales_history_desc": "ہر فروخت اور منافع دیکھنے کے لیے دن منتخب کریں"
+  "latest_sales_see_all": "سب دیکھیں →"
 }

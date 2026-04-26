@@ -1,0 +1,20 @@
+{
+  "title": "Isitoko",
+  "hint": "Konke okuthengisayo, endaweni eyodwa",
+
+  "summary_total_one": "Umkhiqizo",
+  "summary_total_other": "Imikhiqizo",
+  "summary_low": "Aphansi",
+  "summary_expiring": "Aphelelwa",
+
+  "card_stock": "Bheka Isitoko",
+  "card_stock_desc": "Bona okusele kuwe",
+  "card_products": "Imikhiqizo",
+  "card_products_desc": "Engeza noma shintsha izinto ozithengisayo",
+  "card_count": "Bala Isitoko",
+  "card_count_desc": "Buyekeza izinombolo ngokubala kwangempela",
+  "card_expiry": "Izinsuku Zokuphela",
+  "card_expiry_desc": "Landelela ukuthi imikhiqizo iphelelwa nini",
+  "card_suppliers": "Abahlinzeki",
+  "card_suppliers_desc": "Abantu abakunika isitoko"
+}

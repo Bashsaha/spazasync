@@ -346,6 +346,7 @@ At the start of every session:
 - [x] Phase 35b: Teller Name Display Fix + teller gate hardening
 - [x] Phase 35c: Monthly Sales & Profit PDF
 - [x] UX Tweak: Owner teller auto-select on /sale
+- [x] Phase 36a: Navigation Restructure (5-tab nav, hubs, dashboard cleanup, extended FAB)
 
 All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
 
@@ -396,6 +397,9 @@ All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
 ### UX Tweak — Inline "Add supplier" modal (2026-04-24)
 **What was built:** Fixed a broken mid-flow: on `/stock/[id]` (and the product new/edit forms), the "Manage suppliers" link dumped users to the `/suppliers` list, whose back button is hardcoded to `/settings` — so after adding a supplier mid-stock-top-up the user landed in Settings and lost their stock page entirely. New shared component `src/components/NewSupplierModal.tsx` — bottom-sheet (mirrors the `NewProductModal` pattern from the sale page) with the full supplier form (name required, phone/type/location optional), POSTs to `/api/suppliers`, calls `onCreated(supplier)`. Wired into three pages — `stock/[id]`, `products/new`, `products/[id]` — each now shows a **+ New supplier** button alongside the existing **Manage suppliers ›** link. On save the new supplier is pushed into local `suppliers` state (sorted by name) and auto-selected in the dropdown. One new i18n key `products.btn_add_supplier` in all 5 locales (en/so/am/zu/ur); the modal itself reuses existing `suppliers` namespace keys (add_title/add_desc/label_*/placeholder_*/type_*/btn_create/btn_creating/error_*). "Manage suppliers" link kept intact — it's still the right path when the user genuinely wants to edit/delete existing records; the underlying `/suppliers` back-to-Settings behaviour is unchanged since the fast path no longer touches that page. 381 tests pass (137 i18n parity), TypeScript clean.
 
+### Phase 36a — Navigation Restructure & Dashboard Cleanup (2026-04-26)
+**What was built:** First sub-phase of a WhatsApp-inspired UX overhaul. **No schema, no migrations** — purely a navigation + dashboard reorg. **5-tab BottomNav** (was 6, with 9 duplicate dashboard cards): 🏠 Home → /dashboard, 🧾 Sales → /sales (hub), 📦 Inventory → /inventory (hub: Stock/Products/Count/Expiry/Suppliers), 👤 Manage → /manage (hub: Staff + Compliance), ⚙️ Settings → /settings. Active-state logic uses an explicit `matches` array per nav item so deep routes light their parent tab (e.g. `/products` lights Inventory). **Extended FAB** (was a plain `+` icon) — now a pill button "🛒 New Sale" with the label visible so non-technical users can read what it does; positioned bottom-right above the nav with the same BUG-014 safe-area math; hidden on the actual `/sale` flow but visible on `/sales` (hub). New shared **ComplianceCard** ([src/components/dashboard/ComplianceCard.tsx](src/components/dashboard/ComplianceCard.tsx)) replaces 5 separate dashboard alerts (ComplianceScoreCard, ChecklistStatus, DocumentComplianceStatus, PestControlReminder, WasteConfirmReminder — all deleted). Two states, same slot, both link to `/inspection`: **alerts state** (score ring + "Action needed" + bullet list of up to 3 issues + "+N more" overflow) when the daily checklist is missing today / docs need attention / pest visit overdue / waste arrangement stale; **all-clear state** (score ring + "All compliance up to date — Tap to download your inspector PDF") when nothing's wrong. So the user always sees a compliance card and always knows where the PDF lives. **New `/inventory` hub** ([src/app/(app)/inventory/page.tsx](src/app/(app)/inventory/page.tsx)) — server component with a 3-column summary strip (Total products / Low / Expiring — colour-coded amber when low > 0, red when expiring > 0) and tile grid linking to Stock, Products, Count Stock, Expiry Dates, Suppliers. **New `/manage` hub** ([src/app/(app)/manage/page.tsx](src/app/(app)/manage/page.tsx)) — two-tile static hub: Manage Staff → /tellers, Manage Compliance → /inspection. **`/sales` rewrite** — was a date-picker drill-down, now a hub server component (Start Sale CTA → today's totals → weekly chart → top products → latest sales → "View by date" → /sales/history). Existing drill-down moved verbatim to **/sales/history** (back link updated /dashboard → /sales, title key 'title' → 'history_title'). Monthly PDF download buttons stay on /sales/history where the date context lives. **Dashboard slimmed** from 9 nav cards + 13 alert/data sections to 5 informational cards: shop name + staff code header → subscription warning (conditional) → ComplianceCard → TodaySummary → LowStockAlert (conditional) → ExpiringAlert (conditional) → LatestSales (with "See all →" → /sales/history). Weekly chart and Top Products **moved to /sales hub** since they're sales data. **Proxy bug fix** — `TELLER_ALLOWED_ROUTES` matching used `pathname.startsWith('/sale')` which also matched `/sales` (the new hub); tightened to exact-match + trailing-slash so tellers stay on `/sale` only. **i18n:** 2 new namespaces (`inventory`, `manage`) × 5 locales = 10 new JSON files; new keys in `common.json` (nav_sales/nav_inventory/nav_manage/nav_new_sale × 5); `dashboard.json` rewritten in 5 locales (removed 16 card_* keys + 6 weekly/top_products keys + 2 score_card keys; added 10 unified compliance card keys); `sales.json` extended in 5 locales (added 4 hub keys + 6 weekly keys + 3 top_products keys + history_title; renamed title from "Sales history" → "Sales"). `'inventory'` and `'manage'` added to `TranslationNamespace` union and the `LanguageProvider` namespaces array in `(app)/layout.tsx`. i18n parity test updated (16 → 18 namespaces). **Component changes for namespace move**: `WeeklyChartSection` and `TopProducts` switched from `'dashboard'` to `'sales'` namespace; `WeeklySalesChart` (client) gained a `labels` prop for translated tooltip strings (replaced hardcoded "No sales this week yet"/"sale"/"sales"); `LatestSales` "See all →" href flipped /sales → /sales/history. **Tellers untouched** (still locked to /sale only) — their bottom-nav changes ship in Phase 36c with the access-request flow. 410 tests pass (was 394 — +16 from new namespace parity), TypeScript clean.
+
 ### UX Tweak — Owner teller auto-select on /sale (2026-04-25)
 **What was built:** Finishing the "owner is a teller with more access" design that was half-implemented — onboarding ([api/onboarding/route.ts:140](src/app/api/onboarding/route.ts#L140)) already auto-creates a teller row for the owner with `user_id = auth.user.id`, but `useActiveTeller` never auto-selected it. Owners had to tap their own name in the `TellerSelector` every session, and if they forgot or cleared it, sales landed with `teller_id = null`. Two-part fix: (1) extended the `role === 'owner'` branch in [useActiveTeller.ts](src/hooks/useActiveTeller.ts) — when sessionStorage is empty, fetch `/api/tellers` and auto-select the row where `user_id === auth.user.id && active`, caching the choice so future reloads are instant. Silently falls through to the `TellerSelector` if the auto-fetch fails or no matching row exists (legacy shops without an owner teller). (2) Defensive submit guard in [sale/page.tsx handleCompleteSale](src/app/(app)/sale/page.tsx) — if `activeTeller` is somehow null at POST time (race condition, state de-sync), refuse to submit and reshow the "Select who is serving" prompt instead of POSTing a null-teller sale. Render-time gate from 35b stays as the primary defence. No new i18n keys — reuses existing `sale.select_teller`. No schema change, no migration — the owner teller row already existed in the user's shop (Supabase REST verified: `bashier` teller, user_id matching owner). 394 tests pass, TypeScript clean.
 
@@ -420,7 +424,7 @@ All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summ
 
 ## Current File Tree
 
-_Last updated: UX Tweak — Owner teller auto-select on /sale (2026-04-25)_
+_Last updated: Phase 36a — Navigation Restructure & Dashboard Cleanup (2026-04-26)_
 
 ```
 spaza shop/
@@ -508,7 +512,13 @@ spaza shop/
 │   │   │   │   ├── page.tsx        # Score badge + pre-check + Download PDF (Phase 34a)
 │   │   │   │   └── loading.tsx
 │   │   │   ├── sales/
-│   │   │   │   └── page.tsx        # Sales history with date picker + drill-down (Phase 35a)
+│   │   │   │   ├── page.tsx        # Sales hub: Start Sale CTA + today's totals + chart + top products + latest sales + View by date link (Phase 36a)
+│   │   │   │   └── history/page.tsx # Sales history with date picker + drill-down (was /sales in Phase 35a, moved to /sales/history in Phase 36a)
+│   │   │   ├── inventory/
+│   │   │   │   ├── page.tsx        # Inventory hub: 3-col summary strip + tile grid (Phase 36a)
+│   │   │   │   └── loading.tsx
+│   │   │   ├── manage/
+│   │   │   │   └── page.tsx        # Manage hub: Staff + Compliance tiles (Phase 36a)
 │   │   │   └── admin/
 │   │   │       ├── layout.tsx      # Admin layout (AdminNav + max-w-4xl)
 │   │   │       ├── loading.tsx
@@ -619,18 +629,14 @@ spaza shop/
 │   │   ├── admin/
 │   │   │   └── AdminNav.tsx               # Overview | Shops | Catalog + sign out
 │   │   ├── dashboard/
-│   │   │   ├── WeeklySalesChart.tsx        # recharts bar chart (client component)
+│   │   │   ├── WeeklySalesChart.tsx        # recharts bar chart (client) — accepts translated labels prop (Phase 36a)
 │   │   │   ├── TodaySummary.tsx           # Async server — today's revenue/sales/tellers
 │   │   │   ├── LowStockAlert.tsx          # Async server — low/out-of-stock alert
 │   │   │   ├── ExpiringAlert.tsx          # Async server — expiring products alert
-│   │   │   ├── ChecklistStatus.tsx        # Async server — daily checklist status (Phase 31)
-│   │   │   ├── DocumentComplianceStatus.tsx # Async server — business docs traffic light (Phase 32)
-│   │   │   ├── PestControlReminder.tsx    # Async server — 90-day pest visit amber banner (Phase 33)
-│   │   │   ├── WasteConfirmReminder.tsx   # Async server — 30-day waste confirmation banner (Phase 33)
-│   │   │   ├── ComplianceScoreCard.tsx    # Async server — circular score ring at top of dashboard (Phase 34a)
-│   │   │   ├── WeeklyChartSection.tsx     # Async server — wraps WeeklySalesChart
-│   │   │   ├── TopProducts.tsx            # Async server — top products this week
-│   │   │   └── LatestSales.tsx            # Async server — recent sales + empty state
+│   │   │   ├── ComplianceCard.tsx         # Async server — UNIFIED card: score ring + alerts list OR all-clear+PDF link (Phase 36a, replaces 5 separate cards)
+│   │   │   ├── WeeklyChartSection.tsx     # Async server — wraps WeeklySalesChart (now in /sales hub, uses 'sales' namespace)
+│   │   │   ├── TopProducts.tsx            # Async server — top products this week (now in /sales hub, uses 'sales' namespace)
+│   │   │   └── LatestSales.tsx            # Async server — recent sales + empty state ("See all →" → /sales/history)
 │   │   ├── LanguagePicker.tsx               # Language selection (full + compact variants)
 │   │   ├── ExpiryEntryList.tsx             # Repeatable expiry date + qty rows (shared)
 │   │   ├── BottomNav.tsx                   # Owner nav (5 tabs + Admin for dual-role)
@@ -697,14 +703,15 @@ spaza shop/
 │   │   │   ├── loader.ts                  # loadTranslation(), loadTranslations() — dynamic import + cache
 │   │   │   ├── server.ts                  # getServerLocale(), getServerTranslations() — for server components
 │   │   │   └── translations/
-│   │   │       ├── en/                    # English namespace files (16 JSON files)
+│   │   │       ├── en/                    # English namespace files (18 JSON files)
 │   │   │       │   ├── common.json, auth.json, sale.json, sales.json, dashboard.json, settings.json
 │   │   │       │   ├── stock.json, products.json, tellers.json, expiry.json, summary.json
-│   │   │       │   └── suppliers.json, checklist.json, documents.json, waste-pest.json, inspection.json
-│   │   │       ├── so/                    # Somali  (16 namespaces — adds sales in Phase 35a)
-│   │   │       ├── am/                    # Amharic (16 namespaces — adds sales in Phase 35a)
-│   │   │       ├── zu/                    # IsiZulu (16 namespaces — adds sales in Phase 35a)
-│   │   │       └── ur/                    # Urdu    (16 namespaces — adds sales in Phase 35a)
+│   │   │       │   ├── suppliers.json, checklist.json, documents.json, waste-pest.json, inspection.json
+│   │   │       │   └── inventory.json, manage.json    # Phase 36a hub namespaces
+│   │   │       ├── so/                    # Somali  (18 namespaces — adds inventory + manage in Phase 36a)
+│   │   │       ├── am/                    # Amharic (18 namespaces — adds inventory + manage in Phase 36a)
+│   │   │       ├── zu/                    # IsiZulu (18 namespaces — adds inventory + manage in Phase 36a)
+│   │   │       └── ur/                    # Urdu    (18 namespaces — adds inventory + manage in Phase 36a)
 │   │   ├── events.ts                      # Tiny in-tab event bus for mutation → list refresh
 │   │   ├── validation/
 │   │   │   └── schemas.ts                 # All Zod schemas

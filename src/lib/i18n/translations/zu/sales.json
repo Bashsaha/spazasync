@@ -1,6 +1,25 @@
 {
-  "title": "Umlando wokudayisa",
+  "title": "Ukudayisa",
+  "hint": "Ukudayisa kwanamuhla, leli sonto, nomlando",
   "back": "← Emuva",
+
+  "hub_start_sale": "Qala Ukudayisa",
+  "hub_start_sale_desc": "Skena imikhiqizo futhi urekhode ukudayisa",
+  "hub_view_history": "Bheka ngosuku",
+  "hub_view_history_desc": "Bona konke ukudayisa ngosuku olukhethile",
+
+  "weekly_title": "Leli sonto",
+  "weekly_revenue": "Imali engenayo",
+  "weekly_sales": "Ukudayisa",
+  "weekly_no_data": "Akukho ukudayisa kuleli sonto okwamanje",
+  "weekly_sale_one": "ukudayisa",
+  "weekly_sale_other": "ukudayisa",
+
+  "top_products_title": "Okudayisa kakhulu leli sonto",
+  "top_products_sold": "kudayisiwe",
+  "top_products_none": "Akukho ukudayisa leli sonto",
+
+  "history_title": "Umlando wokudayisa",
   "pick_date": "Khetha usuku",
   "today": "Namuhla",
   "yesterday": "Izolo",

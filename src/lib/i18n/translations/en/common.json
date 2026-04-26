@@ -1,12 +1,16 @@
 {
   "nav_home": "Home",
   "nav_sale": "Sale",
+  "nav_sales": "Sales",
   "nav_stock": "Stock",
   "nav_products": "Products",
+  "nav_inventory": "Inventory",
   "nav_staff": "Staff",
+  "nav_manage": "Manage",
   "nav_admin": "Admin",
   "nav_settings": "Settings",
   "nav_start_sale": "Start a sale",
+  "nav_new_sale": "New Sale",
 
   "back": "Back",
   "save": "Save",

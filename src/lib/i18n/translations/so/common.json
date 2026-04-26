@@ -1,12 +1,16 @@
 {
   "nav_home": "Guriga",
   "nav_sale": "Iibinta",
+  "nav_sales": "Iibinta",
   "nav_stock": "Kaydka",
   "nav_products": "Alaabta",
+  "nav_inventory": "Kaydka",
   "nav_staff": "Shaqaalaha",
+  "nav_manage": "Maamul",
   "nav_admin": "Maamulka",
   "nav_settings": "Dejinta",
   "nav_start_sale": "Bilow iibinta",
+  "nav_new_sale": "Iib Cusub",
 
   "back": "Dib u noqo",
   "save": "Kaydi",

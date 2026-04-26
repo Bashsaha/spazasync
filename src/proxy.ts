@@ -86,7 +86,11 @@ export async function proxy(request: NextRequest) {
 
   // ── Teller route enforcement ───────────────────────────────
   if (role === 'teller') {
-    const allowed = TELLER_ALLOWED_ROUTES.some((r) => pathname.startsWith(r))
+    // Must use exact match + trailing-slash match, NOT startsWith — otherwise
+    // `/sales` (sales hub) and `/sale-anything` would slip through the `/sale` allow.
+    const allowed = TELLER_ALLOWED_ROUTES.some(
+      (r) => pathname === r || pathname.startsWith(r + '/'),
+    )
     if (!allowed) {
       const saleUrl = request.nextUrl.clone()
       saleUrl.pathname = '/sale'

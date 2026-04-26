@@ -1,12 +1,16 @@
 {
   "nav_home": "Ikhaya",
   "nav_sale": "Ukuthengisa",
+  "nav_sales": "Ukuthengisa",
   "nav_stock": "Isitoko",
   "nav_products": "Imikhiqizo",
+  "nav_inventory": "Isitoko",
   "nav_staff": "Abasebenzi",
+  "nav_manage": "Phatha",
   "nav_admin": "Umphathi",
   "nav_settings": "Izilungiselelo",
   "nav_start_sale": "Qala ukuthengisa",
+  "nav_new_sale": "Ukuthengisa Okusha",
 
   "back": "Emuva",
   "save": "Gcina",

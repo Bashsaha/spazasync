@@ -1,0 +1,20 @@
+{
+  "title": "اسٹاک",
+  "hint": "جو کچھ آپ بیچتے ہیں، ایک جگہ پر",
+
+  "summary_total_one": "مصنوع",
+  "summary_total_other": "مصنوعات",
+  "summary_low": "کم",
+  "summary_expiring": "ختم ہونے والی",
+
+  "card_stock": "اسٹاک دیکھیں",
+  "card_stock_desc": "دیکھیں آپ کے پاس کیا بچا ہے",
+  "card_products": "مصنوعات",
+  "card_products_desc": "بیچنے والی اشیاء شامل یا تبدیل کریں",
+  "card_count": "اسٹاک گنیں",
+  "card_count_desc": "اصل گنتی سے نمبروں کی تجدید کریں",
+  "card_expiry": "ختم ہونے کی تاریخیں",
+  "card_expiry_desc": "نشانہ رکھیں کب مصنوعات خراب ہوں گی",
+  "card_suppliers": "سپلائرز",
+  "card_suppliers_desc": "وہ لوگ جو آپ کو اسٹاک فراہم کرتے ہیں"
+}

@@ -1,6 +1,25 @@
 {
-  "title": "Taariikhda iibka",
+  "title": "Iibinta",
+  "hint": "Iibka maanta, toddobaadkan, iyo taariikhda",
   "back": "← Dib u noqo",
+
+  "hub_start_sale": "Bilow Iib",
+  "hub_start_sale_desc": "Sawir walxaha oo diiwaan geli iibin",
+  "hub_view_history": "Eeg taariikh ahaan",
+  "hub_view_history_desc": "Arag iib walba maalin la doortay",
+
+  "weekly_title": "Toddobaadkan",
+  "weekly_revenue": "Dakhliga",
+  "weekly_sales": "Iibinta",
+  "weekly_no_data": "Toddobaadkan iib weli lama sameyn",
+  "weekly_sale_one": "iib",
+  "weekly_sale_other": "iibiyo",
+
+  "top_products_title": "Walxaha ugu badnaa iibka toddobaadkan",
+  "top_products_sold": "la iibiyay",
+  "top_products_none": "Toddobaadkan iib lama sameyn",
+
+  "history_title": "Taariikhda iibka",
   "pick_date": "Dooro maalin",
   "today": "Maanta",
   "yesterday": "Shalay",

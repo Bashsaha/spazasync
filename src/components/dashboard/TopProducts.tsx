@@ -6,7 +6,7 @@ export async function TopProducts({ shopId, locale }: { shopId: string; locale: 
   try {
     const [topProducts, { t }] = await Promise.all([
       getTopProductsThisWeek(shopId, 5),
-      getServerTranslations(locale, ['dashboard']),
+      getServerTranslations(locale, ['sales']),
     ])
     if (topProducts.length === 0) return null
 

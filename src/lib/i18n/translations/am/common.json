@@ -1,12 +1,16 @@
 {
   "nav_home": "መነሻ",
   "nav_sale": "ሽያጭ",
+  "nav_sales": "ሽያጭ",
   "nav_stock": "ክምችት",
   "nav_products": "ምርቶች",
+  "nav_inventory": "ክምችት",
   "nav_staff": "ሰራተኞች",
+  "nav_manage": "አስተዳድር",
   "nav_admin": "አስተዳዳሪ",
   "nav_settings": "ቅንብሮች",
   "nav_start_sale": "ሽያጭ ጀምር",
+  "nav_new_sale": "አዲስ ሽያጭ",
 
   "back": "ተመለስ",
   "save": "አስቀምጥ",

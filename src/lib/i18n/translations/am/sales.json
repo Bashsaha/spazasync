@@ -1,6 +1,25 @@
 {
-  "title": "የሽያጭ ታሪክ",
+  "title": "ሽያጭ",
+  "hint": "የዛሬ ሽያጭ፣ ይህ ሳምንት እና ታሪክ",
   "back": "← ተመለስ",
+
+  "hub_start_sale": "ሽያጭ ጀምር",
+  "hub_start_sale_desc": "እቃዎችን ቃኝ እና ሽያጭ መዝግብ",
+  "hub_view_history": "በቀን ይመልከቱ",
+  "hub_view_history_desc": "በተመረጠ ቀን ሁሉንም ሽያጭ ይመልከቱ",
+
+  "weekly_title": "ይህ ሳምንት",
+  "weekly_revenue": "ገቢ",
+  "weekly_sales": "ሽያጮች",
+  "weekly_no_data": "በዚህ ሳምንት ገና ሽያጭ የለም",
+  "weekly_sale_one": "ሽያጭ",
+  "weekly_sale_other": "ሽያጮች",
+
+  "top_products_title": "በዚህ ሳምንት ከፍተኛ ሽያጭ ያላቸው",
+  "top_products_sold": "ተሽጧል",
+  "top_products_none": "በዚህ ሳምንት ሽያጭ የለም",
+
+  "history_title": "የሽያጭ ታሪክ",
   "pick_date": "ቀን ይምረጡ",
   "today": "ዛሬ",
   "yesterday": "ትናንት",
