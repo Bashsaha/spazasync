@@ -144,6 +144,15 @@ export default function SalePage() {
 
   async function handleCompleteSale() {
     setSubmitError(null)
+
+    // Belt-and-braces: never allow a sale to be submitted without a teller
+    // attached. The render-time gate should already prevent this, but an
+    // explicit guard here guarantees teller_id is always set on POST.
+    if (!activeTeller) {
+      setSubmitError(t('select_teller'))
+      return
+    }
+
     setIsSubmitting(true)
 
     try {

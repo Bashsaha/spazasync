@@ -39,13 +39,33 @@ export function useActiveTeller(): ActiveTellerState {
       setRole(userRole ?? null)
 
       if (userRole === 'owner') {
+        // 1. Re-hydrate from sessionStorage if the owner explicitly picked a teller earlier.
         const stored = sessionStorage.getItem(SESSION_KEY)
         if (stored) {
           try {
             setActiveTellerState(JSON.parse(stored) as Teller)
+            setIsLoading(false)
+            return
           } catch {
             sessionStorage.removeItem(SESSION_KEY)
           }
+        }
+
+        // 2. Auto-select the owner's own teller row (created on onboarding) so sales
+        //    land under their name instead of forcing them through the selector or
+        //    (worse) going in with teller_id = null.
+        try {
+          const res = await fetch('/api/tellers')
+          if (res.ok) {
+            const tellers = (await res.json()) as Teller[]
+            const ownerTeller = tellers.find((t) => t.user_id === user.id && t.active)
+            if (ownerTeller) {
+              setActiveTellerState(ownerTeller)
+              sessionStorage.setItem(SESSION_KEY, JSON.stringify(ownerTeller))
+            }
+          }
+        } catch {
+          // Network issue — fall through to TellerSelector (no auto-select)
         }
         setIsLoading(false)
       } else if (userRole === 'teller') {
