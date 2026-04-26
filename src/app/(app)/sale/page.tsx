@@ -207,9 +207,11 @@ export default function SalePage() {
     )
   }
 
-  // ── Owner must pick a teller first ────────────────────────────────────────
+  // ── Owner / dual-role admin must pick a teller first ─────────────────────
+  // 'admin' role here is a dual-role admin who also owns this shop — they run
+  // sales the same way an owner does, so the gate applies identically.
 
-  if (role === 'owner' && !activeTeller) {
+  if ((role === 'owner' || role === 'admin') && !activeTeller) {
     return (
       <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">{t('start_sale')}</h1>
@@ -237,7 +239,7 @@ export default function SalePage() {
         {/* header */}
         <div className="flex items-center justify-between mb-1">
           <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
-          {role === 'owner' && (
+          {(role === 'owner' || role === 'admin') && (
             <button
               onClick={clearActiveTeller}
               className="text-xs text-blue-600 font-semibold active:text-blue-800"

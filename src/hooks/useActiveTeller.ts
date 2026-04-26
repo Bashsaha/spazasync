@@ -11,7 +11,11 @@ export interface ActiveTellerState {
   setActiveTeller: (t: Teller) => void
   clearActiveTeller: () => void
   isLoading: boolean
-  role: 'owner' | 'teller' | null
+  /**
+   * 'admin' here means a dual-role admin (admin JWT + shop_id) — they run sales
+   * the same way an owner does, so the sale page treats them identically.
+   */
+  role: 'owner' | 'teller' | 'admin' | null
 }
 
 /**
@@ -22,7 +26,7 @@ export interface ActiveTellerState {
 export function useActiveTeller(): ActiveTellerState {
   const [activeTeller, setActiveTellerState] = useState<Teller | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [role, setRole] = useState<'owner' | 'teller' | null>(null)
+  const [role, setRole] = useState<'owner' | 'teller' | 'admin' | null>(null)
 
   useEffect(() => {
     async function init() {
@@ -35,10 +39,13 @@ export function useActiveTeller(): ActiveTellerState {
         return
       }
 
-      const userRole = user.app_metadata?.role as 'owner' | 'teller' | undefined
-      setRole(userRole ?? null)
+      const rawRole = user.app_metadata?.role as 'owner' | 'teller' | 'admin' | undefined
+      setRole(rawRole ?? null)
 
-      if (userRole === 'owner') {
+      // Dual-role admins (admin JWT + shop_id) run sales the same way owners do.
+      const isOwnerLike = rawRole === 'owner' || rawRole === 'admin'
+
+      if (isOwnerLike) {
         // Always fetch the latest tellers list — we need it both to validate any
         // sessionStorage hydration and to find the owner's own teller row.
         let tellers: Teller[] = []
@@ -77,7 +84,7 @@ export function useActiveTeller(): ActiveTellerState {
           sessionStorage.setItem(SESSION_KEY, JSON.stringify(ownerTeller))
         }
         setIsLoading(false)
-      } else if (userRole === 'teller') {
+      } else if (rawRole === 'teller') {
         // Auto-select: fetch own teller record
         try {
           const res = await fetch('/api/tellers/me')
