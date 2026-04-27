@@ -12,6 +12,10 @@
   "nav_start_sale": "Start a sale",
   "nav_new_sale": "New Sale",
 
+  "switch_user": "Switch user",
+  "signing_out": "Signing out…",
+  "signed_in_as": "Signed in as",
+
   "back": "Back",
   "save": "Save",
   "cancel": "Cancel",

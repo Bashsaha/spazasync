@@ -1,11 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { buildTellerEmail } from '@/lib/auth/teller'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
+import {
+  getRecentUsers,
+  recordRecentUser,
+  removeRecentUser,
+  initialForRecentUser,
+  labelForRecentUser,
+  type RecentUser,
+} from '@/lib/auth/recent-users'
 
 type Tab = 'owner' | 'teller'
 
@@ -13,15 +20,58 @@ export default function LoginPage() {
   const router = useRouter()
   const { locale, t, setLocale } = useTranslation()
   const [tab, setTab] = useState<Tab>('owner')
+  const [ownerEmail, setOwnerEmail] = useState('')
+  const [tellerShopCode, setTellerShopCode] = useState('')
+  const [tellerName, setTellerName] = useState('')
+  const [recents, setRecents] = useState<RecentUser[]>([])
+
+  useEffect(() => {
+    setRecents(getRecentUsers())
+  }, [])
+
+  function handleSelectRecent(u: RecentUser) {
+    if (u.kind === 'teller') {
+      setTab('teller')
+      setTellerShopCode(u.shop_code)
+      setTellerName(u.display_name)
+    } else {
+      setTab('owner')
+      setOwnerEmail(u.email)
+    }
+  }
+
+  function handleRemoveRecent(u: RecentUser) {
+    removeRecentUser(u)
+    setRecents(getRecentUsers())
+  }
+
+  function handleOwnerSuccess(email: string) {
+    recordRecentUser({ kind: 'owner', email })
+    router.push('/dashboard')
+  }
+
+  function handleTellerSuccess(shopCode: string, name: string) {
+    recordRecentUser({ kind: 'teller', shop_code: shopCode.toUpperCase(), display_name: name })
+    router.push('/sale')
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm">
         {/* Logo / App name */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-blue-600">Movestock</h1>
           <p className="text-gray-500 mt-1 text-sm">{t('login_subtitle')}</p>
         </div>
+
+        {/* Recently used row */}
+        {recents.length > 0 && (
+          <RecentUsersRow
+            users={recents}
+            onSelect={handleSelectRecent}
+            onRemove={handleRemoveRecent}
+          />
+        )}
 
         {/* Tab switcher */}
         <div className="flex rounded-xl overflow-hidden border border-gray-200 mb-6">
@@ -50,9 +100,19 @@ export default function LoginPage() {
         {/* Form card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           {tab === 'owner' ? (
-            <OwnerLoginForm onSuccess={() => router.push('/dashboard')} />
+            <OwnerLoginForm
+              email={ownerEmail}
+              setEmail={setOwnerEmail}
+              onSuccess={handleOwnerSuccess}
+            />
           ) : (
-            <TellerLoginForm onSuccess={() => router.push('/sale')} />
+            <TellerLoginForm
+              shopCode={tellerShopCode}
+              setShopCode={setTellerShopCode}
+              name={tellerName}
+              setName={setTellerName}
+              onSuccess={handleTellerSuccess}
+            />
           )}
         </div>
 
@@ -65,11 +125,70 @@ export default function LoginPage() {
   )
 }
 
+// ── Recent users row ─────────────────────────────────────────
+
+function RecentUsersRow({
+  users,
+  onSelect,
+  onRemove,
+}: {
+  users: RecentUser[]
+  onSelect: (u: RecentUser) => void
+  onRemove: (u: RecentUser) => void
+}) {
+  const { t } = useTranslation()
+  return (
+    <div className="mb-5">
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+        {t('recent_users_title')}
+      </p>
+      <ul className="space-y-2">
+        {users.map((u, i) => (
+          <li key={`${u.kind}-${i}`} className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onSelect(u)}
+              className="flex-1 flex items-center gap-3 bg-white border border-gray-200 rounded-2xl px-3 py-2.5 text-left active:bg-gray-50 min-h-[48px]"
+            >
+              <span className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">
+                {initialForRecentUser(u)}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold text-gray-900 truncate">
+                  {labelForRecentUser(u)}
+                </span>
+                <span className="block text-xs text-gray-400">
+                  {u.kind === 'teller' ? t('tab_teller') : t('tab_owner')}
+                </span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onRemove(u)}
+              aria-label={t('recent_users_remove')}
+              className="w-9 h-9 flex items-center justify-center text-gray-300 active:text-gray-600 shrink-0"
+            >
+              ✕
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 // ── Owner login ──────────────────────────────────────────────
 
-function OwnerLoginForm({ onSuccess }: { onSuccess: () => void }) {
+function OwnerLoginForm({
+  email,
+  setEmail,
+  onSuccess,
+}: {
+  email: string
+  setEmail: (v: string) => void
+  onSuccess: (email: string) => void
+}) {
   const { t } = useTranslation()
-  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -88,7 +207,7 @@ function OwnerLoginForm({ onSuccess }: { onSuccess: () => void }) {
       return
     }
 
-    onSuccess()
+    onSuccess(email)
   }
 
   return (
@@ -137,12 +256,22 @@ function OwnerLoginForm({ onSuccess }: { onSuccess: () => void }) {
   )
 }
 
-// ── Teller login ─��────────────────��───────────────────────��──
+// ── Teller login ─────────────────────────────────────────────
 
-function TellerLoginForm({ onSuccess }: { onSuccess: () => void }) {
+function TellerLoginForm({
+  shopCode,
+  setShopCode,
+  name,
+  setName,
+  onSuccess,
+}: {
+  shopCode: string
+  setShopCode: (v: string) => void
+  name: string
+  setName: (v: string) => void
+  onSuccess: (shopCode: string, name: string) => void
+}) {
   const { t } = useTranslation()
-  const [shopCode, setShopCode] = useState('')
-  const [name, setName] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -181,7 +310,7 @@ function TellerLoginForm({ onSuccess }: { onSuccess: () => void }) {
         return
       }
 
-      onSuccess()
+      onSuccess(shopCode, name)
     } catch {
       setError(t('error_generic'))
       setLoading(false)

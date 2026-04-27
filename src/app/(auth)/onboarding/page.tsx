@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
+import { recordRecentUser } from '@/lib/auth/recent-users'
 import type { SupportedLocale } from '@/lib/i18n/types'
 
 export default function OnboardingPage() {
@@ -103,6 +104,7 @@ export default function OnboardingPage() {
   }
 
   function handleContinueToDashboard() {
+    if (email) recordRecentUser({ kind: 'owner', email })
     router.push('/dashboard')
   }
 

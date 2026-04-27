@@ -34,17 +34,20 @@ Three-part overhaul. **DO NOT auto-start a sub-phase — wait for explicit go-ah
 
 ---
 
-### Phase 36b — Switch User (PENDING — wait for go)
+### Phase 36b — Switch User ✅ DONE
 
 **Goal:** make it easy for the owner to hand the phone to a teller (or vice versa) without losing track of who's signed in.
 
-- [ ] Login page remembers the last 1–3 people who signed in on this device (just `shop_code + display_name + role` in localStorage; never the password)
-- [ ] Tap a remembered user → fills the login form ready for them to type their password
-- [ ] In-app "Switch user" entry point (signs out, redirects to login)
-- [ ] Decide where the entry point lives: avatar in a top app bar OR an item under /settings (TBD with user)
-- [ ] No schema change
+- [x] Login page remembers the last 1–3 people who signed in on this device (kind, email *or* shop_code + display_name; never the password)
+- [x] Tap a remembered user → switches tab + prefills non-secret fields, ready for them to type their password
+- [x] In-app "Switch user" entry point lives on the avatar in the new TopAppBar — signs out, redirects to login
+- [x] TopAppBar mounted in `(app)/layout.tsx` so it appears for owners *and* tellers
+- [x] Onboarding records the new owner when they finish their shop setup
+- [x] 5 new i18n keys (3 in `common.json`, 2 in `auth.json`) × 5 locales
+- [x] No schema change
+- [x] 410 tests pass, TypeScript clean
 
-**Open questions:** Top app bar with avatar (1A) vs Settings page entry (1B)? User answered **1A** — but we deferred building the top app bar to 36b/36c so the structural slot opens up here.
+**Acceptance:** sign in as owner → top app bar shows shop name + avatar with shop initial. Tap avatar → "Signed in as {shop} · Switch user". Tap → login. Recent users shows the owner's email. Tap email → form prefilled. Sign in as teller (with shop code + name + password). Top app bar shows shop name + teller name as subtitle + avatar with teller initial. Tap → switch user → login. Recent users now shows both teller AND owner. ✅
 
 ---
 
