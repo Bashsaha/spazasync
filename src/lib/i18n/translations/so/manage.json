@@ -5,5 +5,15 @@
   "card_staff": "Maamul Shaqaalaha",
   "card_staff_desc": "Dadka ku iibiya taleefankaaga",
   "card_compliance": "Maamul Raaliyaynta",
-  "card_compliance_desc": "Warqadaha, hubinta maalinlaha, warbixinta kormeeraha"
+  "card_compliance_desc": "Warqadaha, hubinta maalinlaha, warbixinta kormeeraha",
+
+  "bell_title": "Codsiyo sugaya",
+  "bell_empty": "Ma jiraan codsiyo sugaya",
+  "bell_pending_one": "{count} codsi sugaya",
+  "bell_pending_other": "{count} codsiyo sugaya",
+  "bell_request_label": "{name} wuxuu rabaa raad-raac kaydka",
+  "bell_btn_grant": "Ogolow",
+  "bell_btn_deny": "Diid",
+  "bell_btn_close": "Xidh",
+  "bell_grant_hint": "Wuxuu socon doonaa 4 saacadood · Markasta waad ka qaadi kartaa"
 }

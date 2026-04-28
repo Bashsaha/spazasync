@@ -308,3 +308,18 @@ export const upsertWasteManagementSchema = z.object({
     .optional()
     .transform((v) => v?.trim() || null),
 })
+
+// ============================================================
+// Access requests (Phase 36c)
+// ============================================================
+
+export const ACCESS_REQUEST_FEATURES = ['inventory'] as const
+export const ACCESS_REQUEST_ACTIONS = ['grant', 'deny', 'revoke'] as const
+
+export const createAccessRequestSchema = z.object({
+  feature: z.enum(ACCESS_REQUEST_FEATURES).default('inventory'),
+})
+
+export const resolveAccessRequestSchema = z.object({
+  action: z.enum(ACCESS_REQUEST_ACTIONS),
+})

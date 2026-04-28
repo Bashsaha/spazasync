@@ -5,5 +5,15 @@
   "card_staff": "ሰራተኞችን አስተዳድር",
   "card_staff_desc": "በስልክዎ ላይ ሽያጭ የሚያስኬዱ ሰዎች",
   "card_compliance": "ተገዢነትን አስተዳድር",
-  "card_compliance_desc": "ሰነዶች፣ የዕለት ቼኮች፣ የተቆጣጣሪ ሪፖርት"
+  "card_compliance_desc": "ሰነዶች፣ የዕለት ቼኮች፣ የተቆጣጣሪ ሪፖርት",
+
+  "bell_title": "የሚጠባበቁ ጥያቄዎች",
+  "bell_empty": "ምንም የሚጠባበቅ ጥያቄ የለም",
+  "bell_pending_one": "{count} የሚጠባበቅ ጥያቄ",
+  "bell_pending_other": "{count} የሚጠባበቁ ጥያቄዎች",
+  "bell_request_label": "{name} የክምችት መዳረሻ ይፈልጋል",
+  "bell_btn_grant": "ፍቀድ",
+  "bell_btn_deny": "ውድቅ አድርግ",
+  "bell_btn_close": "ዝጋ",
+  "bell_grant_hint": "ለ4 ሰዓት ይቆያል · በማንኛውም ጊዜ መሰረዝ ይችላሉ"
 }

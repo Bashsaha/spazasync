@@ -1,18 +1,48 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { isTellerInventoryGranted } from '@/lib/db/access-requests'
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = ['/login', '/onboarding', '/auth/callback', '/api/auth/teller-login', '/api/onboarding', '/api/subscribe/notify', '/api/external']
 
-// Only the sale route is accessible to tellers
-const TELLER_ALLOWED_ROUTES = ['/sale']
+// Routes a teller can always reach — pre- or post-grant.
+// Includes /inventory (the request-access UI lives there) and the access-request API.
+const TELLER_ALWAYS_ALLOWED = [
+  '/sale',
+  '/inventory',
+  '/api/access-requests',
+  // existing API endpoints the sale flow uses
+  '/api/sales',
+  '/api/products',
+  '/api/tellers/me',
+  '/api/summary',
+]
+
+// Routes a teller can only reach with an active inventory grant.
+const TELLER_GRANTED_ONLY = [
+  '/stock',
+  '/stock-take',
+  '/products',
+  '/expiry',
+  '/suppliers',
+  '/api/stock',
+  '/api/stock-take',
+  '/api/batches',
+  '/api/suppliers',
+  '/api/goods-received',
+]
 
 // Routes accessible even when subscription is expired
 const SUBSCRIPTION_EXEMPT = ['/subscribe', '/api/subscribe', '/settings', '/api/settings']
 
 // Admin-only routes
 const ADMIN_ROUTES = ['/admin', '/api/admin']
+
+/** Exact-match or trailing-slash sub-route check. */
+function pathMatches(pathname: string, prefix: string): boolean {
+  return pathname === prefix || pathname.startsWith(prefix + '/')
+}
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -86,15 +116,24 @@ export async function proxy(request: NextRequest) {
 
   // ── Teller route enforcement ───────────────────────────────
   if (role === 'teller') {
-    // Must use exact match + trailing-slash match, NOT startsWith — otherwise
-    // `/sales` (sales hub) and `/sale-anything` would slip through the `/sale` allow.
-    const allowed = TELLER_ALLOWED_ROUTES.some(
-      (r) => pathname === r || pathname.startsWith(r + '/'),
-    )
-    if (!allowed) {
+    const isAlwaysAllowed = TELLER_ALWAYS_ALLOWED.some((r) => pathMatches(pathname, r))
+    const isGrantedOnly = TELLER_GRANTED_ONLY.some((r) => pathMatches(pathname, r))
+
+    if (!isAlwaysAllowed && !isGrantedOnly) {
+      // Path not on either list — bounce back to /sale.
       const saleUrl = request.nextUrl.clone()
       saleUrl.pathname = '/sale'
       return NextResponse.redirect(saleUrl)
+    }
+
+    if (isGrantedOnly) {
+      const granted = await isTellerInventoryGranted(supabase, user.id)
+      if (!granted) {
+        // Lacking grant — redirect to /inventory where the request-access UI lives.
+        const invUrl = request.nextUrl.clone()
+        invUrl.pathname = '/inventory'
+        return NextResponse.redirect(invUrl)
+      }
     }
   }
 

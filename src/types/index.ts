@@ -598,3 +598,40 @@ export interface ComplianceScoreResult {
   band: ComplianceScoreBand
   categories: ComplianceScoreCategory[]
 }
+
+// --- Access requests (Phase 36c) ---
+
+export type AccessRequestFeature = 'inventory'
+export type AccessRequestStatus =
+  | 'pending'
+  | 'granted'
+  | 'denied'
+  | 'revoked'
+  | 'expired'
+
+export interface AccessRequest {
+  id: string
+  shop_id: string
+  teller_id: string
+  feature: AccessRequestFeature
+  status: AccessRequestStatus
+  requested_at: string
+  resolved_at: string | null
+  resolved_by: string | null
+  expires_at: string | null
+}
+
+/** Listed by the owner's bell — joined with the teller's name for display. */
+export interface AccessRequestWithTeller extends AccessRequest {
+  teller_name: string
+}
+
+/** What the teller's `/api/access-requests/me` endpoint returns. */
+export interface TellerAccessStatus {
+  /** True iff there's a non-expired 'granted' row for this teller's `inventory` feature. */
+  has_access: boolean
+  /** ISO timestamp when access expires; null when no active grant. */
+  expires_at: string | null
+  /** Most-recent request (any status), used to drive the request-access UI. */
+  current_request: AccessRequest | null
+}

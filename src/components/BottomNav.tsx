@@ -37,6 +37,18 @@ const ownerNav: NavItem[] = [
 
 const adminExtra: NavItem = { href: '/admin', labelKey: 'nav_admin', icon: '🛡️', matches: ['/admin'] }
 
+// Tellers see two tabs: their primary sale flow + the inventory hub (which
+// itself decides whether to show "request access" or the granted tile grid).
+const tellerNav: NavItem[] = [
+  { href: '/sale', labelKey: 'nav_sales', icon: '🧾', matches: ['/sale'] },
+  {
+    href: '/inventory',
+    labelKey: 'nav_inventory',
+    icon: '📦',
+    matches: ['/inventory', '/products', '/stock', '/stock-take', '/expiry', '/suppliers'],
+  },
+]
+
 interface BottomNavProps {
   role: string
   hasShop?: boolean
@@ -46,17 +58,25 @@ export function BottomNav({ role, hasShop }: BottomNavProps) {
   const pathname = usePathname()
   const { t } = useTranslation()
 
-  // Tellers only see sale tab
-  if (role === 'teller') return null
   // Admin without a shop has no bottom nav (uses AdminNav instead)
   if (role === 'admin' && !hasShop) return null
 
-  const items = role === 'admin' ? [...ownerNav, adminExtra] : ownerNav
-  const onSalePage = pathname.startsWith('/sale') && !pathname.startsWith('/sales')
+  const items =
+    role === 'teller'
+      ? tellerNav
+      : role === 'admin'
+      ? [...ownerNav, adminExtra]
+      : ownerNav
+
+  // Hide the FAB on the /sale flow itself (where the user is already running a
+  // sale) and on /sales (the hub already has a big "Start a Sale" CTA). Tellers
+  // never need the FAB because their primary tab IS /sale.
+  const onSalePage = pathname === '/sale' || pathname.startsWith('/sale/')
+  const showFab = role !== 'teller' && !onSalePage
 
   return (
     <>
-      {!onSalePage && (
+      {showFab && (
         <Link
           href="/sale"
           className="fixed z-50 right-4 bg-blue-600 text-white rounded-full shadow-lg active:bg-blue-700 transition-colors flex items-center gap-2 pl-4 pr-5 h-14"

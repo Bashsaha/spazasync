@@ -26,5 +26,11 @@
   "error_create": "کچھ غلط ہو گیا",
   "error_remove": "ٹیلر کو ہٹایا نہیں جا سکا۔",
   "error_generic": "کچھ غلط ہو گیا۔",
-  "error_network": "کچھ غلط ہو گیا۔ دوبارہ کوشش کریں۔"
+  "error_network": "کچھ غلط ہو گیا۔ دوبارہ کوشش کریں۔",
+
+  "access_active_title": "فعال رسائی",
+  "access_active_subtitle": "{name} اسٹاک سیکشن استعمال کر سکتا ہے",
+  "access_active_expires": "{time} میں ختم ہو جائے گی",
+  "access_btn_revoke": "منسوخ کریں",
+  "access_btn_revoking": "منسوخ کیا جا رہا ہے…"
 }

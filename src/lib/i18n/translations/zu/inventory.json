@@ -16,5 +16,19 @@
   "card_expiry": "Izinsuku Zokuphela",
   "card_expiry_desc": "Landelela ukuthi imikhiqizo iphelelwa nini",
   "card_suppliers": "Abahlinzeki",
-  "card_suppliers_desc": "Abantu abakunika isitoko"
+  "card_suppliers_desc": "Abantu abakunika isitoko",
+
+  "access_denied_title": "Kudingeka ukufinyelela kwesitoko",
+  "access_explanation": "Ukubala isitoko, imikhiqizo, kanye nokulandelela ukuphela kwesikhathi kudinga imvume yomnikazi. Thepha ngezansi ukucela.",
+  "access_btn_request": "Cela ukufinyelela",
+  "access_btn_requesting": "Kuyathunyelwa…",
+  "access_btn_request_again": "Cela futhi",
+  "access_pending_title": "Kulindelwe imvume yomnikazi",
+  "access_pending_hint": "Umnikazi wakho uzothola isaziso. Ukufinyelela kuhlala amahora angu-4 uma kuvunyelwe.",
+  "access_denied_status": "Umnikazi alikuvumelanga lesi sicelo.",
+  "access_revoked": "Umnikazi ususe ukufinyelela kwakho.",
+  "access_expired": "Ukufinyelela kwakho okwedlule sekuphelelwe yisikhathi.",
+  "access_error_pending": "Usunaso isicelo esisalindile.",
+  "access_error_granted": "Usunalo ukufinyelela.",
+  "access_error_generic": "Asikwazanga ukuthumela isicelo. Zama futhi."
 }

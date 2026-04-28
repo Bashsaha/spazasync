@@ -16,5 +16,19 @@
   "card_expiry": "ختم ہونے کی تاریخیں",
   "card_expiry_desc": "نشانہ رکھیں کب مصنوعات خراب ہوں گی",
   "card_suppliers": "سپلائرز",
-  "card_suppliers_desc": "وہ لوگ جو آپ کو اسٹاک فراہم کرتے ہیں"
+  "card_suppliers_desc": "وہ لوگ جو آپ کو اسٹاک فراہم کرتے ہیں",
+
+  "access_denied_title": "اسٹاک تک رسائی درکار ہے",
+  "access_explanation": "اسٹاک گنتی، مصنوعات، اور ختم ہونے کی تاریخ کی نگرانی کے لیے مالک کی منظوری درکار ہے۔ درخواست کرنے کے لیے نیچے ٹیپ کریں۔",
+  "access_btn_request": "رسائی کی درخواست کریں",
+  "access_btn_requesting": "بھیجی جا رہی ہے…",
+  "access_btn_request_again": "دوبارہ درخواست کریں",
+  "access_pending_title": "مالک کی منظوری کا انتظار",
+  "access_pending_hint": "آپ کے مالک کو نوٹیفکیشن ملے گا۔ منظوری کے بعد رسائی 4 گھنٹے تک رہتی ہے۔",
+  "access_denied_status": "مالک نے یہ درخواست مسترد کر دی۔",
+  "access_revoked": "مالک نے آپ کی رسائی منسوخ کر دی۔",
+  "access_expired": "آپ کی پچھلی رسائی ختم ہو گئی ہے۔",
+  "access_error_pending": "آپ کی پہلے سے ایک منتظر درخواست موجود ہے۔",
+  "access_error_granted": "آپ کے پاس پہلے سے رسائی ہے۔",
+  "access_error_generic": "درخواست نہیں بھیجی جا سکی۔ دوبارہ کوشش کریں۔"
 }

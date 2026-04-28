@@ -5,5 +5,15 @@
   "card_staff": "عملے کا انتظام",
   "card_staff_desc": "وہ لوگ جو آپ کے فون پر فروخت چلاتے ہیں",
   "card_compliance": "تعمیل کا انتظام",
-  "card_compliance_desc": "دستاویزات، روزانہ چیک، انسپکٹر رپورٹ"
+  "card_compliance_desc": "دستاویزات، روزانہ چیک، انسپکٹر رپورٹ",
+
+  "bell_title": "زیر التوا درخواستیں",
+  "bell_empty": "کوئی زیر التوا درخواست نہیں",
+  "bell_pending_one": "{count} زیر التوا درخواست",
+  "bell_pending_other": "{count} زیر التوا درخواستیں",
+  "bell_request_label": "{name} اسٹاک تک رسائی چاہتا ہے",
+  "bell_btn_grant": "منظور کریں",
+  "bell_btn_deny": "مسترد کریں",
+  "bell_btn_close": "بند کریں",
+  "bell_grant_hint": "4 گھنٹے تک قائم رہے گی · آپ کسی بھی وقت منسوخ کر سکتے ہیں"
 }

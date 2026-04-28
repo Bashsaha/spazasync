@@ -5,5 +5,15 @@
   "card_staff": "Manage Staff",
   "card_staff_desc": "People who run sales on your phone",
   "card_compliance": "Manage Compliance",
-  "card_compliance_desc": "Documents, daily checks, inspector report"
+  "card_compliance_desc": "Documents, daily checks, inspector report",
+
+  "bell_title": "Pending requests",
+  "bell_empty": "No pending requests",
+  "bell_pending_one": "{count} pending request",
+  "bell_pending_other": "{count} pending requests",
+  "bell_request_label": "{name} wants inventory access",
+  "bell_btn_grant": "Grant",
+  "bell_btn_deny": "Deny",
+  "bell_btn_close": "Close",
+  "bell_grant_hint": "Lasts 4 hours · You can revoke anytime"
 }

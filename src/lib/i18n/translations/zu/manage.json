@@ -5,5 +5,15 @@
   "card_staff": "Phatha Abasebenzi",
   "card_staff_desc": "Abantu abathengisa ocingweni lwakho",
   "card_compliance": "Phatha Ukulandela Imithetho",
-  "card_compliance_desc": "Amadokhumenti, ukuhlola kwansuku zonke, umbiko wombheki"
+  "card_compliance_desc": "Amadokhumenti, ukuhlola kwansuku zonke, umbiko wombheki",
+
+  "bell_title": "Izicelo ezilindile",
+  "bell_empty": "Akukho izicelo ezilindile",
+  "bell_pending_one": "{count} isicelo esilindile",
+  "bell_pending_other": "{count} izicelo ezilindile",
+  "bell_request_label": "{name} ufuna ukufinyelela kwesitoko",
+  "bell_btn_grant": "Vumela",
+  "bell_btn_deny": "Yala",
+  "bell_btn_close": "Vala",
+  "bell_grant_hint": "Kuhlala amahora angu-4 · Ungakususa nganoma yisiphi isikhathi"
 }

@@ -26,5 +26,11 @@
   "error_create": "Kukhona okungalungile",
   "error_remove": "Ayikwazanga ukususa umthengisi.",
   "error_generic": "Kukhona okungalungile.",
-  "error_network": "Kukhona okungalungile. Zama futhi."
+  "error_network": "Kukhona okungalungile. Zama futhi.",
+
+  "access_active_title": "Ukufinyelela okusebenzayo",
+  "access_active_subtitle": "{name} angasebenzisa isigaba sesitoko",
+  "access_active_expires": "Kuphela ku-{time}",
+  "access_btn_revoke": "Susa",
+  "access_btn_revoking": "Kuyasuswa…"
 }

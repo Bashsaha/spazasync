@@ -2,33 +2,56 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import type { Teller } from '@/types'
+import type { Teller, AccessRequestWithTeller } from '@/types'
 import { Skeleton } from '@/components/Skeleton'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { useTranslation } from '@/components/LanguageProvider'
 import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
 import { emitDataChanged } from '@/lib/events'
 
+/** "in 2 hours" / "in 45 min" / "soon" — short relative format. */
+function formatExpiresIn(iso: string | null): string {
+  if (!iso) return ''
+  const ms = new Date(iso).getTime() - Date.now()
+  if (ms <= 0) return 'soon'
+  const mins = Math.round(ms / 60000)
+  if (mins < 60) return `${mins} min`
+  const hrs = Math.floor(mins / 60)
+  const remMins = mins % 60
+  return remMins === 0 ? `${hrs}h` : `${hrs}h ${remMins}m`
+}
+
 export default function TellersPage() {
   const { t } = useTranslation('tellers')
   const [tellers, setTellers] = useState<Teller[]>([])
+  const [grants, setGrants] = useState<AccessRequestWithTeller[]>([])
   const [loading, setLoading] = useState(true)
   const [errorKey, setErrorKey] = useState('')
   const [errorRaw, setErrorRaw] = useState('')
   const [pendingRemove, setPendingRemove] = useState<Teller | null>(null)
   const [removing, setRemoving] = useState(false)
+  const [revokingId, setRevokingId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/tellers', { cache: 'no-store' })
-      const data = await res.json()
-      if (!res.ok) {
-        if (data.error) setErrorRaw(data.error)
+      const [tellersRes, grantsRes] = await Promise.all([
+        fetch('/api/tellers', { cache: 'no-store' }),
+        fetch('/api/access-requests?status=granted', { cache: 'no-store' }),
+      ])
+      const tellersData = await tellersRes.json()
+      if (!tellersRes.ok) {
+        if (tellersData.error) setErrorRaw(tellersData.error)
         else setErrorKey('error_load')
         return
       }
-      setTellers(data as Teller[])
+      setTellers(tellersData as Teller[])
+
+      // Grants are best-effort — don't block the tellers list if this 403s.
+      if (grantsRes.ok) {
+        const grantsData = (await grantsRes.json()) as { requests: AccessRequestWithTeller[] }
+        setGrants(grantsData.requests ?? [])
+      }
       setErrorKey('')
       setErrorRaw('')
     } catch {
@@ -58,13 +81,29 @@ export default function TellersPage() {
     setRemoving(false)
   }
 
+  async function handleRevoke(id: string) {
+    setRevokingId(id)
+    try {
+      const res = await fetch(`/api/access-requests/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'revoke' }),
+      })
+      if (res.ok) {
+        setGrants((prev) => prev.filter((g) => g.id !== id))
+      }
+    } finally {
+      setRevokingId(null)
+    }
+  }
+
   const errorMessage = errorRaw || (errorKey ? t(errorKey) : '')
 
   return (
-    <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="text-gray-400 active:text-gray-600 text-sm">
+          <Link href="/manage" className="text-gray-400 active:text-gray-600 text-sm">
             {t('back')}
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
@@ -78,6 +117,43 @@ export default function TellersPage() {
       </div>
 
       {errorMessage && <p className="text-red-500 text-sm mb-4">{errorMessage}</p>}
+
+      {/* Active inventory grants — only shows when there are any */}
+      {grants.length > 0 && (
+        <div className="mb-6">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+            {t('access_active_title')}
+          </p>
+          <ul className="space-y-2">
+            {grants.map((g) => {
+              const busy = revokingId === g.id
+              return (
+                <li
+                  key={g.id}
+                  className="flex items-center justify-between bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <p className="font-semibold text-blue-900 truncate">
+                      {t('access_active_subtitle', { name: g.teller_name })}
+                    </p>
+                    <p className="text-xs text-blue-600 mt-0.5">
+                      {t('access_active_expires', { time: formatExpiresIn(g.expires_at) })}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRevoke(g.id)}
+                    disabled={busy}
+                    className="text-xs text-red-500 font-semibold active:text-red-700 px-2 py-1 disabled:opacity-50 shrink-0"
+                  >
+                    {busy ? t('access_btn_revoking') : t('access_btn_revoke')}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      )}
 
       {loading ? (
         <div className="space-y-2">

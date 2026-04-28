@@ -26,5 +26,11 @@
   "error_create": "የሆነ ችግር ተፈጥሯል",
   "error_remove": "ሻጩን ማስወገድ አልተቻለም።",
   "error_generic": "የሆነ ችግር ተፈጥሯል።",
-  "error_network": "የሆነ ችግር ተፈጥሯል። እንደገና ይሞክሩ።"
+  "error_network": "የሆነ ችግር ተፈጥሯል። እንደገና ይሞክሩ።",
+
+  "access_active_title": "ንቁ መዳረሻ",
+  "access_active_subtitle": "{name} የክምችት ክፍሉን መጠቀም ይችላል",
+  "access_active_expires": "በ{time} ውስጥ ያበቃል",
+  "access_btn_revoke": "ሰርዝ",
+  "access_btn_revoking": "በመሰረዝ ላይ…"
 }

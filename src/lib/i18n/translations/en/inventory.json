@@ -16,5 +16,19 @@
   "card_expiry": "Expiry Dates",
   "card_expiry_desc": "Track when products will go bad",
   "card_suppliers": "Suppliers",
-  "card_suppliers_desc": "People who supply your stock"
+  "card_suppliers_desc": "People who supply your stock",
+
+  "access_denied_title": "Inventory access needed",
+  "access_explanation": "Stock counts, products, and expiry tracking need owner approval. Tap below to ask.",
+  "access_btn_request": "Request access",
+  "access_btn_requesting": "Sending…",
+  "access_btn_request_again": "Request again",
+  "access_pending_title": "Waiting for owner approval",
+  "access_pending_hint": "Your owner will get a notification. Access lasts 4 hours once granted.",
+  "access_denied_status": "Owner denied this request.",
+  "access_revoked": "Owner revoked your access.",
+  "access_expired": "Your previous access has expired.",
+  "access_error_pending": "You already have a pending request.",
+  "access_error_granted": "You already have access.",
+  "access_error_generic": "Could not send request. Try again."
 }

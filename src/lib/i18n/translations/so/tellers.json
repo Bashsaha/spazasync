@@ -26,5 +26,11 @@
   "error_create": "Wax baa qaldamay",
   "error_remove": "Shaqaalihii lama saarin.",
   "error_generic": "Wax baa qaldamay.",
-  "error_network": "Wax baa qaldamay. Isku day mar kale."
+  "error_network": "Wax baa qaldamay. Isku day mar kale.",
+
+  "access_active_title": "Raad-raac firfircoon",
+  "access_active_subtitle": "{name} wuxuu isticmaali karaa qaybta kaydka",
+  "access_active_expires": "Wuu dhammaadaa {time} gudahood",
+  "access_btn_revoke": "Ka qaad",
+  "access_btn_revoking": "Waa la qaadayaa…"
 }

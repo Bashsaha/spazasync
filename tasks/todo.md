@@ -51,25 +51,30 @@ Three-part overhaul. **DO NOT auto-start a sub-phase — wait for explicit go-ah
 
 ---
 
-### Phase 36c — Teller Access Requests + Notifications (PENDING — wait for go)
+### Phase 36c — Teller Access Requests + Realtime Notifications ✅ DONE
 
 **Goal:** tellers stay bare-minimum (sales only) by default but can request inventory access from the owner. Owner gets a real-time notification, accepts or rejects.
 
-- [ ] New `access_requests` table + RLS + migration (status enum, expires_at)
-- [ ] Teller sees 2 bottom-nav tabs: Sales + Inventory (locked)
-- [ ] Tapping locked Inventory → "Request access" screen → POSTs to /api/access-requests
-- [ ] Real-time notification via Supabase Realtime (zero Vercel cost — listens directly to access_requests inserts)
-- [ ] Floating bell icon on owner pages with badge count + tap → modal listing pending requests
-- [ ] Accept/reject buttons in modal → time-limited grant (4h auto-expire) OR owner can revoke from a list under Manage → Staff
-- [ ] When granted, teller can access /inventory and sub-routes; locked again after expiry/revoke
-- [ ] Offline behaviour: hide "Request access" button when navigator.onLine === false; tellers can still do sales offline
-- [ ] All 5 locales updated
+- [x] Migration `020_access_requests.sql` — table + 2 indexes + 3 RLS policies + `ALTER PUBLICATION supabase_realtime ADD TABLE`
+- [x] DB helper `src/lib/db/access-requests.ts` — list/grant/deny/revoke + `isTellerInventoryGranted` for proxy
+- [x] API routes: `POST /api/access-requests` (teller), `GET ?status=...` (owner), `PATCH /[id]` (owner action), `GET /me` (teller status)
+- [x] Proxy split into `TELLER_ALWAYS_ALLOWED` and `TELLER_GRANTED_ONLY` lists; grant-gated paths trigger one Supabase query per request, redirect to `/inventory` when no grant
+- [x] BottomNav for tellers: 2 tabs (🧾 Sales + 📦 Inventory), no FAB
+- [x] `/inventory` page: teller without grant → `TellerAccessRequestPanel` (state-aware: idle/pending/denied/revoked/expired); granted → same tile grid as owners
+- [x] `NotificationBell` component: Supabase Realtime channel filtered by `shop_id`, refetches pending list on any change; bottom-sheet modal with Grant / Deny per row
+- [x] TopAppBar mounts the bell when `bellShopId` is provided (owners + admins-with-shop only)
+- [x] /tellers page gains an "Active access" section with revoke buttons; auto-hides when no grants
+- [x] Auto-expiry checked at read time (no cron) — `listActiveGrantsForShop` and `isTellerInventoryGranted` both filter `expires_at > NOW()`
+- [x] 13 new keys in `inventory.json` × 5 locales, 9 in `manage.json` × 5, 5 in `tellers.json` × 5
+- [x] 410 tests pass, TypeScript clean
 
 **Open questions resolved:**
-- Notifications icon location: top app bar (option A)
-- Teller bottom nav: 2 tabs (Sales + locked Inventory)
-- Access duration: time-limited (4h) AND owner can revoke
-- Real-time vs polling: Supabase Realtime (free tier covers far more concurrent connections than launch will need)
+- Notifications icon location: top app bar (option A) ✓
+- Teller bottom nav: 2 tabs (Sales + locked Inventory) ✓
+- Access duration: time-limited (4h) AND owner can revoke ✓
+- Real-time vs polling: Supabase Realtime ✓ (zero Vercel function invocations for listening)
+
+**One outstanding step:** the migration file exists locally but must be applied to Supabase before this code can run against prod. SQL is in the commit description and `supabase/migrations/020_access_requests.sql` — paste into Supabase SQL Editor.
 
 ---
 

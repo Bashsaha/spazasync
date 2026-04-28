@@ -16,5 +16,19 @@
   "card_expiry": "Taariikhaha Dhicitaanka",
   "card_expiry_desc": "La socod marka walxuhu dhacayaan",
   "card_suppliers": "Alaabbixiyeyaasha",
-  "card_suppliers_desc": "Dadka ku siiya kaydkaaga"
+  "card_suppliers_desc": "Dadka ku siiya kaydkaaga",
+
+  "access_denied_title": "Waxaad u baahan tahay raad-raac kaydka",
+  "access_explanation": "Tirinta kaydka, alaabta, iyo dhicitaanka waxay u baahan yihiin oggolaansho milkiilaha. Taabo si aad u dalbato.",
+  "access_btn_request": "Codso raad-raac",
+  "access_btn_requesting": "Waa la dirayaa…",
+  "access_btn_request_again": "Codso mar kale",
+  "access_pending_title": "Sugaya oggolaansho milkiilaha",
+  "access_pending_hint": "Milkiilahaaga wuxuu helayaa ogeysiis. Raad-raacu wuxuu socon doonaa 4 saacadood marka la oggolaado.",
+  "access_denied_status": "Milkiilahu wuu diiday codsigan.",
+  "access_revoked": "Milkiilahu wuu xayiray raad-raacaaga.",
+  "access_expired": "Raad-raacii kii hore wuu dhammaaday.",
+  "access_error_pending": "Codsi sugaya ayaad horeyba u haysatay.",
+  "access_error_granted": "Hore ayaad u haysatay raad-raac.",
+  "access_error_generic": "Codsiga lama diri karin. Isku day mar kale."
 }

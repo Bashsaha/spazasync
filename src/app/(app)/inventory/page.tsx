@@ -2,15 +2,27 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getShopAuth } from '@/lib/auth/shop-auth'
 import { getExpiryStats } from '@/lib/db/batches'
+import { getTellerAccessStatus } from '@/lib/db/access-requests'
+import { TellerAccessRequestPanel } from '@/components/access/TellerAccessRequestPanel'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 
 export default async function InventoryHubPage() {
   const auth = await getShopAuth()
   if (!auth) redirect('/login')
   const { shopId, supabase } = auth
+  const role = auth.user.app_metadata?.role as string | undefined
 
   const locale = await getServerLocale()
   const { t, tPlural } = await getServerTranslations(locale, ['inventory'])
+
+  // Tellers without an active grant see the request-access panel instead
+  // of the tile grid. Granted tellers fall through to the normal hub.
+  if (role === 'teller') {
+    const status = await getTellerAccessStatus(supabase, auth.user.id)
+    if (!status.has_access) {
+      return <TellerAccessRequestPanel initialStatus={status} />
+    }
+  }
 
   // Fetch shop threshold + counts in parallel.
   const [{ data: shop }, { count: totalProducts }, expiryStats] = await Promise.all([

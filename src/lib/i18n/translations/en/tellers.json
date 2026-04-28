@@ -26,5 +26,11 @@
   "error_create": "Something went wrong",
   "error_remove": "Could not remove teller.",
   "error_generic": "Something went wrong.",
-  "error_network": "Something went wrong. Try again."
+  "error_network": "Something went wrong. Try again.",
+
+  "access_active_title": "Active access",
+  "access_active_subtitle": "{name} can use the inventory section",
+  "access_active_expires": "Expires in {time}",
+  "access_btn_revoke": "Revoke",
+  "access_btn_revoking": "Revoking…"
 }

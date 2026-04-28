@@ -67,6 +67,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             title={shopName}
             subtitle={role === 'teller' ? tellerName ?? undefined : undefined}
             initial={initial}
+            bellShopId={role === 'owner' || role === 'admin' ? shopId : undefined}
           />
           {role !== 'teller' && <DailySummaryAlert />}
           {role !== 'teller' && <MonthlyComplianceAlert />}
