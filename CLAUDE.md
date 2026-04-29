@@ -2,11 +2,9 @@
 
 ## What this project is
 
-Movestock (formerly SpazaSync) is a mobile-first PWA for South African spaza shop and small retail owners. These owners currently calculate sales on a basic calculator and manage stock manually or not at all. SpazaSync replaces that entire workflow with a smartphone app that requires no technical skill.
+Movestock (formerly SpazaSync) is a mobile-first PWA for South African spaza shop and small retail owners. They currently track sales on a calculator and stock manually. Movestock replaces that with: open app on Android phone → scan barcode → product added to sale → stock auto-deducts → in-app daily summary each evening.
 
-**Core flow:** owner opens the app on their Android phone → scans a product barcode using their phone camera → product added to the sale → stock automatically deducted when the sale is completed → owner sees an in-app daily summary of sales and stock levels each evening.
-
-**Target user:** someone with no technical background. Plain English. No jargon. Obvious UI. Works on a mid-range Android smartphone, no laptop or external hardware needed.
+**Target user:** no technical background. Plain English. No jargon. Mid-range Android, no laptop.
 
 ---
 
@@ -14,96 +12,72 @@ Movestock (formerly SpazaSync) is a mobile-first PWA for South African spaza sho
 
 | Layer | Choice |
 |---|---|
-| Framework | Next.js 16, App Router, TypeScript strict mode |
+| Framework | Next.js 16, App Router, TypeScript strict |
 | Styling | Tailwind CSS |
-| Database + Auth | Supabase (PostgreSQL, RLS, Supabase Auth) |
-| Deployment | Vercel (+ Vercel Cron Jobs) |
+| DB + Auth | Supabase (PostgreSQL, RLS, Supabase Auth) |
+| Deployment | Vercel (+ Vercel Cron) |
 | Validation | Zod |
 | Testing | Vitest |
-| Barcode scanning | `@zxing/browser` — phone camera, no hardware |
-| Offline | IndexedDB via `idb` library |
+| Barcode | `@zxing/browser` (phone camera) |
+| Offline | IndexedDB via `idb` |
 | Timezone | `date-fns-tz` with `Africa/Johannesburg` |
 
 ---
 
 ## Auth Model
 
-### Owner
-- Logs in with: **email + password** (Supabase email auth)
-- Sees: full app (dashboard, products, stock, stock take, tellers, settings, sale)
-- On sale page: must select which teller is serving before scanning
+- **Owner** — email + password. Sees full app. Must select active teller before scanning on /sale.
+- **Teller** — shop code + display name + password. Synthetic email `{slug}@shop-{code}.spazasync.app`. Locked to /sale only via proxy.ts. Auto-selected as active teller. RLS + synthetic email scoping prevents cross-shop access.
+- **Admin** — email + password. Promoted via `npx tsx scripts/set-admin.ts user@example.com`. Sees `/admin/*`. **Dual-role:** if promoted from owner, retains shop_id and can access shop pages too. Skips subscription gate. Admin data via service role; shop data via RLS.
 
-### Teller
-- Logs in with: **shop code + display name + password**
-- Synthetic email under the hood: `{name-slug}@shop-{shop-code}.spazasync.app`
-- Password created by owner; teller receives it out-of-band
-- Sees: **only the sale page** — proxy.ts locks all other routes
-- Auto-selected as the active teller (no TellerSelector shown)
-- No cross-shop data visibility (RLS + synthetic email scoping)
-
-### Admin
-- Logs in with: **email + password** (same Supabase email auth)
-- Promoted via CLI script: `npx tsx scripts/set-admin.ts user@example.com`
-- Sees: `/admin/*` routes — platform-level dashboard for managing all stores
-- **Dual-role (Phase 15e):** if promoted from an existing owner, retains `shop_id` and can access all shop pages too
-- Skips subscription gate entirely
-- Admin-only data access via service role (admin) client; shop data via RLS (if linked to a shop)
-
-### Shop Code
-- Short identifier chosen by owner at onboarding (e.g. `CAPE99`, `MLUNGU01`)
-- Stored in `shops.code` — globally unique, 6–10 chars, uppercase alphanumeric
-- Used on teller login screen
+**Shop Code:** 6–10 char uppercase alphanumeric, globally unique (`shops.code`). Chosen at onboarding. Used on teller login.
 
 ### Access Matrix
 
 | Route | Owner | Teller | Admin (dual-role) |
 |---|---|---|---|
-| /dashboard | ✓ | ✗ | ✓ (if linked to shop) |
-| /sale | ✓ | ✓ | ✓ (if linked to shop) |
-| /stock-take | ✓ | ✗ | ✓ (if linked to shop) |
-| /products | ✓ | ✗ | ✓ (if linked to shop) |
-| /stock | ✓ | ✗ | ✓ (if linked to shop) |
-| /tellers | ✓ | ✗ | ✓ (if linked to shop) |
-| /settings | ✓ | ✗ | ✓ (if linked to shop) |
+| /dashboard | ✓ | ✗ | ✓ (if linked) |
+| /sale | ✓ | ✓ | ✓ (if linked) |
+| /stock-take, /products, /stock, /tellers, /settings | ✓ | ✗ | ✓ (if linked) |
 | /admin/* | ✗ | ✗ | ✓ |
 
 ---
 
 ## Database Schema
 
+All tables have RLS enabled. `admin_payments` and `barcode_catalog` writes are service-role-only.
+
 ### Tables
-- `shops` — id, name, code (unique), whatsapp_number, low_stock_threshold, language (default 'en', CHECK en/so/am/zu/ur), subscription_status, trial_ends_at, subscription_ends_at, payfast_token, access_granted, admin_notes, registration_number, location, created_at
+- `shops` — id, name, code (unique), whatsapp_number, low_stock_threshold, language ('en'/'so'/'am'/'zu'/'ur'), subscription_status, trial_ends_at, subscription_ends_at, payfast_token, access_granted, admin_notes, registration_number, location, has_fridge, has_freezer
 - `shop_users` — maps auth users to shops with role (owner | teller)
-- `tellers` — named teller entries; optional link to auth user_id; name unique per shop
-- `products` — barcode (nullable), name, price, stock_qty; unique(shop_id, barcode) where barcode IS NOT NULL; unique(shop_id, LOWER(name)) case-insensitive
-- `product_batches` — shop_id, product_id, expiry_date, quantity; tracks per-batch expiry dates with FEFO deduction; RLS via user_in_shop(shop_id)
-- `sales` — total, teller_id, completed_at, offline_id for dedup, synced_at
+- `tellers` — name (unique per shop), optional auth user_id
+- `products` — barcode (nullable), name, price, stock_qty, cost_price, supplier_id; unique(shop_id, barcode WHERE NOT NULL); unique(shop_id, LOWER(name))
+- `product_batches` — shop_id, product_id, expiry_date, quantity (FEFO source of truth)
+- `sales` — total, teller_id, completed_at, offline_id (UNIQUE for dedup), synced_at
 - `sale_items` — product_id, quantity, unit_price, subtotal
 - `stock_take_entries` — product_id, qty_before, qty_after, teller_id, taken_at
 - `stock_adjustments` — product_id, qty_before, qty_after, delta, reason, adjusted_by, adjusted_at
-- `admin_payments` — shop_id, amount, method (eft/cash/card/other), reference, notes, recorded_by, recorded_at (RLS enabled, no policies — service role only)
-- `sale_batch_consumptions` — sale_id, batch_id, product_id, qty_consumed, expiry_date; audit trail for FEFO batch deductions during sales; RLS via sales.shop_id join
-- `barcode_catalog` — barcode (unique), name, category; RLS SELECT for all, writes via admin client only (Phase 16a)
-- `suppliers` — shop_id, name, contact_number, type (wholesaler/distributor/farmer/other), location; unique(shop_id, LOWER(name)); RLS via user_in_shop(shop_id) (Phase 30a)
-- `goods_received` — shop_id, product_id, supplier_id (nullable), quantity, notes, received_by, received_at; RLS via user_in_shop(shop_id); text-only audit trail logged on every stock top-up (Phase 30b)
-- `products.supplier_id` — last-known supplier, nullable FK to suppliers (ON DELETE SET NULL) (Phase 30b)
-- `access_requests` — id, shop_id, teller_id, feature CHECK ('inventory'), status CHECK ('pending'|'granted'|'denied'|'revoked'|'expired'), requested_at, resolved_at, resolved_by (free UUID, no FK), expires_at; indexes on (shop_id, status) and (teller_id, status); RLS — tellers SELECT/INSERT their own rows, owners SELECT/UPDATE all in their shop; added to `supabase_realtime` publication for owner-side live updates (Phase 36c)
-- `daily_checklists` — shop_id, date (SAST), fridge_ok/fridge_temp, freezer_ok/freezer_temp, surfaces_cleaned, floor_cleaned, storage_clean, expired_items_action ('none_found'|'removed'|'skipped'), completed_by, completed_at, updated_at; UNIQUE(shop_id, date); RLS via user_in_shop(shop_id) (Phase 31)
-- `shops.has_fridge` / `shops.has_freezer` — NOT NULL DEFAULT true; toggle to hide irrelevant blocks from the daily checklist (Phase 31)
-- `business_documents` — shop_id, document_type ('municipal_registration'|'coa'|'cipc'|'business_license'|'owner_id'), status ('valid'|'expired'|'pending'|'not_registered'|'not_required'|'on_file'), reference_number, date_issued, expiry_date, notes, created_at, updated_at; UNIQUE(shop_id, document_type) — one row per doc type per shop, enables upsert; index (shop_id, expiry_date); RLS via user_in_shop(shop_id) (Phase 32)
-- `pest_control_logs` — shop_id, visit_date (DATE), provider_name, treatment_type, notes, created_by, created_at; index (shop_id, visit_date DESC); RLS via user_in_shop(shop_id) — multi-row log of pest control visits (Phase 33)
-- `waste_management` — shop_id (PK), removal_type CHECK ('municipal'|'private'|'self_disposal'), frequency CHECK ('daily'|'weekly'|'twice_weekly'|'monthly'|'other'), provider_name, last_confirmed_date (DATE, nullable — stamped by monthly confirm), updated_at; RLS via user_in_shop(shop_id) — one row per shop singleton (Phase 33)
-- `daily_checklists.waste_bins_ok` — BOOLEAN nullable; "waste bins emptied and area clean?" question added in Phase 33
+- `admin_payments` — shop_id, amount, method, reference, notes (service-role only)
+- `sale_batch_consumptions` — sale_id, batch_id, product_id, qty_consumed, expiry_date (FEFO audit)
+- `barcode_catalog` — barcode (unique), name, category (RLS SELECT all, writes admin only)
+- `suppliers` — shop_id, name, contact_number, type, location; unique(shop_id, LOWER(name))
+- `goods_received` — shop_id, product_id, supplier_id, quantity, notes, received_by, received_at
+- `access_requests` — shop_id, teller_id, feature ('inventory'), status (pending/granted/denied/revoked/expired), requested_at, resolved_at, resolved_by, expires_at; in `supabase_realtime` publication
+- `daily_checklists` — shop_id, date (SAST), fridge_ok/temp, freezer_ok/temp, surfaces_cleaned, floor_cleaned, storage_clean, expired_items_action, waste_bins_ok, completed_by, completed_at; UNIQUE(shop_id, date)
+- `business_documents` — shop_id, document_type (municipal_registration/coa/cipc/business_license/owner_id), status, reference_number, date_issued, expiry_date, notes; UNIQUE(shop_id, document_type)
+- `pest_control_logs` — shop_id, visit_date, provider_name, treatment_type, notes
+- `waste_management` — shop_id (PK singleton), removal_type, frequency, provider_name, last_confirmed_date
+- `municipalities` — id, name, province, short_name, areas TEXT[]; UNIQUE(name, province); GIN index on areas. Public-read RLS, service-role writes only.
+- `municipality_offices` — FK municipality_id, office_type ('trading_permit'|'environmental_health'|'business_licensing'|'customer_care'), name, address, area, phone, email, hours, online_portal_url, online_form_url, notes. Public-read RLS.
+- `municipality_requirements` — FK municipality_id, requirement_type ('trading_permit'|'coa'|'general'), documents_required JSONB array, fees, estimated_processing_time, additional_notes; UNIQUE(municipality_id, requirement_type). JSONB element shape: `{ name, applies_to: 'sa_citizen'|'foreign_national'|'all', required: bool, notes? }`. Public-read RLS.
 
 ### RLS helpers
-- `user_in_shop(shop_id)` — SECURITY DEFINER function
-- `user_is_owner(shop_id)` — SECURITY DEFINER function
+- `user_in_shop(shop_id)` — SECURITY DEFINER
+- `user_is_owner(shop_id)` — SECURITY DEFINER
 
 ### SQL functions
-- `decrement_stock(p_product_id, p_qty)` — atomically decrement stock, clamp to 0
-- `decrement_stock_fefo(p_product_id, p_qty, p_sale_id DEFAULT NULL)` — FEFO batch consumption: deducts from earliest-expiring batches first; when p_sale_id provided, records each consumption in sale_batch_consumptions
-
-All tables have RLS enabled. `admin_payments` and `barcode_catalog` writes are service-role-only (no user-facing policies).
+- `decrement_stock(p_product_id, p_qty)` — atomic decrement, clamp to 0
+- `decrement_stock_fefo(p_product_id, p_qty, p_sale_id DEFAULT NULL)` — FEFO batch consumption; records to `sale_batch_consumptions` when sale_id given
 
 ---
 
@@ -125,670 +99,242 @@ EXTERNAL_API_KEY=
 
 ---
 
-## Workflow Orchestration Rules
+## Workflow Rules
 
-### 1. Plan Mode Default
-- Enter plan mode for ANY non-trivial task (3+ steps or architectural decisions)
-- If something goes sideways, STOP and re-plan immediately — don't keep pushing
-- Use plan mode for verification steps, not just building
-- Write detailed specs upfront to reduce ambiguity
+### Phase Gating (CRITICAL)
+**NEVER auto-start the next phase.** After a phase: STOP, update CLAUDE.md (file tree, Living Scope, what was built), then WAIT for user to say "go".
 
-### 1b. Phase Gating (CRITICAL)
-- **NEVER auto-start the next phase.** After completing a phase, STOP.
-- Update CLAUDE.md with what was built in that phase (file tree, Living Scope, phase notes).
-- Then WAIT for the user to explicitly say "start phase N" or "go" before continuing.
-- This applies to ALL multi-phase work — no exceptions.
+### i18n Coverage Rule (CRITICAL)
+Locales: `en`, `so`, `am`, `zu`, `ur`. Any user-facing string added/changed/removed in `src/lib/i18n/translations/en/*.json` MUST be mirrored in all 4 other locales **in the same phase**. Translations must be native, plain-English-tone (short, friendly, no jargon). Every page/component with user-visible text MUST use `useTranslation()` (client) or `getServerTranslations()` (server) — NEVER hardcode strings. Adding a new namespace `en/foo.json` requires `so/foo.json`, `am/foo.json`, `zu/foo.json`, `ur/foo.json` in the same commit. The `tests/unit/i18n.test.ts` test enforces parity.
 
-### 2. Subagent Strategy
-- Use subagents liberally to keep main context window clean
-- Offload research, exploration, and parallel analysis to subagents
-- For complex problems, throw more compute at it via subagents
-- One task per subagent for focused execution
+### Bug Tracking (CRITICAL)
+- After fixing any bug: add an entry to `tasks/bugs.md` (symptom, root cause, fix, prevention rule). Mandatory.
+- Before touching auth/routing/middleware/API routes: read `tasks/bugs.md` and apply prevention rules.
 
-### 3. Self-Improvement Loop
-- After ANY correction from the user: update tasks/lessons.md with the pattern
-- Write rules for yourself that prevent the same mistake
-- Ruthlessly iterate on these lessons until mistake rate drops
-- Review lessons at session start for relevant project
+### Plan + Verify
+- Plan mode for any non-trivial task (3+ steps or architectural decisions). Re-plan on derailment.
+- Never mark complete without proving it works (tests, logs, demonstrated behavior).
+- For non-trivial changes, pause and ask "is there a more elegant way?" before presenting.
 
-### 4. Verification Before Done
-- Never mark a task complete without proving it works
-- Diff behavior between main and your changes when relevant
-- Ask yourself: "Would a staff engineer approve this?"
-- Run tests, check logs, demonstrate correctness
+### Subagents
+Use liberally for research/exploration to keep main context clean. One task per subagent.
 
-### 5. Demand Elegance (Balanced)
-- For non-trivial changes: pause and ask "is there a more elegant way?"
-- If a fix feels hacky: "Knowing everything I know now, implement the elegant solution"
-- Skip this for simple, obvious fixes — don't over-engineer
-- Challenge your own work before presenting it
+### Phase Summary Compression (Rule 7)
+After an entire phase **group** completes (e.g., all of 15a–15e), compress per-file detail into a 2–4 line summary per phase. Keep: key files/migrations, architectural decisions, notable bug fixes. Drop: per-file NEW/UPDATED annotations.
 
-### 6. Autonomous Bug Fixing
-- When given a bug report: just fix it. Don't ask for hand-holding
-- Point at logs, errors, failing tests — then resolve them
-- Zero context switching required from the user
-- Go fix failing CI tests without being told how
-- **After fixing any bug: add an entry to `tasks/bugs.md`** with symptom, root cause, fix, and a prevention rule. This is mandatory — not optional.
-- Before touching auth/routing/middleware/API routes, read `tasks/bugs.md` and apply all listed prevention rules.
-
-### 7. Phase Summary Rule (CRITICAL)
-- After an **entire phase group** is fully implemented and verified (e.g., all of Phase 15a–15e, all of Phase 16a–16d, etc.), **summarize the detailed "What was built" notes** into a concise 2–4 line summary per phase.
-- The summary must retain: key files/migrations created, important architectural decisions, and notable bug fixes — but drop per-file NEW/UPDATED annotations and line-by-line details.
-- This prevents CLAUDE.md from growing unboundedly while preserving enough context for future sessions.
-- Individual sub-phases should keep full detail until the entire phase group is complete.
-
-### 8. i18n Coverage Rule (CRITICAL)
-- SpazaSync supports 5 locales: `en` (English), `so` (Somali), `am` (Amharic), `zu` (IsiZulu), `ur` (Urdu).
-- **Any time a user-facing string is added, changed, or removed in `src/lib/i18n/translations/en/*.json`, the SAME key MUST be added/changed/removed in all other locale directories** (`so/`, `am/`, `zu/`, `ur/`) **in the same phase**. Missing keys in a non-English locale are a phase-blocker — the phase cannot be marked complete.
-- Translations must be native (not copy-pasted English). Use the plain-English SpazaSync tone: short, friendly, no jargon. If you genuinely can't translate (e.g. a brand name), fall back to English with a comment explaining why.
-- Every new page or component that renders user-visible text MUST use `useTranslation()` (client components) or `getServerTranslations()` (server components). NEVER hardcode English strings in JSX or component files.
-- The i18n key-parity test (`tests/unit/i18n.test.ts`) enforces parity automatically. If it fails, stop and fill in the missing locales before continuing.
-- When adding a new namespace JSON file (e.g. `en/foo.json`), also add `so/foo.json`, `am/foo.json`, `zu/foo.json`, `ur/foo.json` in the same commit.
+### Tasks
+Plan to `tasks/todo.md` with checkable items → verify with user → mark progress → review section at end → update `tasks/lessons.md` after corrections.
 
 ---
 
-## Task Management Rules
+## Supabase Access Rules
 
-1. **Plan First:** Write plan to tasks/todo.md with checkable items
-2. **Verify Plan:** Check in before starting implementation
-3. **Track Progress:** Mark items complete as you go
-4. **Explain Changes:** High-level summary at each step
-5. **Document Results:** Add review section to tasks/todo.md
-6. **Capture Lessons:** Update tasks/lessons.md after corrections
-
----
-
-## Core Principles
-
-- **Simplicity First:** Make every change as simple as possible. Impact minimal code.
-- **No Laziness:** Find root causes. No temporary fixes. Senior developer standards.
-- **Minimal Impact:** Changes should only touch what's necessary. Avoid introducing bugs.
+- **CAN read** via REST API with service role key from `.env.local`. Use `curl` with `apikey` + `Authorization` headers.
+- **CANNOT write** (no migrations, no schema changes). Only the user runs SQL in Supabase SQL Editor.
+- **Migration workflow:** (1) write `.sql` migration locally, (2) output raw SQL for user to paste, (3) verify via REST API: `curl -s "https://<project>.supabase.co/rest/v1/<table>?select=id&limit=0"` returns `[]` if exists.
 
 ---
 
 ## Git Safety Rules (CRITICAL — NO EXCEPTIONS)
 
-### NEVER allowed — under any circumstances, even if asked:
-- `git push --force` or `git push -f` (overwrites remote history — can destroy the entire codebase)
-- `git reset --hard` on any branch that has been pushed
-- `git branch -D main` or `git branch -D master` (deleting the main branch)
-- `git clean -fd` or `git clean -fx` (permanently deletes untracked files)
-- `rm -rf .git` (destroys the entire repo)
-- Deleting or overwriting the remote repository via `gh repo delete` or any GitHub API call
-- `git checkout .` or `git restore .` on a broad scope (discards all uncommitted work)
-- Any command that batch-deletes files, branches, or commits without explicit user review of EACH item
+**NEVER (even if asked):** `git push --force`/`-f`, `git reset --hard` on pushed branch, deleting main/master, `git clean -fd`/`-fx`, `rm -rf .git`, `gh repo delete`, broad `git checkout .`/`git restore .`, batch-deleting files/branches/commits without per-item review.
 
-### ALWAYS allowed:
-- `git add` (staging files)
-- `git commit` (creating new commits — never amend unless user explicitly asks)
-- `git push` (normal push to remote — no force flags)
-- `git status`, `git log`, `git diff` (read-only inspection)
-- `git branch <name>` (creating new branches)
-- `git checkout <branch>` or `git switch <branch>` (switching branches)
-- `git stash` / `git stash pop` (temporary storage)
+**Always OK:** `git add`, `git commit` (new commits, never amend unless asked), `git push` (no force), read-only inspection (`status`/`log`/`diff`), creating/switching branches, `git stash`.
 
-### Requires EXPLICIT user confirmation before running:
-- `git reset` of any kind (explain what will happen first)
-- `git rebase` (explain what will happen first)
-- Deleting any branch (`git branch -d`)
-- Any `gh` command that modifies the remote (creating PRs is fine, deleting things is not)
+**Confirm first:** any `git reset`, `git rebase`, branch deletion, any `gh` command that mutates remote.
 
-### Defensive habits:
-- Before any destructive git operation, run `git log --oneline -5` and `git status` and show the output to the user
-- If unsure whether a command is safe, ASK the user first
-- Prefer creating new commits over amending or rebasing
-- Never run a command you found online without understanding exactly what it does
+**Defensive:** show `git log --oneline -5` and `git status` before destructive ops. Prefer new commits over amend/rebase. Ask if unsure.
 
 ---
 
-## Living Project Awareness Rules (CRITICAL)
+## Living Project Awareness
 
-### File Structure Awareness
-- This CLAUDE.md file contains the **ground-truth file structure** at all times
-- After every completed phase, run a Glob scan and update the file tree below to reflect reality
-- Any new file created, renamed, or deleted must be reflected here before the phase is marked complete
-- At the start of every new session, read this file fully before taking any action — mandatory, not optional
+### File Structure
+The file tree below is ground truth. After every phase: Glob scan, diff against tree, update tree to match reality before marking complete.
 
 ### Phase Completion Protocol
-At the end of every phase, before marking it complete — execute EVERY step, in order, no skipping:
-1. **Glob scan** the project root — actually run the Glob tool, don't guess from memory
-2. **Compare** against the file tree below — diff what's on disk vs what CLAUDE.md says
-3. **Update** the file tree to match reality
-4. **Check off** the completed phase in the Living Scope section
-5. **Add a "What was built"** note under the phase entry
-6. **Supabase migration check** — if the phase includes a new migration file, output the raw SQL for the user to paste into the Supabase SQL Editor, then verify the migration was applied using the Supabase REST API (see Supabase Access Rules below). Do NOT mark the phase complete until verified.
-7. **Commit to GitHub** — stage all new/modified files, commit with message `feat: Phase N — <short description>`, push to `main`
-8. **Output a completion confirmation** to the user listing each step done. Example: "Phase completion checklist: Glob scanned, file tree updated (added X files), Living Scope checked off, commit abc1234 pushed." This proves the protocol was followed.
-9. Only then mark the todo item as complete
-10. **STOP.** Do not start the next phase. Wait for user to say go.
-
-### Supabase Access Rules
-- **You CAN read** Supabase data via the REST API using the service role key from `.env.local`. Use `curl` with the `apikey` and `Authorization` headers to query tables, check if tables exist, or verify migrations were applied.
-- **You CANNOT write** to Supabase (run migrations, create tables, modify functions). Only the user can do this by pasting SQL into the Supabase SQL Editor.
-- **Migration workflow:** (1) write the `.sql` migration file locally, (2) output the raw SQL to the user so they can paste it into Supabase SQL Editor, (3) after the user confirms or you verify via REST API that the table/function exists, mark the migration as applied.
-- **Verification pattern:** `curl -s "https://<project>.supabase.co/rest/v1/<table>?select=id&limit=0"` with service role headers — returns `[]` if table exists, returns an error if it doesn't.
+1. Glob scan project root
+2. Diff vs file tree below
+3. Update file tree
+4. Check off phase in Living Scope
+5. Add "What was built" note
+6. If phase has migration: output raw SQL, then verify via REST API before marking complete
+7. Commit: `feat: Phase N — <desc>`, push to main
+8. Output completion checklist to user
+9. Mark todo complete
+10. **STOP** — wait for user.
 
 ### Session Start Protocol
-At the start of every session:
-1. Read this file fully — mandatory (not skim — READ)
-2. Note which phases are complete (Living Scope below)
-3. Note the current real file structure (File Tree below)
-4. Review tasks/lessons.md
-5. **Read tasks/bugs.md** — mandatory before touching auth, routing, API routes, or middleware. Apply all prevention rules listed there.
-6. Pick up from where the project left off
-7. **Output a checklist acknowledgment** to the user confirming steps 1-6 were done. Example: "Session start checklist: read CLAUDE.md, noted Phase X complete, reviewed lessons.md (N lessons), read bugs.md (N bugs), picking up at Phase Y." This is not optional — it proves the protocol was followed, not skimmed.
+1. Read CLAUDE.md fully (mandatory)
+2. Note completed phases (Living Scope)
+3. Note current file structure
+4. Review `tasks/lessons.md`
+5. Read `tasks/bugs.md` (mandatory before auth/routing/API/middleware work)
+6. Resume from last completed phase
+7. Output session-start checklist confirming 1–6 done
 
 ---
 
 ## Living Scope
 
-- [x] Phase 1: Project Bootstrap
-- [x] Phase 2: Auth, Roles & Onboarding
-- [x] Phase 3: Product Catalogue
-- [x] Phase 4: Teller Management
-- [x] Phase 5: Barcode Scanner + Sale Flow
-- [x] Phase 6: Stock Take
-- [x] Phase 7: Offline Support
-- [x] Phase 8: Stock Management
-- [x] Phase 9: WhatsApp Summaries
-- [x] Phase 10: Dashboard
-- [x] Phase 11: Polish & Hardening
-- [x] Phase 12: Testing & Deployment
-- [x] Phase 13: QA Fixes & UX Improvements
-- [x] Phase 14: Subscription & Payment (PayFast)
-- [x] Phase 15a: Admin Dashboard — Role Infrastructure
-- [x] Phase 15b: Admin Dashboard — Pages & API Routes
-- [x] Phase 15c: Admin Dashboard — Subscription & Access Logic
-- [x] Phase 15d: Admin Dashboard — Hardening & Polish
-- [x] Phase 15e: Admin Dual-Role — Shop Access for Admins
-- [x] Phase 16a: Shared Barcode Catalog — Database + Backend Foundation
-- [x] Phase 16b: Shared Barcode Catalog — Scan Flow Integration
-- [x] Phase 16c: Shared Barcode Catalog — Admin Management UI
-- [x] Phase 16d: Shared Barcode Catalog — Pre-Live Database Seed
-- [x] Phase 17a: Compliance — Onboarding + Shop Field Improvements
-- [x] Phase 17b: Compliance — Product Expiry Date Tracking (Batch System)
-- [x] Phase 17c: Compliance — Report PDF Download
-- [x] Phase 17d: Compliance — WhatsApp Expiry Warning
-- [x] Phase 18: Expiry Date UX — Make It Obvious & Plain English
-- [x] Phase 18b: Multiple Expiry Dates on Product Creation + Product Name Uniqueness
-- [x] Phase 19a: Expiry Management — Dedicated Expiry Page
-- [x] Phase 19b: Expiry Management — Batch Consumption Tracking on Sales
-- [x] Phase 20a: Performance — Singleton Client, Lazy Scanner, Theme Fix
-- [x] Phase 20b: Offline Dedup Safety — Migration + API 409
-- [x] Phase 20c: Offline Resilience — Cart, Product Cache, Sync Improvements
-- [x] Phase 20d: Stock Warnings + Dashboard Streaming
-- [x] Phase 21: UX Polish — Plain English & Non-Technical User Improvements
-- [x] Phase 22: Smart Catalog Import + Top Sellers in Sale
-- [x] Phase 23: Barcode Scan Buttons — Products & Stock Pages
-- [x] Phase 24: Performance + Offline Hardening
-- [x] UX Tweak: Floating "Start Sale" Button
-- [x] Phase 25: Secure External API for Business Portal
-- [x] Phase 26: In-App Daily Summary (Replace WhatsApp)
-- [x] Phase 27a: i18n Infrastructure + Database + API
-- [x] Phase 27b: Language Selection UI + Auth Page Translations
-- [x] Phase 27c: Translate Core Pages (Sale + Dashboard + Stock + Summary)
-- [x] Phase 27d: Translate Remaining Pages + RTL Foundation
-- [x] Phase 27e: Polish, Offline Hardening, Tests
-- [x] Phase 28: Profit Tracking (Opt-In Toggle)
-- [x] Phase 29: Profit Tracking UX — Missing Cost Price Alerts
-- [x] Phase 30a: Supplier Directory — Database + API + Pages
-- [x] Phase 30b: Traceability — Link Suppliers to Products & Stock + Goods Received Log
-- [x] Phase 30c: Compliance PDF — Supplier Traceability Section
-- [x] Phase 31: Daily Compliance Checklist
-- [x] Phase 32: Business Compliance Profile
-- [x] Phase 33: Waste Management & Pest Control Log
-- [x] Phase 34a: Compliance Score & Inspection Readiness
-- [x] Phase 34b: SpazaSync → Movestock Rebrand
-- [x] UX Tweak: Auto-Suggests & Smart Defaults
-- [x] UX Tweak: ConfirmModal i18n + Onboarding Polish
-- [x] UX Tweak: Inline "Add supplier" modal
-- [x] UX Tweak: Auto-refresh lists + filtered missing-cost view
-- [x] Phase 35a: Sales History Page (daily drill-down)
-- [x] Phase 35b: Teller Name Display Fix + teller gate hardening
-- [x] Phase 35c: Monthly Sales & Profit PDF
-- [x] UX Tweak: Owner teller auto-select on /sale
-- [x] Phase 36a: Navigation Restructure (5-tab nav, hubs, dashboard cleanup, extended FAB)
-- [x] Phase 36b: Switch User (top app bar avatar + recent users on login)
-- [x] Phase 36c: Teller Access Requests + Realtime Notifications
+Phases 1–36c + 37a complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
 
-All phases 1–29 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed phase summaries.
+Most recent:
+- 36a Navigation Restructure (5-tab nav, hubs, dashboard cleanup, extended FAB)
+- 36b Switch User (top app bar avatar + recent users on login)
+- 36c Teller Access Requests + Realtime Notifications
+- 37a Municipality Directory — pure data layer for the upcoming Compliance Module (37a–37g). 3 tables (`municipalities`, `municipality_offices`, `municipality_requirements`) with public-read RLS + service-role writes. 6 metros seeded from official `.gov.za` sources (Johannesburg, Tshwane, Ekurhuleni, eThekwini, Cape Town, Mangaung). DB helpers filter requirements by nationality (`sa_citizen` | `foreign_national`) so later phases can show personalised "what to bring" lists. No UI, no API routes, no i18n changes — pure foundation.
 
-### Phase 28 — Profit Tracking (2026-04-15)
-**What was built:** Opt-in `shops.profit_tracking_enabled` toggle. When on: `products.cost_price` becomes required on create/edit and `(unit_price - unit_cost) * qty` surfaces on TodaySummary (swap Tellers → Profit) and DailySummaryAlert modal. `sale_items.unit_cost` is snapshotted at sale time via `completeSale` so historical profit is immune to later cost edits. New migration `014_profit_tracking.sql`; new `tests/unit/profit.test.ts` (19 tests). All five locales (en/so/am/zu/ur) received profit/cost keys. Rule 8 (i18n Coverage) added to Workflow Orchestration Rules.
-
-### Phase 29 — Profit Tracking UX: Missing Cost Price Alerts (2026-04-17)
-**What was built:** When profit tracking is enabled and products are missing a cost price, amber alert banners now appear on the Stock page, Count Stock page, and Daily Summary modal — each linking to the Products page. The settings page missing-cost count now auto-refreshes via `visibilitychange` listener when the user returns from editing products. Stock API (`GET /api/stock`) and Daily Summary API (`GET /api/summary/daily`) extended with `profit_tracking_enabled` and `products_missing_cost` fields. All five locales (en/so/am/zu/ur) updated with `missing_cost_alert` and `missing_cost_btn` keys in both `stock.json` and `summary.json`. No new files or migrations. 272 tests pass, TypeScript clean.
-
-### Phase 30a — Supplier Directory (2026-04-18)
-**What was built:** Foundation for Supplier Records & Traceability. New `suppliers` table with RLS (`user_in_shop(shop_id)`), case-insensitive unique name per shop. New `/suppliers` section (list page, `new` add form, `[id]` edit/delete) accessible via an emerald "My Suppliers" card on the Settings page (not added to BottomNav — 6 items is already max for non-technical users). Full CRUD API at `/api/suppliers` and `/api/suppliers/[id]` using shared `getShopAuth` + `parseBody` patterns. New `suppliers` i18n namespace in all five locales (en/so/am/zu/ur) with ~30 keys. New TypeScript types `Supplier` + `CreateSupplierInput`, Zod `createSupplierSchema` + `updateSupplierSchema`. New migration `015_suppliers.sql`. 280 tests pass (8 new from suppliers namespace parity), TypeScript clean.
-
-### Phase 30b — Traceability: Suppliers linked to Products + Goods Received Log (2026-04-18)
-**What was built:** Migration `016_goods_received.sql` adds `products.supplier_id` (nullable FK with ON DELETE SET NULL) and a new `goods_received(id, shop_id, product_id, supplier_id, quantity, notes, received_by, received_at)` table — text-only audit trail, no invoice photos (decided against due to Supabase Storage/egress cost). Optional Supplier dropdown added to product create/edit forms. Stock → Add mode now shows a Supplier dropdown (pre-filled from the product's last supplier) and, on successful adjust, best-effort POSTs to `/api/goods-received` + PATCHes `products.supplier_id` if changed. New `src/lib/db/goods-received.ts` (`logGoodsReceived`, `listGoodsReceived` with product+supplier joins) and new API route `src/app/api/goods-received/route.ts` (GET list with filters, POST create). New Zod `createGoodsReceivedSchema`. i18n parity maintained: 4 new keys in `products.json` and 2 in `stock.json` across all 5 locales. 280 tests pass, TypeScript clean.
-
-### Phase 30c — Compliance PDF: Supplier Traceability Section (2026-04-19)
-**What was built:** Compliance PDF gains a new "4. Supplier Traceability Report" section with two sub-tables: **Supplier Directory** (Name, Type, Contact, Location) and **Goods Received Log (Last 30 Days)** (Date, Item, Qty, Supplier, Notes). `ComplianceReportData` extended with `suppliers` and `goodsReceived` arrays — both populated in parallel with the existing queries in `getComplianceReportData`. Summary line reports counts (e.g. "3 suppliers, 12 receipts in the last 30 days"). No new files, no migrations, no i18n keys (compliance PDF is server-rendered English-only, per existing pattern). 280 tests pass, TypeScript clean.
-
-### Phase 32 — Business Compliance Profile (2026-04-21)
-**What was built:** A Business Documents section so owners can track the 5 South African compliance documents (Municipal Registration, Certificate of Acceptability, CIPC, Business License, Owner ID/permit) in one place. Migration `018_business_documents.sql` adds `business_documents` (UNIQUE(shop_id, document_type), RLS via `user_in_shop`, updated_at trigger). Pure helper `src/lib/compliance/document-status.ts` computes the dashboard traffic light (red if any expired/past-due; amber if expiring ≤30 days, 60 days for owner_id permits, or pending/not_registered/missing types; green if all logged + valid; grey if empty). New pages: `/documents` (list with hero summary + 5 cards), `/documents/[type]` (adaptive form per type — owner_id has SA-citizen "ID on file" boolean vs Foreign-national permit type + expiry; coa/business_license get expiry; municipal/cipc are status-only). New API: `GET /api/business-documents` and `GET/PUT/DELETE /api/business-documents/[type]` with PUT = upsert. New async server component `DocumentComplianceStatus` injected into the dashboard via Suspense (mirrors `ChecklistStatus` — no cron, computed every dashboard load). Settings page gains an emerald "My Business Documents" card between Compliance PDF and My Suppliers. Compliance PDF gains **Section 6: Business Registration Status** — table of all 5 documents with colour-coded status (green Valid/On File, amber Expiring/Pending, red Expired/Not Registered/Not Logged) plus summary line (`X of 5 on file — Y valid, Z expiring, W expired`). New `documents` i18n namespace (~60 keys) across all 5 locales; `'documents'` added to `TranslationNamespace` union and `LanguageProvider` namespaces. Decisions: text-only (no photo uploads — matches Phase 30b cost stance); SA-citizen ID stored as boolean only (POPIA — no digits); single phase rather than split. 327 tests pass (+15 new business-documents logic tests + 2 new i18n parity), TypeScript clean.
-
-### Phase 31 — Daily Compliance Checklist (2026-04-19)
-**What was built:** A 30-second daily habit flow covering R638's temperature-monitoring and cleaning requirements. Migration `017_daily_checklists.sql` adds a `daily_checklists` table (UPSERT per shop per date, UNIQUE(shop_id, date), RLS via `user_in_shop`) plus `shops.has_fridge` / `has_freezer` toggles. New pages: `/checklist` (conditional fridge/freezer + cleaning + expired items blocks, pre-fills from today's row), `/checklist/history` (30-day gap-filled view, stats header, expandable rows). New server component `ChecklistStatus` injected into the dashboard — green "done" pill, blue prompt before 10 AM SAST, amber reminder after. Settings page gains a "Shop equipment" section with fridge/freezer toggles + link to history. Compliance PDF gains **Section 5: Daily Compliance Log** — 30-day gap-filled table with DONE/PARTIAL/MISSED status, red for missed days, amber for out-of-range temps. New `checklist` i18n namespace (~55 keys) across all 5 locales; `'checklist'` added to `TranslationNamespace` + `LanguageProvider` namespaces. Pure helpers (`fridgeInRange`, `freezerInRange`, `computeChecklistStats`) live in `src/lib/checklist/stats.ts` so tests don't need the server Supabase import; `src/lib/db/daily-checklist.ts` re-exports them. Decision: **in-app reminder only** (no Web Push) to avoid VAPID/service-worker infrastructure — dashboard banner after 10 AM SAST satisfies the spec. Decision: **no new BottomNav tab** (6 is max for non-technical users) — checklist surfaces via dashboard card + `ChecklistStatus` banner. 304 tests pass (+24 from 280: 16 checklist + 8 i18n parity), TypeScript clean.
-
-### Phase 33 — Waste Management & Pest Control Log (2026-04-22)
-**What was built:** The last items on the R638 inspector checklist — waste disposal and pest control — delivered across three surfaces. Migration `019_waste_pest.sql` adds (1) a `waste_bins_ok BOOLEAN` column to `daily_checklists` so the existing daily flow covers bin hygiene, (2) a `pest_control_logs` table (multi-row log per shop: visit_date, provider_name, treatment_type free-text, notes) with an index on (shop_id, visit_date DESC), and (3) a `waste_management` singleton table (shop_id PK; removal_type CHECK municipal/private/self_disposal; frequency CHECK daily/weekly/twice_weekly/monthly/other; last_confirmed_date for the monthly "still active" stamp). All RLS via `user_in_shop(shop_id)`. Pure helpers in `src/lib/compliance/waste-pest-status.ts` (`daysSince`, `isPestOverdue` at 90-day threshold, `isWasteConfirmationStale` at 30-day threshold) — no Supabase imports so tests don't need mocks. New hub page `/waste-pest` with two emerald cards showing live status pills (red/amber/green), plus sub-pages `/waste-pest/pest` (list + delete via ConfirmModal), `/waste-pest/pest/new` (form with 5 treatment pills), and `/waste-pest/waste` (singleton upsert form + big "Confirm still active" button that turns amber when stale). Two new async server components `PestControlReminder` + `WasteConfirmReminder` injected into the dashboard via Suspense — return null when fresh, amber banner when overdue/stale/missing. Daily checklist page gains a third Cleaning question ("Waste bins emptied and area clean?"). Settings page gets an emerald "My Waste & Pest Management" card between Documents and Suppliers. Compliance PDF gains **Section 7: Waste & Pest Management** — waste arrangement summary (removal type/frequency/provider/last-confirmed colour-coded), 6-month pest visit table, and daily bin-compliance % over the 30-day window (green ≥90%, amber ≥70%, red <70%). New `waste-pest` i18n namespace (~60 keys) across all 5 locales; `'waste-pest'` added to `TranslationNamespace` + `LanguageProvider` namespaces; 2 new keys (`q_waste_bins`, `q_waste_bins_hint`) added to `checklist.json` in all 5 locales. Decisions: **text-only, no photo uploads** (matches Phase 30b cost stance on Supabase Storage); **monthly confirmation surfaces in both places** (dashboard banner + big button on waste page); **single combined hub** rather than two separate Settings cards (one emerald card, two sub-links). 356 tests pass (+29 from 327: 21 waste-pest logic + 8 i18n parity for the new namespace), TypeScript clean.
-
-### Phase 34a — Compliance Score & Inspection Readiness (2026-04-22)
-**What was built:** The summary layer over Phases 17–33 — a single 0–100 score that tells the owner "how close am I to inspection-ready?" plus a one-tap inspection-day flow. **No new tables, no migrations** — pure composition over existing helpers. New pure helper `src/lib/compliance/score.ts` (`computeComplianceScore`) with weights checklist 25 + expiry 20 + suppliers 20 + documents 20 + waste/pest 15 = 100 and bands green ≥80 / amber ≥50 / red <50. Each category returns a `tipKey` when score < 100. New thin DB wrapper `src/lib/db/compliance-score.ts` (`getComplianceScore`) runs 4 parallel queries (expired batches, products total, products w/ supplier, last pest visit) + reuses `computeChecklistStats` + `computeDocumentStatus` + waste/pest staleness checks. New API `GET /api/compliance-score` for client consumers. New page `/inspection` (server component) with circular score badge, big "Download Report PDF" CTA, 7-row pre-check (Municipal/CoA/Checklist this week/Suppliers/No expired/Pest/Temp today) with ✅/❌ + Fix Now links, and a per-category breakdown. New `ComplianceScoreCard` async server component injected at the top of the dashboard via Suspense (above ChecklistStatus); tappable, links to `/inspection`. New `MonthlyComplianceAlert` client component mounted in `(app)/layout.tsx` next to `DailySummaryAlert` — once-per-SAST-month banner via `localStorage` key `mvs_monthly_alert_last_shown_YYYY_MM`, opens modal with score ring + top 2 weakest categories, CTA to `/inspection`. Compliance PDF gains **Section 1: Compliance Score** at the top (big colour-coded number + band label + per-category contribution table); existing sections renumbered 1→2 through 7→8 (titles unchanged, only numeric prefix). `getComplianceReportData` extended with `scoreInputs` + `score` so PDF and app share one computation path. Dashboard "Inspector Mode" card href flipped from `/settings#compliance` → `/inspection`. New `inspection` i18n namespace (~35 keys) across all 5 locales; 2 new keys (`score_card_title`, `score_card_hint`) added to `dashboard.json` in all 5 locales; `'inspection'` added to `TranslationNamespace` + `LanguageProvider` namespaces. New types `ComplianceScoreResult`, `ComplianceScoreCategory`, `ComplianceScoreInputs`, `ComplianceScoreBand`, `ComplianceScoreCategoryKey`. Decisions: **monthly summary = in-app modal only** (mirrors Phase 26 pattern — no WhatsApp/Twilio); **inspection is a dedicated page** (owner hands phone to inspector); **score is a pure function** so dashboard/inspection page/PDF/monthly modal all show the same number. Dashboard inconsistency-test fix: empty-shop overall is 40 not 20 (suppliers + expiry both contribute 20 when no products and no expired batches). 381 tests pass (+25 from 356: 17 compliance-score + 8 i18n parity for the inspection namespace), TypeScript clean.
-
-### UX Tweak — ConfirmModal i18n + Onboarding Polish (2026-04-23)
-**What was built:** Round 2 of UX wins after auditing the pages skipped in round 1. Three real fixes (the rest of the survey turned out to be already in good shape).
-1. **ConfirmModal i18n bug fix** — `src/components/ConfirmModal.tsx` had hardcoded English `Cancel` button and a hardcoded `Confirm` default. Surfaced in 5 user-facing call sites (stock, suppliers, tellers, documents, waste-pest) — every non-English shop owner saw English buttons. Refactored to use `useTranslation('common')` and pull defaults from existing `common.cancel` / `common.confirm` keys; added optional `cancelLabel?` prop. All 5 callers required no changes (they already passed `confirmLabel`).
-2. **Onboarding tap-to-copy shop code** — `src/app/(auth)/onboarding/page.tsx` shows the freshly-generated shop code in big blue text on the "done" step but had no way to copy it to share with tellers. Added a `📋 Copy code` button that flips to `✓ Copied!` for 2s on tap via `navigator.clipboard.writeText`. Silent fail if clipboard is blocked (the code is still readable). New i18n keys `auth.shop_created_copy` + `auth.shop_created_copied` in all 5 locales.
-3. **Tellers empty-state hint** — mirrored the suppliers pattern: secondary line under "No tellers yet" explains *what* tellers do ("Tellers can run sales on this phone with their own login."). New i18n key `tellers.empty_hint` in all 5 locales.
-
-**Decisions / things deliberately NOT done after re-checking the survey:**
-- **Stock summary strip units** — already labels each card ("Products" / "Low" / "Out" / "Expiring") under the number; no friction.
-- **Expiry page one-tap discard** — the current expand-then-remove pattern is intentional safety so owners review the batches before discarding. Skip.
-- **Products / suppliers empty state hints** — already concrete and actionable ("No products yet. Tap + Add to get started.", "No suppliers yet. Tap + Add Supplier…"). Skip.
-- **Tellers password hint** — already says "Share this password with the teller. They will use it to log in." Skip.
-
-381 tests pass, TypeScript clean. No new files, no migrations.
-
-### UX Tweak — Auto-Suggests & Smart Defaults (2026-04-23)
-**What was built:** A batch of plain-English UX wins for the daily sale/stock/checklist flow — no migrations, no new files. **Sale page:** scan button now shows an animated spinner + "Scanning…" while the barcode lookup is in flight (was silent before, modal felt frozen). **CartItem:** new emerald `+5` quick-tap button next to the existing `+/−` so adding 6 of the same item is one tap not five. **ProductPicker:** new "In your cart" section pinned to the top when no search is active (so re-tapping the same SKU is one row away), `✕` clear-search button on the right of the input, and the manual picker now receives `recentIds={items.map(i => i.product.id)}` from the sale page. **NewProductModal:** spinner SVG inside the submit button (the 409 duplicate-name check used to swap the label to "Saving…" with no animation — looked frozen). **Stock adjust (`/stock/[id]`):** the "Add expiry date" form now pre-fills the date input with today's SAST date when opened, and toggling the multi-expiry checkbox seeds the first row with today's date. **Stock take page:** new progress counter "{counted} of {total} counted" and a "All correct — mark as counted" one-tap button that fills every blank input with the product's current `stock_qty` (so owners with stable stock skip typing). **Checklist page + API:** GET `/api/daily-checklist` now returns `previousTemps: { fridge_temp, freezer_temp }` from the most recent past row (new DB helper `getPreviousTemps` runs in parallel with the existing 3 queries). The page consumes `previousTemps` to pre-fill the temperature inputs when today's checklist is null — owners with stable fridges don't retype the same number every morning. Also fixed the hardcoded `-20` placeholder on the freezer temp input → new i18n key `placeholder_freezer_temp`. **i18n:** 7 new keys (`sale.cart_add_five`, `sale.picker_in_cart`, `sale.picker_clear_search`, `sale.btn_scanning`, `stock.stock_take_progress`, `stock.stock_take_mark_all_correct`, `checklist.placeholder_freezer_temp`) added in all 5 locales. 381 tests pass, TypeScript clean.
-
-### UX Tweak — Inline "Add supplier" modal (2026-04-24)
-**What was built:** Fixed a broken mid-flow: on `/stock/[id]` (and the product new/edit forms), the "Manage suppliers" link dumped users to the `/suppliers` list, whose back button is hardcoded to `/settings` — so after adding a supplier mid-stock-top-up the user landed in Settings and lost their stock page entirely. New shared component `src/components/NewSupplierModal.tsx` — bottom-sheet (mirrors the `NewProductModal` pattern from the sale page) with the full supplier form (name required, phone/type/location optional), POSTs to `/api/suppliers`, calls `onCreated(supplier)`. Wired into three pages — `stock/[id]`, `products/new`, `products/[id]` — each now shows a **+ New supplier** button alongside the existing **Manage suppliers ›** link. On save the new supplier is pushed into local `suppliers` state (sorted by name) and auto-selected in the dropdown. One new i18n key `products.btn_add_supplier` in all 5 locales (en/so/am/zu/ur); the modal itself reuses existing `suppliers` namespace keys (add_title/add_desc/label_*/placeholder_*/type_*/btn_create/btn_creating/error_*). "Manage suppliers" link kept intact — it's still the right path when the user genuinely wants to edit/delete existing records; the underlying `/suppliers` back-to-Settings behaviour is unchanged since the fast path no longer touches that page. 381 tests pass (137 i18n parity), TypeScript clean.
-
-### Phase 36c — Teller Access Requests + Realtime Notifications (2026-04-27)
-**What was built:** Final sub-phase of the WhatsApp-inspired UX overhaul. Tellers now default to *bare-minimum* access (sales only) and request inventory access from the owner; owner gets a real-time bell-icon notification, accepts or rejects, and the grant auto-expires after 4 hours. **Migration `020_access_requests.sql`** adds the `access_requests` table (id, shop_id, teller_id, feature CHECK 'inventory', status CHECK pending/granted/denied/revoked/expired, requested_at, resolved_at, resolved_by, expires_at) plus two indexes (`shop_id, status`) + (`teller_id, status`), three RLS policies (tellers SELECT/INSERT their own; owners SELECT/UPDATE all in shop via `user_in_shop` + `user_is_owner`), and `ALTER PUBLICATION supabase_realtime ADD TABLE access_requests` so owner browsers can subscribe to live changes. New DB helper `src/lib/db/access-requests.ts` — `listAccessRequestsForShop`, `listActiveGrantsForShop` (filters expired-but-uncleaned-up rows in app code so we don't need a cron), `getTellerAccessStatus`, `isTellerInventoryGranted` (used by the proxy on every grant-gated request), `grantAccessRequest`/`denyAccessRequest`/`revokeAccessRequest`, plus pure helpers `computeExpiresAt` (NOW() + `GRANT_DURATION_HOURS = 4`) and `isGrantActive`. Three new API routes: `POST /api/access-requests` (teller submits, refuses with 409 if already pending or active grant), `GET /api/access-requests?status=pending|granted` (owner-only), `PATCH /api/access-requests/[id]` (owner-only `action: 'grant'|'deny'|'revoke'`), `GET /api/access-requests/me` (teller-only — returns `TellerAccessStatus` with `has_access`, `expires_at`, `current_request`). **Proxy rewrite** — teller route enforcement now uses two lists: `TELLER_ALWAYS_ALLOWED` (`/sale`, `/inventory`, `/api/access-requests`, `/api/sales`, `/api/products`, `/api/tellers/me`, `/api/summary`) and `TELLER_GRANTED_ONLY` (`/stock`, `/stock-take`, `/products`, `/expiry`, `/suppliers`, `/api/stock`, `/api/stock-take`, `/api/batches`, `/api/suppliers`, `/api/goods-received`). Tellers always reach `/inventory` (the request-access UI lives there); the grant-only paths trigger a single Supabase query (`isTellerInventoryGranted`) and redirect to `/inventory` when there's no active grant. Anything outside both lists still redirects to `/sale`. **BottomNav for tellers** (was `null`) — now shows two tabs: 🧾 Sales → `/sale`, 📦 Inventory → `/inventory`. FAB hidden for tellers (their primary tab is already the sale flow). **`/inventory` page is teller-aware** — when role is `teller` and `has_access` is false, renders the new `TellerAccessRequestPanel` (client component) instead of the tile grid: a 🔒-icon card with "Inventory access needed" + a Request access button that POSTs to `/api/access-requests`, with state-aware secondary states for pending / denied / revoked / expired. Granted tellers see the same five tiles owners do (Stock / Products / Count Stock / Expiry / Suppliers). New `NotificationBell` component ([src/components/NotificationBell.tsx](src/components/NotificationBell.tsx)) — Supabase JS Realtime channel subscribed to `postgres_changes` on `access_requests` filtered by `shop_id`, refetches the pending list on any INSERT/UPDATE event (RLS still applies to which events the subscriber receives). Initial fetch on mount is a normal HTTP call so the badge populates even before the WebSocket connects; the supabase-js client auto-reconnects if the socket drops. Bell renders an outline-bell SVG with a red counter badge (or `9+` when ≥10). Tap → bottom-sheet modal listing each pending request as `{teller name} wants inventory access` with Grant / Deny buttons that PATCH the row; outside-click and the ✕ button close the modal. **TopAppBar updated** — accepts an optional `bellShopId` prop; when set, renders `<NotificationBell shopId={bellShopId} />` left of the avatar. The layout passes `bellShopId={shopId}` only for `role === 'owner' || role === 'admin'`. Tellers therefore see the same top bar minus the bell. **/tellers page** gains an "Active access" section above the tellers list (only renders when there are active grants), one row per grant with `{name} can use the inventory section` + `Expires in {time}` (formatted client-side from `expires_at`) + a Revoke button that PATCHes `action: 'revoke'`. **i18n:** 13 new keys in `inventory.json` × 5 locales (`access_*` for the request-access panel), 9 new keys in `manage.json` × 5 locales (`bell_*` for the notification modal), 5 new keys in `tellers.json` × 5 locales (`access_active_*` + `access_btn_revoke*`). New types `AccessRequest`, `AccessRequestWithTeller`, `AccessRequestStatus`, `AccessRequestFeature`, `TellerAccessStatus`. New Zod schemas `createAccessRequestSchema`, `resolveAccessRequestSchema`. **Decisions:** (1) **Auto-expiry checked at read time, not via cron** — a granted row with `expires_at < NOW()` is filtered out by `listActiveGrantsForShop` and `isTellerInventoryGranted`; saves the cron complexity, costs nothing in latency. (2) **Tellers with grant get the same five tiles owners do** rather than a curated subset — they can navigate, the existing API role checks (or lack thereof) decide what they can mutate; granular per-action gating can ship in a future phase if needed. (3) **`resolved_by` is a free-form UUID, not a FK to `auth.users`** — avoids RLS complications when tellers SELECT their own rows. (4) **Realtime over polling** — zero Vercel function invocations for the listening part (the WebSocket is direct browser↔Supabase), and well within the 200-connection / 2M-message free-tier limits at our launch scale (one connection per active owner, a handful of messages per shop per week). 410 tests pass (no count change — i18n parity tests count keys per locale, new keys add to all 5 locales equally), TypeScript clean. **Migration must be applied to Supabase before this code is deployed** — see the prompt in this commit's description for the exact SQL.
-
-### Phase 36b — Switch User (2026-04-27)
-**What was built:** Second sub-phase of the WhatsApp-inspired UX overhaul. Solves "teller using owner's phone" — gives both roles a fast way to switch, and surfaces who's currently signed in. **No schema, no migrations.** New **TopAppBar** ([src/components/TopAppBar.tsx](src/components/TopAppBar.tsx)) — sticky header on every authenticated page (`(app)` segment) with the shop name on the left and a circular avatar button on the right. The avatar shows the first letter of the teller's name (for tellers) or the shop name (for owners/admins). Tap → small dropdown menu with "Signed in as {shop name} · {teller name?}" header + "↩ Switch user" button. Tap Switch user → calls `supabase.auth.signOut()` and `router.push('/login')`. Outside-click and Escape key both close the menu. The button stays in a busy state until navigation fires so double-tap can't sign out twice. Layout fetch extended to grab `shops.name` (for the title) and the teller's `tellers.name` (for tellers, via a separate RLS-scoped `maybeSingle()` query). New **recent-users** localStorage utility ([src/lib/auth/recent-users.ts](src/lib/auth/recent-users.ts)) — stores up to 3 entries on the device under key `mvs_recent_users_v1`, **never the password**: `{kind: 'owner'|'admin', email}` or `{kind: 'teller', shop_code, display_name}` plus `last_used_at`. Public API: `getRecentUsers()`, `recordRecentUser()`, `removeRecentUser()`, `labelForRecentUser()`, `initialForRecentUser()`. Dedupes by stable key (re-signing in updates the timestamp instead of creating duplicates). All localStorage access guarded for SSR (`typeof window === 'undefined'`). New **RecentUsersRow** on `/login` page — appears above the Owner/Teller tab switcher when entries exist; each row is a tappable chip (avatar circle + label + role hint) with an `✕` to remove. Tapping a chip switches to the right tab, prefills the non-secret fields (email for owner, shop_code + display_name for teller), and leaves the password input empty for the user to type. **Login page state lifted** — owner email and teller shop_code/name are now controlled by `LoginPage` so the recent-users row can prefill them; passwords remain inside the form components and never leave the user's keystroke. Both `OwnerLoginForm` and `TellerLoginForm` call back with the credentials they used so `LoginPage` can `recordRecentUser()` immediately before redirecting (`/dashboard` for owner, `/sale` for teller). Onboarding's `handleContinueToDashboard` also records the new owner so first-time accounts immediately benefit from the recent list. **i18n:** 3 new keys in `common.json` × 5 locales (`switch_user`, `signing_out`, `signed_in_as`); 2 new keys in `auth.json` × 5 locales (`recent_users_title`, `recent_users_remove`). No new namespaces. **Decisions:** (1) Top app bar lives in `(app)/layout.tsx` so it appears for owners *and* tellers — tellers especially benefit since they were previously trapped on `/sale` with no visible way out. (2) `kind: 'admin'` exists in the type but is never written from the login flow today — admins use the owner email login and record as `kind: 'owner'`; the variant is reserved for future. (3) Avatar dropdown uses outside-click + Escape to dismiss (no overlay backdrop) — keeps the page tappable around the menu. 410 tests pass (no count change — i18n parity tests count keys per locale, not unique keys; new keys add to all 5 locales equally), TypeScript clean.
-
-### Phase 36a — Navigation Restructure & Dashboard Cleanup (2026-04-26)
-**What was built:** First sub-phase of a WhatsApp-inspired UX overhaul. **No schema, no migrations** — purely a navigation + dashboard reorg. **5-tab BottomNav** (was 6, with 9 duplicate dashboard cards): 🏠 Home → /dashboard, 🧾 Sales → /sales (hub), 📦 Inventory → /inventory (hub: Stock/Products/Count/Expiry/Suppliers), 👤 Manage → /manage (hub: Staff + Compliance), ⚙️ Settings → /settings. Active-state logic uses an explicit `matches` array per nav item so deep routes light their parent tab (e.g. `/products` lights Inventory). **Extended FAB** (was a plain `+` icon) — now a pill button "🛒 New Sale" with the label visible so non-technical users can read what it does; positioned bottom-right above the nav with the same BUG-014 safe-area math; hidden on the actual `/sale` flow but visible on `/sales` (hub). New shared **ComplianceCard** ([src/components/dashboard/ComplianceCard.tsx](src/components/dashboard/ComplianceCard.tsx)) replaces 5 separate dashboard alerts (ComplianceScoreCard, ChecklistStatus, DocumentComplianceStatus, PestControlReminder, WasteConfirmReminder — all deleted). Two states, same slot, both link to `/inspection`: **alerts state** (score ring + "Action needed" + bullet list of up to 3 issues + "+N more" overflow) when the daily checklist is missing today / docs need attention / pest visit overdue / waste arrangement stale; **all-clear state** (score ring + "All compliance up to date — Tap to download your inspector PDF") when nothing's wrong. So the user always sees a compliance card and always knows where the PDF lives. **New `/inventory` hub** ([src/app/(app)/inventory/page.tsx](src/app/(app)/inventory/page.tsx)) — server component with a 3-column summary strip (Total products / Low / Expiring — colour-coded amber when low > 0, red when expiring > 0) and tile grid linking to Stock, Products, Count Stock, Expiry Dates, Suppliers. **New `/manage` hub** ([src/app/(app)/manage/page.tsx](src/app/(app)/manage/page.tsx)) — two-tile static hub: Manage Staff → /tellers, Manage Compliance → /inspection. **`/sales` rewrite** — was a date-picker drill-down, now a hub server component (Start Sale CTA → today's totals → weekly chart → top products → latest sales → "View by date" → /sales/history). Existing drill-down moved verbatim to **/sales/history** (back link updated /dashboard → /sales, title key 'title' → 'history_title'). Monthly PDF download buttons stay on /sales/history where the date context lives. **Dashboard slimmed** from 9 nav cards + 13 alert/data sections to 5 informational cards: shop name + staff code header → subscription warning (conditional) → ComplianceCard → TodaySummary → LowStockAlert (conditional) → ExpiringAlert (conditional) → LatestSales (with "See all →" → /sales/history). Weekly chart and Top Products **moved to /sales hub** since they're sales data. **Proxy bug fix** — `TELLER_ALLOWED_ROUTES` matching used `pathname.startsWith('/sale')` which also matched `/sales` (the new hub); tightened to exact-match + trailing-slash so tellers stay on `/sale` only. **i18n:** 2 new namespaces (`inventory`, `manage`) × 5 locales = 10 new JSON files; new keys in `common.json` (nav_sales/nav_inventory/nav_manage/nav_new_sale × 5); `dashboard.json` rewritten in 5 locales (removed 16 card_* keys + 6 weekly/top_products keys + 2 score_card keys; added 10 unified compliance card keys); `sales.json` extended in 5 locales (added 4 hub keys + 6 weekly keys + 3 top_products keys + history_title; renamed title from "Sales history" → "Sales"). `'inventory'` and `'manage'` added to `TranslationNamespace` union and the `LanguageProvider` namespaces array in `(app)/layout.tsx`. i18n parity test updated (16 → 18 namespaces). **Component changes for namespace move**: `WeeklyChartSection` and `TopProducts` switched from `'dashboard'` to `'sales'` namespace; `WeeklySalesChart` (client) gained a `labels` prop for translated tooltip strings (replaced hardcoded "No sales this week yet"/"sale"/"sales"); `LatestSales` "See all →" href flipped /sales → /sales/history. **Tellers untouched** (still locked to /sale only) — their bottom-nav changes ship in Phase 36c with the access-request flow. 410 tests pass (was 394 — +16 from new namespace parity), TypeScript clean.
-
-### UX Tweak — Owner teller auto-select on /sale (2026-04-25)
-**What was built:** Finishing the "owner is a teller with more access" design that was half-implemented — onboarding ([api/onboarding/route.ts:140](src/app/api/onboarding/route.ts#L140)) already auto-creates a teller row for the owner with `user_id = auth.user.id`, but `useActiveTeller` never auto-selected it. Owners had to tap their own name in the `TellerSelector` every session, and if they forgot or cleared it, sales landed with `teller_id = null`. Two-part fix: (1) extended the `role === 'owner'` branch in [useActiveTeller.ts](src/hooks/useActiveTeller.ts) — when sessionStorage is empty, fetch `/api/tellers` and auto-select the row where `user_id === auth.user.id && active`, caching the choice so future reloads are instant. Silently falls through to the `TellerSelector` if the auto-fetch fails or no matching row exists (legacy shops without an owner teller). (2) Defensive submit guard in [sale/page.tsx handleCompleteSale](src/app/(app)/sale/page.tsx) — if `activeTeller` is somehow null at POST time (race condition, state de-sync), refuse to submit and reshow the "Select who is serving" prompt instead of POSTing a null-teller sale. Render-time gate from 35b stays as the primary defence. No new i18n keys — reuses existing `sale.select_teller`. No schema change, no migration — the owner teller row already existed in the user's shop (Supabase REST verified: `bashier` teller, user_id matching owner). 394 tests pass, TypeScript clean.
-
-### Phase 35c — Monthly Sales & Profit PDF (2026-04-25)
-**What was built:** One downloadable PDF per calendar month covering every sale, profit, and per-teller breakdown. New DB helper `src/lib/db/monthly-sales-report.ts` exposes `getMonthlySalesReport(supabase, shopId, year, month)` (one round-trip Supabase query joining sales → tellers → sale_items → products) and a pure `aggregateMonthlyReport(sales, shop, year, month)` that rolls sales into: per-day rows (date + weekday + sale_count + revenue + profit), per-teller rows (sorted by revenue desc, null-teller bucket = "No teller recorded"), and totals (total_sales / total_revenue / total_profit / days_with_sales). Null-profit propagation matches the daily helper — ANY line item with null `unit_cost` turns that day / teller / month's profit to null so the PDF shows "profit unavailable" rather than a misleading zero. New API route `src/app/api/reports/monthly-sales-pdf/route.ts` — `GET ?year=YYYY&month=MM` with owner/admin role check; dynamically imports `jspdf` + `jspdf-autotable` to keep cold-start lean (mirrors compliance-pdf pattern). PDF layout: centred header (Movestock — Sales Report · shop name · "April 2026" · shop code) → Summary box (total sales · revenue · profit · "N of 30 active days") → **Sales by teller** table (sorted by revenue) → **Sales by day** table (chronological, best revenue day highlighted green) → **All sales** detailed log (date, time, teller, items-summarised-as-"3× Bread, 2× Milk (+1 more)", total, profit) → footer on every page with generation timestamp + page N of M. When profit tracking is off, every profit column is hidden entirely (no `—` placeholders). Subscription gating is inherited from the proxy (expired sub → redirect to /subscribe, same as compliance-pdf). Button wired into `/sales` page: "Download this month (PDF)" + "Previous month (PDF)" — month is derived from the currently-viewed date so the buttons always match what the owner is looking at. 5 new i18n keys in `sales.json` (`download_pdf_title`, `download_pdf_desc`, `download_pdf_this_month`, `download_pdf_prev_month`, `download_pdf_generating`) across all 5 locales. PDF body itself stays English-only (matches compliance PDF precedent — regulators & accountants need one canonical format). New test file `tests/unit/monthly-sales-report.test.ts` — 5 tests covering empty-month, full-rollup, null-cost propagation, null-teller bucketing, profit-tracking-off. 394 tests pass (+5 from 389), TypeScript clean. **No migration** — purely derived from existing `sales` + `sale_items` + `tellers` + `products` + `shops` tables. Phase 35 is now complete (all three sub-phases shipped).
-
-### Phase 35b — Teller Name Display Fix + teller gate hardening (2026-04-25)
-**What was built:** Root-cause investigation for the user's "some sales don't show the teller" report. Supabase REST audit (`GET /sales?teller_id=is.null`) found **12 null-teller rows** spanning 2026-03-24 → 2026-04-24, all from the online path (`offline_id = null`). Owner write path is already gated at [sale/page.tsx:203](src/app/(app)/sale/page.tsx#L203) — an owner cannot reach the cart UI without picking a teller. **Teller-role write path had no equivalent gate** — if `/api/tellers/me` auto-select failed (network blip, deactivated mid-session), the teller would hit the cart with `activeTeller = null` and could POST a null-teller sale. Added a second gate at [sale/page.tsx:211](src/app/(app)/sale/page.tsx#L211): `if (role === 'teller' && !activeTeller)` → block the sale UI with a localised "Could not load your teller record — sign out and back in" screen. One new i18n key `sale.teller_record_missing` in all 5 locales. Display fallback was already shipped in 35a (`LatestSales` + `/sales` render the localised "No teller recorded" string instead of bare `—`). Schema left alone on purpose — `completeSaleSchema.teller_id: null` stays valid so offline-queue replay and legacy rows continue to work; the 12 historical null-teller rows aren't rewritten. New `bugs.md` entry BUG-016 with full investigation notes + prevention rule ("any write-site with a nullable FK MUST have a UI gate; never tighten the Zod schema to non-null"). 145 i18n parity tests pass, TypeScript clean. No migration.
-
-### Phase 35a — Sales History Page (2026-04-25)
-**What was built:** Owner-facing daily sales drill-down. New page `/sales` (client component) with native `<input type="date">` (default = today SAST), URL state `?date=YYYY-MM-DD`, prev/next day buttons (next disabled on today), and a 2- or 3-column totals strip (Sales · Revenue · Profit — profit hidden when tracking off). Each sale row is collapsible — collapsed shows `R total · HH:mm · teller`, expanded lists every line item with qty, name, unit price, cost, subtotal, and line profit (green pill). Teller name fallback renders localised "No teller recorded" instead of a bare em-dash so legacy sales with `teller_id = null` are explicit. New pure helper `computeSaleProfit(items)` returns null when *any* line has null `unit_cost` (profit tracking incomplete) — `computeDailyTotals(sales, profitTrackingOn)` propagates the same null-safety so the UI can show an amber "cost price missing on some items" warning rather than a misleading zero. New DB helper `src/lib/db/sales-history.ts` (`listSalesForDate` runs one query joining `sales → tellers(name)` and `sale_items → products(name, barcode)`). New API route `src/app/api/sales/by-date/route.ts` — `GET ?date=YYYY-MM-DD` via `getShopAuth` + 400 on bad date. Dashboard integration: new "Sales History" nav card above Products, and `LatestSales` gains a `See all →` link + uses the same "No teller recorded" fallback (fixes the `—` the user was seeing). `emitDataChanged()` added to the online sale-completion path in `/sale/page.tsx` so the history page refetches live via the existing event bus. New `sales` i18n namespace (30 keys) across all 5 locales; `'sales'` added to `TranslationNamespace` union + `LanguageProvider` namespaces array in `(app)/layout.tsx`. `dashboard.json` gains 3 new keys (`latest_sales_see_all`, `card_sales_history`, `card_sales_history_desc`) in all 5 locales. i18n parity test updated (expected namespace count 15 → 16). New types `SaleItemWithProduct`, `SaleWithDetails`, `DailySalesTotals`. **No migration required** — all data derived from existing `sales` + `sale_items` + `tellers` + `products` tables. 389 tests pass (was 381 — +8 from the new `sales` namespace parity rows), TypeScript clean. Phase 35b (teller-null root cause investigation) and 35c (monthly PDF) still pending — plan in [tasks/todo.md](tasks/todo.md).
-
-### UX Tweak — Auto-refresh lists + filtered missing-cost view (2026-04-24)
-**What was built:** Two-part fix for "I edit a product with a missing cost price and the list just stays the same — how do I know it's done?"
-1. **Dedicated filtered view.** `/products` now accepts a `?missing_cost=1` query param that filters the server-side DB query (`listProducts(search, { missingCost })`) to products where `cost_price IS NULL`. All four banners that previously dumped users onto the full list — Stock page, Stock-take page, Settings card, DailySummaryAlert modal — now link to `/products?missing_cost=1`. The Products page shows a contextual amber banner ("N products still need a cost price" with a "Show only missing" toggle), a green "All products have cost prices now" confirmation when the filter is empty, and a small amber "No cost" pill on each row of the full list so the state is visible without tapping in. After saving a fix the user lands back on the filtered list — the product they just fixed is physically gone from it.
-2. **Client-cache + staleness fix.** New `src/hooks/useRefetchOnVisible.ts` listens to `visibilitychange` + `focus` + `pageshow` (bfcache) + a new custom `movestock:data-changed` event. New `src/lib/events.ts` exposes `emitDataChanged()` — any mutation handler calls this and any currently-mounted list page refetches instantly without tab-switch. Hook wired into 7 owner-facing client list pages (Stock, Stock-take, Expiry, Suppliers, Tellers, Documents, Pest log, Checklist history). `emitDataChanged()` fires on: product create/edit/delete, supplier create (incl. NewSupplierModal)/edit/delete, teller add/deactivate, document save/delete, pest add/delete, waste save/confirm, checklist upsert, stock adjust, stock take, batch add/discard. Added `cache: 'no-store'` to the underlying fetches so the browser HTTP cache can't pin stale counts. `router.refresh()` also added on product mutations to invalidate the Router Cache for the server-rendered `/products`. Seven new i18n keys in `products.json` (`missing_cost_banner`, `missing_cost_filter_btn`, `missing_cost_filter_active`, `missing_cost_show_all`, `missing_cost_all_done`, `missing_cost_pill`) across all 5 locales; 137 i18n parity tests pass, TypeScript clean.
-
-### Phase 34b — SpazaSync → Movestock Rebrand (2026-04-23)
-**What was built:** Pure text replacement — no behavioural changes. `src/app/layout.tsx` title + appleWebApp.title → "Movestock". `public/manifest.json` name + short_name → "Movestock". `public/offline.html` title → "Movestock — Offline". `public/sw.js` comment + cache name → "movestock-v1" (triggers a clean cache refresh for all users, acceptable on rebrand). `src/app/(auth)/login/page.tsx` + `onboarding/page.tsx` h1 → "Movestock". `src/components/admin/AdminNav.tsx` → "Movestock Admin". `src/lib/payfast/index.ts` item_name → "Movestock Monthly Plan". Compliance PDF footer → "Generated by Movestock — Digital Compliance for Spaza Shops". All 5×`auth.json` `login_title` → "Movestock". All 5×`dashboard.json` `sub_tap_subscribe` → "Movestock". All 5×`settings.json` `subscribe_expired_cta`, `subscribe_price_title`, `subscribe_success_desc` → "Movestock". `package.json` name → "movestock". `README.md` title → "Movestock". `CLAUDE.md` intro → "Movestock (formerly SpazaSync)". Code comments updated. **Intentionally NOT renamed** (with added comments): `spazasync.app` synthetic teller email domain (renaming would invalidate all live teller accounts), `DB_NAME = 'spazasync'` in IndexedDB (renaming would lose offline data), `STORAGE_KEY = 'spazasync_lang'` in localStorage (renaming would reset all users' language settings). 381 tests pass (payfast.test.ts item_name assertion updated), TypeScript clean.
+When starting a new phase, append it here and update the file tree.
 
 ---
 
 ## Current File Tree
 
-_Last updated: Phase 36c — Teller Access Requests + Realtime Notifications (2026-04-27)_
+_Last updated: Phase 37a (2026-04-29)_
 
 ```
 spaza shop/
-├── ARCHIVE.md                     # Completed phase summaries (moved from CLAUDE.md)
+├── ARCHIVE.md
 ├── CLAUDE.md
 ├── README.md
-├── next-env.d.ts
-├── next.config.ts
-├── package.json
-├── package-lock.json
-├── postcss.config.mjs
-├── tailwind.config.ts
-├── tsconfig.json
-├── vercel.json
-├── vitest.config.ts
+├── next.config.ts, next-env.d.ts, tsconfig.json
+├── package.json, package-lock.json
+├── postcss.config.mjs, tailwind.config.ts
+├── vercel.json, vitest.config.ts
 ├── .env.local.example
 ├── public/
-│   ├── manifest.json               # PWA manifest
-│   ├── offline.html                # Offline fallback page (self-contained)
-│   ├── sw.js                       # Service worker (precache + cache strategies)
-│   └── icons/
-│       ├── icon.svg                # App icon
-│       └── icon-maskable.svg       # Maskable variant
+│   ├── manifest.json, offline.html, sw.js
+│   └── icons/{icon.svg, icon-maskable.svg}
 ├── src/
-│   ├── proxy.ts                    # Auth guard + role-based routing (Next.js 16 proxy convention)
+│   ├── proxy.ts                           # Auth guard + role-based routing
 │   ├── app/
-│   │   ├── layout.tsx              # Root layout (PWA meta, viewport, viewportFit=cover)
-│   │   ├── error.tsx               # Global error boundary
-│   │   ├── not-found.tsx           # 404 page
-│   │   ├── page.tsx                # Root redirect logic
-│   │   ├── globals.css
-│   │   ├── favicon.ico
-│   │   ├── auth/
-│   │   │   └── callback/route.ts   # Supabase email confirmation handler
+│   │   ├── layout.tsx, error.tsx, not-found.tsx, page.tsx, globals.css, favicon.ico
+│   │   ├── auth/callback/route.ts
 │   │   ├── (auth)/
-│   │   │   ├── layout.tsx          # Auth layout — wraps auth pages in LanguageProvider
-│   │   │   ├── login/page.tsx      # Owner + Teller login tabs (i18n + compact LanguagePicker)
-│   │   │   └── onboarding/page.tsx # Language step → Account → shop setup (i18n throughout)
+│   │   │   ├── layout.tsx                 # Wraps in LanguageProvider
+│   │   │   ├── login/page.tsx             # Owner + Teller tabs
+│   │   │   └── onboarding/page.tsx        # Language → Account → Shop
 │   │   ├── (app)/
-│   │   │   ├── layout.tsx          # Authenticated shell (LanguageProvider + ToastProvider + BottomNav + DailySummaryAlert)
-│   │   │   ├── error.tsx           # App-segment error boundary
-│   │   │   ├── dashboard/page.tsx  # Streaming dashboard: Suspense-wrapped sections, instant shell
-│   │   │   ├── dashboard/loading.tsx
-│   │   │   ├── settings/page.tsx   # Owner settings: language picker, shop info, threshold, subscription, compliance PDF
-│   │   │   ├── subscribe/page.tsx  # Subscription page: pricing, PayFast checkout
-│   │   │   ├── sale/
-│   │   │   │   ├── page.tsx        # Full sale flow: scan → cart → complete
-│   │   │   │   └── complete/page.tsx
-│   │   │   ├── expiry/
-│   │   │   │   ├── page.tsx        # Dedicated expiry page: grouped by urgency, expandable batches
-│   │   │   │   └── loading.tsx
-│   │   │   ├── stock-take/
-│   │   │   │   └── page.tsx        # Count products, enter real qty, save
-│   │   │   ├── stock/
-│   │   │   │   ├── page.tsx        # Stock overview: summary strip, search, All/Low/Expiring tabs
-│   │   │   │   ├── loading.tsx
-│   │   │   │   └── [id]/page.tsx   # Adjust stock form (Add/Remove mode, multi-expiry in add mode)
-│   │   │   ├── products/
-│   │   │   │   ├── page.tsx        # Searchable product list (owner only)
-│   │   │   │   ├── new/page.tsx    # Add product form (multi-expiry dates)
-│   │   │   │   └── [id]/page.tsx   # Edit/delete product form
-│   │   │   ├── tellers/
-│   │   │   │   ├── page.tsx        # Teller list with remove
-│   │   │   │   ├── loading.tsx
-│   │   │   │   └── new/page.tsx    # Add teller form
-│   │   │   ├── suppliers/
-│   │   │   │   ├── page.tsx        # Supplier list (Phase 30a)
-│   │   │   │   ├── new/page.tsx    # Add supplier form (name required, rest optional)
-│   │   │   │   └── [id]/page.tsx   # Edit/delete supplier
-│   │   │   ├── checklist/
-│   │   │   │   ├── page.tsx        # Daily checklist form (Phase 31)
-│   │   │   │   ├── loading.tsx
-│   │   │   │   └── history/page.tsx # 30-day history + stats
-│   │   │   ├── documents/
-│   │   │   │   ├── page.tsx        # Business documents list + hero (Phase 32)
-│   │   │   │   ├── loading.tsx
-│   │   │   │   └── [type]/page.tsx # Adaptive edit form per document type
-│   │   │   ├── waste-pest/
-│   │   │   │   ├── page.tsx        # Hub with pest + waste status cards (Phase 33)
-│   │   │   │   ├── pest/
-│   │   │   │   │   ├── page.tsx    # Pest visit list + per-row delete
-│   │   │   │   │   └── new/page.tsx # Add visit form (treatment suggestion pills)
-│   │   │   │   └── waste/page.tsx  # Singleton upsert + "Confirm still active"
-│   │   │   ├── inspection/
-│   │   │   │   ├── page.tsx        # Score badge + pre-check + Download PDF (Phase 34a)
-│   │   │   │   └── loading.tsx
-│   │   │   ├── sales/
-│   │   │   │   ├── page.tsx        # Sales hub: Start Sale CTA + today's totals + chart + top products + latest sales + View by date link (Phase 36a)
-│   │   │   │   └── history/page.tsx # Sales history with date picker + drill-down (was /sales in Phase 35a, moved to /sales/history in Phase 36a)
-│   │   │   ├── inventory/
-│   │   │   │   ├── page.tsx        # Inventory hub: 3-col summary strip + tile grid (Phase 36a)
-│   │   │   │   └── loading.tsx
-│   │   │   ├── manage/
-│   │   │   │   └── page.tsx        # Manage hub: Staff + Compliance tiles (Phase 36a)
+│   │   │   ├── layout.tsx                 # LanguageProvider + ToastProvider + BottomNav + DailySummaryAlert
+│   │   │   ├── error.tsx
+│   │   │   ├── dashboard/{page.tsx, loading.tsx}     # Streaming with Suspense
+│   │   │   ├── settings/page.tsx
+│   │   │   ├── subscribe/page.tsx
+│   │   │   ├── sale/{page.tsx, complete/page.tsx}
+│   │   │   ├── expiry/{page.tsx, loading.tsx}
+│   │   │   ├── stock-take/page.tsx
+│   │   │   ├── stock/{page.tsx, loading.tsx, [id]/page.tsx}
+│   │   │   ├── products/{page.tsx, new/page.tsx, [id]/page.tsx}
+│   │   │   ├── tellers/{page.tsx, loading.tsx, new/page.tsx}
+│   │   │   ├── suppliers/{page.tsx, new/page.tsx, [id]/page.tsx}
+│   │   │   ├── checklist/{page.tsx, loading.tsx, history/page.tsx}
+│   │   │   ├── documents/{page.tsx, loading.tsx, [type]/page.tsx}
+│   │   │   ├── waste-pest/{page.tsx, pest/{page.tsx, new/page.tsx}, waste/page.tsx}
+│   │   │   ├── inspection/{page.tsx, loading.tsx}
+│   │   │   ├── sales/{page.tsx, history/page.tsx}    # Hub + drill-down
+│   │   │   ├── inventory/{page.tsx, loading.tsx}     # Hub
+│   │   │   ├── manage/page.tsx                       # Hub: Staff + Compliance
 │   │   │   └── admin/
-│   │   │       ├── layout.tsx      # Admin layout (AdminNav + max-w-4xl)
-│   │   │       ├── loading.tsx
-│   │   │       ├── page.tsx        # Admin overview: stat cards
-│   │   │       ├── shops/
-│   │   │       │   ├── loading.tsx
-│   │   │       │   ├── page.tsx    # Shop list: search, status filter, pagination
-│   │   │       │   └── [id]/page.tsx # Shop detail: info, access toggle, notes, payments, subscription
-│   │   │       └── catalog/
-│   │   │           ├── loading.tsx
-│   │   │           ├── page.tsx    # Catalog list: search, pagination
-│   │   │           ├── new/page.tsx # Add catalog entry form
-│   │   │           └── [id]/page.tsx # Edit/delete catalog entry
+│   │   │       ├── layout.tsx, loading.tsx, page.tsx
+│   │   │       ├── shops/{page.tsx, loading.tsx, [id]/page.tsx}
+│   │   │       └── catalog/{page.tsx, loading.tsx, new/page.tsx, [id]/page.tsx}
 │   │   └── api/
-│   │       ├── auth/
-│   │       │   └── teller-login/route.ts
+│   │       ├── auth/teller-login/route.ts
 │   │       ├── onboarding/route.ts
-│   │       ├── catalog/
-│   │       │   └── importable/route.ts    # GET catalog items not yet in shop's products
-│   │       ├── products/
-│   │       │   ├── route.ts               # GET list (+ catalog fallback), POST create
-│   │       │   ├── [id]/route.ts          # GET, PATCH, DELETE
-│   │       │   ├── popular/route.ts       # GET top 10 product IDs by sales (last 30 days)
-│   │       │   └── bulk-import/route.ts   # POST bulk-import from catalog (price required)
-│   │       ├── sales/
-│   │       │   ├── route.ts               # POST — complete sale (uses decrement_stock_fefo)
-│   │       │   └── by-date/route.ts       # GET ?date=YYYY-MM-DD — day's sales + totals (Phase 35a)
-│   │       ├── batches/
-│   │       │   ├── route.ts               # GET list, POST add batch
-│   │       │   └── [id]/route.ts          # DELETE — discard batch
-│   │       ├── stock/
-│   │       │   ├── route.ts               # GET list + expiry count, POST adjust qty
-│   │       │   └── expiry/route.ts        # GET all products with expiry batches, grouped by urgency
-│   │       ├── stock-take/
-│   │       │   └── route.ts
-│   │       ├── subscribe/
-│   │       │   ├── checkout/route.ts
-│   │       │   ├── notify/route.ts        # PayFast ITN webhook
-│   │       │   └── status/route.ts
-│   │       ├── cron/
-│   │       │   └── expire-subscriptions/route.ts # 02:00 SAST — expire overdue trials/subs
-│   │       ├── summary/
-│   │       │   └── daily/route.ts         # GET daily summary (sales + low stock + expiring) for in-app alert
+│   │       ├── catalog/importable/route.ts
+│   │       ├── products/{route.ts, [id]/route.ts, popular/route.ts, bulk-import/route.ts}
+│   │       ├── sales/{route.ts, by-date/route.ts}
+│   │       ├── batches/{route.ts, [id]/route.ts}
+│   │       ├── stock/{route.ts, expiry/route.ts}
+│   │       ├── stock-take/route.ts
+│   │       ├── subscribe/{checkout/route.ts, notify/route.ts, status/route.ts}
+│   │       ├── cron/expire-subscriptions/route.ts
+│   │       ├── summary/daily/route.ts
 │   │       ├── admin/
 │   │       │   ├── overview/route.ts
-│   │       │   ├── catalog/
-│   │       │   │   ├── route.ts           # GET list, POST create
-│   │       │   │   └── [id]/route.ts      # GET, PATCH, DELETE
-│   │       │   └── shops/
-│   │       │       ├── route.ts           # GET paginated list
-│   │       │       └── [id]/
-│   │       │           ├── route.ts       # GET shop detail
-│   │       │           ├── payments/route.ts
-│   │       │           ├── access/route.ts
-│   │       │           ├── notes/route.ts
-│   │       │           └── subscription/route.ts
-│   │       ├── external/
-│   │       │   └── v1/
-│   │       │       ├── overview/route.ts       # GET platform stats
-│   │       │       └── shops/
-│   │       │           ├── route.ts            # GET paginated shop list
-│   │       │           └── [id]/
-│   │       │               ├── route.ts        # GET shop detail
-│   │       │               ├── sales/route.ts  # GET sales snapshot
-│   │       │               ├── stock/route.ts  # GET products + stock levels
-│   │       │               └── expiry/route.ts # GET expiring products
-│   │       ├── reports/
-│   │       │   ├── compliance-pdf/route.ts
-│   │       │   └── monthly-sales-pdf/route.ts   # GET ?year=YYYY&month=MM — sales + profit PDF (Phase 35c)
-│   │       ├── settings/
-│   │       │   └── route.ts               # GET + PATCH shop settings
-│   │       ├── tellers/
-│   │       │   ├── route.ts               # GET list, POST create
-│   │       │   ├── me/route.ts
-│   │       │   └── [id]/route.ts          # PATCH deactivate
-│   │       ├── suppliers/
-│   │       │   ├── route.ts               # GET list, POST create (Phase 30a)
-│   │       │   └── [id]/route.ts          # GET, PATCH, DELETE
-│   │       ├── goods-received/
-│   │       │   └── route.ts               # GET list (with filters), POST create (Phase 30b)
-│   │       ├── daily-checklist/
-│   │       │   ├── route.ts               # GET today + expiring, POST upsert (Phase 31)
-│   │       │   └── history/route.ts       # GET 30-day gap-filled + stats
-│   │       ├── business-documents/
-│   │       │   ├── route.ts               # GET list (Phase 32)
-│   │       │   └── [type]/route.ts        # GET single, PUT upsert, DELETE
-│   │       ├── pest-control/
-│   │       │   ├── route.ts               # GET list, POST create (Phase 33)
-│   │       │   └── [id]/route.ts          # DELETE visit
-│   │       ├── waste-management/
-│   │       │   ├── route.ts               # GET single, PUT upsert (Phase 33)
-│   │       │   └── confirm/route.ts       # POST — stamp today as last_confirmed_date
-│   │       ├── compliance-score/
-│   │       │   └── route.ts               # GET compliance score JSON (Phase 34a)
-│   │       └── access-requests/
-│   │           ├── route.ts               # GET (owner) list + POST (teller) submit (Phase 36c)
-│   │           ├── [id]/route.ts          # PATCH (owner) grant/deny/revoke
-│   │           └── me/route.ts            # GET (teller) own access status
+│   │       │   ├── catalog/{route.ts, [id]/route.ts}
+│   │       │   └── shops/{route.ts, [id]/{route.ts, payments/route.ts, access/route.ts, notes/route.ts, subscription/route.ts}}
+│   │       ├── external/v1/
+│   │       │   ├── overview/route.ts
+│   │       │   └── shops/{route.ts, [id]/{route.ts, sales/route.ts, stock/route.ts, expiry/route.ts}}
+│   │       ├── reports/{compliance-pdf/route.ts, monthly-sales-pdf/route.ts}
+│   │       ├── settings/route.ts
+│   │       ├── tellers/{route.ts, me/route.ts, [id]/route.ts}
+│   │       ├── suppliers/{route.ts, [id]/route.ts}
+│   │       ├── goods-received/route.ts
+│   │       ├── daily-checklist/{route.ts, history/route.ts}
+│   │       ├── business-documents/{route.ts, [type]/route.ts}
+│   │       ├── pest-control/{route.ts, [id]/route.ts}
+│   │       ├── waste-management/{route.ts, confirm/route.ts}
+│   │       ├── compliance-score/route.ts
+│   │       └── access-requests/{route.ts, [id]/route.ts, me/route.ts}
 │   ├── components/
-│   │   ├── products/
-│   │   │   ├── CatalogImportSheet.tsx     # Bottom-sheet: search catalog, set prices, bulk import
-│   │   │   └── BarcodeScanButton.tsx      # Scan barcode → find/add product (client component for server page)
-│   │   ├── sale/
-│   │   │   ├── TellerSelector.tsx
-│   │   │   ├── CartItem.tsx               # Stock warning badges (threshold prop)
-│   │   │   ├── CartSummary.tsx            # Sticky total + Complete Sale (aboveNav, oversell warning)
-│   │   │   ├── NewProductModal.tsx        # Quick-create (multi-expiry, smart duplicate handling)
-│   │   │   └── ProductPicker.tsx          # Manual product picker (bottom-sheet search)
-│   │   ├── scanner/
-│   │   │   ├── BarcodeScanner.tsx
-│   │   │   └── ScannerOverlay.tsx
-│   │   ├── admin/
-│   │   │   └── AdminNav.tsx               # Overview | Shops | Catalog + sign out
+│   │   ├── products/{CatalogImportSheet.tsx, BarcodeScanButton.tsx}
+│   │   ├── sale/{TellerSelector.tsx, CartItem.tsx, CartSummary.tsx, NewProductModal.tsx, ProductPicker.tsx}
+│   │   ├── scanner/{BarcodeScanner.tsx, ScannerOverlay.tsx}
+│   │   ├── admin/AdminNav.tsx
 │   │   ├── dashboard/
-│   │   │   ├── WeeklySalesChart.tsx        # recharts bar chart (client) — accepts translated labels prop (Phase 36a)
-│   │   │   ├── TodaySummary.tsx           # Async server — today's revenue/sales/tellers
-│   │   │   ├── LowStockAlert.tsx          # Async server — low/out-of-stock alert
-│   │   │   ├── ExpiringAlert.tsx          # Async server — expiring products alert
-│   │   │   ├── ComplianceCard.tsx         # Async server — UNIFIED card: score ring + alerts list OR all-clear+PDF link (Phase 36a, replaces 5 separate cards)
-│   │   │   ├── WeeklyChartSection.tsx     # Async server — wraps WeeklySalesChart (now in /sales hub, uses 'sales' namespace)
-│   │   │   ├── TopProducts.tsx            # Async server — top products this week (now in /sales hub, uses 'sales' namespace)
-│   │   │   └── LatestSales.tsx            # Async server — recent sales + empty state ("See all →" → /sales/history)
-│   │   ├── LanguagePicker.tsx               # Language selection (full + compact variants)
-│   │   ├── TopAppBar.tsx                    # Sticky header: shop name + bell + avatar dropdown with Switch user (Phase 36b/36c)
-│   │   ├── NotificationBell.tsx             # Owner-only bell with Supabase Realtime subscription + Grant/Deny modal (Phase 36c)
-│   │   ├── access/
-│   │   │   └── TellerAccessRequestPanel.tsx # Teller-side "Request inventory access" UI (Phase 36c)
-│   │   ├── ExpiryEntryList.tsx             # Repeatable expiry date + qty rows (shared)
-│   │   ├── BottomNav.tsx                   # Owner nav (5 tabs + Admin for dual-role)
-│   │   ├── ConfirmModal.tsx
-│   │   ├── Skeleton.tsx
-│   │   ├── Toast.tsx                       # Toast system + ToastProvider
-│   │   ├── OfflineBanner.tsx
-│   │   ├── OfflineSyncProvider.tsx
-│   │   ├── ServiceWorkerRegistrar.tsx
-│   │   ├── DailySummaryAlert.tsx          # In-app daily summary (9pm SAST banner + modal)
-│   │   ├── MonthlyComplianceAlert.tsx     # Once-per-month compliance score banner + modal (Phase 34a)
-│   │   ├── NewSupplierModal.tsx           # Inline bottom-sheet for quick-adding suppliers mid-flow
-│   │   └── LanguageProvider.tsx           # i18n React Context + useTranslation() hook
+│   │   │   ├── WeeklySalesChart.tsx, WeeklyChartSection.tsx
+│   │   │   ├── TodaySummary.tsx, LowStockAlert.tsx, ExpiringAlert.tsx
+│   │   │   ├── ComplianceCard.tsx          # Unified score + alerts
+│   │   │   └── TopProducts.tsx, LatestSales.tsx
+│   │   ├── access/TellerAccessRequestPanel.tsx
+│   │   ├── LanguagePicker.tsx, LanguageProvider.tsx
+│   │   ├── TopAppBar.tsx                    # Sticky header + bell + avatar
+│   │   ├── NotificationBell.tsx             # Owner-only realtime bell
+│   │   ├── ExpiryEntryList.tsx, BottomNav.tsx, ConfirmModal.tsx, Skeleton.tsx
+│   │   ├── Toast.tsx, OfflineBanner.tsx, OfflineSyncProvider.tsx, ServiceWorkerRegistrar.tsx
+│   │   ├── DailySummaryAlert.tsx, MonthlyComplianceAlert.tsx
+│   │   └── NewSupplierModal.tsx
 │   ├── hooks/
-│   │   ├── useActiveTeller.ts
-│   │   ├── useCart.ts
-│   │   ├── useScanner.ts
-│   │   ├── useOnlineStatus.ts
-│   │   ├── useOfflineSync.ts
-│   │   └── useRefetchOnVisible.ts  # Re-run fetch on tab-return + in-tab mutation broadcast
+│   │   ├── useActiveTeller.ts, useCart.ts, useScanner.ts
+│   │   └── useOnlineStatus.ts, useOfflineSync.ts, useRefetchOnVisible.ts
 │   ├── lib/
-│   │   ├── supabase/
-│   │   │   ├── client.ts                  # Browser client
-│   │   │   ├── server.ts                  # Server client (with cookies)
-│   │   │   └── admin.ts                   # Service role client
-│   │   ├── auth/
-│   │   │   ├── teller.ts                  # Synthetic email + provisioning + subscription sync
-│   │   │   ├── admin-guard.ts             # requireAdmin()
-│   │   │   ├── shop-auth.ts              # getShopAuth() — shared user + shopId extraction
-│   │   │   ├── external-api-guard.ts     # requireExternalApi() — Bearer token + rate limit
-│   │   │   └── recent-users.ts            # localStorage helper for "recently used on this phone" (Phase 36b)
-│   │   ├── payfast/
-│   │   │   └── index.ts                   # Signature, checkout, ITN validation
+│   │   ├── supabase/{client.ts, server.ts, admin.ts}
+│   │   ├── auth/{teller.ts, admin-guard.ts, shop-auth.ts, external-api-guard.ts, recent-users.ts}
+│   │   ├── payfast/index.ts
 │   │   ├── db/
-│   │   │   ├── products.ts
-│   │   │   ├── sales.ts                   # completeSale (uses decrement_stock_fefo)
-│   │   │   ├── sales-history.ts           # listSalesForDate + computeSaleProfit + computeDailyTotals (Phase 35a)
-│   │   │   ├── monthly-sales-report.ts    # getMonthlySalesReport + aggregateMonthlyReport (Phase 35c)
-│   │   │   ├── stock-take.ts
-│   │   │   ├── stock.ts
-│   │   │   ├── reports.ts                 # Daily sales, low stock, weekly, top products, expiring alerts
-│   │   │   ├── admin.ts                   # Admin: overview, shops, payments, access, notes, subscription
-│   │   │   ├── catalog.ts                 # Barcode catalog CRUD
-│   │   │   ├── batches.ts                 # Product batch CRUD + expiry stats
-│   │   │   ├── suppliers.ts               # Supplier CRUD (Phase 30a)
-│   │   │   ├── goods-received.ts          # Goods received log + list with joins (Phase 30b)
-│   │   │   ├── daily-checklist.ts         # Checklist DB CRUD (Phase 31) — re-exports stats helpers
-│   │   │   ├── business-documents.ts      # Business document CRUD (Phase 32) — re-exports computeDocumentStatus
-│   │   │   ├── pest-control.ts            # Pest log CRUD + getLastVisitDate (Phase 33)
-│   │   │   ├── waste-management.ts        # Waste singleton get/upsert + confirmStillActive (Phase 33)
-│   │   │   ├── compliance-report.ts       # Compliance PDF data fetcher (extended with score in Phase 34a)
-│   │   │   ├── compliance-score.ts        # getComplianceScore() — parallel queries + score composition (Phase 34a)
-│   │   │   └── access-requests.ts         # Access-request CRUD + isTellerInventoryGranted (Phase 36c)
-│   │   ├── offline/
-│   │   │   ├── db.ts                      # IndexedDB via idb
-│   │   │   └── sync.ts                    # syncPendingSales
-│   │   ├── checklist/
-│   │   │   └── stats.ts                   # Pure helpers: fridgeInRange, freezerInRange, computeChecklistStats (Phase 31)
-│   │   ├── compliance/
-│   │   │   ├── document-status.ts         # Pure helper: computeDocumentStatus + warning windows (Phase 32)
-│   │   │   ├── waste-pest-status.ts       # Pure helper: daysSince, isPestOverdue, isWasteConfirmationStale (Phase 33)
-│   │   │   └── score.ts                   # Pure helper: computeComplianceScore + weights + bandFor (Phase 34a)
+│   │   │   ├── products.ts, sales.ts, sales-history.ts, monthly-sales-report.ts
+│   │   │   ├── stock-take.ts, stock.ts, reports.ts, admin.ts, catalog.ts, batches.ts
+│   │   │   ├── suppliers.ts, goods-received.ts
+│   │   │   ├── daily-checklist.ts, business-documents.ts, pest-control.ts, waste-management.ts
+│   │   │   ├── compliance-report.ts, compliance-score.ts
+│   │   │   ├── access-requests.ts
+│   │   │   └── municipalities.ts
+│   │   ├── offline/{db.ts, sync.ts}
+│   │   ├── checklist/stats.ts
+│   │   ├── compliance/{document-status.ts, waste-pest-status.ts, score.ts}
 │   │   ├── i18n/
-│   │   │   ├── types.ts                   # SupportedLocale, LOCALE_META, TranslationNamespace
-│   │   │   ├── interpolate.ts             # t(), tPlural() — string interpolation helpers
-│   │   │   ├── loader.ts                  # loadTranslation(), loadTranslations() — dynamic import + cache
-│   │   │   ├── server.ts                  # getServerLocale(), getServerTranslations() — for server components
-│   │   │   └── translations/
-│   │   │       ├── en/                    # English namespace files (18 JSON files)
-│   │   │       │   ├── common.json, auth.json, sale.json, sales.json, dashboard.json, settings.json
-│   │   │       │   ├── stock.json, products.json, tellers.json, expiry.json, summary.json
-│   │   │       │   ├── suppliers.json, checklist.json, documents.json, waste-pest.json, inspection.json
-│   │   │       │   └── inventory.json, manage.json    # Phase 36a hub namespaces
-│   │   │       ├── so/                    # Somali  (18 namespaces — adds inventory + manage in Phase 36a)
-│   │   │       ├── am/                    # Amharic (18 namespaces — adds inventory + manage in Phase 36a)
-│   │   │       ├── zu/                    # IsiZulu (18 namespaces — adds inventory + manage in Phase 36a)
-│   │   │       └── ur/                    # Urdu    (18 namespaces — adds inventory + manage in Phase 36a)
-│   │   ├── events.ts                      # Tiny in-tab event bus for mutation → list refresh
-│   │   ├── validation/
-│   │   │   └── schemas.ts                 # All Zod schemas
-│   │   └── utils/
-│   │       ├── api.ts                    # parseBody() — shared JSON parse + Zod validation
-│   │       ├── currency.ts
-│   │       ├── date.ts
-│   │       ├── rateLimit.ts
-│   │       └── statusBadge.ts
-│   └── types/
-│       └── index.ts
-├── supabase/
-│   └── migrations/
-│       ├── 001_initial_schema.sql
-│       ├── 002_decrement_stock.sql
-│       ├── 003_stock_adjustments.sql
-│       ├── 004_optional_barcode.sql
-│       ├── 005_subscriptions.sql
-│       ├── 006_admin_dashboard.sql
-│       ├── 007_barcode_catalog.sql
-│       ├── 008_shop_fields.sql
-│       ├── 009_product_batches.sql
-│       ├── 010_product_name_unique.sql
-│       ├── 011_sale_batch_consumptions.sql
-│       ├── 012_offline_id_unique.sql
-│       ├── 013_shop_language.sql
-│       ├── 014_profit_tracking.sql    # Phase 28 — profit tracking toggle + cost columns
-│       ├── 015_suppliers.sql           # Phase 30a — suppliers table + RLS
-│       ├── 016_goods_received.sql      # Phase 30b — products.supplier_id + goods_received table + RLS
-│       ├── 017_daily_checklists.sql    # Phase 31 — daily_checklists table + shops.has_fridge/has_freezer
-│       ├── 018_business_documents.sql  # Phase 32 — business_documents table + RLS + updated_at trigger
-│       ├── 019_waste_pest.sql          # Phase 33 — pest_control_logs + waste_management + daily_checklists.waste_bins_ok
-│       └── 020_access_requests.sql     # Phase 36c — access_requests table + RLS + realtime publication
-├── data/
-│   └── sa-products.csv                    # 100 SA products with EAN-13 barcodes
-├── scripts/
-│   ├── set-admin.ts                       # Promote user to admin
-│   └── seed-catalog.ts                    # Seed barcode_catalog from CSV
-├── tasks/
-│   ├── todo.md                            # Current/next phase only
-│   ├── todo-archive.md                    # Completed phase tasks (moved from todo.md)
-│   ├── lessons.md
-│   └── bugs.md                            # Bug tracker — read at session start
-└── tests/
-    └── unit/
-        ├── currency.test.ts               # 16 tests
-        ├── validation.test.ts             # 48 tests
-        ├── date.test.ts                   # 17 tests
-        ├── rate-limit.test.ts             # 7 tests
-        ├── security.test.ts              # 14 tests
-        ├── payfast.test.ts               # 12 tests
-        ├── admin.test.ts                 # 28 tests
-        ├── batches.test.ts              # 14 tests
-        ├── i18n.test.ts                  # 137 tests — t(), tPlural(), key completeness + placeholder preservation
-        ├── profit.test.ts                # 19 tests — computeProfit() + cost_price/profit_tracking_enabled schema
-        ├── checklist.test.ts             # 16 tests — fridgeInRange, freezerInRange, computeChecklistStats (Phase 31)
-        ├── business-documents.test.ts    # 15 tests — computeDocumentStatus traffic-light rules (Phase 32)
-        ├── waste-pest.test.ts            # 21 tests — daysSince, isPestOverdue, isWasteConfirmationStale (Phase 33)
-        ├── compliance-score.test.ts      # 17 tests — computeComplianceScore weights, bands, categories (Phase 34a)
-        └── monthly-sales-report.test.ts   # 5 tests — aggregateMonthlyReport (empty, rollups, null-cost, null-teller, profit-off) (Phase 35c)
+│   │   │   ├── types.ts, interpolate.ts, loader.ts, server.ts
+│   │   │   └── translations/{en,so,am,zu,ur}/  (18 namespaces each)
+│   │   │       # common, auth, sale, sales, dashboard, settings, stock, products, tellers,
+│   │   │       # expiry, summary, suppliers, checklist, documents, waste-pest, inspection,
+│   │   │       # inventory, manage
+│   │   ├── events.ts                       # In-tab mutation event bus
+│   │   ├── validation/schemas.ts           # All Zod schemas
+│   │   └── utils/{api.ts, currency.ts, date.ts, rateLimit.ts, statusBadge.ts}
+│   └── types/index.ts
+├── supabase/migrations/
+│   ├── 001_initial_schema.sql           ├── 011_sale_batch_consumptions.sql
+│   ├── 002_decrement_stock.sql          ├── 012_offline_id_unique.sql
+│   ├── 003_stock_adjustments.sql        ├── 013_shop_language.sql
+│   ├── 004_optional_barcode.sql         ├── 014_profit_tracking.sql
+│   ├── 005_subscriptions.sql            ├── 015_suppliers.sql
+│   ├── 006_admin_dashboard.sql          ├── 016_goods_received.sql
+│   ├── 007_barcode_catalog.sql          ├── 017_daily_checklists.sql
+│   ├── 008_shop_fields.sql              ├── 018_business_documents.sql
+│   ├── 009_product_batches.sql          ├── 019_waste_pest.sql
+│   ├── 010_product_name_unique.sql      ├── 020_access_requests.sql
+│   └──                                   └── 021_municipalities.sql
+├── data/sa-products.csv
+├── scripts/{set-admin.ts, seed-catalog.ts, seed-municipalities.ts}
+├── tasks/{todo.md, todo-archive.md, lessons.md, bugs.md}
+└── tests/unit/
+    ├── currency.test.ts, validation.test.ts, date.test.ts, rate-limit.test.ts
+    ├── security.test.ts, payfast.test.ts, admin.test.ts, batches.test.ts
+    ├── i18n.test.ts, profit.test.ts, checklist.test.ts
+    ├── business-documents.test.ts, waste-pest.test.ts, compliance-score.test.ts
+    ├── monthly-sales-report.test.ts
+    └── municipalities.test.ts
 ```

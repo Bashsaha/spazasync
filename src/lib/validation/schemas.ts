@@ -323,3 +323,81 @@ export const createAccessRequestSchema = z.object({
 export const resolveAccessRequestSchema = z.object({
   action: z.enum(ACCESS_REQUEST_ACTIONS),
 })
+
+// ============================================================
+// Municipality directory (Phase 37a)
+// ============================================================
+
+export const PROVINCES = [
+  'gauteng',
+  'western_cape',
+  'kzn',
+  'eastern_cape',
+  'free_state',
+  'limpopo',
+  'mpumalanga',
+  'north_west',
+  'northern_cape',
+] as const
+
+export const OFFICE_TYPES = [
+  'trading_permit',
+  'environmental_health',
+  'business_licensing',
+  'customer_care',
+] as const
+
+export const REQUIREMENT_TYPES = ['trading_permit', 'coa', 'general'] as const
+
+export const NATIONALITY_TYPES = ['sa_citizen', 'foreign_national'] as const
+
+export const DOCUMENT_APPLIES_TO = ['sa_citizen', 'foreign_national', 'all'] as const
+
+export const documentRequirementSchema = z.object({
+  name: z.string().min(1).max(300),
+  applies_to: z.enum(DOCUMENT_APPLIES_TO),
+  required: z.boolean(),
+  notes: z.string().max(1000).nullable().optional(),
+})
+
+export const municipalitySchema = z.object({
+  name: z.string().min(1).max(200),
+  province: z.enum(PROVINCES),
+  short_name: z.string().min(1).max(100),
+  areas: z.array(z.string().min(1).max(100)).default([]),
+})
+
+// Empty string → null, otherwise validate as the inner schema. Used for
+// optional contact fields where the seed script may pass '' for "unknown".
+const optionalEmail = z
+  .union([z.literal(''), z.string().email().max(200), z.null()])
+  .optional()
+  .transform((v) => (v === '' || v == null ? null : v))
+
+const optionalUrl = z
+  .union([z.literal(''), z.string().url().max(500), z.null()])
+  .optional()
+  .transform((v) => (v === '' || v == null ? null : v))
+
+export const municipalityOfficeSchema = z.object({
+  municipality_id: z.string().uuid(),
+  office_type: z.enum(OFFICE_TYPES),
+  name: z.string().min(1).max(200),
+  address: z.string().min(1).max(500),
+  area: z.string().max(200).nullable().optional(),
+  phone: z.string().max(50).nullable().optional(),
+  email: optionalEmail,
+  hours: z.string().max(200).nullable().optional(),
+  online_portal_url: optionalUrl,
+  online_form_url: optionalUrl,
+  notes: z.string().max(2000).nullable().optional(),
+})
+
+export const municipalityRequirementSchema = z.object({
+  municipality_id: z.string().uuid(),
+  requirement_type: z.enum(REQUIREMENT_TYPES),
+  documents_required: z.array(documentRequirementSchema).default([]),
+  fees: z.string().max(200).nullable().optional(),
+  estimated_processing_time: z.string().max(200).nullable().optional(),
+  additional_notes: z.string().max(2000).nullable().optional(),
+})

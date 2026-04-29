@@ -635,3 +635,71 @@ export interface TellerAccessStatus {
   /** Most-recent request (any status), used to drive the request-access UI. */
   current_request: AccessRequest | null
 }
+
+// --- Municipality directory (Phase 37a) ---
+
+export type Province =
+  | 'gauteng'
+  | 'western_cape'
+  | 'kzn'
+  | 'eastern_cape'
+  | 'free_state'
+  | 'limpopo'
+  | 'mpumalanga'
+  | 'north_west'
+  | 'northern_cape'
+
+export type OfficeType =
+  | 'trading_permit'
+  | 'environmental_health'
+  | 'business_licensing'
+  | 'customer_care'
+
+export type RequirementType = 'trading_permit' | 'coa' | 'general'
+
+export type NationalityType = 'sa_citizen' | 'foreign_national'
+
+export type DocumentRequirementAppliesTo = NationalityType | 'all'
+
+export interface DocumentRequirement {
+  name: string
+  applies_to: DocumentRequirementAppliesTo
+  required: boolean
+  notes?: string | null
+}
+
+export interface Municipality {
+  id: string
+  name: string
+  province: Province
+  short_name: string
+  areas: string[]
+  created_at: string
+}
+
+export interface MunicipalityOffice {
+  id: string
+  municipality_id: string
+  office_type: OfficeType
+  name: string
+  address: string
+  area: string | null
+  phone: string | null
+  email: string | null
+  hours: string | null
+  online_portal_url: string | null
+  online_form_url: string | null
+  notes: string | null
+  created_at: string
+}
+
+export interface MunicipalityRequirement {
+  id: string
+  municipality_id: string
+  requirement_type: RequirementType
+  documents_required: DocumentRequirement[]
+  fees: string | null
+  estimated_processing_time: string | null
+  additional_notes: string | null
+  created_at: string
+}
