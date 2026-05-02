@@ -1,0 +1,26 @@
+'use client'
+
+import { useTranslation } from '@/components/LanguageProvider'
+
+interface Props {
+  onContinue: () => void
+}
+
+export function WelcomeScreen({ onContinue }: Props) {
+  const { t } = useTranslation('compliance-onboarding')
+  return (
+    <div className="flex flex-col gap-6 text-center py-6">
+      <div className="text-5xl">🛡️</div>
+      <h2 className="text-xl font-bold text-gray-900">{t('welcome_title')}</h2>
+      <p className="text-sm text-gray-600 leading-relaxed">{t('welcome_text')}</p>
+      <p className="text-sm text-gray-400">{t('welcome_duration')}</p>
+      <button
+        type="button"
+        onClick={onContinue}
+        className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl active:bg-blue-700 text-base min-h-[48px] mt-2"
+      >
+        {t('btn_lets_go')}
+      </button>
+    </div>
+  )
+}

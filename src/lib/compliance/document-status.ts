@@ -5,7 +5,24 @@ import type {
   DocumentExpiryWarning,
   DocumentOverallStatus,
 } from '@/types'
-import { DOCUMENT_TYPES } from '@/lib/validation/schemas'
+
+/**
+ * Document types that drive the dashboard compliance traffic-light.
+ *
+ * The full set of document types in the DB is broader (Phase 37b added
+ * sars_tax, uif, food_safety_training, smmesa) but those are captured
+ * by the new compliance-onboarding flow and feed the dedicated journey
+ * hub in later phases. Keeping the dashboard score scoped to these five
+ * preserves existing behaviour and avoids a sudden score regression for
+ * shops that haven't yet completed the new onboarding.
+ */
+const CORE_COMPLIANCE_DOC_TYPES: DocumentType[] = [
+  'municipal_registration',
+  'coa',
+  'cipc',
+  'business_license',
+  'owner_id',
+]
 
 /** Window (in days) at which non-permit documents trigger an amber warning. */
 export const EXPIRY_WARNING_DAYS = 30
@@ -46,14 +63,19 @@ export function computeDocumentStatus(
   docs: BusinessDocument[],
   todayYmd: string,
 ): DocumentStatusSummary {
-  if (docs.length === 0) {
+  // Only the core 5 doc types contribute to the dashboard score.
+  const coreDocs = docs.filter((d) =>
+    CORE_COMPLIANCE_DOC_TYPES.includes(d.document_type),
+  )
+
+  if (coreDocs.length === 0) {
     return {
       overall: 'grey',
       totalLogged: 0,
       validCount: 0,
       expiringSoon: [],
       expired: [],
-      missing: [...DOCUMENT_TYPES],
+      missing: [...CORE_COMPLIANCE_DOC_TYPES],
     }
   }
 
@@ -62,7 +84,7 @@ export function computeDocumentStatus(
   let hasPendingOrMissingRegistration = false
   let validCount = 0
 
-  for (const d of docs) {
+  for (const d of coreDocs) {
     const daysRemaining = d.expiry_date
       ? daysBetween(todayYmd, d.expiry_date)
       : null
@@ -110,10 +132,10 @@ export function computeDocumentStatus(
     }
   }
 
-  const loggedTypes = new Set(docs.map((d) => d.document_type))
-  const missing = DOCUMENT_TYPES.filter(
+  const loggedTypes = new Set(coreDocs.map((d) => d.document_type))
+  const missing = CORE_COMPLIANCE_DOC_TYPES.filter(
     (t) => !loggedTypes.has(t),
-  ) as DocumentType[]
+  )
 
   let overall: DocumentOverallStatus
   if (expired.length > 0) {
@@ -130,7 +152,7 @@ export function computeDocumentStatus(
 
   return {
     overall,
-    totalLogged: docs.length,
+    totalLogged: coreDocs.length,
     validCount,
     expiringSoon,
     expired,

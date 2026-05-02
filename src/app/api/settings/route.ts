@@ -58,7 +58,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Only the shop owner can change settings' }, { status: 403 })
   }
 
-  const { name, low_stock_threshold, registration_number, location, language, profit_tracking_enabled, has_fridge, has_freezer } = parsed
+  const { name, low_stock_threshold, registration_number, location, language, profit_tracking_enabled, has_fridge, has_freezer, redo_compliance_check } = parsed
 
   const updatePayload: Record<string, unknown> = {
     name,
@@ -72,6 +72,14 @@ export async function PATCH(request: Request) {
   }
   if (typeof has_fridge === 'boolean') updatePayload.has_fridge = has_fridge
   if (typeof has_freezer === 'boolean') updatePayload.has_freezer = has_freezer
+  if (redo_compliance_check === true) {
+    // Phase 37b: clear completion + snooze counters so the dashboard re-opens
+    // the modal. Existing answers in owner_profiles + business_documents are
+    // kept and used to pre-populate.
+    updatePayload.onboarding_compliance_completed = false
+    updatePayload.onboarding_compliance_dismissed_at = null
+    updatePayload.onboarding_compliance_dismiss_count = 0
+  }
 
   const { data: updated, error } = await admin
     .from('shops')

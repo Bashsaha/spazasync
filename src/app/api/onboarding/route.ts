@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { setOwnerMetadata } from '@/lib/auth/teller'
 import { onboardingSchema } from '@/lib/validation/schemas'
+import { findMunicipalityByArea } from '@/lib/db/municipalities'
 import { checkRateLimit } from '@/lib/utils/rateLimit'
 
 /**
@@ -65,7 +66,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: firstError }, { status: 400 })
   }
 
-  const { shopName, ownerName, registrationNumber, location, language } = parsed.data
+  const {
+    shopName,
+    ownerName,
+    registrationNumber,
+    location,
+    language,
+    municipality_id: pickedMunicipalityId,
+    municipality_area_text: areaText,
+  } = parsed.data
+
+  // Resolve area-text into a known municipality_id when possible.
+  let municipalityId: string | null = pickedMunicipalityId ?? null
+  let municipalityAreaText: string | null = null
+  if (!municipalityId && areaText) {
+    const matched = await findMunicipalityByArea(areaText)
+    if (matched) {
+      municipalityId = matched.id
+    } else {
+      municipalityAreaText = areaText
+    }
+  }
 
   // Get the authenticated user from their session
   const supabase = await createClient()
@@ -109,6 +130,8 @@ export async function POST(request: Request) {
       language: language ?? 'en',
       subscription_status: 'trialing',
       trial_ends_at: trialEndsAt,
+      municipality_id: municipalityId,
+      municipality_area_text: municipalityAreaText,
     })
     .select('id')
     .single()

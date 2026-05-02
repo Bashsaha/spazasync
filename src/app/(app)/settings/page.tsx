@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
 import type { SupportedLocale } from '@/lib/i18n/types'
@@ -24,11 +25,14 @@ interface ShopSettings {
 }
 
 export default function SettingsPage() {
+  const router = useRouter()
   const { t, tPlural, locale, setLocale } = useTranslation('settings')
   const { t: tSup } = useTranslation('suppliers')
   const { t: tDoc } = useTranslation('documents')
   const { t: tChk } = useTranslation('checklist')
   const { t: tWp } = useTranslation('waste-pest')
+  const { t: tCo } = useTranslation('compliance-onboarding')
+  const [redoLoading, setRedoLoading] = useState(false)
   const [settings, setSettings] = useState<ShopSettings | null>(null)
   const [name, setName] = useState('')
   const [threshold, setThreshold] = useState(5)
@@ -178,6 +182,27 @@ export default function SettingsPage() {
     }
   }
 
+  async function handleRedoCompliance() {
+    setRedoLoading(true)
+    try {
+      await fetch('/api/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim() || settings?.name,
+          low_stock_threshold: threshold,
+          registration_number: regNumber.trim() || null,
+          location: location.trim() || null,
+          language,
+          redo_compliance_check: true,
+        }),
+      })
+      router.push('/dashboard?redo_compliance=1')
+    } finally {
+      setRedoLoading(false)
+    }
+  }
+
   async function handleDownloadReport() {
     setDownloading(true)
     try {
@@ -251,6 +276,28 @@ export default function SettingsPage() {
         >
           {downloading ? t('btn_generating_report') : t('btn_download_report')}
         </button>
+      </div>
+
+      {/* Compliance check (Phase 37b) — re-open the onboarding flow */}
+      <div className="bg-blue-50 border border-blue-100 rounded-2xl px-4 py-4 mb-6">
+        <div className="flex items-start gap-3 mb-3">
+          <span className="text-2xl">🛡️</span>
+          <div>
+            <p className="font-bold text-blue-900">{tCo('settings_section_title')}</p>
+            <p className="text-sm text-blue-700 mt-0.5">
+              {tCo('settings_section_subtitle')}
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleRedoCompliance}
+          disabled={redoLoading}
+          className="w-full bg-blue-600 text-white font-semibold rounded-xl py-3 text-sm active:bg-blue-700 disabled:opacity-50"
+        >
+          {tCo('settings_redo_btn')}
+        </button>
+        <p className="text-xs text-blue-700/70 mt-2">{tCo('settings_redo_hint')}</p>
       </div>
 
       {/* My Business Documents */}

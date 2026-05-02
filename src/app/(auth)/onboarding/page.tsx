@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
+import { AreaPicker, type AreaPickerValue } from '@/components/compliance-onboarding/AreaPicker'
 import { recordRecentUser } from '@/lib/auth/recent-users'
 import type { SupportedLocale } from '@/lib/i18n/types'
 
@@ -19,6 +20,10 @@ export default function OnboardingPage() {
   const [ownerName, setOwnerName] = useState('')
   const [registrationNumber, setRegistrationNumber] = useState('')
   const [location, setLocation] = useState('')
+  const [area, setArea] = useState<AreaPickerValue>({
+    municipality_id: null,
+    municipality_area_text: null,
+  })
   const [generatedCode, setGeneratedCode] = useState('')
   const [codeCopied, setCodeCopied] = useState(false)
   const [error, setError] = useState('')
@@ -71,6 +76,14 @@ export default function OnboardingPage() {
   async function handleSetup(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+
+    // Area is compulsory — either a picked municipality or a free-text area.
+    const trimmedArea = area.municipality_area_text?.trim() ?? ''
+    if (!area.municipality_id && trimmedArea.length === 0) {
+      setError(t('error_area_required'))
+      return
+    }
+
     setLoading(true)
 
     const res = await fetch('/api/onboarding', {
@@ -82,6 +95,8 @@ export default function OnboardingPage() {
         registrationNumber: registrationNumber || undefined,
         location: location || undefined,
         language: locale,
+        municipality_id: area.municipality_id,
+        municipality_area_text: area.municipality_id ? null : trimmedArea || null,
       }),
     })
 
@@ -207,6 +222,8 @@ export default function OnboardingPage() {
               setRegistrationNumber={setRegistrationNumber}
               location={location}
               setLocation={setLocation}
+              area={area}
+              setArea={setArea}
               error={error}
               loading={loading}
               onSubmit={handleSetup}
@@ -287,12 +304,14 @@ function ShopSetupForm({
   ownerName, setOwnerName,
   registrationNumber, setRegistrationNumber,
   location, setLocation,
+  area, setArea,
   error, loading, onSubmit,
 }: {
   shopName: string; setShopName: (v: string) => void
   ownerName: string; setOwnerName: (v: string) => void
   registrationNumber: string; setRegistrationNumber: (v: string) => void
   location: string; setLocation: (v: string) => void
+  area: AreaPickerValue; setArea: (v: AreaPickerValue) => void
   error: string; loading: boolean; onSubmit: (e: React.FormEvent) => void
 }) {
   const { t } = useTranslation()
@@ -357,6 +376,7 @@ function ShopSetupForm({
           {t('hint_add_later')}
         </p>
       </div>
+      <AreaPicker value={area} onChange={setArea} copyNamespace="auth" />
       {error && (
         <p className="text-red-600 text-sm bg-red-50 rounded-lg px-3 py-2">{error}</p>
       )}

@@ -14,6 +14,11 @@ const STATUS_OPTIONS: Record<DocumentType, DocumentStatus[]> = {
   cipc: ['valid', 'not_registered', 'not_required'],
   business_license: ['valid', 'expired', 'pending', 'not_required'],
   owner_id: ['on_file', 'pending'], // foreign-national path uses 'valid'
+  // Phase 37b — captured by Compliance Onboarding flow
+  sars_tax: ['valid', 'pending', 'not_registered'],
+  uif: ['valid', 'pending', 'not_registered', 'not_required'],
+  food_safety_training: ['on_file', 'pending', 'not_registered'],
+  smmesa: ['valid', 'pending', 'not_registered'],
 }
 
 const HAS_EXPIRY: Record<DocumentType, boolean> = {
@@ -22,6 +27,10 @@ const HAS_EXPIRY: Record<DocumentType, boolean> = {
   cipc: false,
   business_license: true,
   owner_id: false,
+  sars_tax: false,
+  uif: false,
+  food_safety_training: true,
+  smmesa: false,
 }
 
 const PERMIT_TYPES = [

@@ -48,7 +48,7 @@ Movestock (formerly SpazaSync) is a mobile-first PWA for South African spaza sho
 All tables have RLS enabled. `admin_payments` and `barcode_catalog` writes are service-role-only.
 
 ### Tables
-- `shops` — id, name, code (unique), whatsapp_number, low_stock_threshold, language ('en'/'so'/'am'/'zu'/'ur'), subscription_status, trial_ends_at, subscription_ends_at, payfast_token, access_granted, admin_notes, registration_number, location, has_fridge, has_freezer
+- `shops` — id, name, code (unique), whatsapp_number, low_stock_threshold, language ('en'/'so'/'am'/'zu'/'ur'), subscription_status, trial_ends_at, subscription_ends_at, payfast_token, access_granted, admin_notes, registration_number, location, has_fridge, has_freezer, municipality_id (FK→municipalities, ON DELETE SET NULL), municipality_area_text (free-text fallback when "Other / not sure" picked at signup), has_employees, fund_interest, onboarding_compliance_completed, onboarding_compliance_dismissed_at, onboarding_compliance_dismiss_count
 - `shop_users` — maps auth users to shops with role (owner | teller)
 - `tellers` — name (unique per shop), optional auth user_id
 - `products` — barcode (nullable), name, price, stock_qty, cost_price, supplier_id; unique(shop_id, barcode WHERE NOT NULL); unique(shop_id, LOWER(name))
@@ -64,7 +64,8 @@ All tables have RLS enabled. `admin_payments` and `barcode_catalog` writes are s
 - `goods_received` — shop_id, product_id, supplier_id, quantity, notes, received_by, received_at
 - `access_requests` — shop_id, teller_id, feature ('inventory'), status (pending/granted/denied/revoked/expired), requested_at, resolved_at, resolved_by, expires_at; in `supabase_realtime` publication
 - `daily_checklists` — shop_id, date (SAST), fridge_ok/temp, freezer_ok/temp, surfaces_cleaned, floor_cleaned, storage_clean, expired_items_action, waste_bins_ok, completed_by, completed_at; UNIQUE(shop_id, date)
-- `business_documents` — shop_id, document_type (municipal_registration/coa/cipc/business_license/owner_id), status, reference_number, date_issued, expiry_date, notes; UNIQUE(shop_id, document_type)
+- `business_documents` — shop_id, document_type (municipal_registration/coa/cipc/business_license/owner_id/sars_tax/uif/food_safety_training/smmesa), status, reference_number, date_issued, expiry_date, notes; UNIQUE(shop_id, document_type). Phase 37b added the last 4 types — captured by the compliance-onboarding flow. The dashboard ComplianceCard score still scopes to the original 5 (see `CORE_COMPLIANCE_DOC_TYPES` in `lib/compliance/document-status.ts`); journey hub in 37c will surface the new types.
+- `owner_profiles` — Phase 37b. user_id PK (FK→auth.users ON DELETE CASCADE), nationality_type ('sa_citizen'|'foreign_national'), food_safety_training_completed, food_safety_training_date, food_safety_training_provider, created_at, updated_at. RLS: user can SELECT/INSERT/UPDATE their own row only. Service-role bypasses for atomic onboarding writes.
 - `pest_control_logs` — shop_id, visit_date, provider_name, treatment_type, notes
 - `waste_management` — shop_id (PK singleton), removal_type, frequency, provider_name, last_confirmed_date
 - `municipalities` — id, name, province, short_name, areas TEXT[]; UNIQUE(name, province); GIN index on areas. Public-read RLS, service-role writes only.
@@ -177,13 +178,14 @@ The file tree below is ground truth. After every phase: Glob scan, diff against 
 
 ## Living Scope
 
-Phases 1–36c + 37a complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+Phases 1–36c + 37a–37b complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
 
 Most recent:
 - 36a Navigation Restructure (5-tab nav, hubs, dashboard cleanup, extended FAB)
 - 36b Switch User (top app bar avatar + recent users on login)
 - 36c Teller Access Requests + Realtime Notifications
 - 37a Municipality Directory — pure data layer for the upcoming Compliance Module (37a–37g). 3 tables (`municipalities`, `municipality_offices`, `municipality_requirements`) with public-read RLS + service-role writes. 6 metros seeded from official `.gov.za` sources (Johannesburg, Tshwane, Ekurhuleni, eThekwini, Cape Town, Mangaung). DB helpers filter requirements by nationality (`sa_citizen` | `foreign_national`) so later phases can show personalised "what to bring" lists. No UI, no API routes, no i18n changes — pure foundation.
+- 37b Compliance Onboarding — first user-facing phase of the Compliance Module. New `owner_profiles` table (person-level, keyed to `auth.users(id)`) supports owners with multiple shops without duplicating nationality/training data. `shops` extended with `municipality_id`, `municipality_area_text`, `has_employees`, `fund_interest`, plus three onboarding-state columns driving the dashboard banner snooze (7-day → 30-day rules). `business_documents` CHECK constraint extended with `sars_tax`, `uif`, `food_safety_training`, `smmesa` — SARS is its own type, **not** reused as `business_license`, per "no legal shortcuts". Existing `/onboarding` shop-setup step now requires an Area answer (municipality dropdown + "Other / not sure" → free-text fallback resolved server-side via `findMunicipalityByArea()`). Bottom-sheet 8-screen modal opens automatically on first dashboard visit for fresh owners; banner+snooze for existing owners. Foreign nationals skip the Fund screen and `fund_interest` is force-set to `false` server-side. Toggle states (`have`/`unsure`/`unselected`) map to `business_documents.status` (`on_file`/`pending`/`not_registered`). Settings now has a "Redo compliance check" button that resets onboarding state and reopens the modal. New `compliance-onboarding` i18n namespace × 5 locales; existing `auth` namespace gained 7 area-related keys × 5 locales. Dashboard `ComplianceCard` deliberately still scopes its score to the original 5 doc types via `CORE_COMPLIANCE_DOC_TYPES` (see `lib/compliance/document-status.ts`) — preventing a regression for shops that haven't yet gone through the new onboarding. Journey hub (37c) will surface the new doc types separately.
 
 When starting a new phase, append it here and update the file tree.
 
@@ -191,7 +193,7 @@ When starting a new phase, append it here and update the file tree.
 
 ## Current File Tree
 
-_Last updated: Phase 37a (2026-04-29)_
+_Last updated: Phase 37b (2026-05-02)_
 
 ```
 spaza shop/
@@ -235,6 +237,7 @@ spaza shop/
 │   │   │   ├── sales/{page.tsx, history/page.tsx}    # Hub + drill-down
 │   │   │   ├── inventory/{page.tsx, loading.tsx}     # Hub
 │   │   │   ├── manage/page.tsx                       # Hub: Staff + Compliance
+│   │   │   # dashboard mounts <DashboardComplianceOnboarding> for owners (Phase 37b)
 │   │   │   └── admin/
 │   │   │       ├── layout.tsx, loading.tsx, page.tsx
 │   │   │       ├── shops/{page.tsx, loading.tsx, [id]/page.tsx}
@@ -268,7 +271,9 @@ spaza shop/
 │   │       ├── pest-control/{route.ts, [id]/route.ts}
 │   │       ├── waste-management/{route.ts, confirm/route.ts}
 │   │       ├── compliance-score/route.ts
-│   │       └── access-requests/{route.ts, [id]/route.ts, me/route.ts}
+│   │       ├── access-requests/{route.ts, [id]/route.ts, me/route.ts}
+│   │       ├── municipalities/route.ts                       # Phase 37b — public list for AreaPicker
+│   │       └── compliance-onboarding/{route.ts, dismiss/route.ts}  # Phase 37b
 │   ├── components/
 │   │   ├── products/{CatalogImportSheet.tsx, BarcodeScanButton.tsx}
 │   │   ├── sale/{TellerSelector.tsx, CartItem.tsx, CartSummary.tsx, NewProductModal.tsx, ProductPicker.tsx}
@@ -280,6 +285,12 @@ spaza shop/
 │   │   │   ├── ComplianceCard.tsx          # Unified score + alerts
 │   │   │   └── TopProducts.tsx, LatestSales.tsx
 │   │   ├── access/TellerAccessRequestPanel.tsx
+│   │   ├── compliance-onboarding/                        # Phase 37b
+│   │   │   ├── ComplianceOnboardingModal.tsx, DashboardComplianceOnboarding.tsx
+│   │   │   ├── OnboardingBanner.tsx, AreaPicker.tsx, DocumentToggleCard.tsx
+│   │   │   ├── WelcomeScreen.tsx, NationalityScreen.tsx, MunicipalityScreen.tsx
+│   │   │   ├── EmployeesScreen.tsx, DocumentStatusScreen.tsx, FoodSafetyScreen.tsx
+│   │   │   └── FundInterestScreen.tsx, JourneySummaryScreen.tsx
 │   │   ├── LanguagePicker.tsx, LanguageProvider.tsx
 │   │   ├── TopAppBar.tsx                    # Sticky header + bell + avatar
 │   │   ├── NotificationBell.tsx             # Owner-only realtime bell
@@ -301,16 +312,17 @@ spaza shop/
 │   │   │   ├── daily-checklist.ts, business-documents.ts, pest-control.ts, waste-management.ts
 │   │   │   ├── compliance-report.ts, compliance-score.ts
 │   │   │   ├── access-requests.ts
-│   │   │   └── municipalities.ts
+│   │   │   ├── municipalities.ts
+│   │   │   └── owner-profiles.ts                       # Phase 37b
 │   │   ├── offline/{db.ts, sync.ts}
 │   │   ├── checklist/stats.ts
-│   │   ├── compliance/{document-status.ts, waste-pest-status.ts, score.ts}
+│   │   ├── compliance/{document-status.ts, waste-pest-status.ts, score.ts, onboarding.ts}
 │   │   ├── i18n/
 │   │   │   ├── types.ts, interpolate.ts, loader.ts, server.ts
-│   │   │   └── translations/{en,so,am,zu,ur}/  (18 namespaces each)
+│   │   │   └── translations/{en,so,am,zu,ur}/  (19 namespaces each)
 │   │   │       # common, auth, sale, sales, dashboard, settings, stock, products, tellers,
 │   │   │       # expiry, summary, suppliers, checklist, documents, waste-pest, inspection,
-│   │   │       # inventory, manage
+│   │   │       # inventory, manage, compliance-onboarding
 │   │   ├── events.ts                       # In-tab mutation event bus
 │   │   ├── validation/schemas.ts           # All Zod schemas
 │   │   └── utils/{api.ts, currency.ts, date.ts, rateLimit.ts, statusBadge.ts}
@@ -326,7 +338,8 @@ spaza shop/
 │   ├── 008_shop_fields.sql              ├── 018_business_documents.sql
 │   ├── 009_product_batches.sql          ├── 019_waste_pest.sql
 │   ├── 010_product_name_unique.sql      ├── 020_access_requests.sql
-│   └──                                   └── 021_municipalities.sql
+│   │                                     ├── 021_municipalities.sql
+│   └──                                   └── 022_compliance_onboarding.sql
 ├── data/sa-products.csv
 ├── scripts/{set-admin.ts, seed-catalog.ts, seed-municipalities.ts}
 ├── tasks/{todo.md, todo-archive.md, lessons.md, bugs.md}
@@ -336,5 +349,6 @@ spaza shop/
     ├── i18n.test.ts, profit.test.ts, checklist.test.ts
     ├── business-documents.test.ts, waste-pest.test.ts, compliance-score.test.ts
     ├── monthly-sales-report.test.ts
-    └── municipalities.test.ts
+    ├── municipalities.test.ts
+    └── compliance-onboarding.test.ts
 ```

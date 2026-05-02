@@ -23,13 +23,31 @@ export const tellerLoginSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
 })
 
-export const onboardingSchema = z.object({
-  shopName: z.string().min(1, 'Enter your shop name').max(100),
-  ownerName: z.string().min(1, 'Enter your name').max(100),
-  registrationNumber: z.string().max(100).optional().or(z.literal('')),
-  location: z.string().max(200).optional().or(z.literal('')),
-  language: languageEnum.optional().default('en'),
-})
+export const onboardingSchema = z
+  .object({
+    shopName: z.string().min(1, 'Enter your shop name').max(100),
+    ownerName: z.string().min(1, 'Enter your name').max(100),
+    registrationNumber: z.string().max(100).optional().or(z.literal('')),
+    location: z.string().max(200).optional().or(z.literal('')),
+    language: languageEnum.optional().default('en'),
+    // Phase 37b — Area capture: exactly one of these must be set.
+    // Owner picks a known municipality (UUID) OR types a free-text area
+    // ("Other / not sure" path); server-side findMunicipalityByArea() then
+    // attempts a match to upgrade the free text into a municipality_id.
+    municipality_id: z.string().uuid().nullable().optional(),
+    municipality_area_text: z
+      .string()
+      .min(1, 'Tell us your area or township')
+      .max(200)
+      .nullable()
+      .optional(),
+  })
+  .refine(
+    (v) =>
+      (v.municipality_id != null && !v.municipality_area_text) ||
+      (!v.municipality_id && v.municipality_area_text != null),
+    { message: 'Choose your area, or type it in if it is not listed' },
+  )
 
 // ============================================================
 // Products
@@ -112,6 +130,8 @@ export const updateShopSettingsSchema = z.object({
   profit_tracking_enabled: z.boolean().optional(),
   has_fridge: z.boolean().optional(),
   has_freezer: z.boolean().optional(),
+  // Phase 37b — "Redo compliance check" resets these three fields together.
+  redo_compliance_check: z.literal(true).optional(),
 })
 
 // ============================================================
@@ -215,6 +235,10 @@ export const DOCUMENT_TYPES = [
   'cipc',
   'business_license',
   'owner_id',
+  'sars_tax',
+  'uif',
+  'food_safety_training',
+  'smmesa',
 ] as const
 
 export const DOCUMENT_STATUSES = [
@@ -401,3 +425,71 @@ export const municipalityRequirementSchema = z.object({
   estimated_processing_time: z.string().max(200).nullable().optional(),
   additional_notes: z.string().max(2000).nullable().optional(),
 })
+
+// ============================================================
+// Compliance onboarding (Phase 37b)
+// ============================================================
+
+export const DOCUMENT_TOGGLE_STATES = ['have', 'unsure', 'unselected'] as const
+
+export const ONBOARDING_DOCUMENT_TYPES = [
+  'municipal_registration',
+  'coa',
+  'cipc',
+  'sars_tax',
+  'uif',
+] as const
+
+const dateString = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use date format YYYY-MM-DD')
+
+export const ownerProfileSchema = z.object({
+  nationality_type: z.enum(NATIONALITY_TYPES),
+  food_safety_training_completed: z.boolean(),
+  food_safety_training_date: dateString.nullable().optional(),
+  food_safety_training_provider: z
+    .string()
+    .max(200)
+    .nullable()
+    .optional()
+    .transform((v) => v?.trim() || null),
+})
+
+export const complianceOnboardingSchema = z
+  .object({
+    nationality_type: z.enum(NATIONALITY_TYPES),
+    municipality_id: z.string().uuid().nullable().optional(),
+    municipality_area_text: z.string().min(1).max(200).nullable().optional(),
+    has_employees: z.boolean(),
+    document_states: z
+      .object({
+        municipal_registration: z.enum(DOCUMENT_TOGGLE_STATES).optional(),
+        coa: z.enum(DOCUMENT_TOGGLE_STATES).optional(),
+        cipc: z.enum(DOCUMENT_TOGGLE_STATES).optional(),
+        sars_tax: z.enum(DOCUMENT_TOGGLE_STATES).optional(),
+        uif: z.enum(DOCUMENT_TOGGLE_STATES).optional(),
+      })
+      .default({}),
+    food_safety_training_completed: z.boolean(),
+    food_safety_training_date: dateString.nullable().optional(),
+    food_safety_training_provider: z
+      .string()
+      .max(200)
+      .nullable()
+      .optional()
+      .transform((v) => v?.trim() || null),
+    fund_interest: z.boolean(),
+  })
+  .refine(
+    (v) =>
+      (v.municipality_id != null && !v.municipality_area_text) ||
+      (!v.municipality_id && v.municipality_area_text != null),
+    { message: 'Pick your municipality, or tell us your area' },
+  )
+  .refine(
+    (v) =>
+      !v.food_safety_training_completed ||
+      (v.food_safety_training_completed && !!v.food_safety_training_date),
+    { message: 'When was the training completed?' },
+  )

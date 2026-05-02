@@ -27,6 +27,14 @@ export interface Shop {
   profit_tracking_enabled: boolean
   has_fridge: boolean
   has_freezer: boolean
+  // Phase 37b — Compliance Onboarding
+  municipality_id: string | null
+  municipality_area_text: string | null
+  has_employees: boolean
+  fund_interest: boolean
+  onboarding_compliance_completed: boolean
+  onboarding_compliance_dismissed_at: string | null
+  onboarding_compliance_dismiss_count: number
   created_at: string
 }
 
@@ -465,6 +473,10 @@ export type DocumentType =
   | 'cipc'
   | 'business_license'
   | 'owner_id'
+  | 'sars_tax'
+  | 'uif'
+  | 'food_safety_training'
+  | 'smmesa'
 
 export type DocumentStatus =
   | 'valid'
@@ -702,4 +714,52 @@ export interface MunicipalityRequirement {
   estimated_processing_time: string | null
   additional_notes: string | null
   created_at: string
+}
+
+// --- Compliance Onboarding (Phase 37b) ---
+
+export interface OwnerProfile {
+  user_id: string
+  nationality_type: NationalityType | null
+  food_safety_training_completed: boolean
+  food_safety_training_date: string | null     // YYYY-MM-DD
+  food_safety_training_provider: string | null
+  created_at: string
+  updated_at: string
+}
+
+/** 3-state toggle used on Document Status screen — mapped to DocumentStatus server-side. */
+export type DocumentToggleState = 'have' | 'unsure' | 'unselected'
+
+/** Doc types asked about during the compliance-onboarding flow.
+ *  UIF is conditional — only shown when has_employees=true. */
+export type OnboardingDocumentType =
+  | 'municipal_registration'
+  | 'coa'
+  | 'cipc'
+  | 'sars_tax'
+  | 'uif'
+
+/** What the modal POSTs to /api/compliance-onboarding when the user finishes. */
+export interface ComplianceOnboardingPayload {
+  nationality_type: NationalityType
+  // exactly one of these is set:
+  municipality_id?: string | null
+  municipality_area_text?: string | null
+  has_employees: boolean
+  document_states: Partial<Record<OnboardingDocumentType, DocumentToggleState>>
+  food_safety_training_completed: boolean
+  food_safety_training_date?: string | null      // YYYY-MM-DD; required iff completed=true
+  food_safety_training_provider?: string | null
+  fund_interest: boolean                         // server forces false for foreign_national
+}
+
+/** Status badge shown on Screen 8 — Your Journey summary. */
+export type JourneyStepStatus = 'done' | 'todo'
+
+export interface JourneyStep {
+  document_type: OnboardingDocumentType | 'food_safety_training'
+  status: JourneyStepStatus
+  /** 1-based ordinal among 'todo' steps; null for 'done'. */
+  stepNumber: number | null
 }

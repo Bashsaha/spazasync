@@ -7,9 +7,15 @@ import { LowStockAlert } from '@/components/dashboard/LowStockAlert'
 import { ExpiringAlert } from '@/components/dashboard/ExpiringAlert'
 import { LatestSales } from '@/components/dashboard/LatestSales'
 import { ComplianceCard } from '@/components/dashboard/ComplianceCard'
+import { DashboardComplianceOnboarding } from '@/components/compliance-onboarding/DashboardComplianceOnboarding'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
+import type { DocumentStatus, NationalityType, OnboardingDocumentType } from '@/types'
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ redo_compliance?: string }>
+}) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -17,9 +23,20 @@ export default async function DashboardPage() {
 
   if (!user) redirect('/login')
 
+  const sp = (await searchParams) ?? {}
+  const forceComplianceModal = sp.redo_compliance === '1'
+
   const { data: shopUser } = await supabase
     .from('shop_users')
-    .select('role, shops(id, name, code, low_stock_threshold, subscription_status, trial_ends_at, subscription_ends_at, profit_tracking_enabled)')
+    .select(`
+      role,
+      shops(
+        id, name, code, low_stock_threshold, subscription_status, trial_ends_at,
+        subscription_ends_at, profit_tracking_enabled,
+        municipality_id, onboarding_compliance_completed,
+        onboarding_compliance_dismissed_at, onboarding_compliance_dismiss_count
+      )
+    `)
     .eq('user_id', user.id)
     .single()
 
@@ -32,7 +49,51 @@ export default async function DashboardPage() {
     trial_ends_at: string | null
     subscription_ends_at: string | null
     profit_tracking_enabled: boolean
+    municipality_id: string | null
+    onboarding_compliance_completed: boolean
+    onboarding_compliance_dismissed_at: string | null
+    onboarding_compliance_dismiss_count: number
   } | null
+
+  const role = shopUser?.role as 'owner' | 'teller' | 'admin' | undefined
+
+  // Owner-only: pull the bits the compliance onboarding modal pre-populates from.
+  let preFilledMunicipality: { id: string; name: string } | null = null
+  let existingDocs: { document_type: OnboardingDocumentType; status: DocumentStatus }[] = []
+  let existingNationality: NationalityType | null = null
+  let existingFoodSafety:
+    | { completed: boolean; date: string | null; provider: string | null }
+    | null = null
+
+  if (role === 'owner' && shop?.id) {
+    if (shop.municipality_id) {
+      const { data: m } = await supabase
+        .from('municipalities')
+        .select('id, name')
+        .eq('id', shop.municipality_id)
+        .maybeSingle()
+      if (m) preFilledMunicipality = { id: m.id as string, name: m.name as string }
+    }
+    const { data: docs } = await supabase
+      .from('business_documents')
+      .select('document_type, status')
+      .in('document_type', ['municipal_registration', 'coa', 'cipc', 'sars_tax', 'uif'])
+    existingDocs = (docs ?? []) as typeof existingDocs
+
+    const { data: profile } = await supabase
+      .from('owner_profiles')
+      .select('nationality_type, food_safety_training_completed, food_safety_training_date, food_safety_training_provider')
+      .eq('user_id', user.id)
+      .maybeSingle()
+    if (profile) {
+      existingNationality = (profile.nationality_type as NationalityType | null) ?? null
+      existingFoodSafety = {
+        completed: Boolean(profile.food_safety_training_completed),
+        date: profile.food_safety_training_date as string | null,
+        provider: profile.food_safety_training_provider as string | null,
+      }
+    }
+  }
 
   const shopName = shop?.name ?? 'Your Shop'
   const shopCode = shop?.code ?? ''
@@ -79,6 +140,22 @@ export default async function DashboardPage() {
           </a>
         )
       })()}
+
+      {/* Compliance onboarding banner + modal (owners only, Phase 37b). */}
+      {role === 'owner' && shop?.id && (
+        <DashboardComplianceOnboarding
+          shop={{
+            onboarding_compliance_completed: shop.onboarding_compliance_completed,
+            onboarding_compliance_dismissed_at: shop.onboarding_compliance_dismissed_at,
+            onboarding_compliance_dismiss_count: shop.onboarding_compliance_dismiss_count,
+          }}
+          preFilledMunicipality={preFilledMunicipality}
+          existingDocs={existingDocs}
+          existingNationality={existingNationality}
+          existingFoodSafety={existingFoodSafety}
+          forceOpen={forceComplianceModal}
+        />
+      )}
 
       {/* Unified compliance card — score + alerts OR all-clear with PDF link. Always present. */}
       {shop?.id && (

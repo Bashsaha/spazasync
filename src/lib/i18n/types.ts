@@ -41,5 +41,6 @@ export type TranslationNamespace =
   | 'inspection'
   | 'inventory'
   | 'manage'
+  | 'compliance-onboarding'
 
 export type Translations = Record<string, string>

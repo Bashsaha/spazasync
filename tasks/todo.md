@@ -4,7 +4,7 @@
 
 The Compliance Module helps spaza shop owners get legally compliant: trading permits, Certificates of Acceptability, fund applications, document packs. Read [docs spec from user] for full scope, design rules, build order. **DO NOT auto-start a sub-phase — wait for explicit go-ahead between each one per Phase Gating rule.**
 
-### Phase 37a — Municipality Directory (Phase C in spec) ⏳ IN PROGRESS
+### Phase 37a — Municipality Directory (Phase C in spec) ✅ COMPLETE
 
 **Goal:** A pure data layer of South African municipality offices, addresses, contacts, document requirements. Every later compliance phase auto-populates "where to go" / "what to bring" instructions from this. No user-facing screens this phase.
 
@@ -43,10 +43,22 @@ The Compliance Module helps spaza shop owners get legally compliant: trading per
 - All existing tests still pass (no regressions)
 - No existing feature touched
 
-### Phases 37b–37g (later)
+### Phase 37b — Compliance Onboarding (Phase A in spec) ✅ COMPLETE
 
-- 37b — Compliance Onboarding (Phase A): 7-screen quiz
-- 37c — Compliance Journey Hub (Phase B): personalised checklist
+8-screen modal (we added Employees as a separate screen so UIF gating is explicit; total grew from 7→8). Shipped:
+- Migration 022: `owner_profiles` (PK = auth.users.id, RLS scoped to own row); `shops` extended with `municipality_id`/`municipality_area_text`/`has_employees`/`fund_interest`/`onboarding_compliance_completed`/`onboarding_compliance_dismissed_at`/`onboarding_compliance_dismiss_count`; `business_documents.document_type` CHECK extended with `sars_tax`/`uif`/`food_safety_training`/`smmesa` (no reuse of `business_license` for SARS).
+- Pure helpers in `lib/compliance/onboarding.ts` (toggle↔status mapping, journey-step ordering, banner-snooze rules) — fully unit tested.
+- API: `POST /api/compliance-onboarding`, `POST /api/compliance-onboarding/dismiss`, `GET /api/municipalities` (public list for AreaPicker).
+- 13 components under `src/components/compliance-onboarding/`.
+- `/onboarding` shop-setup step now requires Area (compulsory municipality dropdown + "Other / not sure" → free-text fallback resolved server-side).
+- Settings has a Compliance section + "Redo compliance check" button that resets the snooze and reopens the modal on `/dashboard`.
+- New i18n namespace `compliance-onboarding` × 5 locales; existing `auth` namespace gained area-question keys × 5 locales.
+- Dashboard ComplianceCard score deliberately scoped to original 5 doc types via `CORE_COMPLIANCE_DOC_TYPES` (avoids regression for shops not yet onboarded).
+- 470/470 unit tests pass (29 new).
+
+### Phases 37c–37g (later)
+
+- 37c — Compliance Journey Hub (Phase B): personalised checklist surfacing the new doc types
 - 37d — Document Generation (Phase E): PDFs
 - 37e — Fund Readiness Checker (Phase D)
 - 37f — Foreign National Path (Phase G)

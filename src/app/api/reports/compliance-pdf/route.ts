@@ -14,6 +14,11 @@ const DOCUMENT_LABELS: Record<DocumentType, string> = {
   cipc: 'CIPC Registration',
   business_license: 'Business License',
   owner_id: 'Owner Documentation',
+  // Phase 37b
+  sars_tax: 'SARS Tax Registration',
+  uif: 'UIF Registration',
+  food_safety_training: 'Food Safety Training',
+  smmesa: 'SMMESA Registration',
 }
 
 const STATUS_LABELS: Record<string, string> = {

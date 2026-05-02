@@ -107,8 +107,10 @@ export async function proxy(request: NextRequest) {
 
   const role = user.app_metadata?.role as string | undefined
 
-  // Owner hasn't completed onboarding yet (no role in metadata)
-  if (!role && pathname !== '/onboarding') {
+  // Owner hasn't completed onboarding yet (no role in metadata).
+  // /api/municipalities is reference data the onboarding Area picker needs
+  // before a role exists — let it through so the picker can populate.
+  if (!role && pathname !== '/onboarding' && !pathname.startsWith('/api/municipalities')) {
     const onboardUrl = request.nextUrl.clone()
     onboardUrl.pathname = '/onboarding'
     return NextResponse.redirect(onboardUrl)

@@ -81,9 +81,12 @@ describe('tellerLoginSchema', () => {
 // ---------------------------------------------------------------------------
 
 describe('onboardingSchema', () => {
+  // Phase 37b — onboarding now requires either municipality_id or
+  // municipality_area_text (XOR). Tests pass area-text by default.
   const validBase = {
     shopName: 'Cape Town Spaza',
     ownerName: 'Thabo',
+    municipality_area_text: 'Soweto',
   }
 
   it('accepts a valid full onboarding object', () => {
