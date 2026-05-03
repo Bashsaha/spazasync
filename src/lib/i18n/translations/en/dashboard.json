@@ -46,5 +46,12 @@
   "latest_sales_by": "by {name}",
   "latest_sales_none": "No sales recorded yet. Start your first sale!",
   "latest_sales_ago": "{time} ago",
-  "latest_sales_see_all": "See all →"
+  "latest_sales_see_all": "See all →",
+
+  "journey_card_title": "Compliance journey",
+  "journey_card_count": "{completed} of {total} done",
+  "journey_card_all_done": "All registration steps done — well done!",
+  "journey_card_next_label": "Next:",
+  "journey_card_continue_arrow": "→",
+  "journey_card_fund_teaser": "A few more steps and you could qualify for up to R300,000 in funding."
 }

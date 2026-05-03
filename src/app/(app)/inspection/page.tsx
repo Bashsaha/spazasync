@@ -3,16 +3,10 @@ import { redirect } from 'next/navigation'
 import { getShopAuth } from '@/lib/auth/shop-auth'
 import { getComplianceScore } from '@/lib/db/compliance-score'
 import { listBusinessDocuments } from '@/lib/db/business-documents'
-import { computeDocumentStatus } from '@/lib/compliance/document-status'
-import { isPestOverdue } from '@/lib/compliance/waste-pest-status'
+import { getInspectionReadiness } from '@/lib/db/inspection-readiness'
+import { InspectionReadinessPanel } from '@/components/compliance/InspectionReadinessPanel'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
-import { formatInTimeZone } from 'date-fns-tz'
-import { SAST_TZ } from '@/lib/utils/date'
-import type {
-  BusinessDocument,
-  ComplianceScoreCategory,
-  DailyChecklist,
-} from '@/types'
+import type { ComplianceScoreCategory } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,12 +36,6 @@ const BAND_BADGE: Record<Tone, { wrap: string; ring: string; track: string; scor
   },
 }
 
-interface PreCheckRow {
-  key: string
-  pass: boolean
-  fixHref: string
-}
-
 export default async function InspectionPage() {
   const auth = await getShopAuth()
   if (!auth) redirect('/login')
@@ -55,91 +43,12 @@ export default async function InspectionPage() {
   const locale = await getServerLocale()
   const { t } = await getServerTranslations(locale, ['inspection'])
 
-  const today = formatInTimeZone(new Date(), SAST_TZ, 'yyyy-MM-dd')
-  const sevenDaysAgo = new Date()
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6)
-  const weekFromDate = formatInTimeZone(sevenDaysAgo, SAST_TZ, 'yyyy-MM-dd')
-
-  const [
-    { result: score },
-    documents,
-    todayChecklistResult,
-    weekChecklistResult,
-    pestResult,
-  ] = await Promise.all([
+  // Fetch documents once and reuse for both score + readiness.
+  const documents = await listBusinessDocuments()
+  const [{ result: score }, readiness] = await Promise.all([
     getComplianceScore(auth.supabase, auth.shopId),
-    listBusinessDocuments(),
-    auth.supabase
-      .from('daily_checklists')
-      .select('id,fridge_temp,freezer_temp')
-      .eq('shop_id', auth.shopId)
-      .eq('date', today)
-      .maybeSingle(),
-    auth.supabase
-      .from('daily_checklists')
-      .select('id', { count: 'exact', head: true })
-      .eq('shop_id', auth.shopId)
-      .gte('date', weekFromDate),
-    auth.supabase
-      .from('pest_control_logs')
-      .select('visit_date')
-      .eq('shop_id', auth.shopId)
-      .order('visit_date', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+    getInspectionReadiness(auth.supabase, auth.shopId, documents),
   ])
-
-  const docs = (documents as BusinessDocument[] | null) ?? []
-  const docSummary = computeDocumentStatus(docs, today)
-  const expiredTypes = new Set(docSummary.expired.map((d) => d.document_type))
-  const missingTypes = new Set(docSummary.missing)
-
-  const municipalDoc = docs.find((d) => d.document_type === 'municipal_registration')
-  const coaDoc = docs.find((d) => d.document_type === 'coa')
-
-  const municipalOk =
-    !!municipalDoc &&
-    !missingTypes.has('municipal_registration') &&
-    !expiredTypes.has('municipal_registration') &&
-    municipalDoc.status !== 'pending' &&
-    municipalDoc.status !== 'not_registered'
-
-  const coaOk =
-    !!coaDoc &&
-    !missingTypes.has('coa') &&
-    !expiredTypes.has('coa') &&
-    coaDoc.status !== 'pending' &&
-    coaDoc.status !== 'not_registered' &&
-    coaDoc.status !== 'expired'
-
-  const checklistsThisWeek = weekChecklistResult.count ?? 0
-  const checklistWeekOk = checklistsThisWeek >= 5
-
-  const expiryCategory = score.categories.find((c) => c.key === 'expiry')
-  const noExpiredOk = expiryCategory ? expiryCategory.score === 100 : true
-
-  const supplierCategory = score.categories.find((c) => c.key === 'suppliers')
-  const suppliersOk = supplierCategory ? supplierCategory.score >= 80 : true
-
-  const lastPestVisit =
-    (pestResult.data as { visit_date: string } | null)?.visit_date ?? null
-  const pestOk = !isPestOverdue(lastPestVisit, today)
-
-  const todayChecklist =
-    (todayChecklistResult.data as Pick<DailyChecklist, 'id' | 'fridge_temp' | 'freezer_temp'> | null) ?? null
-  const tempLoggedToday =
-    !!todayChecklist &&
-    (todayChecklist.fridge_temp !== null || todayChecklist.freezer_temp !== null)
-
-  const preCheck: PreCheckRow[] = [
-    { key: 'pc_municipal', pass: municipalOk, fixHref: '/documents/municipal_registration' },
-    { key: 'pc_coa', pass: coaOk, fixHref: '/documents/coa' },
-    { key: 'pc_checklist_week', pass: checklistWeekOk, fixHref: '/checklist' },
-    { key: 'pc_suppliers', pass: suppliersOk, fixHref: '/products' },
-    { key: 'pc_no_expired', pass: noExpiredOk, fixHref: '/expiry' },
-    { key: 'pc_pest', pass: pestOk, fixHref: '/waste-pest/pest/new' },
-    { key: 'pc_temp_today', pass: tempLoggedToday, fixHref: '/checklist' },
-  ]
 
   const tone: Tone = score.band
   const bandLabelKey =
@@ -219,45 +128,10 @@ export default async function InspectionPage() {
         <span className="text-3xl">📄</span>
       </a>
 
-      {/* Pre-check list */}
-      <section className="bg-white rounded-2xl border border-gray-100 shadow-sm mb-4 overflow-hidden">
-        <h2 className="text-sm font-semibold text-gray-700 px-4 pt-4 pb-2">
-          {t('pre_check_header')}
-        </h2>
-        <ul className="divide-y divide-gray-100">
-          {preCheck.map((row) => (
-            <li
-              key={row.key}
-              className="flex items-center justify-between px-4 py-3 gap-3"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <span
-                  className={`shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
-                    row.pass
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-700'
-                  }`}
-                >
-                  {row.pass ? '✓' : '✗'}
-                </span>
-                <p className="text-sm text-gray-800 truncate">{t(row.key)}</p>
-              </div>
-              {row.pass ? (
-                <span className="text-xs text-green-600 font-medium shrink-0">
-                  {t('ok')}
-                </span>
-              ) : (
-                <Link
-                  href={row.fixHref}
-                  className="text-xs font-semibold text-blue-600 active:text-blue-800 shrink-0"
-                >
-                  {t('fix_now')} &rsaquo;
-                </Link>
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
+      {/* Pre-check list (extracted to reusable panel — Phase 37c) */}
+      <div className="mb-4">
+        <InspectionReadinessPanel result={readiness} t={t} />
+      </div>
 
       {/* Score breakdown */}
       <section className="bg-white rounded-2xl border border-gray-100 shadow-sm">

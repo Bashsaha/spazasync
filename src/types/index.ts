@@ -59,6 +59,8 @@ export interface Teller {
   name: string
   user_id: string | null
   active: boolean
+  // Phase 37c — Step 6 (Food Safety) per-staff training tracker.
+  food_safety_trained_at: string | null
   created_at: string
 }
 
@@ -485,6 +487,7 @@ export type DocumentStatus =
   | 'not_registered'
   | 'not_required'
   | 'on_file'
+  | 'in_progress'   // Phase 37c — owner tapped "I've applied" but not yet received
 
 export interface BusinessDocument {
   id: string
@@ -495,6 +498,7 @@ export interface BusinessDocument {
   date_issued: string | null        // YYYY-MM-DD
   expiry_date: string | null        // YYYY-MM-DD
   notes: string | null
+  applied_at: string | null         // Phase 37c — set when status flips to 'in_progress'
   created_at: string
   updated_at: string
 }
@@ -505,6 +509,7 @@ export interface UpsertBusinessDocumentInput {
   date_issued?: string | null
   expiry_date?: string | null
   notes?: string | null
+  applied_at?: string | null
 }
 
 export type DocumentOverallStatus = 'grey' | 'green' | 'amber' | 'red'
@@ -762,4 +767,96 @@ export interface JourneyStep {
   status: JourneyStepStatus
   /** 1-based ordinal among 'todo' steps; null for 'done'. */
   stepNumber: number | null
+}
+
+// --- Compliance Journey Hub (Phase 37c) ---
+
+/**
+ * The 7 compliance steps shown at /compliance/journey, in dependency order.
+ * `cipc`, `sars_tax`, `uif` and `food_safety_training` have no prerequisites;
+ * `coa` requires food-safety training; `municipal_registration` (the trading
+ * permit) requires CIPC + SARS + food-safety training; `smmesa` requires CIPC.
+ */
+export type JourneyStepKey =
+  | 'municipal_registration'   // Step 1 — Trading Permit
+  | 'coa'                      // Step 2 — Health Certificate
+  | 'cipc'                     // Step 3
+  | 'sars_tax'                 // Step 4
+  | 'uif'                      // Step 5 — only if has_employees
+  | 'food_safety_training'     // Step 6
+  | 'smmesa'                   // Step 7 — only if SA + fund_interest
+
+/** 4-state badge shown on each journey card. */
+export type ComplianceJourneyStepStatus =
+  | 'not_started'
+  | 'in_progress'
+  | 'complete'
+  | 'locked'
+
+export interface ComplianceJourneyStep {
+  key: JourneyStepKey
+  /** 1-based ordinal across the visible steps; matches what the UI labels "Step N". */
+  stepNumber: number
+  status: ComplianceJourneyStepStatus
+  /** Other JourneyStepKeys this step waits on. Empty when no prerequisites. */
+  dependencies: JourneyStepKey[]
+  /** When status === 'locked', the step keys still preventing it. */
+  blockedBy: JourneyStepKey[]
+  /** Backing business_documents row, or null when the step has never been touched. */
+  document: BusinessDocument | null
+}
+
+/** Action POSTed to /api/compliance/journey/step to flip a step's state. */
+export type JourneyStepAction = 'mark_done' | 'mark_applied' | 'mark_received' | 'reset'
+
+export interface JourneyStepActionInput {
+  document_type: DocumentType
+  action: JourneyStepAction
+  reference_number?: string | null
+  date_issued?: string | null    // YYYY-MM-DD
+  expiry_date?: string | null    // YYYY-MM-DD
+}
+
+/** Composite payload returned by GET /api/compliance/journey. */
+export interface ComplianceJourneyData {
+  ownerProfile: OwnerProfile | null
+  shop: Pick<
+    Shop,
+    | 'id'
+    | 'name'
+    | 'location'
+    | 'whatsapp_number'
+    | 'has_fridge'
+    | 'has_freezer'
+    | 'has_employees'
+    | 'fund_interest'
+    | 'municipality_id'
+    | 'municipality_area_text'
+    | 'registration_number'
+  >
+  ownerEmail: string | null
+  municipality: Municipality | null
+  permitOffices: MunicipalityOffice[]
+  healthOffices: MunicipalityOffice[]
+  permitRequirements: DocumentRequirement[]
+  coaRequirements: DocumentRequirement[]
+  documents: BusinessDocument[]
+  tellers: Teller[]
+  productNames: string[]
+  monthlyRevenueZar: number    // 0 if no sales in the last 30 days
+  steps: ComplianceJourneyStep[]
+  inspectionReadiness: InspectionReadinessResult
+}
+
+/** Single readiness check rendered in the InspectionReadinessPanel. */
+export interface InspectionReadinessCheck {
+  key: string                        // i18n key in the `inspection` namespace
+  pass: boolean
+  fixHref: string                    // route to take the owner to fix the issue
+}
+
+export interface InspectionReadinessResult {
+  checks: InspectionReadinessCheck[]
+  passing: number
+  total: number
 }

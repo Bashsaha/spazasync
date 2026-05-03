@@ -7,6 +7,7 @@ import { LowStockAlert } from '@/components/dashboard/LowStockAlert'
 import { ExpiringAlert } from '@/components/dashboard/ExpiringAlert'
 import { LatestSales } from '@/components/dashboard/LatestSales'
 import { ComplianceCard } from '@/components/dashboard/ComplianceCard'
+import { JourneyProgressCard } from '@/components/dashboard/JourneyProgressCard'
 import { DashboardComplianceOnboarding } from '@/components/compliance-onboarding/DashboardComplianceOnboarding'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 import type { DocumentStatus, NationalityType, OnboardingDocumentType } from '@/types'
@@ -161,6 +162,14 @@ export default async function DashboardPage({
       {shop?.id && (
         <Suspense fallback={<Skeleton className="h-24 rounded-2xl mb-4" />}>
           <ComplianceCard shopId={shop.id} locale={locale} />
+        </Suspense>
+      )}
+
+      {/* Phase 37c — Journey progress card. Owners only; the JourneyProgressCard returns
+          null for non-owners and for shops without journey state. */}
+      {role === 'owner' && shop?.id && (
+        <Suspense fallback={<Skeleton className="h-24 rounded-2xl mb-4" />}>
+          <JourneyProgressCard shopId={shop.id} userId={user.id} locale={locale} />
         </Suspense>
       )}
 

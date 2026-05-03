@@ -30,6 +30,17 @@ export default async function ManageHubPage() {
         </Link>
 
         <Link
+          href="/compliance/journey"
+          className="flex items-center justify-between bg-emerald-50 rounded-2xl p-5 border border-emerald-100 shadow-sm active:bg-emerald-100"
+        >
+          <div>
+            <p className="font-bold text-emerald-900">{t('card_journey')}</p>
+            <p className="text-emerald-700 text-sm">{t('card_journey_desc')}</p>
+          </div>
+          <span className="text-3xl">🗺️</span>
+        </Link>
+
+        <Link
           href="/inspection"
           className="flex items-center justify-between bg-indigo-50 rounded-2xl p-5 border border-indigo-100 shadow-sm active:bg-indigo-100"
         >

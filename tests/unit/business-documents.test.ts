@@ -28,6 +28,7 @@ function doc(
     date_issued: null,
     expiry_date,
     notes: null,
+    applied_at: null,
     created_at: '2026-04-01T00:00:00Z',
     updated_at: '2026-04-01T00:00:00Z',
   }

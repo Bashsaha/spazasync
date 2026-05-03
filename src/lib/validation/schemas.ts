@@ -248,6 +248,7 @@ export const DOCUMENT_STATUSES = [
   'not_registered',
   'not_required',
   'on_file',
+  'in_progress',   // Phase 37c — set by /api/compliance/journey/step on "I've applied"
 ] as const
 
 export const documentTypeSchema = z.enum(DOCUMENT_TYPES)
@@ -493,3 +494,51 @@ export const complianceOnboardingSchema = z
       (v.food_safety_training_completed && !!v.food_safety_training_date),
     { message: 'When was the training completed?' },
   )
+
+// ============================================================
+// Compliance journey hub (Phase 37c)
+// ============================================================
+
+export const JOURNEY_STEP_ACTIONS = [
+  'mark_done',
+  'mark_applied',
+  'mark_received',
+  'reset',
+] as const
+
+const journeyDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use date format YYYY-MM-DD')
+  .nullable()
+  .optional()
+
+const journeyRefNumber = z
+  .string()
+  .max(100)
+  .nullable()
+  .optional()
+  .transform((v) => v?.trim() || null)
+
+export const journeyStepActionSchema = z
+  .object({
+    document_type: documentTypeSchema,
+    action: z.enum(JOURNEY_STEP_ACTIONS),
+    reference_number: journeyRefNumber,
+    date_issued: journeyDate,
+    expiry_date: journeyDate,
+  })
+  .refine(
+    (v) =>
+      v.action !== 'mark_received' ||
+      (v.reference_number !== null && v.reference_number !== undefined && v.reference_number.length > 0),
+    { message: 'Enter the document number you received', path: ['reference_number'] },
+  )
+
+export const tellerTrainingSchema = z.object({
+  trained: z.boolean(),
+  trained_at: z
+    .string()
+    .datetime()
+    .nullable()
+    .optional(),
+})

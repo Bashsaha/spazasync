@@ -110,12 +110,13 @@ describe('translation key completeness', () => {
   const enNamespaces = listNamespaces(DEFAULT_LOCALE)
   const nonEnLocales = SUPPORTED_LOCALES.filter((l) => l !== DEFAULT_LOCALE)
 
-  it('English has all 19 expected namespaces', () => {
+  it('English has all 20 expected namespaces', () => {
     expect(enNamespaces.sort()).toEqual(
       [
         'auth',
         'checklist',
         'common',
+        'compliance-journey',
         'compliance-onboarding',
         'dashboard',
         'documents',
@@ -185,11 +186,11 @@ describe('loader English fallback', () => {
   it('loader.ts falls back to English when a locale file is missing', async () => {
     // The real loader in src/lib/i18n/loader.ts catches import failures and
     // recursively calls itself with DEFAULT_LOCALE. We verify the guarantee by
-    // confirming every non-English locale has the 18 expected namespaces so
+    // confirming every non-English locale has the 20 expected namespaces so
     // fallback is never needed in normal operation.
     for (const locale of SUPPORTED_LOCALES) {
       const namespaces = listNamespaces(locale)
-      expect(namespaces.length, `${locale} is missing namespaces`).toBe(19)
+      expect(namespaces.length, `${locale} is missing namespaces`).toBe(20)
     }
   })
 })
