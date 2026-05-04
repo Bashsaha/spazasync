@@ -22,6 +22,8 @@
 
   "download_pdf": "PDF رپورٹ ڈاؤن لوڈ کریں",
   "download_hint": "معائنہ کار کو دکھانے کے لیے مکمل تعمیل رپورٹ۔",
+  "download_evidence_pack": "ثبوت پیک تیار کریں",
+  "download_evidence_hint": "30 دن کی چیک لسٹس، درجہ حرارت، سپلائرز، اور کیڑے مار کنٹرول ایک دستاویز میں۔",
 
   "breakdown_header": "آپ کا اسکور کیسے شمار ہوتا ہے",
   "breakdown_contribution": "{score}/100 × {weight}% وزن",

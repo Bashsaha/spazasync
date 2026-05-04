@@ -22,6 +22,8 @@
 
   "download_pdf": "Landa Umbiko we-PDF",
   "download_hint": "Umbiko opheleleyo wokulandela imithetho ongawukhombisa umhloli.",
+  "download_evidence_pack": "Khipha Iphakheji Yobufakazi",
+  "download_evidence_hint": "Izinsuku ezingu-30 zezinhlolokhono, amazinga okushisa, abahlinzeki, nokulawulwa kwezinambuzane kuwumbhalo owodwa.",
 
   "breakdown_header": "Ukuthi amaphuzu akho abaliwa kanjani",
   "breakdown_contribution": "{score}/100 × {weight}% isisindo",

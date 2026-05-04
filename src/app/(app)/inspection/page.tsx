@@ -119,13 +119,25 @@ export default async function InspectionPage() {
       {/* PDF download */}
       <a
         href="/api/reports/compliance-pdf"
-        className="flex items-center justify-between bg-blue-600 text-white rounded-2xl p-5 shadow-sm active:bg-blue-700 mb-4"
+        className="flex items-center justify-between bg-blue-600 text-white rounded-2xl p-5 shadow-sm active:bg-blue-700 mb-3"
       >
         <div>
           <p className="font-bold text-lg">{t('download_pdf')}</p>
           <p className="text-blue-100 text-sm">{t('download_hint')}</p>
         </div>
         <span className="text-3xl">📄</span>
+      </a>
+
+      {/* Phase 37d — Food Safety Evidence Pack */}
+      <a
+        href="/api/reports/food-safety-pack"
+        className="flex items-center justify-between bg-emerald-600 text-white rounded-2xl p-5 shadow-sm active:bg-emerald-700 mb-4"
+      >
+        <div>
+          <p className="font-bold text-lg">{t('download_evidence_pack')}</p>
+          <p className="text-emerald-100 text-sm">{t('download_evidence_hint')}</p>
+        </div>
+        <span className="text-3xl">🧾</span>
       </a>
 
       {/* Pre-check list (extracted to reusable panel — Phase 37c) */}

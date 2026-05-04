@@ -22,6 +22,8 @@
 
   "download_pdf": "የPDF ሪፖርት አውርድ",
   "download_hint": "ለተቆጣጣሪው ማሳየት የሚችሉት ሙሉ የአገዛዝ ሪፖርት።",
+  "download_evidence_pack": "የማስረጃ ጥቅል ይፍጠሩ",
+  "download_evidence_hint": "30 ቀናት የዕለት ዝርዝሮች፣ የሙቀት መለኪያዎች፣ አቅራቢዎች እና ተባይ ቁጥጥር በአንድ ሰነድ።",
 
   "breakdown_header": "ነጥብዎ እንዴት እንደሚሰላ",
   "breakdown_contribution": "{score}/100 × {weight}% ክብደት",

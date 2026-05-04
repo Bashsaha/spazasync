@@ -92,6 +92,7 @@ export function HealthCertificateStep({ step, data, t, tInsp }: Props) {
           <GenerateDocButton
             titleKey="doc_evidence_pack_title"
             descriptionKey="doc_evidence_pack_desc"
+            href="/api/reports/food-safety-pack"
             t={t}
           />
           <GenerateDocButton
@@ -107,7 +108,7 @@ export function HealthCertificateStep({ step, data, t, tInsp }: Props) {
         ⏰ {t('coa_renewal_note')}
       </p>
 
-      <MarkAsDoneButtons step={step} t={t} variant="standard" hasExpiry={true} />
+      <MarkAsDoneButtons step={step} variant="standard" hasExpiry={true} />
     </>
   )
 }

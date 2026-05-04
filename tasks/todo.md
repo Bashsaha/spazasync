@@ -56,10 +56,34 @@ The Compliance Module helps spaza shop owners get legally compliant: trading per
 - Dashboard ComplianceCard score deliberately scoped to original 5 doc types via `CORE_COMPLIANCE_DOC_TYPES` (avoids regression for shops not yet onboarded).
 - 470/470 unit tests pass (29 new).
 
-### Phases 37c–37g (later)
+### Phase 37d — Document Generation Engine (Phase E in spec) ✅ COMPLETE
 
-- 37c — Compliance Journey Hub (Phase B): personalised checklist surfacing the new doc types
-- 37d — Document Generation (Phase E): PDFs
+5 PDF endpoints producing pre-filled paperwork the owner prints + takes to municipality / SEFA.
+Reuses existing jsPDF + autotable stack and `getComplianceReportData()`. Honours Design Rule 6 — no ID/passport/tax numbers embedded.
+
+- [ ] `src/lib/pdf/shared.ts` — header/footer, brand colours, page-break helpers (extracted from compliance-pdf)
+- [ ] `src/lib/db/owner-profile-report.ts` — composite reader: owner profile + shop + goods description + sales rollup
+- [ ] `src/app/api/reports/trading-permit-summary/route.ts` (GET, owner-only)
+- [ ] `src/app/api/reports/landlord-affidavit/route.ts` (GET, owner-only)
+- [ ] `src/app/api/reports/goods-declaration/route.ts` (GET, owner-only)
+- [ ] `src/app/api/reports/food-safety-pack/route.ts` (GET, owner-only, ?days=30)
+- [ ] `src/app/api/reports/fund-application-pack/route.ts` (GET, owner-only, gated on SA + fund_interest)
+- [ ] Wire `href` on TradingPermitStep + FoodSafetyStep GenerateDocButton calls
+- [ ] Add "Generate Evidence Pack" button to `/inspection` page
+- [ ] i18n keys: only if new strings needed; mirror across all 5 locales
+- [ ] Tests: `tests/unit/pdf-reports.test.ts` — owner-profile aggregation, goods description, no-PII assertion
+- [ ] typecheck + vitest clean
+- [ ] Phase Completion Protocol
+
+Acceptance:
+- All 5 endpoints return application/pdf for an authenticated owner
+- Generated PDFs contain NO `id_number` / `passport_number` / `tax_number` field values (regex test)
+- Fund pack returns 403 for foreign nationals or `fund_interest=false`
+- Buttons in TradingPermitStep + FoodSafetyStep render enabled (not "coming soon")
+- No DB schema changes; no existing test regressions
+
+### Phases 37e–37g (later)
+
 - 37e — Fund Readiness Checker (Phase D)
 - 37f — Foreign National Path (Phase G)
 - 37g — Smart Reminders (Phase F)

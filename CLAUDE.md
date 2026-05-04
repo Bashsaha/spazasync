@@ -178,13 +178,14 @@ The file tree below is ground truth. After every phase: Glob scan, diff against 
 
 ## Living Scope
 
-Phases 1–36c + 37a–37c complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+Phases 1–36c + 37a–37d complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
 
 Most recent:
 - 36a Navigation Restructure (5-tab nav, hubs, dashboard cleanup, extended FAB)
 - 36b Switch User (top app bar avatar + recent users on login)
 - 36c Teller Access Requests + Realtime Notifications
 - 37a Municipality Directory — pure data layer for the upcoming Compliance Module (37a–37g). 3 tables (`municipalities`, `municipality_offices`, `municipality_requirements`) with public-read RLS + service-role writes. 6 metros seeded from official `.gov.za` sources (Johannesburg, Tshwane, Ekurhuleni, eThekwini, Cape Town, Mangaung). DB helpers filter requirements by nationality (`sa_citizen` | `foreign_national`) so later phases can show personalised "what to bring" lists. No UI, no API routes, no i18n changes — pure foundation.
+- 37d Document Generation Engine — fourth user-facing phase of the Compliance Module. Five new owner-only PDF endpoints under `/api/reports/*` produce pre-filled paperwork the owner prints + takes to the municipality / SEFA: `trading-permit-summary`, `landlord-affidavit`, `goods-declaration`, `food-safety-pack`, `fund-application-pack`. Reuses the existing jsPDF + jspdf-autotable stack via a new `lib/pdf/shared.ts` helper module (header/footer, page-break, dotted form-row drawing, brand colours) — same pattern as `compliance-pdf` so future PDFs cost ~150 LOC each. Composite reader `lib/db/owner-profile-report.ts` pulls shop + owner profile + 90-day sales rollup + goods description in one batched call. **Design Rule 6 enforced centrally**: `assertNoSensitiveValues()` throws if any `FormRow` with an "ID/passport/tax number" label carries a non-blank value, so a future contributor can't accidentally embed PII in a PDF. ID/passport/tax fields render as dotted underline + "(fill in yourself)" hint instead. Fund pack endpoint gates on `nationality_type='sa_citizen'` AND `fund_interest=true` (Design Rule 3) — returns 403 otherwise; the journey UI doesn't link to it yet (Phase 37e Fund Readiness Checker will). Wired up: `TradingPermitStep` GenerateDocButtons (3 enabled — summary, landlord affidavit, goods declaration), `HealthCertificateStep` evidence-pack button, `/inspection` page gets a second emerald-themed "Generate Evidence Pack" CTA below the existing "Download Report PDF" button. New i18n keys: `doc_trading_permit_summary_title/desc` in `compliance-journey` × 5 locales, `download_evidence_pack/hint` in `inspection` × 5 locales (native translations for am/zu/ur/so; parity test green). 12 new unit tests in `tests/unit/pdf-reports.test.ts` covering the Design Rule 6 guard + goods-description aggregation. No DB migration this phase. 540/540 tests pass.
 - 37c Compliance Journey Hub — third user-facing phase of the Compliance Module. New `/compliance/journey` route delivers a personalised 5–7 step plan (Trading Permit → Health Certificate → CIPC → SARS → UIF → Food Safety → SMMESA) with a 4-state status engine (`not_started` | `in_progress` | `complete` | `locked`) plus dependency rules (CoA needs food-safety training; Trading Permit needs CIPC + SARS + food-safety; SMMESA needs CIPC). Step cards collapse/expand and surface "What you need to bring" (from `municipality_requirements`), pre-filled "Your details" cards (per Design Rule 6 — ID/passport always blank, missing shop fields link to Settings), "Where to go" (from `municipality_offices`, with a generic fallback for un-seeded munis), and "Mark as done / I've applied / I've received" actions writing to `business_documents`. Migration 023 extends `business_documents.status` with `'in_progress'`, adds `applied_at TIMESTAMPTZ`, and adds `tellers.food_safety_trained_at` (Step 6 staff list). Reusable `<InspectionReadinessPanel>` extracted from `/inspection` to keep the CoA Step 2 readiness check single-sourced. New `JourneyProgressCard` on the dashboard mirrors the journey progress + an SA+fund_interest "R300k" teaser. New `compliance-journey` i18n namespace (~120 keys) × 5 locales — non-EN locales currently mirror EN values (parity tests pass; native translations are a follow-up). PDF generation for affidavits / evidence packs deferred to Phase 37e (buttons render disabled). 50 new unit tests in `tests/unit/journey.test.ts`.
 - 37b Compliance Onboarding — first user-facing phase of the Compliance Module. New `owner_profiles` table (person-level, keyed to `auth.users(id)`) supports owners with multiple shops without duplicating nationality/training data. `shops` extended with `municipality_id`, `municipality_area_text`, `has_employees`, `fund_interest`, plus three onboarding-state columns driving the dashboard banner snooze (7-day → 30-day rules). `business_documents` CHECK constraint extended with `sars_tax`, `uif`, `food_safety_training`, `smmesa` — SARS is its own type, **not** reused as `business_license`, per "no legal shortcuts". Existing `/onboarding` shop-setup step now requires an Area answer (municipality dropdown + "Other / not sure" → free-text fallback resolved server-side via `findMunicipalityByArea()`). Bottom-sheet 8-screen modal opens automatically on first dashboard visit for fresh owners; banner+snooze for existing owners. Foreign nationals skip the Fund screen and `fund_interest` is force-set to `false` server-side. Toggle states (`have`/`unsure`/`unselected`) map to `business_documents.status` (`on_file`/`pending`/`not_registered`). Settings now has a "Redo compliance check" button that resets onboarding state and reopens the modal. New `compliance-onboarding` i18n namespace × 5 locales; existing `auth` namespace gained 7 area-related keys × 5 locales. Dashboard `ComplianceCard` deliberately still scopes its score to the original 5 doc types via `CORE_COMPLIANCE_DOC_TYPES` (see `lib/compliance/document-status.ts`) — preventing a regression for shops that haven't yet gone through the new onboarding. Journey hub (37c) will surface the new doc types separately.
 
@@ -194,7 +195,7 @@ When starting a new phase, append it here and update the file tree.
 
 ## Current File Tree
 
-_Last updated: Phase 37c (2026-05-03)_
+_Last updated: Phase 37d (2026-05-04)_
 
 ```
 spaza shop/
@@ -265,7 +266,13 @@ spaza shop/
 │   │       ├── external/v1/
 │   │       │   ├── overview/route.ts
 │   │       │   └── shops/{route.ts, [id]/{route.ts, sales/route.ts, stock/route.ts, expiry/route.ts}}
-│   │       ├── reports/{compliance-pdf/route.ts, monthly-sales-pdf/route.ts}
+│   │       ├── reports/                                       # Phase 37d adds 5 PDF endpoints
+│       │   ├── compliance-pdf/route.ts, monthly-sales-pdf/route.ts
+│       │   ├── trading-permit-summary/route.ts            # 37d
+│       │   ├── landlord-affidavit/route.ts                # 37d
+│       │   ├── goods-declaration/route.ts                 # 37d
+│       │   ├── food-safety-pack/route.ts                  # 37d
+│       │   └── fund-application-pack/route.ts             # 37d (SA + fund_interest gated)
 │   │       ├── settings/route.ts
 │   │       ├── tellers/{route.ts, me/route.ts, [id]/route.ts}
 │   │       ├── suppliers/{route.ts, [id]/route.ts}
@@ -330,8 +337,10 @@ spaza shop/
 │   │   │   ├── municipalities.ts
 │   │   │   ├── owner-profiles.ts                       # Phase 37b
 │   │   │   ├── inspection-readiness.ts                 # Phase 37c — shared by /inspection + journey
-│   │   │   └── journey.ts                              # Phase 37c — composite reader for the hub
+│   │   │   ├── journey.ts                              # Phase 37c — composite reader for the hub
+│   │   │   └── owner-profile-report.ts                 # Phase 37d — composite reader for PDF endpoints
 │   │   ├── offline/{db.ts, sync.ts}
+│   │   ├── pdf/shared.ts                   # Phase 37d — shared jsPDF helpers + PII guard
 │   │   ├── checklist/stats.ts
 │   │   ├── compliance/{document-status.ts, waste-pest-status.ts, score.ts, onboarding.ts,
 │   │   │                journey.ts, goods-description.ts}    # journey + goods-description added 37c
@@ -370,5 +379,6 @@ spaza shop/
     ├── monthly-sales-report.test.ts
     ├── municipalities.test.ts
     ├── compliance-onboarding.test.ts
-    └── journey.test.ts
+    ├── journey.test.ts
+    └── pdf-reports.test.ts
 ```

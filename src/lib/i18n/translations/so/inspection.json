@@ -22,6 +22,8 @@
 
   "download_pdf": "Soo dejiso Warbixinta PDF",
   "download_hint": "Warbixin hoggaansanaanta oo dhameystiran oo aad tusi karto kormeeraha.",
+  "download_evidence_pack": "Soo Saar Xirmada Caddaymaha",
+  "download_evidence_hint": "30 maalmood oo liiska, heerkulka, alaab-qeybiyeyaasha, iyo xakamaynta cayayaanka oo hal dukumeenti ah.",
 
   "breakdown_header": "Sida dhibcahaaga loo xisaabiyo",
   "breakdown_contribution": "{score}/100 × {weight}% miisaan",

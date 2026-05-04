@@ -95,6 +95,8 @@
   "btn_save": "Save",
   "btn_cancel": "Cancel",
 
+  "doc_trading_permit_summary_title": "Trading Permit Application Summary",
+  "doc_trading_permit_summary_desc": "Pre-filled with your shop and owner details. Print and copy onto the municipality's form.",
   "doc_landlord_affidavit_title": "Landlord Affidavit",
   "doc_landlord_affidavit_desc": "Pre-filled with your shop address. Print it, have your landlord sign, and stamp at the police station.",
   "doc_goods_affidavit_title": "Goods Declaration Affidavit",
