@@ -86,7 +86,7 @@ export function SARSStep({ step, data, t }: Props) {
         ℹ️ {t('sars_tax_clearance_note')}
       </p>
 
-      <MarkAsDoneButtons step={step} t={t} variant="standard" />
+      <MarkAsDoneButtons step={step} variant="standard" />
     </>
   )
 }

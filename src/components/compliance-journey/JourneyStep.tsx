@@ -19,12 +19,11 @@
  */
 
 import { useState, type ReactNode } from 'react'
+import { useTranslation } from '@/components/LanguageProvider'
 import type {
   ComplianceJourneyStep,
   JourneyStepKey,
 } from '@/types'
-
-type T = (key: string, params?: Record<string, string | number>) => string
 
 const STATUS_BADGE: Record<
   ComplianceJourneyStep['status'],
@@ -58,7 +57,6 @@ const STATUS_BADGE: Record<
 
 interface Props {
   step: ComplianceJourneyStep
-  t: T
   defaultExpanded?: boolean
   children: ReactNode
 }
@@ -73,7 +71,8 @@ const STEP_ICON: Record<JourneyStepKey, string> = {
   smmesa: '📋',
 }
 
-export function JourneyStep({ step, t, defaultExpanded, children }: Props) {
+export function JourneyStep({ step, defaultExpanded, children }: Props) {
+  const { t } = useTranslation('compliance-journey')
   const [expanded, setExpanded] = useState(Boolean(defaultExpanded))
   const badge = STATUS_BADGE[step.status]
   const titleKey = `step_${step.key}_title`

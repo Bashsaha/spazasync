@@ -44,7 +44,7 @@ export function UIFStep({ step, t }: Props) {
         </a>
       </section>
 
-      <MarkAsDoneButtons step={step} t={t} variant="standard" />
+      <MarkAsDoneButtons step={step} variant="standard" />
     </>
   )
 }

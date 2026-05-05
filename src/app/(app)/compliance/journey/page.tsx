@@ -66,7 +66,6 @@ export default async function ComplianceJourneyPage() {
           <JourneyStep
             key={step.key}
             step={step}
-            t={t}
             defaultExpanded={step.key === currentStepKey}
           >
             {renderStepBody(step, data, t, tInsp)}

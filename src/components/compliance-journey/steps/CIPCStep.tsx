@@ -89,7 +89,7 @@ export function CIPCStep({ step, data, t }: Props) {
         ℹ️ {t('cipc_annual_return_note')}
       </p>
 
-      <MarkAsDoneButtons step={step} t={t} variant="standard" />
+      <MarkAsDoneButtons step={step} variant="standard" />
     </>
   )
 }

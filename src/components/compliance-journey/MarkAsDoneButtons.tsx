@@ -18,30 +18,23 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
+import { useTranslation } from '@/components/LanguageProvider'
 import type { ComplianceJourneyStep, JourneyStepAction } from '@/types'
 
 type T = (key: string, params?: Record<string, string | number>) => string
 
 interface Props {
   step: ComplianceJourneyStep
-  t: T
-  /**
-   * Variant decides which buttons to render:
-   *  - 'standard': all three actions
-   *  - 'one_shot': only "Mark as done" (for steps like SMMESA, CIPC where
-   *     "applied" doesn't add value)
-   */
   variant?: 'standard' | 'one_shot'
-  /** Whether this step issues a permit/cert that has an expiry date. */
   hasExpiry?: boolean
 }
 
 export function MarkAsDoneButtons({
   step,
-  t,
   variant = 'standard',
   hasExpiry = false,
 }: Props) {
+  const { t } = useTranslation('compliance-journey')
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [openForm, setOpenForm] = useState<JourneyStepAction | null>(null)

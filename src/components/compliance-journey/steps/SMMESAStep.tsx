@@ -42,7 +42,7 @@ export function SMMESAStep({ step, t }: Props) {
         </a>
       </section>
 
-      <MarkAsDoneButtons step={step} t={t} variant="standard" />
+      <MarkAsDoneButtons step={step} variant="standard" />
     </>
   )
 }

@@ -126,6 +126,14 @@ Also added `/auth/callback` to `PUBLIC_ROUTES` in middleware so the route is rea
 
 ---
 
+## BUG-017: Compliance journey client components received `t` as a prop — broke translation in production
+**Symptom:** On `/compliance/journey`, action buttons (`MarkAsDoneButtons`), the step shells (`JourneyStep`), and the staff list (`StaffTrainingList`) showed raw key strings or threw at runtime when interacted with. Server-side render looked fine; first client interaction surfaced the issue.
+**Root cause:** These are `'use client'` components. The parent server component was passing `t={t}` from `getServerTranslations()` as a prop. Functions can't cross the RSC serialization boundary — Next.js silently dropped the prop, leaving `t` undefined on the client. Also, `(app)/layout.tsx`'s `LanguageProvider` had not been updated to include the `compliance-journey` namespace when 37c shipped, so even if a client component reached for it via `useTranslation`, nothing was loaded.
+**Fix:** Removed the `t` prop from `MarkAsDoneButtons`, `JourneyStep`, and `StaffTrainingList` and made each call `useTranslation('compliance-journey')` directly. Added `'compliance-journey'` to the namespace list in [src/app/(app)/layout.tsx](src/app/(app)/layout.tsx#L62). Updated all callsites (`CIPCStep`, `FoodSafetyStep`, `SARSStep`, `SMMESAStep`, `UIFStep`, and `compliance/journey/page.tsx`) to drop the now-unused `t` argument.
+**Prevention rule:** Never pass server-side `t()` (from `getServerTranslations`) as a prop to a `'use client'` component. Functions don't serialize across the RSC boundary. Client components must call `useTranslation(namespace)` themselves. When introducing a new i18n namespace, also add it to the `namespaces` array in the relevant `LanguageProvider` mount — otherwise client `useTranslation(namespace)` calls return raw keys.
+
+---
+
 ## BUG-016: Some recorded sales missing teller name — dashboard shows "—"
 **Symptom:** On the dashboard `LatestSales` card, some sales rendered `—` where the teller name should be. Owner couldn't tell which teller made the sale.
 **Root cause:** 12 rows in `sales` had `teller_id = null` (verified via Supabase REST: `GET /sales?teller_id=is.null`). All were from the online path (`offline_id = null`), spanning 2026-03-24 → 2026-04-24. Two contributors: (1) legacy sales from before the current `TellerSelector` gate was tightened — the sale UI now blocks owners at [sale/page.tsx:203](src/app/(app)/sale/page.tsx#L203) until they pick a teller; (2) the teller path had no equivalent gate — if a teller's `/api/tellers/me` auto-select request failed (transient network error, deactivated account mid-session), they'd still see the cart UI with `activeTeller = null` and could submit `teller_id: null`. The `completeSaleSchema` in `validation/schemas.ts` allows `teller_id: null`, and the FK is `REFERENCES tellers(id)` with no `ON DELETE` action — so deleting a teller is blocked, it does NOT nullify sales.

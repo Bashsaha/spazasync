@@ -90,10 +90,10 @@ export function FoodSafetyStep({ step, data, t }: Props) {
         <h4 className="text-sm font-semibold text-gray-800 mb-2">
           {t('food_staff_header')}
         </h4>
-        <StaffTrainingList tellers={data.tellers} t={t} />
+        <StaffTrainingList tellers={data.tellers} />
       </section>
 
-      <MarkAsDoneButtons step={step} t={t} variant="standard" />
+      <MarkAsDoneButtons step={step} variant="standard" />
     </>
   )
 }

@@ -12,16 +12,15 @@ import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { formatInTimeZone } from 'date-fns-tz'
 import { SAST_TZ } from '@/lib/utils/date'
+import { useTranslation } from '@/components/LanguageProvider'
 import type { Teller } from '@/types'
-
-type T = (key: string, params?: Record<string, string | number>) => string
 
 interface Props {
   tellers: Teller[]
-  t: T
 }
 
-export function StaffTrainingList({ tellers, t }: Props) {
+export function StaffTrainingList({ tellers }: Props) {
+  const { t } = useTranslation('compliance-journey')
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [busyId, setBusyId] = useState<string | null>(null)
