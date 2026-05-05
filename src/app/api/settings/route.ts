@@ -14,7 +14,7 @@ export async function GET() {
 
   const { data: shop, error } = await auth.supabase
     .from('shops')
-    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, language, profit_tracking_enabled, has_fridge, has_freezer, subscription_status, trial_ends_at, subscription_ends_at')
+    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, language, profit_tracking_enabled, has_fridge, has_freezer, subscription_status, trial_ends_at, subscription_ends_at, fund_interest')
     .eq('id', auth.shopId)
     .single()
 
@@ -29,7 +29,18 @@ export async function GET() {
     .eq('shop_id', auth.shopId)
     .is('cost_price', null)
 
-  return NextResponse.json({ ...shop, products_missing_cost: missingCostCount ?? 0 })
+  // Phase 37e — owner's nationality drives whether the fund_interest toggle is visible
+  const { data: ownerProfile } = await auth.supabase
+    .from('owner_profiles')
+    .select('nationality_type')
+    .eq('user_id', auth.user.id)
+    .maybeSingle()
+
+  return NextResponse.json({
+    ...shop,
+    products_missing_cost: missingCostCount ?? 0,
+    nationality_type: (ownerProfile?.nationality_type as string | null) ?? null,
+  })
 }
 
 /**
@@ -58,7 +69,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Only the shop owner can change settings' }, { status: 403 })
   }
 
-  const { name, low_stock_threshold, registration_number, location, language, profit_tracking_enabled, has_fridge, has_freezer, redo_compliance_check } = parsed
+  const { name, low_stock_threshold, registration_number, location, language, profit_tracking_enabled, has_fridge, has_freezer, redo_compliance_check, fund_interest } = parsed
 
   const updatePayload: Record<string, unknown> = {
     name,
@@ -72,6 +83,7 @@ export async function PATCH(request: Request) {
   }
   if (typeof has_fridge === 'boolean') updatePayload.has_fridge = has_fridge
   if (typeof has_freezer === 'boolean') updatePayload.has_freezer = has_freezer
+  if (typeof fund_interest === 'boolean') updatePayload.fund_interest = fund_interest
   if (redo_compliance_check === true) {
     // Phase 37b: clear completion + snooze counters so the dashboard re-opens
     // the modal. Existing answers in owner_profiles + business_documents are
@@ -85,7 +97,7 @@ export async function PATCH(request: Request) {
     .from('shops')
     .update(updatePayload)
     .eq('id', auth.shopId)
-    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, language, profit_tracking_enabled, has_fridge, has_freezer')
+    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, language, profit_tracking_enabled, has_fridge, has_freezer, fund_interest')
     .single()
 
   if (error) {

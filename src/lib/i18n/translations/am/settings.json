@@ -80,5 +80,9 @@
   "subscribe_btn_try_again": "እንደገና ይሞክሩ",
   "subscribe_btn_goto_settings": "ወደ ቅንብሮች ይሂዱ",
   "subscribe_error_generic": "የሆነ ችግር ተፈጥሯል። እባክዎ እንደገና ይሞክሩ።",
-  "subscribe_error_connect": "መገናኘት አልተቻለም። እባክዎ በይነመረብዎን ይፈትሹ እና እንደገና ይሞክሩ።"
+  "subscribe_error_connect": "መገናኘት አልተቻለም። እባክዎ በይነመረብዎን ይፈትሹ እና እንደገና ይሞክሩ።",
+
+  "fund_interest_label": "Government Fund",
+  "fund_interest_help": "Show the Spaza Shop Support Fund eligibility checker on your dashboard.",
+  "fund_interest_open": "Open Fund Readiness"
 }

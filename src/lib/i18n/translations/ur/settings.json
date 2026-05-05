@@ -80,5 +80,9 @@
   "subscribe_btn_try_again": "دوبارہ کوشش کریں",
   "subscribe_btn_goto_settings": "ترتیبات پر جائیں",
   "subscribe_error_generic": "کچھ غلط ہو گیا۔ براہ کرم دوبارہ کوشش کریں۔",
-  "subscribe_error_connect": "کنیکٹ نہیں ہو سکا۔ براہ کرم اپنا انٹرنیٹ چیک کریں اور دوبارہ کوشش کریں۔"
+  "subscribe_error_connect": "کنیکٹ نہیں ہو سکا۔ براہ کرم اپنا انٹرنیٹ چیک کریں اور دوبارہ کوشش کریں۔",
+
+  "fund_interest_label": "Government Fund",
+  "fund_interest_help": "Show the Spaza Shop Support Fund eligibility checker on your dashboard.",
+  "fund_interest_open": "Open Fund Readiness"
 }

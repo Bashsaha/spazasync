@@ -18,10 +18,12 @@ interface ShopSettings {
   profit_tracking_enabled: boolean
   has_fridge: boolean
   has_freezer: boolean
+  fund_interest: boolean
   products_missing_cost: number
   subscription_status: string | null
   trial_ends_at: string | null
   subscription_ends_at: string | null
+  nationality_type: 'sa_citizen' | 'foreign_national' | null
 }
 
 export default function SettingsPage() {
@@ -42,6 +44,7 @@ export default function SettingsPage() {
   const [profitTracking, setProfitTracking] = useState(false)
   const [hasFridge, setHasFridge] = useState(true)
   const [hasFreezer, setHasFreezer] = useState(true)
+  const [fundInterest, setFundInterest] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [downloading, setDownloading] = useState(false)
@@ -59,6 +62,7 @@ export default function SettingsPage() {
         setProfitTracking(Boolean(data.profit_tracking_enabled))
         setHasFridge(data.has_fridge !== false)
         setHasFreezer(data.has_freezer !== false)
+        setFundInterest(Boolean(data.fund_interest))
         if (data.language) setLanguage(data.language as SupportedLocale)
       })
       .catch(() => setMessage({ type: 'err', key: 'msg_load_failed' }))
@@ -128,6 +132,29 @@ export default function SettingsPage() {
     } else {
       if (kind === 'fridge') setHasFridge(!nextValue)
       else setHasFreezer(!nextValue)
+      setMessage({ type: 'err', key: 'msg_save_failed' })
+    }
+  }
+
+  async function handleFundInterestToggle(nextValue: boolean) {
+    setFundInterest(nextValue)
+    const res = await fetch('/api/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name.trim() || settings?.name,
+        low_stock_threshold: threshold,
+        registration_number: regNumber.trim() || null,
+        location: location.trim() || null,
+        language,
+        fund_interest: nextValue,
+      }),
+    })
+    if (res.ok) {
+      const updated: ShopSettings = await res.json()
+      setSettings((prev) => (prev ? { ...prev, ...updated } : updated))
+    } else {
+      setFundInterest(!nextValue)
       setMessage({ type: 'err', key: 'msg_save_failed' })
     }
   }
@@ -449,6 +476,44 @@ export default function SettingsPage() {
           {tChk('history_link')} →
         </a>
       </div>
+
+      {/* Phase 37e — Government fund eligibility (SA citizens only) */}
+      {settings?.nationality_type === 'sa_citizen' && (
+        <div className="bg-white border border-gray-100 rounded-2xl px-4 py-4 mb-6">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xl">💰</span>
+                <p className="font-semibold text-gray-900">{t('fund_interest_label')}</p>
+              </div>
+              <p className="text-sm text-gray-500">{t('fund_interest_help')}</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={fundInterest}
+              onClick={() => handleFundInterestToggle(!fundInterest)}
+              className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${
+                fundInterest ? 'bg-green-500' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                  fundInterest ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+          {fundInterest && (
+            <a
+              href="/compliance/fund"
+              className="mt-3 inline-block text-sm text-blue-600 font-semibold active:text-blue-800"
+            >
+              {t('fund_interest_open')} →
+            </a>
+          )}
+        </div>
+      )}
 
       {/* Subscription status */}
       {settings?.subscription_status && (

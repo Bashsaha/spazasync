@@ -28,6 +28,7 @@ function makeOwner(over: Partial<OwnerProfile> = {}): OwnerProfile {
     food_safety_training_completed: false,
     food_safety_training_date: null,
     food_safety_training_provider: null,
+    has_disability: false,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     ...over,

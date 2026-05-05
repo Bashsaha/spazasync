@@ -41,6 +41,8 @@ const SHOP_DEFAULTS: Shop = {
   onboarding_compliance_completed: false,
   onboarding_compliance_dismissed_at: null,
   onboarding_compliance_dismiss_count: 0,
+  fund_township_rural: null,
+  fund_owner_managed: null,
   created_at: new Date().toISOString(),
 }
 

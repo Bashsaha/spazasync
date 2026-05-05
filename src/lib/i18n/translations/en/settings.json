@@ -80,5 +80,9 @@
   "subscribe_btn_try_again": "Try Again",
   "subscribe_btn_goto_settings": "Go to Settings",
   "subscribe_error_generic": "Something went wrong. Please try again.",
-  "subscribe_error_connect": "Could not connect. Please check your internet and try again."
+  "subscribe_error_connect": "Could not connect. Please check your internet and try again.",
+
+  "fund_interest_label": "Government Fund",
+  "fund_interest_help": "Show the Spaza Shop Support Fund eligibility checker on your dashboard.",
+  "fund_interest_open": "Open Fund Readiness"
 }

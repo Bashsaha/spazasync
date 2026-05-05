@@ -80,5 +80,9 @@
   "subscribe_btn_try_again": "Zama Futhi",
   "subscribe_btn_goto_settings": "Iya Kuzilungiselelo",
   "subscribe_error_generic": "Kukhona okungalungile. Sicela uzame futhi.",
-  "subscribe_error_connect": "Ayikwazanga ukuxhuma. Sicela uhlole i-inthanethi yakho uzame futhi."
+  "subscribe_error_connect": "Ayikwazanga ukuxhuma. Sicela uhlole i-inthanethi yakho uzame futhi.",
+
+  "fund_interest_label": "Government Fund",
+  "fund_interest_help": "Show the Spaza Shop Support Fund eligibility checker on your dashboard.",
+  "fund_interest_open": "Open Fund Readiness"
 }

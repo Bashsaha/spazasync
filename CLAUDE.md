@@ -48,7 +48,7 @@ Movestock (formerly SpazaSync) is a mobile-first PWA for South African spaza sho
 All tables have RLS enabled. `admin_payments` and `barcode_catalog` writes are service-role-only.
 
 ### Tables
-- `shops` — id, name, code (unique), whatsapp_number, low_stock_threshold, language ('en'/'so'/'am'/'zu'/'ur'), subscription_status, trial_ends_at, subscription_ends_at, payfast_token, access_granted, admin_notes, registration_number, location, has_fridge, has_freezer, municipality_id (FK→municipalities, ON DELETE SET NULL), municipality_area_text (free-text fallback when "Other / not sure" picked at signup), has_employees, fund_interest, onboarding_compliance_completed, onboarding_compliance_dismissed_at, onboarding_compliance_dismiss_count
+- `shops` — id, name, code (unique), whatsapp_number, low_stock_threshold, language ('en'/'so'/'am'/'zu'/'ur'), subscription_status, trial_ends_at, subscription_ends_at, payfast_token, access_granted, admin_notes, registration_number, location, has_fridge, has_freezer, municipality_id (FK→municipalities, ON DELETE SET NULL), municipality_area_text (free-text fallback when "Other / not sure" picked at signup), has_employees, fund_interest, onboarding_compliance_completed, onboarding_compliance_dismissed_at, onboarding_compliance_dismiss_count, fund_township_rural (Phase 37e — nullable yes/no), fund_owner_managed (Phase 37e — nullable yes/no)
 - `shop_users` — maps auth users to shops with role (owner | teller)
 - `tellers` — name (unique per shop), optional auth user_id, `food_safety_trained_at` (Phase 37c — Step 6 staff training)
 - `products` — barcode (nullable), name, price, stock_qty, cost_price, supplier_id; unique(shop_id, barcode WHERE NOT NULL); unique(shop_id, LOWER(name))
@@ -65,7 +65,7 @@ All tables have RLS enabled. `admin_payments` and `barcode_catalog` writes are s
 - `access_requests` — shop_id, teller_id, feature ('inventory'), status (pending/granted/denied/revoked/expired), requested_at, resolved_at, resolved_by, expires_at; in `supabase_realtime` publication
 - `daily_checklists` — shop_id, date (SAST), fridge_ok/temp, freezer_ok/temp, surfaces_cleaned, floor_cleaned, storage_clean, expired_items_action, waste_bins_ok, completed_by, completed_at; UNIQUE(shop_id, date)
 - `business_documents` — shop_id, document_type (municipal_registration/coa/cipc/business_license/owner_id/sars_tax/uif/food_safety_training/smmesa), status (valid/expired/pending/not_registered/not_required/on_file/`in_progress` — added 37c), reference_number, date_issued, expiry_date, notes, `applied_at` (Phase 37c — set when owner taps "I've applied"); UNIQUE(shop_id, document_type). The dashboard ComplianceCard score still scopes to the original 5 doc types (see `CORE_COMPLIANCE_DOC_TYPES` in `lib/compliance/document-status.ts`); the journey hub (37c) uses its own status engine in `lib/compliance/journey.ts` covering all 7 step types.
-- `owner_profiles` — Phase 37b. user_id PK (FK→auth.users ON DELETE CASCADE), nationality_type ('sa_citizen'|'foreign_national'), food_safety_training_completed, food_safety_training_date, food_safety_training_provider, created_at, updated_at. RLS: user can SELECT/INSERT/UPDATE their own row only. Service-role bypasses for atomic onboarding writes.
+- `owner_profiles` — Phase 37b. user_id PK (FK→auth.users ON DELETE CASCADE), nationality_type ('sa_citizen'|'foreign_national'), food_safety_training_completed, food_safety_training_date, food_safety_training_provider, has_disability (Phase 37e — defaults false; only "priority" attribute we capture, per Design Rule 6), created_at, updated_at. RLS: user can SELECT/INSERT/UPDATE their own row only. Service-role bypasses for atomic onboarding writes.
 - `pest_control_logs` — shop_id, visit_date, provider_name, treatment_type, notes
 - `waste_management` — shop_id (PK singleton), removal_type, frequency, provider_name, last_confirmed_date
 - `municipalities` — id, name, province, short_name, areas TEXT[]; UNIQUE(name, province); GIN index on areas. Public-read RLS, service-role writes only.
@@ -178,9 +178,10 @@ The file tree below is ground truth. After every phase: Glob scan, diff against 
 
 ## Living Scope
 
-Phases 1–36c + 37a–37d complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+Phases 1–36c + 37a–37e complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
 
 Most recent:
+- 37e Fund Readiness Checker — fifth user-facing phase of the Compliance Module. New owner-only `/compliance/fund` page answers "Can I apply for the R500M Spaza Shop Support Fund right now?" with a green/amber/red verdict synthesised from onboarding answers, document statuses, and the existing 0–100 compliance score. Doubly gated via Design Rule 3: `compliance/layout.tsx` blocks tellers; `getFundReadinessData()` returns null (→ redirect to `/compliance/journey`) for non-SA citizens or owners with `fund_interest=false`. **Youth + women-owned priority badges deliberately dropped** — would have required capturing DOB + gender (Design Rule 6 violation) for zero functional benefit since SEFA assesses priority server-side. Manual disability toggle stays — the only "priority" attribute we capture, set explicitly by the owner. Migration 024 adds 3 columns: `shops.fund_township_rural`, `shops.fund_owner_managed` (both NULL = unanswered, distinguishes "not asked yet" from "answered no"), and `owner_profiles.has_disability` (default false). Pure status engine in `lib/compliance/fund.ts` with 14 unit tests covering RED/AMBER/GREEN logic + CIPC tier gating. PDF download button reuses the existing 37d `/api/reports/fund-application-pack` endpoint (no new PDF code). Settings gains a "Government Fund" toggle (SA citizens only, gated by `nationality_type` from a new line on the `/api/settings` GET). JourneyProgressCard + JourneyProgress fund teasers now deep-link into `/compliance/fund` instead of `/compliance/journey`. New `compliance-fund` i18n namespace (~70 keys) × 5 locales — non-EN locales mirror EN values per 37c precedent. 562/562 tests pass.
 - 36a Navigation Restructure (5-tab nav, hubs, dashboard cleanup, extended FAB)
 - 36b Switch User (top app bar avatar + recent users on login)
 - 36c Teller Access Requests + Realtime Notifications
@@ -195,7 +196,7 @@ When starting a new phase, append it here and update the file tree.
 
 ## Current File Tree
 
-_Last updated: Phase 37d (2026-05-04)_
+_Last updated: Phase 37e (2026-05-05)_
 
 ```
 spaza shop/
@@ -239,9 +240,10 @@ spaza shop/
 │   │   │   ├── sales/{page.tsx, history/page.tsx}    # Hub + drill-down
 │   │   │   ├── inventory/{page.tsx, loading.tsx}     # Hub
 │   │   │   ├── manage/page.tsx                       # Hub: Staff + Compliance + Journey
-│   │   │   ├── compliance/                           # Phase 37c
+│   │   │   ├── compliance/                           # Phase 37c + 37e
 │   │   │   │   ├── layout.tsx                        # Owner-only guard
-│   │   │   │   └── journey/{page.tsx, loading.tsx}   # Compliance Journey Hub
+│   │   │   │   ├── journey/{page.tsx, loading.tsx}   # Compliance Journey Hub
+│   │   │   │   └── fund/{page.tsx, loading.tsx}      # Phase 37e — Fund Readiness Checker
 │   │   │   # dashboard mounts <DashboardComplianceOnboarding> + <JourneyProgressCard> for owners
 │   │   │   └── admin/
 │   │   │       ├── layout.tsx, loading.tsx, page.tsx
@@ -286,6 +288,7 @@ spaza shop/
 │   │       ├── municipalities/route.ts                       # Phase 37b — public list for AreaPicker
 │   │       ├── compliance-onboarding/{route.ts, dismiss/route.ts}  # Phase 37b
 │   │       ├── compliance/journey/{route.ts, step/route.ts}        # Phase 37c
+│   │       ├── compliance/fund/eligibility/route.ts                # Phase 37e — PATCH 3 toggles
 │   │       └── tellers/[id]/training/route.ts                      # Phase 37c — Step 6 staff toggle
 │   ├── components/
 │   │   ├── products/{CatalogImportSheet.tsx, BarcodeScanButton.tsx}
@@ -313,6 +316,10 @@ spaza shop/
 │   │   │   ├── GenerateDocButton.tsx, MarkAsDoneButtons.tsx, StaffTrainingList.tsx
 │   │   │   └── steps/{TradingPermitStep, HealthCertificateStep, CIPCStep,
 │   │   │              SARSStep, UIFStep, FoodSafetyStep, SMMESAStep}.tsx
+│   │   ├── compliance-fund/                              # Phase 37e
+│   │   │   ├── FundHeroStatus.tsx, EligibilitySection.tsx, DocumentReadiness.tsx
+│   │   │   ├── ComplianceReadiness.tsx, FundBreakdown.tsx
+│   │   │   └── GenerateApplicationPackButton.tsx, ApplySection.tsx
 │   │   ├── LanguagePicker.tsx, LanguageProvider.tsx
 │   │   ├── TopAppBar.tsx                    # Sticky header + bell + avatar
 │   │   ├── NotificationBell.tsx             # Owner-only realtime bell
@@ -338,18 +345,19 @@ spaza shop/
 │   │   │   ├── owner-profiles.ts                       # Phase 37b
 │   │   │   ├── inspection-readiness.ts                 # Phase 37c — shared by /inspection + journey
 │   │   │   ├── journey.ts                              # Phase 37c — composite reader for the hub
-│   │   │   └── owner-profile-report.ts                 # Phase 37d — composite reader for PDF endpoints
+│   │   │   ├── owner-profile-report.ts                 # Phase 37d — composite reader for PDF endpoints
+│   │   │   └── fund-readiness.ts                       # Phase 37e — composite reader for /compliance/fund
 │   │   ├── offline/{db.ts, sync.ts}
 │   │   ├── pdf/shared.ts                   # Phase 37d — shared jsPDF helpers + PII guard
 │   │   ├── checklist/stats.ts
 │   │   ├── compliance/{document-status.ts, waste-pest-status.ts, score.ts, onboarding.ts,
-│   │   │                journey.ts, goods-description.ts}    # journey + goods-description added 37c
+│   │   │                journey.ts, goods-description.ts, fund.ts}    # fund.ts added 37e — pure status engine
 │   │   ├── i18n/
 │   │   │   ├── types.ts, interpolate.ts, loader.ts, server.ts
-│   │   │   └── translations/{en,so,am,zu,ur}/  (20 namespaces each)
+│   │   │   └── translations/{en,so,am,zu,ur}/  (21 namespaces each)
 │   │   │       # common, auth, sale, sales, dashboard, settings, stock, products, tellers,
 │   │   │       # expiry, summary, suppliers, checklist, documents, waste-pest, inspection,
-│   │   │       # inventory, manage, compliance-onboarding, compliance-journey
+│   │   │       # inventory, manage, compliance-onboarding, compliance-journey, compliance-fund
 │   │   ├── events.ts                       # In-tab mutation event bus
 │   │   ├── validation/schemas.ts           # All Zod schemas
 │   │   └── utils/{api.ts, currency.ts, date.ts, rateLimit.ts, statusBadge.ts}
@@ -367,7 +375,8 @@ spaza shop/
 │   ├── 010_product_name_unique.sql      ├── 020_access_requests.sql
 │   │                                     ├── 021_municipalities.sql
 │   │                                     ├── 022_compliance_onboarding.sql
-│   └──                                   └── 023_compliance_journey.sql
+│   │                                     ├── 023_compliance_journey.sql
+│   └──                                   └── 024_fund_readiness.sql
 ├── data/sa-products.csv
 ├── scripts/{set-admin.ts, seed-catalog.ts, seed-municipalities.ts}
 ├── tasks/{todo.md, todo-archive.md, lessons.md, bugs.md}
@@ -380,5 +389,6 @@ spaza shop/
     ├── municipalities.test.ts
     ├── compliance-onboarding.test.ts
     ├── journey.test.ts
-    └── pdf-reports.test.ts
+    ├── pdf-reports.test.ts
+    └── fund-readiness.test.ts
 ```

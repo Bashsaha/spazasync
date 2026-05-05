@@ -132,6 +132,18 @@ export const updateShopSettingsSchema = z.object({
   has_freezer: z.boolean().optional(),
   // Phase 37b — "Redo compliance check" resets these three fields together.
   redo_compliance_check: z.literal(true).optional(),
+  // Phase 37e — toggle for the Government Fund eligibility surface.
+  fund_interest: z.boolean().optional(),
+})
+
+// ============================================================
+// Fund eligibility (Phase 37e)
+// ============================================================
+
+export const updateFundEligibilitySchema = z.object({
+  fund_township_rural: z.boolean().nullable().optional(),
+  fund_owner_managed: z.boolean().nullable().optional(),
+  has_disability: z.boolean().optional(),
 })
 
 // ============================================================

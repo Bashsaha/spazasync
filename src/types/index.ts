@@ -35,6 +35,9 @@ export interface Shop {
   onboarding_compliance_completed: boolean
   onboarding_compliance_dismissed_at: string | null
   onboarding_compliance_dismiss_count: number
+  // Phase 37e — Fund Readiness Checker
+  fund_township_rural: boolean | null
+  fund_owner_managed: boolean | null
   created_at: string
 }
 
@@ -729,6 +732,8 @@ export interface OwnerProfile {
   food_safety_training_completed: boolean
   food_safety_training_date: string | null     // YYYY-MM-DD
   food_safety_training_provider: string | null
+  // Phase 37e — Fund Readiness Checker (priority status)
+  has_disability: boolean
   created_at: string
   updated_at: string
 }
