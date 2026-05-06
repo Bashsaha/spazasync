@@ -335,6 +335,72 @@ describe('complianceOnboardingSchema', () => {
     })
     expect(r.success).toBe(false)
   })
+
+  // Phase 37f — Foreign National Path: visa fields
+  describe('visa fields (Phase 37f)', () => {
+    it('accepts a foreign-national payload with a visa_type', () => {
+      const r = complianceOnboardingSchema.safeParse({
+        ...base,
+        nationality_type: 'foreign_national',
+        municipality_id: VALID_UUID,
+        visa_type: 'business_visa',
+        visa_expiry_date: '2027-01-01',
+      })
+      expect(r.success).toBe(true)
+    })
+
+    it("accepts a foreign-national payload without an expiry date (the owner picked \"I don't know\")", () => {
+      const r = complianceOnboardingSchema.safeParse({
+        ...base,
+        nationality_type: 'foreign_national',
+        municipality_id: VALID_UUID,
+        visa_type: 'asylum_seeker_s22',
+      })
+      expect(r.success).toBe(true)
+    })
+
+    it('rejects a foreign-national payload missing visa_type', () => {
+      const r = complianceOnboardingSchema.safeParse({
+        ...base,
+        nationality_type: 'foreign_national',
+        municipality_id: VALID_UUID,
+      })
+      expect(r.success).toBe(false)
+    })
+
+    it('rejects an unknown visa_type enum', () => {
+      const r = complianceOnboardingSchema.safeParse({
+        ...base,
+        nationality_type: 'foreign_national',
+        municipality_id: VALID_UUID,
+        visa_type: 'tourist_visa',
+      })
+      expect(r.success).toBe(false)
+    })
+
+    it('rejects malformed visa_expiry_date', () => {
+      const r = complianceOnboardingSchema.safeParse({
+        ...base,
+        nationality_type: 'foreign_national',
+        municipality_id: VALID_UUID,
+        visa_type: 'business_visa',
+        visa_expiry_date: '01/01/2027',
+      })
+      expect(r.success).toBe(false)
+    })
+
+    it('SA-citizen payload may include visa fields (API force-nulls them) — schema accepts', () => {
+      // The schema is permissive; the API in /api/compliance-onboarding is
+      // responsible for force-nulling visa fields when nationality is SA.
+      const r = complianceOnboardingSchema.safeParse({
+        ...base,
+        nationality_type: 'sa_citizen',
+        municipality_id: VALID_UUID,
+        visa_type: 'business_visa',
+      })
+      expect(r.success).toBe(true)
+    })
+  })
 })
 
 describe('ownerProfileSchema', () => {

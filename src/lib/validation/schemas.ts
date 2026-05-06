@@ -390,6 +390,15 @@ export const NATIONALITY_TYPES = ['sa_citizen', 'foreign_national'] as const
 
 export const DOCUMENT_APPLIES_TO = ['sa_citizen', 'foreign_national', 'all'] as const
 
+// Phase 37f — Foreign National Path
+export const VISA_TYPES = [
+  'business_visa',
+  'asylum_seeker_s22',
+  'refugee_s24',
+  'work_permit',
+  'other',
+] as const
+
 export const documentRequirementSchema = z.object({
   name: z.string().min(1).max(300),
   applies_to: z.enum(DOCUMENT_APPLIES_TO),
@@ -493,6 +502,11 @@ export const complianceOnboardingSchema = z
       .optional()
       .transform((v) => v?.trim() || null),
     fund_interest: z.boolean(),
+    // Phase 37f — only meaningful when nationality_type === 'foreign_national'.
+    // The API force-nulls these for SA citizens, but the schema allows them
+    // through so the client can submit a single payload shape regardless.
+    visa_type: z.enum(VISA_TYPES).nullable().optional(),
+    visa_expiry_date: dateString.nullable().optional(),
   })
   .refine(
     (v) =>
@@ -505,6 +519,11 @@ export const complianceOnboardingSchema = z
       !v.food_safety_training_completed ||
       (v.food_safety_training_completed && !!v.food_safety_training_date),
     { message: 'When was the training completed?' },
+  )
+  .refine(
+    (v) =>
+      v.nationality_type !== 'foreign_national' || !!v.visa_type,
+    { message: 'Tell us your visa or permit type', path: ['visa_type'] },
   )
 
 // ============================================================

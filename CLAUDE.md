@@ -65,7 +65,7 @@ All tables have RLS enabled. `admin_payments` and `barcode_catalog` writes are s
 - `access_requests` — shop_id, teller_id, feature ('inventory'), status (pending/granted/denied/revoked/expired), requested_at, resolved_at, resolved_by, expires_at; in `supabase_realtime` publication
 - `daily_checklists` — shop_id, date (SAST), fridge_ok/temp, freezer_ok/temp, surfaces_cleaned, floor_cleaned, storage_clean, expired_items_action, waste_bins_ok, completed_by, completed_at; UNIQUE(shop_id, date)
 - `business_documents` — shop_id, document_type (municipal_registration/coa/cipc/business_license/owner_id/sars_tax/uif/food_safety_training/smmesa), status (valid/expired/pending/not_registered/not_required/on_file/`in_progress` — added 37c), reference_number, date_issued, expiry_date, notes, `applied_at` (Phase 37c — set when owner taps "I've applied"); UNIQUE(shop_id, document_type). The dashboard ComplianceCard score still scopes to the original 5 doc types (see `CORE_COMPLIANCE_DOC_TYPES` in `lib/compliance/document-status.ts`); the journey hub (37c) uses its own status engine in `lib/compliance/journey.ts` covering all 7 step types.
-- `owner_profiles` — Phase 37b. user_id PK (FK→auth.users ON DELETE CASCADE), nationality_type ('sa_citizen'|'foreign_national'), food_safety_training_completed, food_safety_training_date, food_safety_training_provider, has_disability (Phase 37e — defaults false; only "priority" attribute we capture, per Design Rule 6), created_at, updated_at. RLS: user can SELECT/INSERT/UPDATE their own row only. Service-role bypasses for atomic onboarding writes.
+- `owner_profiles` — Phase 37b. user_id PK (FK→auth.users ON DELETE CASCADE), nationality_type ('sa_citizen'|'foreign_national'), food_safety_training_completed, food_safety_training_date, food_safety_training_provider, has_disability (Phase 37e — defaults false; only "priority" attribute we capture, per Design Rule 6), visa_type (Phase 37f — nullable; CHECK enum 'business_visa'|'asylum_seeker_s22'|'refugee_s24'|'work_permit'|'other'), visa_expiry_date (Phase 37f — nullable DATE; null when "doesn't expire / don't know"), created_at, updated_at. RLS: user can SELECT/INSERT/UPDATE their own row only. Service-role bypasses for atomic onboarding writes.
 - `pest_control_logs` — shop_id, visit_date, provider_name, treatment_type, notes
 - `waste_management` — shop_id (PK singleton), removal_type, frequency, provider_name, last_confirmed_date
 - `municipalities` — id, name, province, short_name, areas TEXT[]; UNIQUE(name, province); GIN index on areas. Public-read RLS, service-role writes only.
@@ -178,9 +178,10 @@ The file tree below is ground truth. After every phase: Glob scan, diff against 
 
 ## Living Scope
 
-Phases 1–36c + 37a–37e complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+Phases 1–36c + 37a–37f complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
 
 Most recent:
+- 37f Foreign National Path — sixth user-facing phase of the Compliance Module. Layers conditional rendering on top of 37b/37c/37e for owners with `nationality_type='foreign_national'`. Migration 025 adds `owner_profiles.visa_type` (CHECK enum: business_visa | asylum_seeker_s22 | refugee_s24 | work_permit | other) and `owner_profiles.visa_expiry_date` (nullable DATE — null when the owner picked "I don't know / doesn't expire"). New onboarding screen `VisaScreen` slots in after Nationality for foreign nationals only (replaces the Fund-Interest screen — total stays at 7 progress screens). Includes a fronting notice (informational, framed helpfully per the Immigration Act). API at `/api/compliance-onboarding` defence-in-depths the inverse of the existing fund_interest force-false: visa fields are force-nulled when nationality_type='sa_citizen'. New `VisaPermitWarning` card sits at the top of `/compliance/journey` for foreign nationals — combines the visa-permit-link reminder with a day-precision countdown (`{n} days remaining` / "Expired — renew immediately"). The 90/60/30-day proactive reminders are explicitly Phase 37g (Smart Reminders) — not in this phase. `TradingPermitStep` + `CIPCStep` accept a new `isForeignNational` prop that swaps the `form_id_number` row for `form_passport_number`, swaps the `form_bring_id_warning` footer for `form_bring_passport_warning`, and (in TradingPermit) renders a small inline "permit-tied-to-visa" notice. CIPC's "how to register" Step 3 swaps "ID number" for "passport number". **No engine changes** — `lib/compliance/journey.ts` already gates SMMESA on `sa_citizen && fund_interest`, so foreign nationals naturally see 5–6 steps (UIF in iff has_employees). New regression test asserts SMMESA stays hidden even if a misbehaving callsite sets fund_interest=true on a foreign profile. **Document checklists are still seed-driven** — `municipality_requirements.documents_required` already filters by nationality (37a infra), and the Tshwane row already covers the R5M business-visa requirement via the existing `applies_to: 'foreign_national'` row. Fund route already redirects non-SA via `getFundReadinessData` (37e); no change. Visa data plumbed through `DashboardComplianceOnboarding` for the "Redo compliance check" pre-fill. New i18n: 12 keys × 5 locales in `compliance-onboarding`, 13 keys × 5 locales in `compliance-journey` (non-EN locales mirror EN per 37c precedent — parity test green). 8 new tests (570/570 pass).
 - 37e Fund Readiness Checker — fifth user-facing phase of the Compliance Module. New owner-only `/compliance/fund` page answers "Can I apply for the R500M Spaza Shop Support Fund right now?" with a green/amber/red verdict synthesised from onboarding answers, document statuses, and the existing 0–100 compliance score. Doubly gated via Design Rule 3: `compliance/layout.tsx` blocks tellers; `getFundReadinessData()` returns null (→ redirect to `/compliance/journey`) for non-SA citizens or owners with `fund_interest=false`. **Youth + women-owned priority badges deliberately dropped** — would have required capturing DOB + gender (Design Rule 6 violation) for zero functional benefit since SEFA assesses priority server-side. Manual disability toggle stays — the only "priority" attribute we capture, set explicitly by the owner. Migration 024 adds 3 columns: `shops.fund_township_rural`, `shops.fund_owner_managed` (both NULL = unanswered, distinguishes "not asked yet" from "answered no"), and `owner_profiles.has_disability` (default false). Pure status engine in `lib/compliance/fund.ts` with 14 unit tests covering RED/AMBER/GREEN logic + CIPC tier gating. PDF download button reuses the existing 37d `/api/reports/fund-application-pack` endpoint (no new PDF code). Settings gains a "Government Fund" toggle (SA citizens only, gated by `nationality_type` from a new line on the `/api/settings` GET). JourneyProgressCard + JourneyProgress fund teasers now deep-link into `/compliance/fund` instead of `/compliance/journey`. New `compliance-fund` i18n namespace (~70 keys) × 5 locales — non-EN locales mirror EN values per 37c precedent. 562/562 tests pass.
 - 36a Navigation Restructure (5-tab nav, hubs, dashboard cleanup, extended FAB)
 - 36b Switch User (top app bar avatar + recent users on login)
@@ -196,7 +197,7 @@ When starting a new phase, append it here and update the file tree.
 
 ## Current File Tree
 
-_Last updated: Phase 37e (2026-05-05)_
+_Last updated: Phase 37f (2026-05-06)_
 
 ```
 spaza shop/
@@ -302,18 +303,20 @@ spaza shop/
 │   │   │   ├── JourneyProgressCard.tsx     # Phase 37c — journey % + Continue CTA
 │   │   │   └── TopProducts.tsx, LatestSales.tsx
 │   │   ├── access/TellerAccessRequestPanel.tsx
-│   │   ├── compliance-onboarding/                        # Phase 37b
+│   │   ├── compliance-onboarding/                        # Phase 37b (+ 37f VisaScreen)
 │   │   │   ├── ComplianceOnboardingModal.tsx, DashboardComplianceOnboarding.tsx
 │   │   │   ├── OnboardingBanner.tsx, AreaPicker.tsx, DocumentToggleCard.tsx
 │   │   │   ├── WelcomeScreen.tsx, NationalityScreen.tsx, MunicipalityScreen.tsx
 │   │   │   ├── EmployeesScreen.tsx, DocumentStatusScreen.tsx, FoodSafetyScreen.tsx
-│   │   │   └── FundInterestScreen.tsx, JourneySummaryScreen.tsx
+│   │   │   ├── FundInterestScreen.tsx, JourneySummaryScreen.tsx
+│   │   │   └── VisaScreen.tsx                            # Phase 37f — foreign-national-only screen
 │   │   ├── compliance/                                   # Phase 37c
 │   │   │   └── InspectionReadinessPanel.tsx              # Extracted from /inspection
-│   │   ├── compliance-journey/                           # Phase 37c
+│   │   ├── compliance-journey/                           # Phase 37c (+ 37f VisaPermitWarning)
 │   │   │   ├── JourneyProgress.tsx, JourneyStep.tsx
 │   │   │   ├── DocumentChecklist.tsx, FormSummaryCard.tsx, OfficeDirections.tsx
 │   │   │   ├── GenerateDocButton.tsx, MarkAsDoneButtons.tsx, StaffTrainingList.tsx
+│   │   │   ├── VisaPermitWarning.tsx                     # Phase 37f — foreign-national journey-hub banner
 │   │   │   └── steps/{TradingPermitStep, HealthCertificateStep, CIPCStep,
 │   │   │              SARSStep, UIFStep, FoodSafetyStep, SMMESAStep}.tsx
 │   │   ├── compliance-fund/                              # Phase 37e
@@ -376,7 +379,8 @@ spaza shop/
 │   │                                     ├── 021_municipalities.sql
 │   │                                     ├── 022_compliance_onboarding.sql
 │   │                                     ├── 023_compliance_journey.sql
-│   └──                                   └── 024_fund_readiness.sql
+│   │                                     ├── 024_fund_readiness.sql
+│   └──                                   └── 025_foreign_national_visa.sql
 ├── data/sa-products.csv
 ├── scripts/{set-admin.ts, seed-catalog.ts, seed-municipalities.ts}
 ├── tasks/{todo.md, todo-archive.md, lessons.md, bugs.md}

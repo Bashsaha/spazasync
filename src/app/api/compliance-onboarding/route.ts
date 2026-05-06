@@ -35,9 +35,14 @@ export async function POST(request: Request) {
   if (parsed instanceof NextResponse) return parsed
   const payload = parsed as ComplianceOnboardingPayload
 
-  // Server-side defence in depth — only SA citizens have fund_interest.
+  // Server-side defence in depth — only SA citizens have fund_interest;
+  // only foreign nationals carry visa fields. Force the opposite to null/false
+  // here so a misbehaving client can't poison the row.
   const fundInterest =
     payload.nationality_type === 'sa_citizen' ? payload.fund_interest : false
+  const isForeign = payload.nationality_type === 'foreign_national'
+  const visaType = isForeign ? payload.visa_type ?? null : null
+  const visaExpiryDate = isForeign ? payload.visa_expiry_date ?? null : null
 
   // Resolve area-text into a municipality_id when possible.
   let municipalityId: string | null = payload.municipality_id ?? null
@@ -75,6 +80,8 @@ export async function POST(request: Request) {
     food_safety_training_completed: payload.food_safety_training_completed,
     food_safety_training_date: payload.food_safety_training_date,
     food_safety_training_provider: payload.food_safety_training_provider,
+    visa_type: visaType,
+    visa_expiry_date: visaExpiryDate,
   })
 
   // 2. shops update — store municipality choice + employee/fund flags + completion.

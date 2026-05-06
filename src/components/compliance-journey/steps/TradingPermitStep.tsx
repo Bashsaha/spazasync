@@ -27,9 +27,11 @@ interface Props {
   step: ComplianceJourneyStep
   data: ComplianceJourneyData
   t: T
+  /** Phase 37f — swap ID-number copy for passport copy + add visa-link notice. */
+  isForeignNational?: boolean
 }
 
-export function TradingPermitStep({ step, data, t }: Props) {
+export function TradingPermitStep({ step, data, t, isForeignNational = false }: Props) {
   const goods = generateGoodsDescription(data.productNames)
 
   const formRows: FormSummaryRow[] = [
@@ -39,7 +41,7 @@ export function TradingPermitStep({ step, data, t }: Props) {
       missing: 'fill_at_office',
     },
     {
-      labelKey: 'form_id_number',
+      labelKey: isForeignNational ? 'form_passport_number' : 'form_id_number',
       value: null,
       missing: 'fill_at_office',
     },
@@ -66,6 +68,12 @@ export function TradingPermitStep({ step, data, t }: Props) {
 
   return (
     <>
+      {isForeignNational && (
+        <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          ⚠️ {t('permit_foreign_visa_link_notice')}
+        </p>
+      )}
+
       <DocumentChecklist
         requirements={data.permitRequirements}
         t={t}
@@ -73,7 +81,11 @@ export function TradingPermitStep({ step, data, t }: Props) {
         fallbackKey="permit_requirements_fallback"
       />
 
-      <FormSummaryCard rows={formRows} t={t} footerKey="form_bring_id_warning" />
+      <FormSummaryCard
+        rows={formRows}
+        t={t}
+        footerKey={isForeignNational ? 'form_bring_passport_warning' : 'form_bring_id_warning'}
+      />
 
       <OfficeDirections
         offices={data.permitOffices}

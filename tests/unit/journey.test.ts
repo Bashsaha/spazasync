@@ -29,6 +29,8 @@ function makeOwner(over: Partial<OwnerProfile> = {}): OwnerProfile {
     food_safety_training_date: null,
     food_safety_training_provider: null,
     has_disability: false,
+    visa_type: null,
+    visa_expiry_date: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     ...over,
@@ -113,6 +115,29 @@ describe('generateJourneySteps — step visibility', () => {
   it('null owner profile → assumes SA-citizen visibility (still no SMMESA without fund_interest)', () => {
     const steps = generateJourneySteps(null, SHOP_BASE, [])
     expect(steps.find((s) => s.key === 'smmesa')).toBeUndefined()
+  })
+
+  // Phase 37f — defence-in-depth regression: even if a misbehaving call site
+  // sets fund_interest=true on a foreign-national shop, SMMESA must stay
+  // hidden because that step (and the underlying fund) is SA-only.
+  it('Foreign national + fund_interest=true → SMMESA still hidden (37f regression guard)', () => {
+    const steps = generateJourneySteps(
+      makeOwner({ nationality_type: 'foreign_national' }),
+      { has_employees: true, fund_interest: true },
+      [],
+    )
+    expect(steps.find((s) => s.key === 'smmesa')).toBeUndefined()
+  })
+
+  it('Foreign national, has_employees=true → 6 steps (UIF in, SMMESA out)', () => {
+    const steps = generateJourneySteps(
+      makeOwner({ nationality_type: 'foreign_national' }),
+      { has_employees: true, fund_interest: false },
+      [],
+    )
+    expect(steps.length).toBe(6)
+    expect(steps.find((s) => s.key === 'smmesa')).toBeUndefined()
+    expect(steps.find((s) => s.key === 'uif')).toBeDefined()
   })
 
   it('stepNumber is 1-based and matches array index', () => {

@@ -65,6 +65,9 @@ export default async function DashboardPage({
   let existingFoodSafety:
     | { completed: boolean; date: string | null; provider: string | null }
     | null = null
+  let existingVisa:
+    | { type: import('@/types').VisaType | null; expiryDate: string | null }
+    | null = null
 
   if (role === 'owner' && shop?.id) {
     if (shop.municipality_id) {
@@ -83,7 +86,7 @@ export default async function DashboardPage({
 
     const { data: profile } = await supabase
       .from('owner_profiles')
-      .select('nationality_type, food_safety_training_completed, food_safety_training_date, food_safety_training_provider')
+      .select('nationality_type, food_safety_training_completed, food_safety_training_date, food_safety_training_provider, visa_type, visa_expiry_date')
       .eq('user_id', user.id)
       .maybeSingle()
     if (profile) {
@@ -92,6 +95,10 @@ export default async function DashboardPage({
         completed: Boolean(profile.food_safety_training_completed),
         date: profile.food_safety_training_date as string | null,
         provider: profile.food_safety_training_provider as string | null,
+      }
+      existingVisa = {
+        type: (profile.visa_type as import('@/types').VisaType | null) ?? null,
+        expiryDate: (profile.visa_expiry_date as string | null) ?? null,
       }
     }
   }
@@ -154,6 +161,7 @@ export default async function DashboardPage({
           existingDocs={existingDocs}
           existingNationality={existingNationality}
           existingFoodSafety={existingFoodSafety}
+          existingVisa={existingVisa}
           forceOpen={forceComplianceModal}
         />
       )}

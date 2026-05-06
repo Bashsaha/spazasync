@@ -9,13 +9,17 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import type { OwnerProfile, NationalityType } from '@/types'
+import type { OwnerProfile, NationalityType, VisaType } from '@/types'
 
 export interface UpsertOwnerProfileInput {
   nationality_type: NationalityType
   food_safety_training_completed: boolean
   food_safety_training_date?: string | null
   food_safety_training_provider?: string | null
+  // Phase 37f — only set for foreign nationals; caller is responsible for
+  // passing null when nationality_type === 'sa_citizen'.
+  visa_type?: VisaType | null
+  visa_expiry_date?: string | null
 }
 
 /** Get the owner profile for the current auth user, or null if it doesn't exist. */
@@ -46,6 +50,8 @@ export async function upsertOwnerProfile(
         food_safety_training_completed: input.food_safety_training_completed,
         food_safety_training_date: input.food_safety_training_date ?? null,
         food_safety_training_provider: input.food_safety_training_provider ?? null,
+        visa_type: input.visa_type ?? null,
+        visa_expiry_date: input.visa_expiry_date ?? null,
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'user_id' },

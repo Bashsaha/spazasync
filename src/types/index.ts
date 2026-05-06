@@ -726,6 +726,14 @@ export interface MunicipalityRequirement {
 
 // --- Compliance Onboarding (Phase 37b) ---
 
+/** Visa / permit type captured for foreign-national owners (Phase 37f). */
+export type VisaType =
+  | 'business_visa'
+  | 'asylum_seeker_s22'
+  | 'refugee_s24'
+  | 'work_permit'
+  | 'other'
+
 export interface OwnerProfile {
   user_id: string
   nationality_type: NationalityType | null
@@ -734,6 +742,9 @@ export interface OwnerProfile {
   food_safety_training_provider: string | null
   // Phase 37e — Fund Readiness Checker (priority status)
   has_disability: boolean
+  // Phase 37f — Foreign National Path. Both null for SA citizens.
+  visa_type: VisaType | null
+  visa_expiry_date: string | null              // YYYY-MM-DD; null when "doesn't expire / don't know"
   created_at: string
   updated_at: string
 }
@@ -762,6 +773,10 @@ export interface ComplianceOnboardingPayload {
   food_safety_training_date?: string | null      // YYYY-MM-DD; required iff completed=true
   food_safety_training_provider?: string | null
   fund_interest: boolean                         // server forces false for foreign_national
+  // Phase 37f — only set when nationality_type === 'foreign_national'.
+  // Server forces both to null for SA citizens (defence in depth).
+  visa_type?: VisaType | null
+  visa_expiry_date?: string | null               // YYYY-MM-DD; null when owner picked "I don't know / doesn't expire"
 }
 
 /** Status badge shown on Screen 8 — Your Journey summary. */

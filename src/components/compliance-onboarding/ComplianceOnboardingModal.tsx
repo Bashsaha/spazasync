@@ -8,10 +8,12 @@ import type {
   JourneyStep,
   NationalityType,
   OnboardingDocumentType,
+  VisaType,
 } from '@/types'
 import { buildJourneySteps } from '@/lib/compliance/onboarding'
 import { WelcomeScreen } from './WelcomeScreen'
 import { NationalityScreen } from './NationalityScreen'
+import { VisaScreen, type VisaScreenValue } from './VisaScreen'
 import { MunicipalityScreen } from './MunicipalityScreen'
 import { EmployeesScreen } from './EmployeesScreen'
 import { DocumentStatusScreen } from './DocumentStatusScreen'
@@ -33,19 +35,19 @@ interface ComplianceOnboardingModalProps {
   /** Pre-fill nationality / training answers from owner_profiles. */
   initialNationality?: NationalityType | null
   initialFoodSafety?: { completed: boolean; date: string | null; provider: string | null }
+  initialVisa?: { type: VisaType | null; expiryDate: string | null }
 }
 
 type ScreenKey =
   | 'welcome'
   | 'nationality'
+  | 'visa'
   | 'municipality'
   | 'employees'
   | 'documents'
   | 'food_safety'
   | 'fund'
   | 'summary'
-
-const TOTAL_PROGRESS_SCREENS = 7  // welcome doesn't count toward "x of N"
 
 export function ComplianceOnboardingModal({
   open,
@@ -55,10 +57,16 @@ export function ComplianceOnboardingModal({
   initialDocumentStates = {},
   initialNationality = null,
   initialFoodSafety,
+  initialVisa,
 }: ComplianceOnboardingModalProps) {
   const { t } = useTranslation('compliance-onboarding')
   const [screen, setScreen] = useState<ScreenKey>('welcome')
   const [nationality, setNationality] = useState<NationalityType | null>(initialNationality)
+  const [visa, setVisa] = useState<VisaScreenValue>({
+    type: initialVisa?.type ?? null,
+    expiryDate: initialVisa?.expiryDate ?? null,
+    dontKnow: !!initialVisa && initialVisa.expiryDate == null && initialVisa.type != null,
+  })
   const [area, setArea] = useState<AreaPickerValue>(
     preFilledMunicipality
       ? { municipality_id: preFilledMunicipality.id, municipality_area_text: null }
@@ -91,13 +99,9 @@ export function ComplianceOnboardingModal({
   }, [open])
 
   const orderedScreens = useMemo<ScreenKey[]>(() => {
-    const base: ScreenKey[] = [
-      'nationality',
-      'municipality',
-      'employees',
-      'documents',
-      'food_safety',
-    ]
+    const base: ScreenKey[] = ['nationality']
+    if (nationality === 'foreign_national') base.push('visa')
+    base.push('municipality', 'employees', 'documents', 'food_safety')
     if (nationality !== 'foreign_national') base.push('fund')
     base.push('summary')
     return base
@@ -134,6 +138,11 @@ export function ComplianceOnboardingModal({
         return true
       case 'nationality':
         return nationality !== null
+      case 'visa':
+        // Type is required; date is required unless "dontKnow" is checked.
+        if (visa.type === null) return false
+        if (!visa.dontKnow && !visa.expiryDate) return false
+        return true
       case 'municipality':
         return area.municipality_id != null || (area.municipality_area_text ?? '').trim().length > 0
       case 'employees':
@@ -151,12 +160,13 @@ export function ComplianceOnboardingModal({
       default:
         return false
     }
-  }, [screen, nationality, area, hasEmployees, foodSafety, fundInterest])
+  }, [screen, nationality, area, hasEmployees, foodSafety, fundInterest, visa])
 
   async function handleFinish() {
     if (!nationality || hasEmployees === null) return
     setSaving(true)
     setError(null)
+    const isForeign = nationality === 'foreign_national'
     const payload: ComplianceOnboardingPayload = {
       nationality_type: nationality,
       municipality_id: area.municipality_id ?? null,
@@ -167,6 +177,8 @@ export function ComplianceOnboardingModal({
       food_safety_training_date: foodSafety.completed ? foodSafety.date : null,
       food_safety_training_provider: foodSafety.completed ? foodSafety.provider : null,
       fund_interest: nationality === 'sa_citizen' ? fundInterest === true : false,
+      visa_type: isForeign ? visa.type : null,
+      visa_expiry_date: isForeign && !visa.dontKnow ? visa.expiryDate : null,
     }
     try {
       const res = await fetch('/api/compliance-onboarding', {
@@ -242,6 +254,9 @@ export function ComplianceOnboardingModal({
           {screen === 'welcome' && <WelcomeScreen onContinue={next} />}
           {screen === 'nationality' && (
             <NationalityScreen value={nationality} onPick={setNationality} />
+          )}
+          {screen === 'visa' && (
+            <VisaScreen value={visa} onChange={setVisa} />
           )}
           {screen === 'municipality' && (
             <MunicipalityScreen

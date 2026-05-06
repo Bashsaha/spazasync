@@ -21,14 +21,20 @@ interface Props {
   step: ComplianceJourneyStep
   data: ComplianceJourneyData
   t: T
+  /** Phase 37f — swap "ID number" copy for "passport number". */
+  isForeignNational?: boolean
 }
 
-export function CIPCStep({ step, data, t }: Props) {
+export function CIPCStep({ step, data, t, isForeignNational = false }: Props) {
   const showFundCallout = data.shop.fund_interest
 
   const formRows: FormSummaryRow[] = [
     { labelKey: 'form_full_name', value: null, missing: 'fill_at_office' },
-    { labelKey: 'form_id_number', value: null, missing: 'fill_at_office' },
+    {
+      labelKey: isForeignNational ? 'form_passport_number' : 'form_id_number',
+      value: null,
+      missing: 'fill_at_office',
+    },
     { labelKey: 'form_phone', value: data.shop.whatsapp_number, missing: 'add_in_settings' },
     { labelKey: 'form_email', value: data.ownerEmail, missing: 'unknown' },
     { labelKey: 'cipc_business_address', value: data.shop.location, missing: 'add_in_settings' },
@@ -67,7 +73,7 @@ export function CIPCStep({ step, data, t }: Props) {
         <ol className="list-decimal list-inside text-sm text-gray-700 space-y-1.5">
           <li>{t('cipc_how_step_1')}</li>
           <li>{t('cipc_how_step_2')}</li>
-          <li>{t('cipc_how_step_3')}</li>
+          <li>{t(isForeignNational ? 'cipc_how_step_3_foreign' : 'cipc_how_step_3')}</li>
           <li>{t('cipc_how_step_4')}</li>
           <li>{t('cipc_how_step_5')}</li>
           <li>{t('cipc_how_step_6')}</li>

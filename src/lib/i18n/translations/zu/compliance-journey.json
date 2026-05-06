@@ -89,6 +89,21 @@
   "form_unknown": "Not on file",
   "form_add_in_settings": "Add in Settings →",
   "form_bring_id_warning": "Bring your ID/passport to fill in that field at the office.",
+  "form_passport_number": "Passport / Visa",
+  "form_bring_passport_warning": "Bring your passport AND visa/permit originals to fill in those fields at the office.",
+
+  "visa_warning_title": "Your trading permit is linked to your visa",
+  "visa_warning_body": "If your visa or permit expires, your trading permit automatically becomes invalid. Always renew before it expires.",
+  "visa_expiry_days_remaining": "{n} days remaining",
+  "visa_expired": "Expired — renew immediately",
+  "visa_type_business_visa": "Business visa",
+  "visa_type_asylum_seeker_s22": "Asylum seeker permit (Section 22)",
+  "visa_type_refugee_s24": "Refugee permit (Section 24)",
+  "visa_type_work_permit": "Work permit",
+  "visa_type_other": "Visa / permit",
+
+  "permit_foreign_visa_link_notice": "Your trading permit is tied to your visa or permit. If your visa expires, the trading permit expires too — renew your visa first.",
+  "cipc_how_step_3_foreign": "Enter your full name and passport number",
 
   "btn_generate_pdf": "Generate PDF",
   "btn_generate_coming_soon": "Coming in next update",

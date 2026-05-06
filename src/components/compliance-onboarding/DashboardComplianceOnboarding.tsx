@@ -13,6 +13,7 @@ import type {
   DocumentToggleState,
   NationalityType,
   OnboardingDocumentType,
+  VisaType,
 } from '@/types'
 
 interface ExistingDoc {
@@ -32,6 +33,7 @@ interface Props {
   existingDocs: ExistingDoc[]
   existingNationality: NationalityType | null
   existingFoodSafety: { completed: boolean; date: string | null; provider: string | null } | null
+  existingVisa?: { type: VisaType | null; expiryDate: string | null } | null
   /** When set, force-open the modal on mount (e.g. from "Redo compliance check"). */
   forceOpen?: boolean
 }
@@ -42,6 +44,7 @@ export function DashboardComplianceOnboarding({
   existingDocs,
   existingNationality,
   existingFoodSafety,
+  existingVisa,
   forceOpen = false,
 }: Props) {
   const router = useRouter()
@@ -90,6 +93,7 @@ export function DashboardComplianceOnboarding({
         initialDocumentStates={initialDocStates}
         initialNationality={existingNationality}
         initialFoodSafety={existingFoodSafety ?? undefined}
+        initialVisa={existingVisa ?? undefined}
       />
     </>
   )

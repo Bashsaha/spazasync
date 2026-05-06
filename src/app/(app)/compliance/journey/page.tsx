@@ -18,6 +18,7 @@ import { getJourneyData } from '@/lib/db/journey'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 import { JourneyProgress } from '@/components/compliance-journey/JourneyProgress'
 import { JourneyStep } from '@/components/compliance-journey/JourneyStep'
+import { VisaPermitWarning } from '@/components/compliance-journey/VisaPermitWarning'
 import { TradingPermitStep } from '@/components/compliance-journey/steps/TradingPermitStep'
 import { HealthCertificateStep } from '@/components/compliance-journey/steps/HealthCertificateStep'
 import { CIPCStep } from '@/components/compliance-journey/steps/CIPCStep'
@@ -49,6 +50,11 @@ export default async function ComplianceJourneyPage() {
   const showFundTeaser =
     data.ownerProfile?.nationality_type === 'sa_citizen' && data.shop.fund_interest
 
+  const isForeignNational =
+    data.ownerProfile?.nationality_type === 'foreign_national'
+  const visaExpiry = data.ownerProfile?.visa_expiry_date ?? null
+  const daysRemaining = computeDaysRemaining(visaExpiry)
+
   return (
     <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
       <div className="flex items-center gap-3 mb-2">
@@ -59,6 +65,15 @@ export default async function ComplianceJourneyPage() {
       </div>
       <p className="text-sm text-gray-500 mb-6">{t('subtitle')}</p>
 
+      {isForeignNational && (
+        <VisaPermitWarning
+          t={t}
+          visaType={data.ownerProfile?.visa_type ?? null}
+          visaExpiryDate={visaExpiry}
+          daysRemaining={daysRemaining}
+        />
+      )}
+
       <JourneyProgress steps={data.steps} t={t} showFundTeaser={showFundTeaser} />
 
       <div>
@@ -68,7 +83,7 @@ export default async function ComplianceJourneyPage() {
             step={step}
             defaultExpanded={step.key === currentStepKey}
           >
-            {renderStepBody(step, data, t, tInsp)}
+            {renderStepBody(step, data, t, tInsp, isForeignNational)}
           </JourneyStep>
         ))}
       </div>
@@ -76,20 +91,34 @@ export default async function ComplianceJourneyPage() {
   )
 }
 
+/**
+ * Days between today (UTC) and the expiry date (parsed as YYYY-MM-DD UTC).
+ * Returns null when no expiry is on file. Negative when already expired.
+ * Day-precision math is fine here — the user only sees a coarse countdown.
+ */
+function computeDaysRemaining(expiry: string | null): number | null {
+  if (!expiry) return null
+  const expiryMs = Date.parse(`${expiry}T00:00:00Z`)
+  if (Number.isNaN(expiryMs)) return null
+  const todayMs = Date.parse(`${new Date().toISOString().slice(0, 10)}T00:00:00Z`)
+  return Math.round((expiryMs - todayMs) / (24 * 60 * 60 * 1000))
+}
+
 function renderStepBody(
   step: ComplianceJourneyStep,
   data: Awaited<ReturnType<typeof getJourneyData>>,
   t: (key: string, params?: Record<string, string | number>) => string,
   tInsp: (key: string, params?: Record<string, string | number>) => string,
+  isForeignNational: boolean,
 ) {
   if (!data) return null
   switch (step.key) {
     case 'municipal_registration':
-      return <TradingPermitStep step={step} data={data} t={t} />
+      return <TradingPermitStep step={step} data={data} t={t} isForeignNational={isForeignNational} />
     case 'coa':
       return <HealthCertificateStep step={step} data={data} t={t} tInsp={tInsp} />
     case 'cipc':
-      return <CIPCStep step={step} data={data} t={t} />
+      return <CIPCStep step={step} data={data} t={t} isForeignNational={isForeignNational} />
     case 'sars_tax':
       return <SARSStep step={step} data={data} t={t} />
     case 'uif':
