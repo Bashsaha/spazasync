@@ -70,25 +70,32 @@ export default async function DashboardPage({
     | null = null
 
   if (role === 'owner' && shop?.id) {
-    if (shop.municipality_id) {
-      const { data: m } = await supabase
-        .from('municipalities')
-        .select('id, name')
-        .eq('id', shop.municipality_id)
-        .maybeSingle()
-      if (m) preFilledMunicipality = { id: m.id as string, name: m.name as string }
-    }
-    const { data: docs } = await supabase
-      .from('business_documents')
-      .select('document_type, status')
-      .in('document_type', ['municipal_registration', 'coa', 'cipc', 'sars_tax', 'uif'])
-    existingDocs = (docs ?? []) as typeof existingDocs
+    // Run the three owner-only queries in parallel — none depend on each other.
+    const [municipalityRes, docsRes, profileRes] = await Promise.all([
+      shop.municipality_id
+        ? supabase
+            .from('municipalities')
+            .select('id, name')
+            .eq('id', shop.municipality_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+      supabase
+        .from('business_documents')
+        .select('document_type, status')
+        .in('document_type', ['municipal_registration', 'coa', 'cipc', 'sars_tax', 'uif']),
+      supabase
+        .from('owner_profiles')
+        .select('nationality_type, food_safety_training_completed, food_safety_training_date, food_safety_training_provider, visa_type, visa_expiry_date')
+        .eq('user_id', user.id)
+        .maybeSingle(),
+    ])
 
-    const { data: profile } = await supabase
-      .from('owner_profiles')
-      .select('nationality_type, food_safety_training_completed, food_safety_training_date, food_safety_training_provider, visa_type, visa_expiry_date')
-      .eq('user_id', user.id)
-      .maybeSingle()
+    const m = municipalityRes.data
+    if (m) preFilledMunicipality = { id: m.id as string, name: m.name as string }
+
+    existingDocs = (docsRes.data ?? []) as typeof existingDocs
+
+    const profile = profileRes.data
     if (profile) {
       existingNationality = (profile.nationality_type as NationalityType | null) ?? null
       existingFoodSafety = {
