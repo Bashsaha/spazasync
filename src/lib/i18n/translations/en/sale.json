@@ -16,6 +16,17 @@
   "btn_complete_sale": "Complete Sale",
   "btn_processing": "Processing\u2026",
 
+  "payment_title": "How is the customer paying?",
+  "btn_card": "Card",
+  "btn_cash": "Cash",
+  "cash_input_title": "Cash payment",
+  "cash_total_label": "Total",
+  "cash_amount_given_label": "Amount given",
+  "cash_change_label": "Change to give back",
+  "cash_amount_short": "Needs at least {amount}",
+  "btn_confirm_payment": "Confirm",
+  "btn_back": "Back",
+
   "toast_out_of_stock": "Heads up \u2014 this item is out of stock",
   "toast_low_stock": "Heads up \u2014 only {qty} left in stock",
 

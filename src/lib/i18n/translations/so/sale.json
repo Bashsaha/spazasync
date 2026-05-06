@@ -16,6 +16,17 @@
   "btn_complete_sale": "Dhammee Iibinta",
   "btn_processing": "Waa la habeynayaa\u2026",
 
+  "payment_title": "Macmiilku sidee buu u bixinayaa?",
+  "btn_card": "Kaarka",
+  "btn_cash": "Lacag caddaan ah",
+  "cash_input_title": "Bixin lacag caddaan ah",
+  "cash_total_label": "Wadarta",
+  "cash_amount_given_label": "Lacagta la bixiyay",
+  "cash_change_label": "Baaqiga la celinayo",
+  "cash_amount_short": "Wuxuu u baahan yahay ugu yaraan {amount}",
+  "btn_confirm_payment": "Xaqiiji",
+  "btn_back": "Dib u noqo",
+
   "toast_out_of_stock": "Feejignoow \u2014 walaxdan kaydka kuma jirto",
   "toast_low_stock": "Feejignoow \u2014 {qty} oo keliya ayaa kaydka ka haray",
 

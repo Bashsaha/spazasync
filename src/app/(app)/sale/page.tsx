@@ -13,6 +13,7 @@ import { CartItem } from '@/components/sale/CartItem'
 import { CartSummary } from '@/components/sale/CartSummary'
 import { NewProductModal } from '@/components/sale/NewProductModal'
 import { ProductPicker } from '@/components/sale/ProductPicker'
+import { PaymentMethodSheet } from '@/components/sale/PaymentMethodSheet'
 import { Spinner, FullScreenSpinner } from '@/components/Spinner'
 import { enqueueSale, getCachedProductByBarcode, getCachedSettings, cacheSettings } from '@/lib/offline/db'
 import { createClient } from '@/lib/supabase/client'
@@ -33,6 +34,7 @@ export default function SalePage() {
   const [unknownBarcode, setUnknownBarcode] = useState<string | null>(null)
   const [catalogSuggestion, setCatalogSuggestion] = useState<{ barcode: string; name: string } | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPaymentSheetOpen, setIsPaymentSheetOpen] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   // Low-stock threshold from shop settings
@@ -143,12 +145,24 @@ export default function SalePage() {
 
   // ── Complete sale ──────────────────────────────────────────────────────────
 
-  async function handleCompleteSale() {
+  // Cart bar -> open payment sheet (don't submit yet).
+  function handleCompleteSale() {
+    setSubmitError(null)
+    if (!activeTeller) {
+      setSubmitError(t('select_teller'))
+      return
+    }
+    setIsPaymentSheetOpen(true)
+  }
+
+  // After payment method is picked in the sheet, run the actual submit.
+  // The picked method is currently a UI-only helper (cash flow shows change);
+  // not yet persisted to the sales table — that would need a migration.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async function submitSale(_method: 'card' | 'cash') {
+    setIsPaymentSheetOpen(false)
     setSubmitError(null)
 
-    // Belt-and-braces: never allow a sale to be submitted without a teller
-    // attached. The render-time gate should already prevent this, but an
-    // explicit guard here guarantees teller_id is always set on POST.
     if (!activeTeller) {
       setSubmitError(t('select_teller'))
       return
@@ -329,6 +343,15 @@ export default function SalePage() {
       {/* full-screen scanner overlay */}
       {isScannerOpen && (
         <BarcodeScanner onScan={handleScan} onClose={() => setIsScannerOpen(false)} />
+      )}
+
+      {/* payment method picker — appears after Complete Sale tap */}
+      {isPaymentSheetOpen && (
+        <PaymentMethodSheet
+          total={total}
+          onConfirm={submitSale}
+          onDismiss={() => setIsPaymentSheetOpen(false)}
+        />
       )}
 
       {/* manual product picker */}

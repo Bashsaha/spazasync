@@ -16,6 +16,17 @@
   "btn_complete_sale": "Qedela Ukudayisa",
   "btn_processing": "Iyacutshungulwa\u2026",
 
+  "payment_title": "Ikhasimende likhokha kanjani?",
+  "btn_card": "Ikhadi",
+  "btn_cash": "Imali",
+  "cash_input_title": "Ukukhokha ngemali",
+  "cash_total_label": "Isamba",
+  "cash_amount_given_label": "Imali enikeziwe",
+  "cash_change_label": "Ushintshi ozobuyiselwa",
+  "cash_amount_short": "Kudinga okungenani {amount}",
+  "btn_confirm_payment": "Qinisekisa",
+  "btn_back": "Buyela",
+
   "toast_out_of_stock": "Qaphela \u2014 le nto ayikho esitokini",
   "toast_low_stock": "Qaphela \u2014 kusele {qty} kuphela esitokini",
 
