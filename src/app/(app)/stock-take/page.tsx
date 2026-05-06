@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { Product } from '@/types'
 import { useTranslation } from '@/components/LanguageProvider'
+import { FullScreenSpinner } from '@/components/Spinner'
 import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
 import { emitDataChanged } from '@/lib/events'
 
@@ -135,6 +136,7 @@ export default function StockTakePage() {
 
   return (
     <>
+      {isSubmitting && <FullScreenSpinner label={t('stock_take_btn_saving')} />}
       <main className="px-4 pt-8 pb-32 max-w-lg mx-auto">
         {/* header */}
         <div className="flex items-center gap-3 mb-1">

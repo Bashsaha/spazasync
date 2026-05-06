@@ -23,6 +23,17 @@ export function Spinner({ size = 'md', className = '' }: SpinnerProps) {
   )
 }
 
+/** Centered page-area spinner — use in loading.tsx for tab navigation.
+ * Doesn't overlay BottomNav so the user can still switch tabs. */
+export function PageSpinner({ label }: { label?: string }) {
+  return (
+    <main className="px-4 max-w-lg mx-auto flex flex-col items-center justify-center min-h-[60vh] gap-4">
+      <Spinner size="lg" className="text-blue-600" />
+      {label && <p className="text-gray-500 text-sm font-medium">{label}</p>}
+    </main>
+  )
+}
+
 /** Full-screen translucent overlay spinner — use during blocking operations.
  * Inline zIndex (9999) bypasses any Tailwind arbitrary-value cache issues
  * and guarantees we sit above sticky CartSummary, BottomNav, and modals. */

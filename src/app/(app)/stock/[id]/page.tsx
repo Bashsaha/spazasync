@@ -9,6 +9,7 @@ import { ConfirmModal } from '@/components/ConfirmModal'
 import { ExpiryEntryList } from '@/components/ExpiryEntryList'
 import { NewSupplierModal } from '@/components/NewSupplierModal'
 import { useTranslation } from '@/components/LanguageProvider'
+import { FullScreenSpinner } from '@/components/Spinner'
 import { emitDataChanged } from '@/lib/events'
 
 interface ExpiryEntry {
@@ -354,6 +355,9 @@ function StockAdjustContent() {
 
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+      {(saving || batchSaving) && (
+        <FullScreenSpinner label={t(saving ? 'adjust_btn_saving' : 'batches_btn_saving')} />
+      )}
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <Link href="/stock" className="flex items-center gap-1 text-gray-500 active:text-gray-700 font-medium py-1 pr-2">

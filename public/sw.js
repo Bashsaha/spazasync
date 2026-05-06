@@ -10,7 +10,7 @@
  *  - navigation           → network-first, fall back to cache, then /offline.html
  */
 
-const CACHE = 'movestock-v3'
+const CACHE = 'movestock-v4'
 
 // Read-only API endpoints safe to serve stale-while-revalidate. Each unique URL
 // (incl. query string) is cached separately. Adding endpoints here makes pages
