@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import type { Product, Supplier } from '@/types'
 import { NewSupplierModal } from '@/components/NewSupplierModal'
 import { useTranslation } from '@/components/LanguageProvider'
+import { Spinner } from '@/components/Spinner'
 import { emitDataChanged } from '@/lib/events'
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
@@ -70,25 +71,6 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       if (!res.ok) {
         if (data.error) setErrorRaw(data.error)
         else setErrorKey('error_generic')
-        return
-      }
-      emitDataChanged()
-      router.refresh()
-      router.push('/products')
-    } catch {
-      setErrorKey('error_network')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function handleDelete() {
-    if (!confirm(t('confirm_delete'))) return
-    setLoading(true)
-    try {
-      const res = await fetch(`/api/products/${productId}`, { method: 'DELETE' })
-      if (!res.ok) {
-        setErrorKey('error_delete')
         return
       }
       emitDataChanged()
@@ -235,19 +217,16 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           disabled={loading}
           className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 min-h-[48px]"
         >
-          {loading ? t('btn_saving') : t('btn_save_changes')}
+          {loading ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <Spinner size="sm" />
+              {t('btn_saving')}
+            </span>
+          ) : (
+            t('btn_save_changes')
+          )}
         </button>
       </form>
-
-      <div className="mt-6 pt-6 border-t border-gray-100">
-        <button
-          onClick={handleDelete}
-          disabled={loading}
-          className="w-full text-red-500 font-semibold py-3 text-sm active:text-red-700 disabled:opacity-50"
-        >
-          {t('btn_delete_product')}
-        </button>
-      </div>
 
       {showNewSupplier && (
         <NewSupplierModal

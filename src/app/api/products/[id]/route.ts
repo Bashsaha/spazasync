@@ -77,16 +77,3 @@ export async function PATCH(
   return NextResponse.json(data)
 }
 
-export async function DELETE(
-  _request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const { id } = await params
-  const auth = await getShopAuth()
-  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { supabase } = auth
-
-  const { error } = await supabase.from('products').delete().eq('id', id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return new NextResponse(null, { status: 204 })
-}

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/components/LanguageProvider'
+import { Spinner } from '@/components/Spinner'
 import { emitDataChanged } from '@/lib/events'
 
 export default function NewTellerPage() {
@@ -88,7 +89,14 @@ export default function NewTellerPage() {
           disabled={loading}
           className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 min-h-[48px]"
         >
-          {loading ? t('btn_creating') : t('btn_create')}
+          {loading ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <Spinner size="sm" />
+              {t('btn_creating')}
+            </span>
+          ) : (
+            t('btn_create')
+          )}
         </button>
       </form>
     </main>

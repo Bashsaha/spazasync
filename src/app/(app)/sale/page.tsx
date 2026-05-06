@@ -13,6 +13,7 @@ import { CartItem } from '@/components/sale/CartItem'
 import { CartSummary } from '@/components/sale/CartSummary'
 import { NewProductModal } from '@/components/sale/NewProductModal'
 import { ProductPicker } from '@/components/sale/ProductPicker'
+import { Spinner } from '@/components/Spinner'
 import { enqueueSale, getCachedProductByBarcode, getCachedSettings, cacheSettings } from '@/lib/offline/db'
 import { createClient } from '@/lib/supabase/client'
 import { emitDataChanged } from '@/lib/events'
@@ -272,10 +273,7 @@ export default function SalePage() {
           >
             {isScanLoading ? (
               <>
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                </svg>
+                <Spinner size="md" />
                 {t('btn_scanning')}
               </>
             ) : (

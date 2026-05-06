@@ -7,6 +7,7 @@ import { ExpiryEntryList } from '@/components/ExpiryEntryList'
 import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
 import { NewSupplierModal } from '@/components/NewSupplierModal'
 import { useTranslation } from '@/components/LanguageProvider'
+import { Spinner } from '@/components/Spinner'
 import type { Supplier } from '@/types'
 import { emitDataChanged } from '@/lib/events'
 
@@ -299,7 +300,14 @@ function NewProductContent() {
           disabled={loading}
           className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 min-h-[48px]"
         >
-          {loading ? t('btn_saving') : t('btn_save_product')}
+          {loading ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <Spinner size="sm" />
+              {t('btn_saving')}
+            </span>
+          ) : (
+            t('btn_save_product')
+          )}
         </button>
       </form>
 

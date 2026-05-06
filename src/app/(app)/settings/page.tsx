@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
+import { Spinner } from '@/components/Spinner'
 import type { SupportedLocale } from '@/lib/i18n/types'
 
 interface ShopSettings {
@@ -661,7 +662,14 @@ export default function SettingsPage() {
           disabled={saving}
           className="w-full bg-blue-600 text-white font-semibold rounded-2xl py-4 text-base active:bg-blue-700 disabled:opacity-50"
         >
-          {saving ? t('btn_saving') : t('btn_save')}
+          {saving ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <Spinner size="sm" />
+              {t('btn_saving')}
+            </span>
+          ) : (
+            t('btn_save')
+          )}
         </button>
       </form>
     </main>

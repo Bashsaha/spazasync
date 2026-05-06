@@ -2,6 +2,7 @@
 
 import { formatZAR } from '@/lib/utils/currency'
 import { useTranslation } from '@/components/LanguageProvider'
+import { Spinner } from '@/components/Spinner'
 
 interface CartSummaryProps {
   total: number
@@ -41,7 +42,14 @@ export function CartSummary({ total, itemCount, onCompleteSale, isSubmitting, ab
             disabled={isSubmitting || itemCount === 0}
             className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl active:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-base"
           >
-            {isSubmitting ? t('btn_processing') : t('btn_complete_sale')}
+            {isSubmitting ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <Spinner size="sm" />
+                {t('btn_processing')}
+              </span>
+            ) : (
+              t('btn_complete_sale')
+            )}
           </button>
         </div>
       </div>
