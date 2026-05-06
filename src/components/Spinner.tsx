@@ -24,14 +24,16 @@ export function Spinner({ size = 'md', className = '' }: SpinnerProps) {
 }
 
 /** Full-screen translucent overlay spinner — use during blocking operations.
- * z-[100] sits above the sticky CartSummary (z-50) and BottomNav. */
+ * Inline zIndex (9999) bypasses any Tailwind arbitrary-value cache issues
+ * and guarantees we sit above sticky CartSummary, BottomNav, and modals. */
 export function FullScreenSpinner({ label }: { label?: string }) {
   return (
     <div
       role="status"
       aria-live="polite"
       aria-label="Loading"
-      className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center gap-4"
+      style={{ zIndex: 9999 }}
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-4"
     >
       <Spinner size="lg" className="text-white" />
       {label && <p className="text-white text-base font-medium">{label}</p>}

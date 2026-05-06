@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
+import { FullScreenSpinner } from '@/components/Spinner'
 import {
   getRecentUsers,
   recordRecentUser,
@@ -212,6 +213,7 @@ function OwnerLoginForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {loading && <FullScreenSpinner label={t('btn_signing_in')} />}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_email')}</label>
         <input
@@ -319,6 +321,7 @@ function TellerLoginForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {loading && <FullScreenSpinner label={t('btn_signing_in')} />}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">{t('teller_label_shop_code')}</label>
         <input
