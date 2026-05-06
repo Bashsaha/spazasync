@@ -36,23 +36,43 @@ export function useScanner({ onScan, onError }: UseScannerOptions): UseScannerRe
       }
 
       try {
-        // Request the rear camera at high resolution with continuous autofocus.
-        // Default ZXing constraints don't ask for autofocus, so small/dense
-        // barcodes (EAN-13 on small SA products) blur out before they decode.
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: 'environment' },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-            // @ts-expect-error — focusMode is a valid MediaTrackConstraint on Chrome Android
-            focusMode: 'continuous',
+        // Default decodeFromVideoDevice opens the rear camera at low resolution
+        // with no focus constraint — small/dense barcodes (EAN-13 on sweets etc.)
+        // blur out below the decoder's pixel-density threshold. decodeFromConstraints
+        // lets us request HD + continuous autofocus while letting ZXing own
+        // stream attachment (decodeFromStream double-attaches and hangs on the
+        // second loadedmetadata event that never fires).
+        const controls = await readerRef.current.decodeFromConstraints(
+          {
+            video: {
+              facingMode: { ideal: 'environment' },
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+              // @ts-expect-error — focusMode is a valid MediaTrackConstraint on Chrome Android
+              focusMode: 'continuous',
+            },
+            audio: false,
           },
-          audio: false,
-        })
+          videoEl,
+          (result, error) => {
+            // NotFoundException fires every frame when nothing is detected — ignore it
+            if (error && error.name !== 'NotFoundException') {
+              onError?.(error as Error)
+            }
+            if (result && !hasScanned.current) {
+              hasScanned.current = true
+              controlsRef.current?.stop()
+              controlsRef.current = null
+              setIsScanning(false)
+              onScan(result.getText())
+            }
+          },
+        )
 
-        // Best-effort: explicitly enable continuous autofocus via advanced
-        // constraints (Chrome Android supports this; iOS Safari ignores it).
-        const [track] = stream.getVideoTracks()
+        // Once the stream is live, try to upgrade the track to continuous AF.
+        // Feature-detected because Safari throws on unsupported constraint names.
+        const stream = videoEl.srcObject as MediaStream | null
+        const track = stream?.getVideoTracks?.()[0]
         if (track) {
           const caps = (track.getCapabilities?.() ?? {}) as MediaTrackCapabilities & {
             focusMode?: string[]
@@ -67,34 +87,7 @@ export function useScanner({ onScan, onError }: UseScannerOptions): UseScannerRe
           }
         }
 
-        videoEl.srcObject = stream
-        await videoEl.play().catch(() => {})
-
-        const controls = await readerRef.current.decodeFromStream(
-          stream,
-          videoEl,
-          (result, error) => {
-            // NotFoundException fires every frame when nothing is detected — ignore it
-            if (error && error.name !== 'NotFoundException') {
-              onError?.(error as Error)
-            }
-            if (result && !hasScanned.current) {
-              hasScanned.current = true
-              controlsRef.current?.stop()
-              controlsRef.current = null
-              stream.getTracks().forEach((t) => t.stop())
-              setIsScanning(false)
-              onScan(result.getText())
-            }
-          },
-        )
-        // Wrap controls so stop() also tears down the stream we own
-        controlsRef.current = {
-          stop: () => {
-            controls.stop()
-            stream.getTracks().forEach((t) => t.stop())
-          },
-        }
+        controlsRef.current = controls
         setIsScanning(true)
       } catch (err) {
         setIsScanning(false)
