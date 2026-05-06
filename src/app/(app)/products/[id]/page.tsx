@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import type { Product, Supplier } from '@/types'
 import { NewSupplierModal } from '@/components/NewSupplierModal'
 import { useTranslation } from '@/components/LanguageProvider'
-import { Spinner } from '@/components/Spinner'
+import { Spinner, FullScreenSpinner } from '@/components/Spinner'
 import { emitDataChanged } from '@/lib/events'
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
@@ -103,6 +103,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+      {loading && <FullScreenSpinner label={t('btn_saving')} />}
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => router.back()} className="text-gray-400 active:text-gray-600 text-sm">
           {t('back')}

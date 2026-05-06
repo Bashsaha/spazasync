@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/components/LanguageProvider'
 import { useToast } from '@/components/Toast'
-import { Spinner } from '@/components/Spinner'
+import { Spinner, FullScreenSpinner } from '@/components/Spinner'
 import type { DailyChecklist, ExpiredItemsAction } from '@/types'
 import { emitDataChanged } from '@/lib/events'
 
@@ -188,6 +188,7 @@ export default function ChecklistPage() {
 
   return (
     <main className="px-4 pt-10 pb-40 max-w-lg mx-auto">
+      {saving && <FullScreenSpinner label={t('btn_saving')} />}
       <a href="/dashboard" className="text-sm text-blue-600 mb-2 inline-block">
         {t('back')}
       </a>

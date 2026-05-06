@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useTranslation } from '@/components/LanguageProvider'
 import { ConfirmModal } from '@/components/ConfirmModal'
-import { Spinner } from '@/components/Spinner'
+import { Spinner, FullScreenSpinner } from '@/components/Spinner'
 import type { BusinessDocument, DocumentStatus, DocumentType } from '@/types'
 import { DOCUMENT_TYPES } from '@/lib/validation/schemas'
 import { emitDataChanged } from '@/lib/events'
@@ -212,6 +212,7 @@ export default function EditDocumentPage() {
 
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+      {saving && <FullScreenSpinner label={t('btn_saving')} />}
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => router.back()} className="text-gray-400 active:text-gray-600 text-sm">
           {t('back')}

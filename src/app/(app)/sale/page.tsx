@@ -13,7 +13,7 @@ import { CartItem } from '@/components/sale/CartItem'
 import { CartSummary } from '@/components/sale/CartSummary'
 import { NewProductModal } from '@/components/sale/NewProductModal'
 import { ProductPicker } from '@/components/sale/ProductPicker'
-import { Spinner } from '@/components/Spinner'
+import { Spinner, FullScreenSpinner } from '@/components/Spinner'
 import { enqueueSale, getCachedProductByBarcode, getCachedSettings, cacheSettings } from '@/lib/offline/db'
 import { createClient } from '@/lib/supabase/client'
 import { emitDataChanged } from '@/lib/events'
@@ -236,6 +236,9 @@ export default function SalePage() {
 
   return (
     <>
+      {(isScanLoading || isSubmitting) && (
+        <FullScreenSpinner label={isSubmitting ? t('btn_processing') : t('btn_scanning')} />
+      )}
       <main className={`px-4 pt-8 max-w-lg mx-auto ${role !== 'teller' ? 'pb-52' : 'pb-36'}`}>
         {/* header */}
         <div className="flex items-center justify-between mb-1">

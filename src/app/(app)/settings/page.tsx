@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
-import { Spinner } from '@/components/Spinner'
+import { Spinner, FullScreenSpinner } from '@/components/Spinner'
 import type { SupportedLocale } from '@/lib/i18n/types'
 
 interface ShopSettings {
@@ -278,6 +278,7 @@ export default function SettingsPage() {
 
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+      {saving && <FullScreenSpinner label={t('btn_saving')} />}
       <a href="/dashboard" className="text-sm text-blue-600 mb-6 inline-block">
         {t('back')}
       </a>

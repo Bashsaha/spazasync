@@ -6,7 +6,7 @@ interface SpinnerProps {
 const SIZE_CLASSES: Record<NonNullable<SpinnerProps['size']>, string> = {
   sm: 'w-4 h-4 border-2',
   md: 'w-6 h-6 border-2',
-  lg: 'w-10 h-10 border-[3px]',
+  lg: 'w-16 h-16 border-4',
 }
 
 /**
@@ -23,16 +23,18 @@ export function Spinner({ size = 'md', className = '' }: SpinnerProps) {
   )
 }
 
-/** Full-screen translucent overlay spinner — use during blocking operations. */
+/** Full-screen translucent overlay spinner — use during blocking operations.
+ * z-[100] sits above the sticky CartSummary (z-50) and BottomNav. */
 export function FullScreenSpinner({ label }: { label?: string }) {
   return (
     <div
       role="status"
       aria-live="polite"
-      className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex flex-col items-center justify-center gap-3"
+      aria-label="Loading"
+      className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center gap-4"
     >
       <Spinner size="lg" className="text-white" />
-      {label && <p className="text-white text-sm font-medium">{label}</p>}
+      {label && <p className="text-white text-base font-medium">{label}</p>}
     </div>
   )
 }
