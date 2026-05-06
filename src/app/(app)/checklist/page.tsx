@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/components/LanguageProvider'
 import { useToast } from '@/components/Toast'
+import { Spinner } from '@/components/Spinner'
 import type { DailyChecklist, ExpiredItemsAction } from '@/types'
 import { emitDataChanged } from '@/lib/events'
 
@@ -364,7 +365,14 @@ export default function ChecklistPage() {
             disabled={saving}
             className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 min-h-[48px]"
           >
-            {saving ? t('btn_saving') : t('btn_save')}
+            {saving ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <Spinner size="sm" />
+                {t('btn_saving')}
+              </span>
+            ) : (
+              t('btn_save')
+            )}
           </button>
         </div>
       </div>

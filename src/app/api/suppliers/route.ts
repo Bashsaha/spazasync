@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getShopAuth } from '@/lib/auth/shop-auth'
-import { parseBody } from '@/lib/utils/api'
+import { parseBody, STABLE_READ_CACHE } from '@/lib/utils/api'
 import { createSupplierSchema } from '@/lib/validation/schemas'
 import { listSuppliers, createSupplier } from '@/lib/db/suppliers'
 
@@ -9,7 +9,7 @@ export async function GET() {
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const suppliers = await listSuppliers()
-  return NextResponse.json(suppliers)
+  return NextResponse.json(suppliers, { headers: STABLE_READ_CACHE })
 }
 
 export async function POST(request: Request) {

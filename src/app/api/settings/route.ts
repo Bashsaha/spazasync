@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getShopAuth } from '@/lib/auth/shop-auth'
-import { parseBody } from '@/lib/utils/api'
+import { parseBody, STABLE_READ_CACHE } from '@/lib/utils/api'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { updateShopSettingsSchema } from '@/lib/validation/schemas'
 
@@ -36,11 +36,14 @@ export async function GET() {
     .eq('user_id', auth.user.id)
     .maybeSingle()
 
-  return NextResponse.json({
-    ...shop,
-    products_missing_cost: missingCostCount ?? 0,
-    nationality_type: (ownerProfile?.nationality_type as string | null) ?? null,
-  })
+  return NextResponse.json(
+    {
+      ...shop,
+      products_missing_cost: missingCostCount ?? 0,
+      nationality_type: (ownerProfile?.nationality_type as string | null) ?? null,
+    },
+    { headers: STABLE_READ_CACHE },
+  )
 }
 
 /**

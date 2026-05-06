@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getShopAuth } from '@/lib/auth/shop-auth'
-import { parseBody } from '@/lib/utils/api'
+import { parseBody, STABLE_READ_CACHE } from '@/lib/utils/api'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createTellerSchema } from '@/lib/validation/schemas'
 import { provisionTellerAccount } from '@/lib/auth/teller'
@@ -17,7 +17,7 @@ export async function GET() {
     .order('name')
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data)
+  return NextResponse.json(data, { headers: STABLE_READ_CACHE })
 }
 
 export async function POST(request: Request) {

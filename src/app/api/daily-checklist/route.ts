@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getShopAuth } from '@/lib/auth/shop-auth'
-import { parseBody } from '@/lib/utils/api'
+import { parseBody, STABLE_READ_CACHE } from '@/lib/utils/api'
 import { upsertChecklistSchema } from '@/lib/validation/schemas'
 import {
   getTodayChecklist,
@@ -42,14 +42,17 @@ export async function GET() {
     return p.earliest_expiry === date
   })
 
-  return NextResponse.json({
-    date,
-    checklist,
-    hasFridge,
-    hasFreezer,
-    expiringToday,
-    previousTemps,
-  })
+  return NextResponse.json(
+    {
+      date,
+      checklist,
+      hasFridge,
+      hasFreezer,
+      expiringToday,
+      previousTemps,
+    },
+    { headers: STABLE_READ_CACHE },
+  )
 }
 
 /** POST /api/daily-checklist — upsert today's row. */

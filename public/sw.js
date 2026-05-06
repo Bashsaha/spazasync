@@ -2,14 +2,28 @@
  * Movestock Service Worker
  *
  * Strategy:
- *  - install         → precache app shell + offline fallback
- *  - /_next/static/  → cache-first (content-hashed, safe to cache forever)
- *  - /api/products   → stale-while-revalidate (enables offline barcode lookup)
- *  - /api/*          → network-only (auth-sensitive mutations must reach server)
- *  - navigation      → network-first, fall back to cache, then /offline.html
+ *  - install              → precache app shell + offline fallback
+ *  - /_next/static/       → cache-first (content-hashed, safe to cache forever)
+ *  - SWR_GET_PATHS        → stale-while-revalidate for stable read endpoints
+ *                            (offline support + instant repeat-load)
+ *  - /api/* (other)       → network-only (auth-sensitive mutations)
+ *  - navigation           → network-first, fall back to cache, then /offline.html
  */
 
-const CACHE = 'movestock-v1'
+const CACHE = 'movestock-v2'
+
+// Read-only API endpoints safe to serve stale-while-revalidate. Each unique URL
+// (incl. query string) is cached separately. Adding endpoints here makes pages
+// open instantly on repeat visits and continue to work offline.
+const SWR_GET_PATHS = [
+  '/api/products',
+  '/api/settings',
+  '/api/tellers',
+  '/api/suppliers',
+  '/api/business-documents',
+  '/api/compliance-score',
+  '/api/daily-checklist',
+]
 
 /** Critical routes precached on install so the app works offline from first install. */
 const PRECACHE_URLS = [
@@ -70,14 +84,14 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Products API — stale-while-revalidate so barcode scanning works offline
-  // Each unique URL (e.g. ?barcode=12345) is cached separately.
-  if (url.pathname === '/api/products') {
+  // Stable read endpoints — stale-while-revalidate. Repeat loads are instant
+  // (cache hit) while a background fetch keeps the cache fresh for next time.
+  // Works offline because the cached response stays available without network.
+  if (SWR_GET_PATHS.some((p) => url.pathname === p)) {
     event.respondWith(
       caches.open(CACHE).then(async (cache) => {
         const cached = await cache.match(request)
 
-        // Always try to refresh in the background
         const networkPromise = fetch(request)
           .then((res) => {
             if (res.ok) cache.put(request, res.clone())
@@ -85,7 +99,6 @@ self.addEventListener('fetch', (event) => {
           })
           .catch(() => null)
 
-        // Return cached immediately; await network if nothing cached yet
         if (cached) {
           networkPromise // fire-and-forget background refresh
           return cached

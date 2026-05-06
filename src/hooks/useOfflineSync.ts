@@ -2,7 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useOnlineStatus } from './useOnlineStatus'
-import { countPendingSales, countFailedSales, resetFailedSales } from '@/lib/offline/db'
+import {
+  countPendingSales,
+  countFailedSales,
+  resetFailedSales,
+  cacheProducts,
+  isProductCacheStale,
+} from '@/lib/offline/db'
 import { syncPendingSales, MAX_RETRIES } from '@/lib/offline/sync'
 
 export interface OfflineSyncState {
@@ -80,6 +86,33 @@ export function useOfflineSync(): OfflineSyncState {
         setIsSyncing(false)
       })
   }, [isOnline, pendingCount])
+
+  // Eager-warm the products IndexedDB cache once on mount when online and
+  // the cache is stale or empty. Pre-loading here means the sale page opens
+  // instantly with zero network calls — and barcode scans match against the
+  // local cache immediately. Gated on isProductCacheStale so we don't refetch
+  // on every page load, just when needed.
+  useEffect(() => {
+    if (!isOnline) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        if (!(await isProductCacheStale())) return
+        const res = await fetch('/api/products')
+        if (!res.ok || cancelled) return
+        const json = await res.json()
+        const products = (json.products ?? []) as Parameters<typeof cacheProducts>[0]
+        if (Array.isArray(products) && products.length > 0) {
+          await cacheProducts(products)
+        }
+      } catch {
+        // best-effort warm; silent failure is fine
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [isOnline])
 
   return { isOnline, pendingCount, failedCount, isSyncing, refreshCount, retryFailed }
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { DailySummaryData, LowStockItem, ExpiringProductAlert } from '@/types'
 import { useTranslation } from '@/components/LanguageProvider'
+import { Spinner } from '@/components/Spinner'
 
 interface SummaryResponse {
   sales: DailySummaryData
@@ -99,7 +100,14 @@ export default function DailySummaryAlert() {
           disabled={loading}
           className="bg-white text-blue-600 text-sm font-semibold px-4 py-1.5 rounded-lg shrink-0 disabled:opacity-50"
         >
-          {loading ? t('btn_loading') : t('btn_view')}
+          {loading ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <Spinner size="sm" />
+              {t('btn_loading')}
+            </span>
+          ) : (
+            t('btn_view')
+          )}
         </button>
         <button
           onClick={handleDismiss}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslation } from '@/components/LanguageProvider'
+import { Spinner } from '@/components/Spinner'
 import type { JourneyStep, NationalityType } from '@/types'
 
 interface Props {
@@ -70,7 +71,14 @@ export function JourneySummaryScreen({ steps, nationality, fundInterest, onFinis
         disabled={saving}
         className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl active:bg-blue-700 disabled:opacity-50 text-base min-h-[48px]"
       >
-        {saving ? t('btn_saving') : t('btn_lets_get_started')}
+        {saving ? (
+          <span className="inline-flex items-center justify-center gap-2">
+            <Spinner size="sm" />
+            {t('btn_saving')}
+          </span>
+        ) : (
+          t('btn_lets_get_started')
+        )}
       </button>
     </div>
   )

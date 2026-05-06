@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getShopAuth } from '@/lib/auth/shop-auth'
-import { parseBody } from '@/lib/utils/api'
+import { parseBody, STABLE_READ_CACHE } from '@/lib/utils/api'
 import { createProductSchema } from '@/lib/validation/schemas'
 import { getCatalogEntry } from '@/lib/db/catalog'
 import { barcodeCandidates } from '@/lib/utils/barcode'
@@ -51,7 +51,7 @@ export async function GET(request: Request) {
     : await base
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ products: data })
+  return NextResponse.json({ products: data }, { headers: STABLE_READ_CACHE })
 }
 
 export async function POST(request: Request) {
