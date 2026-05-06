@@ -1,19 +1,23 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { barcodeCandidates } from '@/lib/utils/barcode'
 import type { BarcodeCatalogEntry } from '@/types'
 
 /**
  * Look up a barcode in the shared catalog.
  * Uses the user's authenticated client (RLS allows SELECT for all).
+ * Matches UPC-A (12 digits) and EAN-13 (13 digits with leading zero) forms.
  */
 export async function getCatalogEntry(
   supabase: SupabaseClient,
   barcode: string,
 ): Promise<{ barcode: string; name: string } | null> {
+  const candidates = barcodeCandidates(barcode)
   const { data, error } = await supabase
     .from('barcode_catalog')
     .select('barcode, name')
-    .eq('barcode', barcode)
+    .in('barcode', candidates)
+    .limit(1)
     .maybeSingle()
 
   if (error) throw error

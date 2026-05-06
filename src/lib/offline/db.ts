@@ -145,10 +145,16 @@ export async function getCachedProducts(): Promise<Product[]> {
   return db.getAll('products')
 }
 
-/** Look up a single product by barcode from cache. */
+/** Look up a single product by barcode from cache.
+ * Tries both UPC-A (12 digits) and EAN-13 (13-digit leading-zero) forms. */
 export async function getCachedProductByBarcode(barcode: string): Promise<Product | undefined> {
   const db = await getDB()
-  return db.getFromIndex('products', 'by_barcode', barcode)
+  const { barcodeCandidates } = await import('@/lib/utils/barcode')
+  for (const candidate of barcodeCandidates(barcode)) {
+    const hit = await db.getFromIndex('products', 'by_barcode', candidate)
+    if (hit) return hit
+  }
+  return undefined
 }
 
 // ── Cart persistence ──────────────────────────────────────────────────────────

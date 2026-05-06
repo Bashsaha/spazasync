@@ -3,6 +3,7 @@ import { getShopAuth } from '@/lib/auth/shop-auth'
 import { parseBody } from '@/lib/utils/api'
 import { createProductSchema } from '@/lib/validation/schemas'
 import { getCatalogEntry } from '@/lib/db/catalog'
+import { barcodeCandidates } from '@/lib/utils/barcode'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -13,12 +14,16 @@ export async function GET(request: Request) {
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { supabase } = auth
 
-  // Barcode lookup: check shop products first, then fall back to shared catalog
+  // Barcode lookup: check shop products first, then fall back to shared catalog.
+  // Match both UPC-A (12 digits) and EAN-13 (13 digits with leading zero) forms
+  // — the same code in two representations. ZXing returned the 12-digit form;
+  // Chrome's native BarcodeDetector returns the 13-digit form.
   if (barcode) {
+    const candidates = barcodeCandidates(barcode)
     const { data, error } = await supabase
       .from('products')
       .select('*')
-      .eq('barcode', barcode)
+      .in('barcode', candidates)
       .order('name')
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
