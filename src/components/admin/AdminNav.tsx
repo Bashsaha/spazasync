@@ -9,6 +9,7 @@ const navLinks = [
   { href: '/admin', label: 'Overview' },
   { href: '/admin/shops', label: 'Shops' },
   { href: '/admin/catalog', label: 'Catalog' },
+  { href: '/admin/alerts', label: 'Alerts' },
 ]
 
 export default function AdminNav({ hasShop }: { hasShop?: boolean }) {

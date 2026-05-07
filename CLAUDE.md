@@ -71,6 +71,8 @@ All tables have RLS enabled. `admin_payments` and `barcode_catalog` writes are s
 - `municipalities` — id, name, province, short_name, areas TEXT[]; UNIQUE(name, province); GIN index on areas. Public-read RLS, service-role writes only.
 - `municipality_offices` — FK municipality_id, office_type ('trading_permit'|'environmental_health'|'business_licensing'|'customer_care'), name, address, area, phone, email, hours, online_portal_url, online_form_url, notes. Public-read RLS.
 - `municipality_requirements` — FK municipality_id, requirement_type ('trading_permit'|'coa'|'general'), documents_required JSONB array, fees, estimated_processing_time, additional_notes; UNIQUE(municipality_id, requirement_type). JSONB element shape: `{ name, applies_to: 'sa_citizen'|'foreign_national'|'all', required: bool, notes? }`. Public-read RLS.
+- `compliance_reminders` — Phase 37g. shop_id (FK→shops ON DELETE CASCADE), reminder_type CHECK enum (`coa_expiry`|`permit_expiry`|`cipc_annual`|`visa_expiry`|`journey_nudge`|`fund_nudge`|`fund_qualified`|`score_drop`|`checklist_streak`|`admin_alert`), reminder_key TEXT (per-cycle bucket — weekly/biweekly/yearly/once-ever), shown_at, dismissed_at; UNIQUE(shop_id, reminder_key). Owner-scoped RLS (select/insert/update via `user_in_shop`). Re-firing in a new cycle uses a new bucket key, bypassing dedupe.
+- `admin_alerts` — Phase 37g. title, message, link_text, link_url, priority CHECK (`normal`|`high`|`urgent`), target_audience CHECK (`all`|`sa_citizen`|`foreign_national`), starts_at, expires_at. Public-read RLS gated to active window only (`starts_at <= now() AND (expires_at IS NULL OR expires_at > now())`); writes are service-role only (no INSERT/UPDATE/DELETE policies).
 
 ### RLS helpers
 - `user_in_shop(shop_id)` — SECURITY DEFINER
@@ -178,9 +180,10 @@ The file tree below is ground truth. After every phase: Glob scan, diff against 
 
 ## Living Scope
 
-Phases 1–36c + 37a–37f complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+Phases 1–36c + 37a–37g complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
 
 Most recent:
+- 37g Smart Reminders & Nudges — final user-facing phase of the Compliance Module. Adds a single dismissible banner at the very top of the dashboard that surfaces the highest-priority next thing the owner should know: a CoA / trading permit / visa expiring in 60 / 30 / 0 days, an idle compliance journey, a newly-qualified fund application, a compliance-score drop, a 3+ day checklist streak break, the annual CIPC return, and admin-broadcast alerts. Migration 026 adds 2 tables: `compliance_reminders` (shop-scoped ledger of `shown_at` / `dismissed_at` per `reminder_key`; UNIQUE(shop_id, reminder_key) is the dedupe surface — re-firing in a new cycle uses a fresh bucket key) and `admin_alerts` (global broadcasts with priority + target_audience + start/expiry window; public-read RLS gated to active window, writes service-role only). Pure engine in `lib/compliance/reminders.ts` does ALL the bucketing math — weekly journey nudges (`journey_nudge_<isoMonday>`), bi-weekly fund nudges (`fund_nudge_<isoBiweekStart>`), per-document expiry buckets (`coa_expiry_<docId>_2m|1m|expired`), 90/60/30/expired visa buckets, annual CIPC, weekly score-drop band buckets, weekly checklist-streak. After 4 prior dismissals the journey nudge falls back to monthly bucketing. Composite reader `lib/db/reminders.ts` resolves all 7 input streams in one batched call (shop, owner profile, documents, score, checklist streak, admin alerts, ledger), runs `pickTopReminder`, then UPSERTs `shown_at` best-effort. Priority order: urgent (expired docs, urgent admin) > high (≤30d expiry, score red, fund_qualified) > normal (≤60d expiry, journey/fund nudges, checklist streak, score amber, normal admin) > low; same-priority ties broken alphabetically by reminder_type. **Design Rule 3 enforced** in the engine: visa reminders gated on `nationality_type='foreign_national'`, fund reminders gated on `sa_citizen + fund_interest`, admin alerts filtered by `target_audience` against owner nationality. Owner-only mount (tellers never see; gated at the dashboard call-site). 3 React components: `<ReminderBanner>` (presentational, 4-tone borders by priority), `<DashboardReminder>` (server component reader+renderer, Suspense-wrapped on dashboard), `<DismissButton>` (client — POSTs `/api/compliance-reminders/dismiss` then `router.refresh()` so the next-priority banner shows). New admin section under `/admin/alerts` (list + new + edit/expire/delete) wired into AdminNav. New `compliance-reminders` i18n namespace (~50 keys × 5 locales — non-EN locales mirror EN per 37c precedent; parity tests green). New API routes: `POST /api/compliance-reminders/dismiss`, `GET/POST /api/admin/alerts`, `GET/PATCH/DELETE /api/admin/alerts/[id]`. New helper `getChecklistStreakStatus()` on `lib/db/daily-checklist.ts` (full days since last completed checklist + completedToday flag). 614/614 tests pass (30 new for the engine — covers all 11 reminder types, dismissal filtering, priority ordering, bucket-key shapes, foreign/SA gating, fund_interest gating, journey idle threshold, monthly fallback after 4 dismissals).
 - 37f Foreign National Path — sixth user-facing phase of the Compliance Module. Layers conditional rendering on top of 37b/37c/37e for owners with `nationality_type='foreign_national'`. Migration 025 adds `owner_profiles.visa_type` (CHECK enum: business_visa | asylum_seeker_s22 | refugee_s24 | work_permit | other) and `owner_profiles.visa_expiry_date` (nullable DATE — null when the owner picked "I don't know / doesn't expire"). New onboarding screen `VisaScreen` slots in after Nationality for foreign nationals only (replaces the Fund-Interest screen — total stays at 7 progress screens). Includes a fronting notice (informational, framed helpfully per the Immigration Act). API at `/api/compliance-onboarding` defence-in-depths the inverse of the existing fund_interest force-false: visa fields are force-nulled when nationality_type='sa_citizen'. New `VisaPermitWarning` card sits at the top of `/compliance/journey` for foreign nationals — combines the visa-permit-link reminder with a day-precision countdown (`{n} days remaining` / "Expired — renew immediately"). The 90/60/30-day proactive reminders are explicitly Phase 37g (Smart Reminders) — not in this phase. `TradingPermitStep` + `CIPCStep` accept a new `isForeignNational` prop that swaps the `form_id_number` row for `form_passport_number`, swaps the `form_bring_id_warning` footer for `form_bring_passport_warning`, and (in TradingPermit) renders a small inline "permit-tied-to-visa" notice. CIPC's "how to register" Step 3 swaps "ID number" for "passport number". **No engine changes** — `lib/compliance/journey.ts` already gates SMMESA on `sa_citizen && fund_interest`, so foreign nationals naturally see 5–6 steps (UIF in iff has_employees). New regression test asserts SMMESA stays hidden even if a misbehaving callsite sets fund_interest=true on a foreign profile. **Document checklists are still seed-driven** — `municipality_requirements.documents_required` already filters by nationality (37a infra), and the Tshwane row already covers the R5M business-visa requirement via the existing `applies_to: 'foreign_national'` row. Fund route already redirects non-SA via `getFundReadinessData` (37e); no change. Visa data plumbed through `DashboardComplianceOnboarding` for the "Redo compliance check" pre-fill. New i18n: 12 keys × 5 locales in `compliance-onboarding`, 13 keys × 5 locales in `compliance-journey` (non-EN locales mirror EN per 37c precedent — parity test green). 8 new tests (570/570 pass).
 - 37e Fund Readiness Checker — fifth user-facing phase of the Compliance Module. New owner-only `/compliance/fund` page answers "Can I apply for the R500M Spaza Shop Support Fund right now?" with a green/amber/red verdict synthesised from onboarding answers, document statuses, and the existing 0–100 compliance score. Doubly gated via Design Rule 3: `compliance/layout.tsx` blocks tellers; `getFundReadinessData()` returns null (→ redirect to `/compliance/journey`) for non-SA citizens or owners with `fund_interest=false`. **Youth + women-owned priority badges deliberately dropped** — would have required capturing DOB + gender (Design Rule 6 violation) for zero functional benefit since SEFA assesses priority server-side. Manual disability toggle stays — the only "priority" attribute we capture, set explicitly by the owner. Migration 024 adds 3 columns: `shops.fund_township_rural`, `shops.fund_owner_managed` (both NULL = unanswered, distinguishes "not asked yet" from "answered no"), and `owner_profiles.has_disability` (default false). Pure status engine in `lib/compliance/fund.ts` with 14 unit tests covering RED/AMBER/GREEN logic + CIPC tier gating. PDF download button reuses the existing 37d `/api/reports/fund-application-pack` endpoint (no new PDF code). Settings gains a "Government Fund" toggle (SA citizens only, gated by `nationality_type` from a new line on the `/api/settings` GET). JourneyProgressCard + JourneyProgress fund teasers now deep-link into `/compliance/fund` instead of `/compliance/journey`. New `compliance-fund` i18n namespace (~70 keys) × 5 locales — non-EN locales mirror EN values per 37c precedent. 562/562 tests pass.
 - 36a Navigation Restructure (5-tab nav, hubs, dashboard cleanup, extended FAB)
@@ -197,7 +200,7 @@ When starting a new phase, append it here and update the file tree.
 
 ## Current File Tree
 
-_Last updated: Phase 37f (2026-05-06)_
+_Last updated: Phase 37g (2026-05-07)_
 
 ```
 spaza shop/
@@ -245,11 +248,13 @@ spaza shop/
 │   │   │   │   ├── layout.tsx                        # Owner-only guard
 │   │   │   │   ├── journey/{page.tsx, loading.tsx}   # Compliance Journey Hub
 │   │   │   │   └── fund/{page.tsx, loading.tsx}      # Phase 37e — Fund Readiness Checker
-│   │   │   # dashboard mounts <DashboardComplianceOnboarding> + <JourneyProgressCard> for owners
+│   │   │   # dashboard mounts <DashboardComplianceOnboarding> + <JourneyProgressCard>
+│   │   │   #                  + <DashboardReminder> (Phase 37g) for owners
 │   │   │   └── admin/
 │   │   │       ├── layout.tsx, loading.tsx, page.tsx
 │   │   │       ├── shops/{page.tsx, loading.tsx, [id]/page.tsx}
-│   │   │       └── catalog/{page.tsx, loading.tsx, new/page.tsx, [id]/page.tsx}
+│   │   │       ├── catalog/{page.tsx, loading.tsx, new/page.tsx, [id]/page.tsx}
+│   │   │       └── alerts/{page.tsx, new/page.tsx, [id]/page.tsx}    # Phase 37g
 │   │   └── api/
 │   │       ├── auth/teller-login/route.ts
 │   │       ├── onboarding/route.ts
@@ -290,6 +295,8 @@ spaza shop/
 │   │       ├── compliance-onboarding/{route.ts, dismiss/route.ts}  # Phase 37b
 │   │       ├── compliance/journey/{route.ts, step/route.ts}        # Phase 37c
 │   │       ├── compliance/fund/eligibility/route.ts                # Phase 37e — PATCH 3 toggles
+│   │       ├── compliance-reminders/dismiss/route.ts               # Phase 37g
+│   │       ├── admin/alerts/{route.ts, [id]/route.ts}              # Phase 37g
 │   │       └── tellers/[id]/training/route.ts                      # Phase 37c — Step 6 staff toggle
 │   ├── components/
 │   │   ├── products/{CatalogImportSheet.tsx, BarcodeScanButton.tsx}
@@ -323,6 +330,10 @@ spaza shop/
 │   │   │   ├── FundHeroStatus.tsx, EligibilitySection.tsx, DocumentReadiness.tsx
 │   │   │   ├── ComplianceReadiness.tsx, FundBreakdown.tsx
 │   │   │   └── GenerateApplicationPackButton.tsx, ApplySection.tsx
+│   │   ├── compliance-reminders/                         # Phase 37g
+│   │   │   ├── ReminderBanner.tsx                        # presentational, 4-tone borders
+│   │   │   ├── DashboardReminder.tsx                     # server component reader+renderer
+│   │   │   └── DismissButton.tsx                         # 'use client' — POST + router.refresh
 │   │   ├── LanguagePicker.tsx, LanguageProvider.tsx
 │   │   ├── TopAppBar.tsx                    # Sticky header + bell + avatar
 │   │   ├── NotificationBell.tsx             # Owner-only realtime bell
@@ -349,18 +360,22 @@ spaza shop/
 │   │   │   ├── inspection-readiness.ts                 # Phase 37c — shared by /inspection + journey
 │   │   │   ├── journey.ts                              # Phase 37c — composite reader for the hub
 │   │   │   ├── owner-profile-report.ts                 # Phase 37d — composite reader for PDF endpoints
-│   │   │   └── fund-readiness.ts                       # Phase 37e — composite reader for /compliance/fund
+│   │   │   ├── fund-readiness.ts                       # Phase 37e — composite reader for /compliance/fund
+│   │   │   ├── reminders.ts                            # Phase 37g — composite reader for dashboard banner
+│   │   │   └── admin-alerts.ts                         # Phase 37g — service-role CRUD helpers
 │   │   ├── offline/{db.ts, sync.ts}
 │   │   ├── pdf/shared.ts                   # Phase 37d — shared jsPDF helpers + PII guard
 │   │   ├── checklist/stats.ts
 │   │   ├── compliance/{document-status.ts, waste-pest-status.ts, score.ts, onboarding.ts,
-│   │   │                journey.ts, goods-description.ts, fund.ts}    # fund.ts added 37e — pure status engine
+│   │   │                journey.ts, goods-description.ts, fund.ts, reminders.ts}
+│   │   │                # fund.ts (37e), reminders.ts (37g — pure evaluator + bucket-key engine)
 │   │   ├── i18n/
 │   │   │   ├── types.ts, interpolate.ts, loader.ts, server.ts
-│   │   │   └── translations/{en,so,am,zu,ur}/  (21 namespaces each)
+│   │   │   └── translations/{en,so,am,zu,ur}/  (22 namespaces each)
 │   │   │       # common, auth, sale, sales, dashboard, settings, stock, products, tellers,
 │   │   │       # expiry, summary, suppliers, checklist, documents, waste-pest, inspection,
-│   │   │       # inventory, manage, compliance-onboarding, compliance-journey, compliance-fund
+│   │   │       # inventory, manage, compliance-onboarding, compliance-journey, compliance-fund,
+│   │   │       # compliance-reminders
 │   │   ├── events.ts                       # In-tab mutation event bus
 │   │   ├── validation/schemas.ts           # All Zod schemas
 │   │   └── utils/{api.ts, currency.ts, date.ts, rateLimit.ts, statusBadge.ts}
@@ -380,7 +395,8 @@ spaza shop/
 │   │                                     ├── 022_compliance_onboarding.sql
 │   │                                     ├── 023_compliance_journey.sql
 │   │                                     ├── 024_fund_readiness.sql
-│   └──                                   └── 025_foreign_national_visa.sql
+│   │                                     ├── 025_foreign_national_visa.sql
+│   └──                                   └── 026_compliance_reminders.sql
 ├── data/sa-products.csv
 ├── scripts/{set-admin.ts, seed-catalog.ts, seed-municipalities.ts}
 ├── tasks/{todo.md, todo-archive.md, lessons.md, bugs.md}
@@ -394,5 +410,6 @@ spaza shop/
     ├── compliance-onboarding.test.ts
     ├── journey.test.ts
     ├── pdf-reports.test.ts
-    └── fund-readiness.test.ts
+    ├── fund-readiness.test.ts
+    └── reminders.test.ts
 ```

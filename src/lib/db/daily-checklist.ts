@@ -86,6 +86,33 @@ export async function upsertChecklist(
 }
 
 /**
+ * Phase 37g — streak status used by the reminders engine.
+ * `daysSinceLastCompleted` = full days since the most recent checklist row
+ * (0 = today). Returns `Infinity` when no rows exist yet.
+ */
+export async function getChecklistStreakStatus(
+  shopId: string,
+): Promise<{ daysSinceLastCompleted: number; completedToday: boolean }> {
+  const supabase = await createClient()
+  const today = todaySAST()
+  const { data } = await supabase
+    .from('daily_checklists')
+    .select('date')
+    .eq('shop_id', shopId)
+    .order('date', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  const lastDate = (data as { date: string } | null)?.date ?? null
+  if (!lastDate) {
+    return { daysSinceLastCompleted: Number.POSITIVE_INFINITY, completedToday: false }
+  }
+  const todayMs = new Date(`${today}T00:00:00Z`).getTime()
+  const lastMs = new Date(`${lastDate}T00:00:00Z`).getTime()
+  const days = Math.max(0, Math.round((todayMs - lastMs) / 86400000))
+  return { daysSinceLastCompleted: days, completedToday: lastDate === today }
+}
+
+/**
  * List the last N days of checklists (ordered date desc).
  * Returns only real rows; callers that need gap-filled days should merge against a date range.
  */

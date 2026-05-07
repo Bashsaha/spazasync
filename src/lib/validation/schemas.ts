@@ -573,3 +573,49 @@ export const tellerTrainingSchema = z.object({
     .nullable()
     .optional(),
 })
+
+// ============================================================
+// Smart Reminders & Nudges (Phase 37g)
+// ============================================================
+
+export const ADMIN_ALERT_PRIORITIES = ['normal', 'high', 'urgent'] as const
+export const ADMIN_ALERT_AUDIENCES = ['all', 'sa_citizen', 'foreign_national'] as const
+
+export const dismissReminderSchema = z.object({
+  reminder_key: z.string().min(1).max(200),
+  reminder_type: z.enum([
+    'coa_expiry',
+    'permit_expiry',
+    'cipc_annual',
+    'visa_expiry',
+    'journey_nudge',
+    'fund_nudge',
+    'fund_qualified',
+    'score_drop',
+    'checklist_streak',
+    'admin_alert',
+  ]),
+})
+
+export const createAdminAlertSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(200),
+  message: z.string().min(1, 'Message is required').max(2000),
+  link_text: z
+    .string()
+    .max(100)
+    .nullable()
+    .optional()
+    .transform((v) => v?.trim() || null),
+  link_url: z
+    .string()
+    .max(500)
+    .nullable()
+    .optional()
+    .transform((v) => v?.trim() || null),
+  priority: z.enum(ADMIN_ALERT_PRIORITIES).default('normal'),
+  target_audience: z.enum(ADMIN_ALERT_AUDIENCES).default('all'),
+  starts_at: z.string().datetime().optional(),
+  expires_at: z.string().datetime().nullable().optional(),
+})
+
+export const updateAdminAlertSchema = createAdminAlertSchema.partial()

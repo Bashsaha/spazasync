@@ -880,3 +880,102 @@ export interface InspectionReadinessResult {
   passing: number
   total: number
 }
+
+// --- Smart Reminders & Nudges (Phase 37g) ---
+
+export type ReminderType =
+  | 'coa_expiry'
+  | 'permit_expiry'
+  | 'cipc_annual'
+  | 'visa_expiry'
+  | 'journey_nudge'
+  | 'fund_nudge'
+  | 'fund_qualified'
+  | 'score_drop'
+  | 'checklist_streak'
+  | 'admin_alert'
+
+export type ReminderPriority = 'urgent' | 'high' | 'normal' | 'low'
+
+export type AdminAlertPriority = 'normal' | 'high' | 'urgent'
+export type AdminAlertAudience = 'all' | 'sa_citizen' | 'foreign_national'
+
+/** Banner-ready reminder served to the dashboard. Title/body/CTA copy are i18n
+ *  keys (in the `compliance-reminders` namespace) plus interpolation params. */
+export interface Reminder {
+  /** Unique within the cycle — also used as the `compliance_reminders.reminder_key`. */
+  key: string
+  type: ReminderType
+  priority: ReminderPriority
+  /** i18n key for the title. */
+  titleKey: string
+  /** i18n key for the body copy. */
+  bodyKey: string
+  /** Interpolation params for both titleKey and bodyKey. */
+  params?: Record<string, string | number>
+  /** Optional CTA. When set, banner renders a link to `ctaHref` with `ctaKey` label. */
+  ctaKey?: string
+  ctaHref?: string
+}
+
+/** Persisted ledger row tracking when a reminder was first shown / dismissed. */
+export interface ComplianceReminderRow {
+  id: string
+  shop_id: string
+  reminder_type: ReminderType
+  reminder_key: string
+  shown_at: string | null
+  dismissed_at: string | null
+  created_at: string
+}
+
+export interface AdminAlert {
+  id: string
+  title: string
+  message: string
+  link_text: string | null
+  link_url: string | null
+  priority: AdminAlertPriority
+  target_audience: AdminAlertAudience
+  starts_at: string
+  expires_at: string | null
+  created_at: string
+}
+
+export interface CreateAdminAlertInput {
+  title: string
+  message: string
+  link_text?: string | null
+  link_url?: string | null
+  priority?: AdminAlertPriority
+  target_audience?: AdminAlertAudience
+  starts_at?: string
+  expires_at?: string | null
+}
+
+export type UpdateAdminAlertInput = Partial<CreateAdminAlertInput>
+
+/** Inputs to the pure reminder evaluator — every field already derivable from existing readers. */
+export interface ReminderEvaluatorInputs {
+  /** SAST date in YYYY-MM-DD — drives all expiry math + bucket keys. */
+  todayISO: string
+  ownerProfile: OwnerProfile | null
+  shop: Pick<Shop, 'has_employees' | 'fund_interest'>
+  documents: BusinessDocument[]
+  /** Steps from generateJourneySteps — used to detect incomplete journeys. */
+  journeySteps: ComplianceJourneyStep[]
+  /** Most-recent activity timestamp on the journey (max of document.updated_at). */
+  lastJourneyActivity: string | null
+  complianceScore: number
+  scoreBand: ComplianceScoreBand
+  /** Number of full days since the last completed daily_checklists row (0 = today). */
+  daysSinceChecklist: number
+  /** Did the shop complete its checklist for today? */
+  checklistCompletedToday: boolean
+  /** Active admin alerts visible to this owner (already filtered by audience). */
+  adminAlerts: AdminAlert[]
+  /** Existing ledger rows so the evaluator can apply caps + dismiss filters. */
+  ledger: ComplianceReminderRow[]
+  /** True iff the shop currently qualifies for the fund (green status). */
+  fundQualified: boolean
+}
