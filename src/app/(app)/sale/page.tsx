@@ -148,7 +148,9 @@ export default function SalePage() {
   // Cart bar -> open payment sheet (don't submit yet).
   function handleCompleteSale() {
     setSubmitError(null)
-    if (!activeTeller) {
+    // Offline: skip teller-required check and queue with null. The owner can't
+    // load the picker offline anyway; sync worker stamps it server-side.
+    if (!activeTeller && isOnline) {
       setSubmitError(t('select_teller'))
       return
     }
@@ -163,7 +165,7 @@ export default function SalePage() {
     setIsPaymentSheetOpen(false)
     setSubmitError(null)
 
-    if (!activeTeller) {
+    if (!activeTeller && isOnline) {
       setSubmitError(t('select_teller'))
       return
     }
@@ -223,10 +225,11 @@ export default function SalePage() {
   }
 
   // ── Owner / dual-role admin must pick a teller first ─────────────────────
-  // 'admin' role here is a dual-role admin who also owns this shop — they run
-  // sales the same way an owner does, so the gate applies identically.
-
-  if ((role === 'owner' || role === 'admin') && !activeTeller) {
+  // 'admin' here is a dual-role admin who also owns this shop — same treatment
+  // as owner. We only gate ONLINE: offline the picker can't load tellers anyway,
+  // so we let the sale UI through and queue with teller_id = null. The sync
+  // worker stamps it on the server.
+  if ((role === 'owner' || role === 'admin') && !activeTeller && isOnline) {
     return (
       <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">{t('start_sale')}</h1>
@@ -236,9 +239,10 @@ export default function SalePage() {
     )
   }
 
-  // ── Teller auto-select failed — block sale UI until their record loads ───
-  // Prevents null-teller sales if /api/tellers/me had a transient failure.
-  if (role === 'teller' && !activeTeller) {
+  // ── Teller auto-select failed — block ONLY when online so we can still ───
+  // surface a real error. Offline, we fall through and queue with null, same
+  // as the owner path; the sync worker resolves it server-side.
+  if (role === 'teller' && !activeTeller && isOnline) {
     return (
       <main className="px-4 pt-10 pb-24 max-w-lg mx-auto text-center">
         <p className="text-red-500 text-sm">{t('teller_record_missing')}</p>
