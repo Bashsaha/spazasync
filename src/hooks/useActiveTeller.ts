@@ -8,6 +8,11 @@ import type { Teller } from '@/types'
 const SESSION_KEY = 'spaza_active_teller'
 // Persisted across PWA opens so a teller staying offline still gets auto-selected.
 const TELLER_ME_KEY = 'spaza_teller_me'
+// Owner-side mirror of the active teller, persisted across PWA opens. Used ONLY
+// as the offline fallback when sessionStorage is empty (e.g. fresh tab after a
+// PWA close while the device is offline). Online behavior is unchanged — fresh
+// sessions still re-derive the active teller from the live roster.
+const LAST_OWNER_TELLER_KEY = 'spaza_last_owner_teller'
 
 export interface ActiveTellerState {
   activeTeller: Teller | null
@@ -34,9 +39,20 @@ export function useActiveTeller(): ActiveTellerState {
   useEffect(() => {
     async function init() {
       const supabase = createClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      // getUser() hits the network; offline it errors or returns null. getSession()
+      // is local-only and surfaces the cached JWT, which carries app_metadata.role
+      // and the user id we need.
+      let user: { id: string; app_metadata?: Record<string, unknown> } | null = null
+      try {
+        const { data } = await supabase.auth.getUser()
+        if (data.user) user = data.user
+      } catch {
+        // offline — fall through to getSession
+      }
+      if (!user) {
+        const { data } = await supabase.auth.getSession()
+        if (data.session?.user) user = data.session.user
+      }
       if (!user) {
         setIsLoading(false)
         return
@@ -99,6 +115,32 @@ export function useActiveTeller(): ActiveTellerState {
         if (ownerTeller) {
           setActiveTellerState(ownerTeller)
           sessionStorage.setItem(SESSION_KEY, JSON.stringify(ownerTeller))
+          try {
+            localStorage.setItem(LAST_OWNER_TELLER_KEY, JSON.stringify(ownerTeller))
+          } catch {
+            // ignore storage errors
+          }
+          setIsLoading(false)
+          return
+        }
+
+        // 3. Final offline fallback — if we couldn't auto-pick (empty IndexedDB
+        //    cache because the owner upgraded from before this fix), restore the
+        //    last-known active teller from localStorage. Only when offline; online
+        //    we want the existing fresh-session behavior to win.
+        if (!networkOk) {
+          try {
+            const last = localStorage.getItem(LAST_OWNER_TELLER_KEY)
+            if (last) {
+              const parsed = JSON.parse(last) as Teller | null
+              if (parsed?.id) {
+                setActiveTellerState(parsed)
+                sessionStorage.setItem(SESSION_KEY, JSON.stringify(parsed))
+              }
+            }
+          } catch {
+            // ignore parse / storage errors
+          }
         }
         setIsLoading(false)
       } else if (rawRole === 'teller') {
@@ -138,6 +180,13 @@ export function useActiveTeller(): ActiveTellerState {
   function setActiveTeller(t: Teller) {
     setActiveTellerState(t)
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(t))
+    try {
+      // Mirror to localStorage so an offline reopen has a fallback to restore
+      // from when sessionStorage has been cleared by tab close.
+      localStorage.setItem(LAST_OWNER_TELLER_KEY, JSON.stringify(t))
+    } catch {
+      // ignore storage errors
+    }
   }
 
   function clearActiveTeller() {
