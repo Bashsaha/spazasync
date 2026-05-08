@@ -48,6 +48,12 @@
   "sw_update_available": "Nooc cusub ayaa diyaar ah",
   "sw_reload": "Dib u soo rar",
 
+  "install_title": "Ku dar Movestock shaashadda guriga",
+  "install_desc": "U fur sida app kasta — degdeg ah, shaashad buuxda, oo offline shaqayn karta.",
+  "install_button": "Ku dar shaashadda guriga",
+  "install_ios_hint": "Ku iPhone, taabo badhanka Wadaag ee hoose, ka dibna “Add to Home Screen”.",
+  "install_dismiss": "Hadda maya",
+
   "error_page_title": "Wax baa qaldamay",
   "error_page_desc": "App-kii wuxuu galay khalad aan la filayn. Xogtaada iibka iyo kaydka way nabad yihiin.",
   "error_btn_try_again": "Isku day mar kale",

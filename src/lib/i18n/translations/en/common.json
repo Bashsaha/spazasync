@@ -48,6 +48,12 @@
   "sw_update_available": "A new version is available",
   "sw_reload": "Reload",
 
+  "install_title": "Add Movestock to your home screen",
+  "install_desc": "Open it like any app — faster, fullscreen, works offline.",
+  "install_button": "Add to home screen",
+  "install_ios_hint": "On iPhone, tap the Share button below, then “Add to Home Screen”.",
+  "install_dismiss": "Not now",
+
   "error_page_title": "Something went wrong",
   "error_page_desc": "The app hit an unexpected error. Your sales and stock data are safe.",
   "error_btn_try_again": "Try again",

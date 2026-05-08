@@ -48,6 +48,12 @@
   "sw_update_available": "አዲስ ስሪት ይገኛል",
   "sw_reload": "እንደገና ጫን",
 
+  "install_title": "Movestock-ን ወደ መነሻ ስክሪንዎ ያክሉ",
+  "install_desc": "እንደ ማንኛውም መተግበሪያ ይክፈቱት — ፈጣን፣ ሙሉ-ስክሪን፣ ከመስመር ውጭ ይሰራል።",
+  "install_button": "ወደ መነሻ ስክሪን ያክሉ",
+  "install_ios_hint": "በiPhone ላይ ከታች ያለውን የማጋራት አዝራር ይንኩ፣ ከዚያ “Add to Home Screen”።",
+  "install_dismiss": "አሁን አይደለም",
+
   "error_page_title": "የሆነ ችግር ተፈጥሯል",
   "error_page_desc": "አፑ ያልተጠበቀ ስህተት አጋጠመው። የሽያጭ እና የክምችት ውሂብዎ ደህና ነው።",
   "error_btn_try_again": "እንደገና ይሞክሩ",

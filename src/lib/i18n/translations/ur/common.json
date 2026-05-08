@@ -48,6 +48,12 @@
   "sw_update_available": "نیا ورژن دستیاب ہے",
   "sw_reload": "دوبارہ لوڈ کریں",
 
+  "install_title": "Movestock کو ہوم اسکرین میں شامل کریں",
+  "install_desc": "کسی بھی ایپ کی طرح کھولیں — تیز، فل اسکرین، آف لائن کام کرتا ہے۔",
+  "install_button": "ہوم اسکرین میں شامل کریں",
+  "install_ios_hint": "آئی فون پر، نیچے شیئر بٹن دبائیں، پھر “Add to Home Screen”۔",
+  "install_dismiss": "ابھی نہیں",
+
   "error_page_title": "کچھ غلط ہو گیا",
   "error_page_desc": "ایپ میں ایک غیر متوقع خرابی پیش آئی۔ آپ کی فروخت اور اسٹاک کا ڈیٹا محفوظ ہے۔",
   "error_btn_try_again": "دوبارہ کوشش کریں",

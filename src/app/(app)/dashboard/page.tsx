@@ -10,6 +10,7 @@ import { ComplianceCard } from '@/components/dashboard/ComplianceCard'
 import { JourneyProgressCard } from '@/components/dashboard/JourneyProgressCard'
 import { DashboardComplianceOnboarding } from '@/components/compliance-onboarding/DashboardComplianceOnboarding'
 import { DashboardReminder } from '@/components/compliance-reminders/DashboardReminder'
+import { InstallPwaButton } from '@/components/InstallPwaButton'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 import type { DocumentStatus, NationalityType, OnboardingDocumentType } from '@/types'
 
@@ -156,6 +157,11 @@ export default async function DashboardPage({
           </a>
         )
       })()}
+
+      {/* Add-to-home-screen prompt. Self-hides if already installed (PWA standalone),
+          if dismissed within the last 7 days, or on browsers that don't fire
+          beforeinstallprompt and aren't iOS Safari. */}
+      <InstallPwaButton />
 
       {/* Phase 37g — Smart reminders banner (owners only). Renders the highest-
           priority reminder; null when nothing eligible. Sits above onboarding
