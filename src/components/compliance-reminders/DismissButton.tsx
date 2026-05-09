@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useTranslation } from '@/components/LanguageProvider'
 import { useRouter } from 'next/navigation'
 import { emitDataChanged } from '@/lib/events'
 import type { ReminderType } from '@/types'
@@ -9,6 +8,8 @@ import type { ReminderType } from '@/types'
 interface DismissButtonProps {
   reminderKey: string
   reminderType: ReminderType
+  /** Server-resolved label so we avoid client-side i18n hydration drift. */
+  label: string
   /** Tailwind classes for the button — let parent decide colour. */
   className?: string
 }
@@ -16,9 +17,9 @@ interface DismissButtonProps {
 export function DismissButton({
   reminderKey,
   reminderType,
+  label,
   className,
 }: DismissButtonProps) {
-  const { t } = useTranslation('compliance-reminders')
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const [hidden, setHidden] = useState(false)
@@ -55,9 +56,9 @@ export function DismissButton({
         className ??
         'text-sm text-gray-500 px-3 py-1.5 rounded-full border border-gray-200 active:bg-gray-100 disabled:opacity-50'
       }
-      aria-label={t('cta_dismiss')}
+      aria-label={label}
     >
-      {t('cta_dismiss')}
+      {label}
     </button>
   )
 }

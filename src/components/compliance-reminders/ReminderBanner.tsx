@@ -1,6 +1,3 @@
-'use client'
-
-import { useTranslation } from '@/components/LanguageProvider'
 import { DismissButton } from './DismissButton'
 import type { Reminder, ReminderPriority } from '@/types'
 
@@ -29,10 +26,13 @@ const TONE: Record<ReminderPriority, { wrap: string; title: string; body: string
 
 interface ReminderBannerProps {
   reminder: Reminder
+  title: string
+  body: string
+  ctaLabel?: string
+  dismissLabel: string
 }
 
-export function ReminderBanner({ reminder }: ReminderBannerProps) {
-  const { t } = useTranslation('compliance-reminders')
+export function ReminderBanner({ reminder, title, body, ctaLabel, dismissLabel }: ReminderBannerProps) {
   const tone = TONE[reminder.priority]
   const isExternal = reminder.ctaHref?.startsWith('http') ?? false
 
@@ -42,27 +42,24 @@ export function ReminderBanner({ reminder }: ReminderBannerProps) {
       role="status"
       aria-live="polite"
     >
-      <p className={`font-semibold ${tone.title}`}>
-        {t(reminder.titleKey, reminder.params)}
-      </p>
-      <p className={`text-sm mt-1 ${tone.body}`}>
-        {t(reminder.bodyKey, reminder.params)}
-      </p>
+      <p className={`font-semibold ${tone.title}`}>{title}</p>
+      <p className={`text-sm mt-1 ${tone.body}`}>{body}</p>
       <div className="flex flex-wrap gap-2 mt-3">
-        {reminder.ctaKey && reminder.ctaHref && (
+        {ctaLabel && reminder.ctaHref && (
           <a
             href={reminder.ctaHref}
             target={isExternal ? '_blank' : undefined}
             rel={isExternal ? 'noopener noreferrer' : undefined}
-            className="flex-1 min-w-[160px] text-center bg-white border border-current/30 font-semibold py-2 px-4 rounded-2xl text-sm active:bg-current/10"
+            className="flex-1 min-w-[160px] text-center bg-white border border-current/30 font-semibold py-2 px-4 rounded-full text-sm active:bg-current/10"
           >
-            {t(reminder.ctaKey, reminder.params)}
+            {ctaLabel}
           </a>
         )}
         <DismissButton
           reminderKey={reminder.key}
           reminderType={reminder.type}
-          className="px-4 py-2 bg-white border border-current/30 font-medium rounded-2xl text-sm active:bg-current/10"
+          label={dismissLabel}
+          className="px-4 py-2 bg-white border border-current/30 font-medium rounded-full text-sm active:bg-current/10"
         />
       </div>
     </div>
