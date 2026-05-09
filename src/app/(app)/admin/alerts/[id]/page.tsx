@@ -122,7 +122,7 @@ export default function EditAdminAlertPage({
     return (
       <div>
         <p className="text-sm text-red-500 mb-4">{error || 'Alert not found.'}</p>
-        <button onClick={() => router.push('/admin/alerts')} className="text-sm text-blue-600 hover:underline">
+        <button onClick={() => router.push('/admin/alerts')} className="text-sm text-brand hover:underline">
           ← Back to alerts
         </button>
       </div>
@@ -149,7 +149,7 @@ export default function EditAdminAlertPage({
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -160,7 +160,7 @@ export default function EditAdminAlertPage({
             rows={4}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -171,7 +171,7 @@ export default function EditAdminAlertPage({
               type="text"
               value={linkText}
               onChange={(e) => setLinkText(e.target.value)}
-              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
           <div>
@@ -180,7 +180,7 @@ export default function EditAdminAlertPage({
               type="url"
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
-              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
         </div>
@@ -231,7 +231,7 @@ export default function EditAdminAlertPage({
           <button
             type="submit"
             disabled={submitting}
-            className="px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50"
+            className="px-6 py-2.5 bg-brand text-white font-semibold rounded-full hover:bg-brand-hover disabled:opacity-50"
           >
             Save changes
           </button>

@@ -7,7 +7,7 @@ import type { AdminAlert } from '@/types'
 const PRIORITY_BADGE: Record<AdminAlert['priority'], string> = {
   urgent: 'bg-red-100 text-red-700',
   high: 'bg-amber-100 text-amber-700',
-  normal: 'bg-blue-100 text-blue-700',
+  normal: 'bg-brand-light text-brand-hover',
 }
 
 const AUDIENCE_LABEL: Record<AdminAlert['target_audience'], string> = {
@@ -58,7 +58,7 @@ export default function AdminAlertsPage() {
         <h1 className="text-2xl font-bold text-gray-900">Broadcast Alerts</h1>
         <button
           onClick={() => router.push('/admin/alerts/new')}
-          className="px-4 py-2 text-sm font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 text-sm font-semibold rounded-full bg-brand text-white hover:bg-brand-hover transition-colors"
         >
           New alert
         </button>
@@ -73,7 +73,7 @@ export default function AdminAlertsPage() {
       {error && alerts.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-sm text-red-500 mb-4">{error}</p>
-          <button onClick={fetchAlerts} className="text-sm font-medium text-blue-600 hover:underline">
+          <button onClick={fetchAlerts} className="text-sm font-medium text-brand hover:underline">
             Retry
           </button>
         </div>
@@ -91,7 +91,7 @@ export default function AdminAlertsPage() {
             <button
               key={a.id}
               onClick={() => router.push(`/admin/alerts/${a.id}`)}
-              className="w-full text-left bg-white border border-gray-100 rounded-xl p-4 hover:border-blue-200 hover:bg-blue-50/30 transition-colors"
+              className="w-full text-left bg-white border border-gray-100 rounded-xl p-4 hover:border-brand-light hover:bg-brand-light/30 transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">

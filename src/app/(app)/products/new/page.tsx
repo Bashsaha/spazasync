@@ -158,12 +158,12 @@ function NewProductContent() {
               value={form.barcode}
               onChange={(e) => setForm((f) => ({ ...f, barcode: e.target.value }))}
               placeholder={t('placeholder_barcode')}
-              className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
             <button
               type="button"
               onClick={() => setScanning(true)}
-              className="shrink-0 bg-blue-600 text-white px-4 py-3 rounded-xl active:bg-blue-700 text-sm font-semibold"
+              className="shrink-0 bg-brand text-white px-4 py-3 rounded-full active:bg-brand-hover text-sm font-semibold"
               aria-label={t('btn_scan_aria')}
             >
               {t('btn_scan')}
@@ -178,7 +178,7 @@ function NewProductContent() {
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             placeholder={t('placeholder_name')}
             required
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -193,7 +193,7 @@ function NewProductContent() {
             onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
             placeholder={t('placeholder_price')}
             required
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -211,7 +211,7 @@ function NewProductContent() {
               onChange={(e) => setForm((f) => ({ ...f, cost_price: e.target.value }))}
               placeholder={t('placeholder_cost_price')}
               required
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
             <p className="text-xs text-gray-400 mt-1">{t('hint_cost_price')}</p>
           </div>
@@ -224,7 +224,7 @@ function NewProductContent() {
           <select
             value={form.supplier_id}
             onChange={(e) => setForm((f) => ({ ...f, supplier_id: e.target.value }))}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
           >
             <option value="">{t('placeholder_supplier_none')}</option>
             {suppliers.map((s) => (
@@ -241,13 +241,13 @@ function NewProductContent() {
               <button
                 type="button"
                 onClick={() => setShowNewSupplier(true)}
-                className="text-xs font-semibold text-blue-600 active:text-blue-700"
+                className="text-xs font-semibold text-brand active:text-brand-hover"
               >
                 {t('btn_add_supplier')}
               </button>
               <Link
                 href="/suppliers"
-                className="text-xs text-blue-600 active:text-blue-700"
+                className="text-xs text-brand active:text-brand-hover"
               >
                 {t('link_manage_suppliers')} &rsaquo;
               </Link>
@@ -263,7 +263,7 @@ function NewProductContent() {
             min="0"
             value={form.stock_qty}
             onChange={(e) => setForm((f) => ({ ...f, stock_qty: e.target.value }))}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -279,7 +279,7 @@ function NewProductContent() {
                     setExpiryEntries([{ expiry_date: '', quantity: '' }])
                   }
                 }}
-                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="w-5 h-5 rounded border-gray-300 text-brand focus:ring-brand"
               />
               <span className="text-sm text-gray-700">{t('label_expiry')}</span>
             </label>
@@ -299,7 +299,7 @@ function NewProductContent() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 min-h-[48px]"
+          className="w-full bg-brand text-white font-bold py-4 rounded-full active:bg-brand-hover disabled:opacity-50 min-h-[48px]"
         >
           {loading ? (
             <span className="inline-flex items-center justify-center gap-2">

@@ -91,14 +91,14 @@ export default function DailySummaryAlert() {
   // Banner
   if (visible && !showModal) {
     return (
-      <div className="bg-blue-600 text-white px-4 py-3 flex items-center justify-between gap-3 animate-slide-down">
+      <div className="bg-brand text-white px-4 py-3 flex items-center justify-between gap-3 animate-slide-down">
         <p className="text-sm font-medium flex-1">
           {t('banner_text')}
         </p>
         <button
           onClick={handleView}
           disabled={loading}
-          className="bg-white text-blue-600 text-sm font-semibold px-4 py-1.5 rounded-lg shrink-0 disabled:opacity-50"
+          className="bg-white text-brand text-sm font-semibold px-4 py-1.5 rounded-lg shrink-0 disabled:opacity-50"
         >
           {loading ? (
             <span className="inline-flex items-center justify-center gap-2">
@@ -111,7 +111,7 @@ export default function DailySummaryAlert() {
         </button>
         <button
           onClick={handleDismiss}
-          className="text-blue-200 text-lg leading-none shrink-0"
+          className="text-brand-light text-lg leading-none shrink-0"
           aria-label={t('dismiss')}
         >
           ✕
@@ -128,7 +128,7 @@ export default function DailySummaryAlert() {
 
     return (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
-        <div className="bg-white rounded-2xl w-full max-w-sm max-h-[80vh] overflow-y-auto shadow-xl">
+        <div className="bg-white rounded-2xl w-full max-w-sm max-h-[80vh] overflow-y-auto ">
           {/* Header */}
           <div className="px-5 pt-5 pb-3 border-b border-gray-100">
             <div className="flex items-center justify-between">
@@ -238,7 +238,7 @@ export default function DailySummaryAlert() {
           <div className="px-5 pb-5">
             <button
               onClick={handleCloseModal}
-              className="w-full bg-blue-600 text-white font-semibold rounded-xl py-3 text-sm active:bg-blue-700"
+              className="w-full bg-brand text-white font-semibold rounded-full py-3 text-sm active:bg-brand-hover"
             >
               {t('btn_close')}
             </button>

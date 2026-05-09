@@ -124,7 +124,7 @@ export default async function DashboardPage({
         <h1 className="text-2xl font-bold text-gray-900">{shopName}</h1>
         <p className="text-sm text-gray-400 mt-0.5">
           {t('staff_login_code')}{' '}
-          <span className="font-mono font-semibold text-blue-600">{shopCode}</span>
+          <span className="font-mono font-semibold text-brand">{shopCode}</span>
           <span className="text-xs text-gray-400 ml-1">{t('staff_login_hint')}</span>
         </p>
       </div>

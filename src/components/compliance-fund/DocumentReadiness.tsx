@@ -32,7 +32,7 @@ const STEP_HASH: Record<DocumentType, string> = {
 
 export function DocumentReadiness({ rows, documents, t }: Props) {
   return (
-    <section className="bg-white border border-gray-100 rounded-2xl p-5 mb-4 shadow-sm">
+    <section className="bg-white border border-gray-100 rounded-2xl p-5 mb-4 ">
       <h2 className="text-sm font-semibold text-gray-900 mb-3">
         {t('docs_header')}
       </h2>
@@ -54,7 +54,7 @@ export function DocumentReadiness({ rows, documents, t }: Props) {
                   )}
                   <p className="text-xs mt-0.5">
                     {row.ok ? (
-                      <span className="text-emerald-700">
+                      <span className="text-brand-hover">
                         ✅ {t(`doc_status_${status}`)}
                         {dbRow?.reference_number ? ` · ${dbRow.reference_number}` : ''}
                       </span>
@@ -68,7 +68,7 @@ export function DocumentReadiness({ rows, documents, t }: Props) {
                 {!row.ok && (
                   <Link
                     href={`/compliance/journey#${STEP_HASH[row.document_type]}`}
-                    className="text-xs text-blue-600 font-semibold whitespace-nowrap active:text-blue-800"
+                    className="text-xs text-brand font-semibold whitespace-nowrap active:text-brand-hover"
                   >
                     {t('doc_fix_now')} →
                   </Link>

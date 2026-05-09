@@ -33,7 +33,7 @@ export function FoodSafetyScreen({ value, onChange }: Props) {
           type="button"
           onClick={() => pick(true)}
           className={`w-full text-left rounded-xl border px-4 py-3 text-sm font-medium ${
-            value.completed === true ? 'border-blue-500 bg-blue-50 text-blue-800' : 'border-gray-200 bg-white text-gray-800'
+            value.completed === true ? 'border-brand bg-brand-light text-brand-hover' : 'border-gray-200 bg-white text-gray-800'
           }`}
         >
           ✅ {t('food_safety_yes')}
@@ -42,7 +42,7 @@ export function FoodSafetyScreen({ value, onChange }: Props) {
           type="button"
           onClick={() => pick(false)}
           className={`w-full text-left rounded-xl border px-4 py-3 text-sm font-medium ${
-            value.completed === false ? 'border-blue-500 bg-blue-50 text-blue-800' : 'border-gray-200 bg-white text-gray-800'
+            value.completed === false ? 'border-brand bg-brand-light text-brand-hover' : 'border-gray-200 bg-white text-gray-800'
           }`}
         >
           {t('food_safety_no')}
@@ -61,7 +61,7 @@ export function FoodSafetyScreen({ value, onChange }: Props) {
               onChange={(e) =>
                 onChange({ ...value, date: e.target.value || null })
               }
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand text-base"
             />
           </div>
           <div>
@@ -76,7 +76,7 @@ export function FoodSafetyScreen({ value, onChange }: Props) {
               }
               placeholder={t('food_safety_provider_placeholder')}
               maxLength={200}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base"
             />
           </div>
         </div>

@@ -118,7 +118,7 @@ export default function AdminCatalogDetailPage({
         <p className="text-sm text-red-500 mb-4">{error || 'Entry not found'}</p>
         <button
           onClick={() => router.push('/admin/catalog')}
-          className="text-sm font-medium text-blue-600 hover:underline"
+          className="text-sm font-medium text-brand hover:underline"
         >
           Back to catalog
         </button>
@@ -150,7 +150,7 @@ export default function AdminCatalogDetailPage({
             onChange={(e) => setName(e.target.value)}
             required
             maxLength={200}
-            className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -164,7 +164,7 @@ export default function AdminCatalogDetailPage({
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             maxLength={100}
-            className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -172,7 +172,7 @@ export default function AdminCatalogDetailPage({
           <button
             type="submit"
             disabled={saving || !name.trim()}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="flex-1 py-2.5 rounded-full text-sm font-semibold bg-brand text-white hover:bg-brand-hover disabled:opacity-50 transition-colors"
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </button>

@@ -36,7 +36,7 @@ export function SMMESAStep({ step, t }: Props) {
           href="https://www.smmesa.gov.za"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block mt-3 text-blue-600 active:text-blue-800 underline text-sm font-semibold"
+          className="inline-block mt-3 text-brand active:text-brand-hover underline text-sm font-semibold"
         >
           {t('smmesa_open_portal')} →
         </a>

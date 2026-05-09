@@ -22,7 +22,7 @@ export function CartSummary({ total, itemCount, onCompleteSale, isSubmitting, ab
 
   return (
     <div
-      className="fixed inset-x-0 bg-white border-t border-gray-200 shadow-lg z-50"
+      className="fixed inset-x-0 bg-white border-t border-gray-200 z-50"
       style={{ bottom: aboveNav ? 'calc(56px + env(safe-area-inset-bottom, 0px))' : '0px' }}
     >
       <div className="max-w-lg mx-auto flex items-center gap-4 px-4 py-3" style={{ paddingBottom: aboveNav ? '12px' : 'max(12px, env(safe-area-inset-bottom))' }}>
@@ -40,7 +40,7 @@ export function CartSummary({ total, itemCount, onCompleteSale, isSubmitting, ab
           <button
             onClick={onCompleteSale}
             disabled={isSubmitting || itemCount === 0}
-            className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl active:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-base"
+            className="w-full bg-brand text-white font-semibold py-3 rounded-full active:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed text-base"
           >
             {isSubmitting ? (
               <span className="inline-flex items-center justify-center gap-2">

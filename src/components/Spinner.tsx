@@ -28,7 +28,7 @@ export function Spinner({ size = 'md', className = '' }: SpinnerProps) {
 export function PageSpinner({ label }: { label?: string }) {
   return (
     <main className="px-4 max-w-lg mx-auto flex flex-col items-center justify-center min-h-[60vh] gap-4">
-      <Spinner size="lg" className="text-blue-600" />
+      <Spinner size="lg" className="text-brand" />
       {label && <p className="text-gray-500 text-sm font-medium">{label}</p>}
     </main>
   )

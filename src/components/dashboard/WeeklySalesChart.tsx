@@ -38,9 +38,9 @@ function CustomTooltip({
   const revenue = payload[0]?.value ?? 0
   const salesCount = payload[0]?.payload?.salesCount ?? 0
   return (
-    <div className="bg-white border border-gray-100 rounded-xl px-3 py-2 shadow-sm text-xs">
+    <div className="bg-white border border-gray-100 rounded-xl px-3 py-2 text-xs">
       <p className="font-semibold text-gray-700">{label}</p>
-      <p className="text-blue-700">R {Number(revenue).toFixed(2)}</p>
+      <p className="text-brand-hover">R {Number(revenue).toFixed(2)}</p>
       <p className="text-gray-400">{salesCount} {salesCount === 1 ? saleOne : saleOther}</p>
     </div>
   )
@@ -80,9 +80,9 @@ export function WeeklySalesChart({
         />
         <Tooltip
           content={<CustomTooltip saleOne={labels.saleOne} saleOther={labels.saleOther} />}
-          cursor={{ fill: '#eff6ff' }}
+          cursor={{ fill: '#E1F5EE' }}
         />
-        <Bar dataKey="revenue" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={36} />
+        <Bar dataKey="revenue" fill="#1ABC9C" radius={[4, 4, 0, 0]} maxBarSize={36} />
       </BarChart>
     </ResponsiveContainer>
   )

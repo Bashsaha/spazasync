@@ -19,7 +19,7 @@ export function OfflineBanner({ isOnline, pendingCount, failedCount, isSyncing, 
 
   if (isSyncing) {
     return (
-      <div className="bg-blue-500 text-white text-xs text-center py-2 px-4">
+      <div className="bg-brand text-white text-xs text-center py-2 px-4">
         {tPlural('offline_banner_syncing', pendingCount, { count: pendingCount })}
       </div>
     )
@@ -48,7 +48,7 @@ export function OfflineBanner({ isOnline, pendingCount, failedCount, isSyncing, 
 
   if (pendingCount > 0) {
     return (
-      <div className="bg-blue-500 text-white text-xs text-center py-2 px-4">
+      <div className="bg-brand text-white text-xs text-center py-2 px-4">
         {tPlural('offline_banner_pending', pendingCount, { count: pendingCount })}
       </div>
     )

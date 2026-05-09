@@ -31,7 +31,7 @@ export function JourneyProgress({ steps, t, showFundTeaser }: Props) {
     null
 
   return (
-    <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-4">
+    <section className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
       <div className="flex items-baseline justify-between mb-2">
         <h2 className="text-sm font-semibold text-gray-700">
           {t('progress_header')}
@@ -42,7 +42,7 @@ export function JourneyProgress({ steps, t, showFundTeaser }: Props) {
       </div>
       <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-3">
         <div
-          className={`h-full rounded-full ${allDone ? 'bg-green-500' : 'bg-blue-500'}`}
+          className={`h-full rounded-full ${allDone ? 'bg-green-500' : 'bg-brand'}`}
           style={{ width: `${pct}%` }}
         />
       </div>

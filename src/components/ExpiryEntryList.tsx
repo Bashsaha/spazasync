@@ -52,7 +52,7 @@ export function ExpiryEntryList({ entries, onChange, totalStockQty }: ExpiryEntr
               value={entry.expiry_date}
               onChange={(e) => updateEntry(i, 'expiry_date', e.target.value)}
               min={today}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
           <div className="w-24">
@@ -68,7 +68,7 @@ export function ExpiryEntryList({ entries, onChange, totalStockQty }: ExpiryEntr
               value={entry.quantity}
               onChange={(e) => updateEntry(i, 'quantity', e.target.value)}
               placeholder="0"
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
           <button
@@ -85,7 +85,7 @@ export function ExpiryEntryList({ entries, onChange, totalStockQty }: ExpiryEntr
       <button
         type="button"
         onClick={addEntry}
-        className="text-sm font-semibold text-blue-600 active:text-blue-700"
+        className="text-sm font-semibold text-brand active:text-brand-hover"
       >
         {t('entry_btn_add')}
       </button>

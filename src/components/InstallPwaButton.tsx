@@ -104,34 +104,34 @@ export function InstallPwaButton() {
   if (!deferred && !showIos) return null
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-4">
-      <p className="text-sm font-semibold text-blue-900">{t('install_title')}</p>
-      <p className="text-xs text-blue-800 mt-1">{t('install_desc')}</p>
+    <div className="bg-brand-light border border-brand-light rounded-2xl p-4 mb-4">
+      <p className="text-sm font-semibold text-brand-hover">{t('install_title')}</p>
+      <p className="text-xs text-brand-hover mt-1">{t('install_desc')}</p>
 
       {deferred ? (
         <div className="flex gap-2 mt-3">
           <button
             type="button"
             onClick={install}
-            className="flex-1 bg-blue-600 text-white text-sm font-semibold py-2 rounded-xl active:bg-blue-700 min-h-[40px]"
+            className="flex-1 bg-brand text-white text-sm font-semibold py-2 rounded-full active:bg-brand-hover min-h-[40px]"
           >
             {t('install_button')}
           </button>
           <button
             type="button"
             onClick={dismiss}
-            className="px-4 text-sm text-blue-700 active:text-blue-900 min-h-[40px]"
+            className="px-4 text-sm text-brand-hover active:text-brand-hover min-h-[40px]"
           >
             {t('install_dismiss')}
           </button>
         </div>
       ) : (
         <>
-          <p className="text-xs text-blue-800 mt-2">{t('install_ios_hint')}</p>
+          <p className="text-xs text-brand-hover mt-2">{t('install_ios_hint')}</p>
           <button
             type="button"
             onClick={dismiss}
-            className="mt-2 text-xs text-blue-700 font-semibold active:text-blue-900"
+            className="mt-2 text-xs text-brand-hover font-semibold active:text-brand-hover"
           >
             {t('install_dismiss')}
           </button>

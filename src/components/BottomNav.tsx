@@ -79,7 +79,7 @@ export function BottomNav({ role, hasShop }: BottomNavProps) {
       {showFab && (
         <Link
           href="/sale"
-          className="fixed z-50 right-4 bg-blue-600 text-white rounded-full shadow-lg active:bg-blue-700 transition-colors flex items-center gap-2 pl-4 pr-5 h-14"
+          className="fixed z-50 right-4 bg-brand text-white rounded-full active:bg-brand-hover transition-colors flex items-center gap-2 pl-4 pr-5 h-14"
           style={{ bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
           aria-label={t('nav_start_sale')}
         >
@@ -91,7 +91,7 @@ export function BottomNav({ role, hasShop }: BottomNavProps) {
       )}
       <nav
         aria-label="Main navigation"
-        className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 shadow-lg z-40"
+        className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-40"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div className="max-w-lg mx-auto flex items-center justify-around">
@@ -113,12 +113,12 @@ export function BottomNav({ role, hasShop }: BottomNavProps) {
                 key={item.href}
                 href={item.href}
                 className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 min-h-[56px] min-w-[56px] transition-colors ${
-                  isActive ? 'text-blue-600' : 'text-gray-400 active:text-blue-500'
+                  isActive ? 'text-brand' : 'text-gray-400 active:text-brand'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
               >
                 <span className="text-xl leading-none">{item.icon}</span>
-                <span className={`text-[10px] font-semibold ${isActive ? 'text-blue-600' : 'text-gray-400'}`}>
+                <span className={`text-[10px] font-semibold ${isActive ? 'text-brand' : 'text-gray-400'}`}>
                   {label}
                 </span>
               </Link>

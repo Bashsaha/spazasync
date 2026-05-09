@@ -78,7 +78,7 @@ export default function SubscribePage() {
           </p>
           <button
             onClick={() => router.push('/dashboard')}
-            className="w-full rounded-xl bg-blue-600 py-3 text-white font-semibold hover:bg-blue-700 transition-colors"
+            className="w-full rounded-full bg-brand py-3 text-white font-semibold hover:bg-brand-hover transition-colors"
           >
             {t('subscribe_btn_goto_dashboard')}
           </button>
@@ -102,7 +102,7 @@ export default function SubscribePage() {
           </p>
           <button
             onClick={() => router.replace('/subscribe')}
-            className="w-full rounded-xl bg-blue-600 py-3 text-white font-semibold hover:bg-blue-700 transition-colors"
+            className="w-full rounded-full bg-brand py-3 text-white font-semibold hover:bg-brand-hover transition-colors"
           >
             {t('subscribe_btn_try_again')}
           </button>
@@ -114,7 +114,7 @@ export default function SubscribePage() {
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" />
       </main>
     )
   }
@@ -132,10 +132,10 @@ export default function SubscribePage() {
       <div className="w-full max-w-sm space-y-6">
         <h1 className="text-2xl font-bold text-gray-900 text-center">{t('subscribe_page_title')}</h1>
 
-        <div className="rounded-2xl bg-white p-6 shadow-sm border border-gray-100 space-y-3">
+        <div className="rounded-2xl bg-white p-6 border border-gray-100 space-y-3">
           {isTrialing && (
             <>
-              <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
+              <span className="inline-block rounded-full bg-brand-light px-3 py-1 text-sm font-medium text-brand-hover">
                 {t('sub_free_trial')}
               </span>
               <p className="text-gray-700">
@@ -182,7 +182,7 @@ export default function SubscribePage() {
         </div>
 
         {!isActive && (
-          <div className="rounded-2xl bg-white p-6 shadow-sm border border-gray-100 space-y-4">
+          <div className="rounded-2xl bg-white p-6 border border-gray-100 space-y-4">
             <div className="text-center">
               <p className="text-sm text-gray-500 uppercase tracking-wide font-medium">{t('subscribe_price_title')}</p>
               <p className="mt-2">
@@ -200,7 +200,7 @@ export default function SubscribePage() {
                 'subscribe_feature_tellers',
               ].map((key) => (
                 <li key={key} className="flex items-start gap-2">
-                  <svg className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="h-5 w-5 text-brand shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                   {t(key)}
@@ -211,7 +211,7 @@ export default function SubscribePage() {
             <button
               onClick={handleSubscribe}
               disabled={submitting}
-              className="w-full rounded-xl bg-blue-600 py-3.5 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full rounded-full bg-brand py-3.5 text-white font-semibold hover:bg-brand-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {submitting ? t('subscribe_btn_redirecting') : t('subscribe_btn_subscribe')}
             </button>

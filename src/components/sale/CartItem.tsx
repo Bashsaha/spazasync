@@ -68,7 +68,7 @@ export function CartItem({ item, onRemove, onUpdateQty, threshold = 5 }: CartIte
         <button
           onClick={() => onUpdateQty(product.id, quantity + 5)}
           aria-label={t('cart_add_five')}
-          className="h-8 px-2 rounded-full bg-blue-50 text-blue-700 font-bold text-xs leading-none active:bg-blue-100"
+          className="h-8 px-2 rounded-full bg-brand-light text-brand-hover font-bold text-xs leading-none active:bg-brand-light"
         >
           +5
         </button>

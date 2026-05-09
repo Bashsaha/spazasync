@@ -36,11 +36,11 @@ export function ServiceWorkerRegistrar() {
   if (!updateAvailable) return null
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[60] bg-blue-600 text-white text-center text-sm py-3 px-4 flex items-center justify-center gap-3 safe-area-pb">
+    <div className="fixed bottom-0 left-0 right-0 z-[60] bg-brand text-white text-center text-sm py-3 px-4 flex items-center justify-center gap-3 safe-area-pb">
       <span>A new version is available</span>
       <button
         onClick={() => window.location.reload()}
-        className="bg-white text-blue-600 font-semibold text-xs px-3 py-1 rounded-lg active:bg-blue-50"
+        className="bg-white text-brand font-semibold text-xs px-3 py-1 rounded-lg active:bg-brand-light"
       >
         Reload
       </button>

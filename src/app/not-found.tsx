@@ -14,7 +14,7 @@ export default async function NotFound() {
       </p>
       <Link
         href="/dashboard"
-        className="bg-blue-600 text-white font-semibold px-6 py-3 rounded-xl active:bg-blue-700"
+        className="bg-brand text-white font-semibold px-6 py-3 rounded-full active:bg-brand-hover"
       >
         {t('btn_goto_dashboard')}
       </Link>

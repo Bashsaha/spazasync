@@ -44,7 +44,7 @@ export function TellerSelector({ onSelect, selectedId }: Props) {
     return (
       <p className="text-gray-500 text-sm">
         {t('teller_none')}{' '}
-        <Link href="/tellers/new" className="text-blue-600 font-semibold">
+        <Link href="/tellers/new" className="text-brand font-semibold">
           {t('teller_add_one')}
         </Link>
         .
@@ -62,7 +62,7 @@ export function TellerSelector({ onSelect, selectedId }: Props) {
             onClick={() => onSelect(t)}
             className={`w-full text-left px-4 py-3 rounded-2xl border font-semibold text-sm min-h-[48px] ${
               t.id === selectedId
-                ? 'bg-blue-600 text-white border-blue-600'
+                ? 'bg-brand text-white border-brand'
                 : 'bg-white text-gray-900 border-gray-200 active:bg-gray-50'
             }`}
           >

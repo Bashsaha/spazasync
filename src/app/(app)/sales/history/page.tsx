@@ -119,7 +119,7 @@ function SalesHistoryContent() {
       </div>
 
       {/* Date picker row */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4 shadow-sm">
+      <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4 ">
         <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
           {t('pick_date')}
         </label>
@@ -127,7 +127,7 @@ function SalesHistoryContent() {
           <button
             type="button"
             onClick={() => navigateToDate(shiftDate(date, -1))}
-            className="text-sm font-semibold text-blue-600 active:text-blue-700 px-2 py-2 shrink-0"
+            className="text-sm font-semibold text-brand active:text-brand-hover px-2 py-2 shrink-0"
           >
             {t('prev_day')}
           </button>
@@ -136,14 +136,14 @@ function SalesHistoryContent() {
             value={date}
             max={today}
             onChange={(e) => navigateToDate(e.target.value)}
-            className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
             aria-label={t('pick_date')}
           />
           <button
             type="button"
             onClick={() => navigateToDate(shiftDate(date, 1))}
             disabled={date === today}
-            className="text-sm font-semibold text-blue-600 active:text-blue-700 px-2 py-2 shrink-0 disabled:text-gray-300 disabled:cursor-not-allowed"
+            className="text-sm font-semibold text-brand active:text-brand-hover px-2 py-2 shrink-0 disabled:text-gray-300 disabled:cursor-not-allowed"
           >
             {t('next_day')}
           </button>
@@ -154,19 +154,19 @@ function SalesHistoryContent() {
       {/* Totals strip */}
       {!loading && !errorKey && totals && (
         <div className={`grid ${profitTrackingOn ? 'grid-cols-3' : 'grid-cols-2'} gap-2 mb-5`}>
-          <div className="bg-white border border-gray-100 rounded-2xl p-3 text-center shadow-sm">
+          <div className="bg-white border border-gray-100 rounded-2xl p-3 text-center ">
             <p className="text-xl font-bold text-gray-900">{totals.saleCount}</p>
             <p className="text-xs text-gray-500 mt-0.5">
               {tPlural('totals_sales', totals.saleCount, { count: totals.saleCount })}
             </p>
           </div>
-          <div className="bg-white border border-gray-100 rounded-2xl p-3 text-center shadow-sm">
+          <div className="bg-white border border-gray-100 rounded-2xl p-3 text-center ">
             <p className="text-xl font-bold text-gray-900">{formatZAR(totals.revenue)}</p>
             <p className="text-xs text-gray-500 mt-0.5">{t('totals_revenue')}</p>
           </div>
           {profitTrackingOn && (
             <div
-              className={`rounded-2xl p-3 text-center shadow-sm border ${
+              className={`rounded-2xl p-3 text-center border ${
                 totals.profit !== null ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'
               }`}
             >
@@ -190,13 +190,13 @@ function SalesHistoryContent() {
       )}
 
       {/* Monthly PDF downloads — full-page reload is fine, browser will trigger download */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-5 shadow-sm">
+      <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-5 ">
         <p className="text-sm font-semibold text-gray-900">{t('download_pdf_title')}</p>
         <p className="text-xs text-gray-500 mt-0.5">{t('download_pdf_desc')}</p>
         <div className="flex flex-col sm:flex-row gap-2 mt-3">
           <a
             href={pdfUrl(viewedYear, viewedMonth)}
-            className="flex-1 text-center bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-xl active:bg-blue-700"
+            className="flex-1 text-center bg-brand text-white text-sm font-semibold py-2.5 rounded-full active:bg-brand-hover"
           >
             {t('download_pdf_this_month')}
           </a>
@@ -233,7 +233,7 @@ function SalesHistoryContent() {
           {sales.map((sale) => {
             const isOpen = expanded.has(sale.id)
             return (
-              <li key={sale.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <li key={sale.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                 <button
                   type="button"
                   onClick={() => toggle(sale.id)}

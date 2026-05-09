@@ -29,7 +29,7 @@ export async function LowStockAlert({ shopId, threshold, locale }: { shopId: str
               </p>
             )}
             {lowOnly.length > 0 && (
-              <p className="text-xs text-blue-700">
+              <p className="text-xs text-brand-hover">
                 {tPlural('low_stock_low', lowOnly.length, { count: lowOnly.length })}
               </p>
             )}
@@ -37,7 +37,7 @@ export async function LowStockAlert({ shopId, threshold, locale }: { shopId: str
               {lowStock.slice(0, 4).map((item) => (
                 <li key={item.name} className="text-xs text-gray-600">
                   &bull; {item.name}{' '}
-                  <span className={item.stock_qty === 0 ? 'text-red-600 font-semibold' : 'text-blue-600'}>
+                  <span className={item.stock_qty === 0 ? 'text-red-600 font-semibold' : 'text-brand'}>
                     {item.stock_qty === 0
                       ? `(${t('low_stock_badge_out')})`
                       : `(${t('low_stock_badge_left', { count: item.stock_qty })})`}

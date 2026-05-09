@@ -50,7 +50,7 @@ export default function AdminNav({ hasShop }: { hasShop?: boolean }) {
                   href={link.href}
                   className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-blue-50 text-blue-700 font-semibold'
+                      ? 'bg-brand-light text-brand-hover font-semibold'
                       : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                   }`}
                 >
@@ -64,7 +64,7 @@ export default function AdminNav({ hasShop }: { hasShop?: boolean }) {
           {hasShop && (
             <Link
               href="/dashboard"
-              className="px-3 py-1.5 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+              className="px-3 py-1.5 text-sm font-semibold rounded-full bg-brand text-white hover:bg-brand-hover transition-colors"
             >
               My Shop &rarr;
             </Link>

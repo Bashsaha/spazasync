@@ -85,18 +85,18 @@ export default function MonthlyComplianceAlert() {
 
   if (visible && !showModal) {
     return (
-      <div className="bg-indigo-600 text-white px-4 py-3 flex items-center justify-between gap-3">
+      <div className="bg-brand text-white px-4 py-3 flex items-center justify-between gap-3">
         <p className="text-sm font-medium flex-1">{t('monthly_alert_title')}</p>
         <button
           onClick={handleView}
           disabled={loading}
-          className="bg-white text-indigo-600 text-sm font-semibold px-4 py-1.5 rounded-lg shrink-0 disabled:opacity-50"
+          className="bg-white text-brand text-sm font-semibold px-4 py-1.5 rounded-lg shrink-0 disabled:opacity-50"
         >
           {loading ? t('loading') : t('monthly_cta_view')}
         </button>
         <button
           onClick={handleDismiss}
-          className="text-indigo-200 text-lg leading-none shrink-0"
+          className="text-brand-light text-lg leading-none shrink-0"
           aria-label={t('monthly_cta_dismiss')}
         >
           ✕
@@ -122,7 +122,7 @@ export default function MonthlyComplianceAlert() {
 
     return (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
-        <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl">
+        <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden ">
           <div className="px-5 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-lg font-bold text-gray-900">{t('monthly_alert_title')}</h2>
             <button
@@ -183,7 +183,7 @@ export default function MonthlyComplianceAlert() {
             <a
               href="/inspection"
               onClick={handleCloseModal}
-              className="block text-center bg-blue-600 text-white font-semibold rounded-xl py-3 text-sm active:bg-blue-700"
+              className="block text-center bg-brand text-white font-semibold rounded-full py-3 text-sm active:bg-brand-hover"
             >
               {t('monthly_cta_view')}
             </a>

@@ -73,7 +73,7 @@ export function TopAppBar({
             <button
               type="button"
               onClick={() => setOpen((v) => !v)}
-              className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center shrink-0 active:bg-blue-700"
+              className="w-9 h-9 rounded-full bg-brand text-white font-bold flex items-center justify-center shrink-0 active:bg-brand-hover"
               aria-label={t('switch_user')}
               aria-expanded={open}
               aria-haspopup="menu"
@@ -84,7 +84,7 @@ export function TopAppBar({
             {open && (
               <div
                 role="menu"
-                className="absolute top-full right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50"
+                className="absolute top-full right-0 mt-2 w-60 bg-white rounded-2xl border border-gray-100 overflow-hidden z-50"
               >
                 <div className="px-4 py-3 border-b border-gray-50">
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">

@@ -67,8 +67,8 @@ export function TellerAccessRequestPanel({
         <p className="text-sm text-gray-400 mt-0.5">{t('hint')}</p>
       </div>
 
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-        <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-50 mx-auto mb-4 text-3xl">
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 ">
+        <div className="flex items-center justify-center w-14 h-14 rounded-full bg-brand-light mx-auto mb-4 text-3xl">
           🔒
         </div>
 
@@ -104,7 +104,7 @@ export function TellerAccessRequestPanel({
               type="button"
               onClick={handleRequest}
               disabled={submitting}
-              className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl active:bg-blue-700 disabled:opacity-50 mt-5 min-h-[48px]"
+              className="w-full bg-brand text-white font-semibold py-3 rounded-full active:bg-brand-hover disabled:opacity-50 mt-5 min-h-[48px]"
             >
               {submitting
                 ? t('access_btn_requesting')

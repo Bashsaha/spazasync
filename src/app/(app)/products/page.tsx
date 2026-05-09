@@ -57,7 +57,7 @@ export default async function ProductsPage({
           <CatalogImportSheet />
           <Link
             href="/products/new"
-            className="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-xl active:bg-blue-700"
+            className="bg-brand text-white text-sm font-semibold px-4 py-2 rounded-full active:bg-brand-hover"
           >
             {t('btn_add')}
           </Link>
@@ -109,7 +109,7 @@ export default async function ProductsPage({
           name="search"
           defaultValue={search}
           placeholder={t('search_placeholder')}
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
         />
         {missingCostOnly && <input type="hidden" name="missing_cost" value="1" />}
       </form>
@@ -130,7 +130,7 @@ export default async function ProductsPage({
               <li key={p.id}>
                 <Link
                   href={`/products/${p.id}`}
-                  className="flex items-center justify-between bg-white rounded-2xl p-4 border border-gray-100 shadow-sm active:bg-gray-50"
+                  className="flex items-center justify-between bg-white rounded-2xl p-4 border border-gray-100 active:bg-gray-50"
                 >
                   <div className="min-w-0">
                     <p className="font-semibold text-gray-900 truncate">{p.name}</p>

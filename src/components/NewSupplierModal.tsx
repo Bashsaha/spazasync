@@ -77,7 +77,7 @@ export function NewSupplierModal({ onCreated, onDismiss }: NewSupplierModalProps
               autoFocus
               required
               maxLength={200}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
 
@@ -91,7 +91,7 @@ export function NewSupplierModal({ onCreated, onDismiss }: NewSupplierModalProps
               onChange={(e) => setContactNumber(e.target.value)}
               placeholder={t('placeholder_contact')}
               maxLength={50}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
 
@@ -102,7 +102,7 @@ export function NewSupplierModal({ onCreated, onDismiss }: NewSupplierModalProps
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
             >
               <option value="">{t('type_none')}</option>
               <option value="wholesaler">{t('type_wholesaler')}</option>
@@ -121,7 +121,7 @@ export function NewSupplierModal({ onCreated, onDismiss }: NewSupplierModalProps
               onChange={(e) => setLocation(e.target.value)}
               placeholder={t('placeholder_location')}
               maxLength={200}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
 
@@ -136,7 +136,7 @@ export function NewSupplierModal({ onCreated, onDismiss }: NewSupplierModalProps
             <button
               type="submit"
               disabled={loading || !name.trim()}
-              className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl font-semibold active:bg-blue-700 disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-2 bg-brand text-white py-3 rounded-full font-semibold active:bg-brand-hover disabled:opacity-50"
             >
               {loading && <Spinner size="sm" />}
               {loading ? t('btn_creating') : t('btn_create')}

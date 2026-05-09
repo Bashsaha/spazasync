@@ -21,8 +21,8 @@ export function LanguagePicker({ value, onChange, variant = 'full' }: LanguagePi
             onClick={() => onChange(loc)}
             className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
               value === loc
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:border-blue-400'
+                ? 'bg-brand text-white'
+                : 'bg-white text-gray-700 border border-gray-300 hover:border-brand-light'
             }`}
           >
             {LOCALE_META[loc].nativeName}
@@ -41,13 +41,13 @@ export function LanguagePicker({ value, onChange, variant = 'full' }: LanguagePi
           onClick={() => onChange(loc)}
           className={`w-full rounded-xl px-4 py-3.5 text-left text-base font-medium transition-colors ${
             value === loc
-              ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-900 border border-gray-200 hover:border-blue-400'
+              ? 'bg-brand text-white'
+              : 'bg-white text-gray-900 border border-gray-200 hover:border-brand-light'
           }`}
         >
           <span>{LOCALE_META[loc].nativeName}</span>
           {loc !== 'en' && (
-            <span className={`ml-2 text-sm ${value === loc ? 'text-blue-100' : 'text-gray-400'}`}>
+            <span className={`ml-2 text-sm ${value === loc ? 'text-brand-light' : 'text-gray-400'}`}>
               {LOCALE_META[loc].label}
             </span>
           )}

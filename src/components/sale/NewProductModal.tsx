@@ -190,7 +190,7 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
             <button
               type="button"
               onClick={handleUseExisting}
-              className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-semibold active:bg-blue-700"
+              className="flex-1 bg-brand text-white py-3 rounded-full font-semibold active:bg-brand-hover"
             >
               {t('btn_add_to_sale')}
             </button>
@@ -225,7 +225,7 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
               onChange={(e) => setName(e.target.value)}
               placeholder={t('placeholder_product_name')}
               autoFocus
-              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
 
@@ -242,7 +242,7 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
                 step="0.01"
                 min="0.01"
                 inputMode="decimal"
-                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
             <div className="flex-1">
@@ -256,7 +256,7 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
                 placeholder="0"
                 min="0"
                 inputMode="numeric"
-                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
@@ -275,7 +275,7 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
                 min="0"
                 inputMode="decimal"
                 required
-                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               />
               <p className="text-xs text-gray-400 mt-1">{t('hint_cost_price')}</p>
             </div>
@@ -293,7 +293,7 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
                       setExpiryEntries([{ expiry_date: '', quantity: '' }])
                     }
                   }}
-                  className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="w-5 h-5 rounded border-gray-300 text-brand focus:ring-brand"
                 />
                 <span className="text-sm text-gray-700">{t('label_track_expiry')}</span>
               </label>
@@ -319,7 +319,7 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl font-semibold active:bg-blue-700 disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-2 bg-brand text-white py-3 rounded-full font-semibold active:bg-brand-hover disabled:opacity-50"
             >
               {isLoading && (
                 <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden>

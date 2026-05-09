@@ -77,7 +77,7 @@ export default function PestControlListPage() {
 
       <Link
         href="/waste-pest/pest/new"
-        className="block w-full bg-blue-600 text-white text-center font-bold py-4 rounded-2xl active:bg-blue-700 mb-6"
+        className="block w-full bg-brand text-white text-center font-bold py-4 rounded-full active:bg-brand-hover mb-6"
       >
         + {t('pest_add_btn')}
       </Link>
@@ -97,7 +97,7 @@ export default function PestControlListPage() {
           {logs.map((log) => (
             <li
               key={log.id}
-              className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm"
+              className="bg-white rounded-2xl p-4 border border-gray-100 "
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">

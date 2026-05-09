@@ -17,7 +17,7 @@ export function WelcomeScreen({ onContinue }: Props) {
       <button
         type="button"
         onClick={onContinue}
-        className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl active:bg-blue-700 text-base min-h-[48px] mt-2"
+        className="w-full bg-brand text-white font-semibold py-3 rounded-full active:bg-brand-hover text-base min-h-[48px] mt-2"
       >
         {t('btn_lets_go')}
       </button>

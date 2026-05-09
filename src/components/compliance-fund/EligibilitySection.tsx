@@ -61,7 +61,7 @@ export function EligibilitySection({
   const blocked = township === false || owner === false
 
   return (
-    <section className="bg-white border border-gray-100 rounded-2xl p-5 mb-4 shadow-sm">
+    <section className="bg-white border border-gray-100 rounded-2xl p-5 mb-4 ">
       <h2 className="text-sm font-semibold text-gray-900 mb-1">
         {t('eligibility_header')}
       </h2>
@@ -141,7 +141,7 @@ function CheckRow({
   return (
     <div>
       <div className="flex items-center gap-2">
-        <span className="text-emerald-600 text-base leading-none">
+        <span className="text-brand text-base leading-none">
           {checked ? '✅' : '☐'}
         </span>
         <p className="text-sm font-medium text-gray-900">{label}</p>
@@ -186,7 +186,7 @@ function YesNoRow({
           onClick={() => onChange(true)}
           className={`${baseBtn} ${
             yesActive
-              ? 'bg-emerald-600 text-white border-emerald-600'
+              ? 'bg-brand text-white border-brand'
               : 'bg-white text-gray-700 border-gray-200 active:bg-gray-50'
           }`}
         >

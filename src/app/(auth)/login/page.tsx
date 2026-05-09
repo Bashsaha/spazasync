@@ -61,7 +61,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo / App name */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-blue-600">Movestock</h1>
+          <h1 className="text-3xl font-bold text-brand">Movestock</h1>
           <p className="text-gray-500 mt-1 text-sm">{t('login_subtitle')}</p>
         </div>
 
@@ -80,7 +80,7 @@ export default function LoginPage() {
             onClick={() => setTab('owner')}
             className={`flex-1 py-3 text-sm font-semibold transition-colors ${
               tab === 'owner'
-                ? 'bg-blue-600 text-white'
+                ? 'bg-brand text-white'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -90,7 +90,7 @@ export default function LoginPage() {
             onClick={() => setTab('teller')}
             className={`flex-1 py-3 text-sm font-semibold transition-colors ${
               tab === 'teller'
-                ? 'bg-blue-600 text-white'
+                ? 'bg-brand text-white'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -99,7 +99,7 @@ export default function LoginPage() {
         </div>
 
         {/* Form card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white rounded-2xl border border-gray-100 p-6">
           {tab === 'owner' ? (
             <OwnerLoginForm
               email={ownerEmail}
@@ -151,7 +151,7 @@ function RecentUsersRow({
               onClick={() => onSelect(u)}
               className="flex-1 flex items-center gap-3 bg-white border border-gray-200 rounded-2xl px-3 py-2.5 text-left active:bg-gray-50 min-h-[48px]"
             >
-              <span className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">
+              <span className="w-9 h-9 rounded-full bg-brand-light text-brand-hover font-bold flex items-center justify-center shrink-0">
                 {initialForRecentUser(u)}
               </span>
               <span className="min-w-0 flex-1">
@@ -222,7 +222,7 @@ function OwnerLoginForm({
           onChange={(e) => setEmail(e.target.value)}
           placeholder={t('placeholder_email')}
           required
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base"
         />
       </div>
       <div>
@@ -233,7 +233,7 @@ function OwnerLoginForm({
           onChange={(e) => setPassword(e.target.value)}
           placeholder={t('placeholder_password')}
           required
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand text-base"
         />
       </div>
 
@@ -244,13 +244,13 @@ function OwnerLoginForm({
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors disabled:opacity-50 text-base min-h-[48px]"
+        className="w-full bg-brand text-white font-semibold py-3 rounded-full hover:bg-brand-hover active:bg-brand-hover transition-colors disabled:opacity-50 text-base min-h-[48px]"
       >
         {loading ? t('btn_signing_in') : t('btn_sign_in')}
       </button>
 
       <p className="text-center text-sm">
-        <a href="/onboarding" className="text-blue-600 font-medium">
+        <a href="/onboarding" className="text-brand font-medium">
           {t('link_create_shop')}
         </a>
       </p>
@@ -331,7 +331,7 @@ function TellerLoginForm({
           placeholder={t('teller_placeholder_shop_code')}
           required
           maxLength={10}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base uppercase tracking-wider"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base uppercase tracking-wider"
         />
         <p className="text-xs text-gray-400 mt-1">{t('teller_hint_shop_code')}</p>
       </div>
@@ -343,7 +343,7 @@ function TellerLoginForm({
           onChange={(e) => setName(e.target.value)}
           placeholder={t('teller_placeholder_name')}
           required
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base"
         />
       </div>
       <div>
@@ -354,7 +354,7 @@ function TellerLoginForm({
           onChange={(e) => setPassword(e.target.value)}
           placeholder={t('placeholder_password')}
           required
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand text-base"
         />
         <p className="text-xs text-gray-400 mt-1">{t('teller_hint_password')}</p>
       </div>
@@ -366,7 +366,7 @@ function TellerLoginForm({
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors disabled:opacity-50 text-base min-h-[48px]"
+        className="w-full bg-brand text-white font-semibold py-3 rounded-full hover:bg-brand-hover active:bg-brand-hover transition-colors disabled:opacity-50 text-base min-h-[48px]"
       >
         {loading ? t('btn_signing_in') : t('btn_sign_in')}
       </button>

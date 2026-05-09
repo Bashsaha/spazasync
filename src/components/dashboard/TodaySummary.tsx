@@ -23,8 +23,8 @@ export async function TodaySummary({
     const showProfit = profitTrackingEnabled
 
     return (
-      <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-4">
-        <p className="text-xs font-semibold text-blue-500 uppercase tracking-wide mb-3">
+      <div className="bg-brand-light border border-brand-light rounded-2xl p-4 mb-4">
+        <p className="text-xs font-semibold text-brand uppercase tracking-wide mb-3">
           {t('today')}
         </p>
         <div className="flex gap-4">

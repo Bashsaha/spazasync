@@ -43,12 +43,12 @@ export function FormSummaryCard({
   children,
 }: Props) {
   return (
-    <section className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-      <h4 className="text-sm font-semibold text-blue-900 mb-3">{t(headerKey)}</h4>
+    <section className="bg-brand-light border border-brand-light rounded-xl p-4">
+      <h4 className="text-sm font-semibold text-brand-hover mb-3">{t(headerKey)}</h4>
       <dl className="space-y-2">
         {rows.map((row, index) => (
           <div key={`${row.labelKey}-${index}`} className="flex items-baseline gap-3 text-sm">
-            <dt className="text-blue-900 font-medium shrink-0 w-32">{t(row.labelKey)}</dt>
+            <dt className="text-brand-hover font-medium shrink-0 w-32">{t(row.labelKey)}</dt>
             <dd className="flex-1 min-w-0 text-gray-800 break-words">
               {row.value ? (
                 row.value
@@ -59,7 +59,7 @@ export function FormSummaryCard({
               ) : (
                 <Link
                   href={row.settingsHref ?? '/settings'}
-                  className="text-blue-600 active:text-blue-800 underline"
+                  className="text-brand active:text-brand-hover underline"
                 >
                   {t('form_add_in_settings')}
                 </Link>

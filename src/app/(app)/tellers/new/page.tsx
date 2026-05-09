@@ -64,7 +64,7 @@ export default function NewTellerPage() {
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             placeholder={t('placeholder_name')}
             required
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -76,7 +76,7 @@ export default function NewTellerPage() {
             onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
             placeholder={t('placeholder_password')}
             required
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
           <p className="text-xs text-gray-400 mt-1">
             {t('hint_password')}
@@ -88,7 +88,7 @@ export default function NewTellerPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 min-h-[48px]"
+          className="w-full bg-brand text-white font-bold py-4 rounded-full active:bg-brand-hover disabled:opacity-50 min-h-[48px]"
         >
           {loading ? (
             <span className="inline-flex items-center justify-center gap-2">

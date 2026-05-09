@@ -110,7 +110,7 @@ export default function TellersPage() {
         </div>
         <Link
           href="/tellers/new"
-          className="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-xl active:bg-blue-700"
+          className="bg-brand text-white text-sm font-semibold px-4 py-2 rounded-full active:bg-brand-hover"
         >
           {t('btn_add')}
         </Link>
@@ -130,13 +130,13 @@ export default function TellersPage() {
               return (
                 <li
                   key={g.id}
-                  className="flex items-center justify-between bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3"
+                  className="flex items-center justify-between bg-brand-light border border-brand-light rounded-2xl px-4 py-3"
                 >
                   <div className="min-w-0">
-                    <p className="font-semibold text-blue-900 truncate">
+                    <p className="font-semibold text-brand-hover truncate">
                       {t('access_active_subtitle', { name: g.teller_name })}
                     </p>
-                    <p className="text-xs text-blue-600 mt-0.5">
+                    <p className="text-xs text-brand mt-0.5">
                       {t('access_active_expires', { time: formatExpiresIn(g.expires_at) })}
                     </p>
                   </div>
@@ -171,7 +171,7 @@ export default function TellersPage() {
           {tellers.map((teller) => (
             <li
               key={teller.id}
-              className="flex items-center justify-between bg-white rounded-2xl p-4 border border-gray-100 shadow-sm"
+              className="flex items-center justify-between bg-white rounded-2xl p-4 border border-gray-100 "
             >
               <div>
                 <p className="font-semibold text-gray-900">{teller.name}</p>

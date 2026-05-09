@@ -42,7 +42,7 @@ const HERO_STYLES: Record<PillTone, { wrap: string; text: string }> = {
   green: { wrap: 'bg-green-50 border-green-200', text: 'text-green-800' },
   amber: { wrap: 'bg-amber-50 border-amber-200', text: 'text-amber-800' },
   red: { wrap: 'bg-red-50 border-red-200', text: 'text-red-800' },
-  grey: { wrap: 'bg-blue-50 border-blue-200', text: 'text-blue-800' },
+  grey: { wrap: 'bg-brand-light border-brand-light', text: 'text-brand-hover' },
 }
 
 export default function DocumentsPage() {
@@ -134,7 +134,7 @@ export default function DocumentsPage() {
                 <li key={type}>
                   <Link
                     href={`/documents/${type}`}
-                    className="flex items-center justify-between bg-white rounded-2xl p-4 border border-gray-100 shadow-sm active:bg-gray-50"
+                    className="flex items-center justify-between bg-white rounded-2xl p-4 border border-gray-100 active:bg-gray-50"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">

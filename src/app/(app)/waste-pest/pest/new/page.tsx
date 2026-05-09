@@ -88,7 +88,7 @@ export default function NewPestControlVisitPage() {
             onChange={(e) => setVisitDate(e.target.value)}
             max={todayYmd()}
             required
-            className="w-full border border-gray-200 rounded-xl px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -103,7 +103,7 @@ export default function NewPestControlVisitPage() {
             placeholder={t('placeholder_provider')}
             maxLength={100}
             required
-            className="w-full border border-gray-200 rounded-xl px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -118,7 +118,7 @@ export default function NewPestControlVisitPage() {
             placeholder={t('placeholder_treatment')}
             maxLength={100}
             required
-            className="w-full border border-gray-200 rounded-xl px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-brand"
           />
           <div className="flex flex-wrap gap-2 mt-2">
             {TREATMENT_SUGGESTION_KEYS.map((key) => (
@@ -142,7 +142,7 @@ export default function NewPestControlVisitPage() {
             placeholder={t('placeholder_notes')}
             maxLength={500}
             rows={3}
-            className="w-full border border-gray-200 rounded-xl px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -151,7 +151,7 @@ export default function NewPestControlVisitPage() {
         <button
           type="submit"
           disabled={!canSave}
-          className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 min-h-[48px]"
+          className="w-full bg-brand text-white font-bold py-4 rounded-full active:bg-brand-hover disabled:opacity-50 min-h-[48px]"
         >
           {saving ? (
             <span className="inline-flex items-center justify-center gap-2">

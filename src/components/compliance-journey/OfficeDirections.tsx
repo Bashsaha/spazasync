@@ -48,7 +48,7 @@ export function OfficeDirections({ offices, areaText, t, headerKey }: Props) {
         {primary.phone && (
           <p className="text-gray-700 mt-2">
             <span aria-hidden="true">📞 </span>
-            <a href={`tel:${primary.phone.replace(/\s+/g, '')}`} className="text-blue-600 active:text-blue-800">
+            <a href={`tel:${primary.phone.replace(/\s+/g, '')}`} className="text-brand active:text-brand-hover">
               {primary.phone}
             </a>
           </p>
@@ -56,7 +56,7 @@ export function OfficeDirections({ offices, areaText, t, headerKey }: Props) {
         {primary.email && (
           <p className="text-gray-700 mt-1">
             <span aria-hidden="true">📧 </span>
-            <a href={`mailto:${primary.email}`} className="text-blue-600 active:text-blue-800 break-all">
+            <a href={`mailto:${primary.email}`} className="text-brand active:text-brand-hover break-all">
               {primary.email}
             </a>
           </p>
@@ -73,7 +73,7 @@ export function OfficeDirections({ offices, areaText, t, headerKey }: Props) {
               href={primary.online_form_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 active:text-blue-800 underline"
+              className="text-brand active:text-brand-hover underline"
             >
               {t('office_download_form')} →
             </a>
@@ -85,7 +85,7 @@ export function OfficeDirections({ offices, areaText, t, headerKey }: Props) {
               href={primary.online_portal_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 active:text-blue-800 underline"
+              className="text-brand active:text-brand-hover underline"
             >
               {t('office_apply_online')} →
             </a>

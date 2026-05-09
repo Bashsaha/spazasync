@@ -247,17 +247,17 @@ export default function EditDocumentPage() {
         )}
 
         {isOwnerId && ownerMode === 'sa' ? (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+          <div className="bg-brand-light border border-brand-light rounded-2xl p-4">
             <label className="flex items-start gap-3">
               <input
                 type="checkbox"
                 checked={status === 'on_file'}
                 onChange={(e) => setStatus(e.target.checked ? 'on_file' : 'pending')}
-                className="mt-1 w-5 h-5 accent-emerald-600"
+                className="mt-1 w-5 h-5 accent-brand"
               />
               <div>
-                <p className="font-semibold text-emerald-900">{t('owner_id_on_file')}</p>
-                <p className="text-xs text-emerald-700 mt-1">{t('owner_id_on_file_hint')}</p>
+                <p className="font-semibold text-brand-hover">{t('owner_id_on_file')}</p>
+                <p className="text-xs text-brand-hover mt-1">{t('owner_id_on_file_hint')}</p>
               </div>
             </label>
           </div>
@@ -269,7 +269,7 @@ export default function EditDocumentPage() {
             <select
               value={permitType}
               onChange={(e) => setPermitType(e.target.value as PermitType)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
             >
               {PERMIT_TYPES.map((p) => (
                 <option key={p} value={p}>
@@ -284,7 +284,7 @@ export default function EditDocumentPage() {
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as DocumentStatus)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
             >
               {STATUS_OPTIONS[docType].map((s) => (
                 <option key={s} value={s}>
@@ -305,7 +305,7 @@ export default function EditDocumentPage() {
               onChange={(e) => setReferenceNumber(e.target.value)}
               placeholder={t('placeholder_reference_number')}
               maxLength={100}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
         )}
@@ -319,7 +319,7 @@ export default function EditDocumentPage() {
               type="date"
               value={dateIssued}
               onChange={(e) => setDateIssued(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
         )}
@@ -333,7 +333,7 @@ export default function EditDocumentPage() {
               type="date"
               value={expiryDate}
               onChange={(e) => setExpiryDate(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
         )}
@@ -348,7 +348,7 @@ export default function EditDocumentPage() {
               onChange={(e) => setNotes(e.target.value)}
               placeholder={t('placeholder_municipality')}
               maxLength={500}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
         )}
@@ -361,7 +361,7 @@ export default function EditDocumentPage() {
               onChange={(e) => setNotes(e.target.value)}
               placeholder={t('placeholder_notes')}
               maxLength={500}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
         )}
@@ -372,7 +372,7 @@ export default function EditDocumentPage() {
         <button
           type="submit"
           disabled={saving}
-          className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 min-h-[48px]"
+          className="w-full bg-brand text-white font-bold py-4 rounded-full active:bg-brand-hover disabled:opacity-50 min-h-[48px]"
         >
           {saving ? (
             <span className="inline-flex items-center justify-center gap-2">

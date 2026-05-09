@@ -335,7 +335,7 @@ function StockAdjustContent() {
               setAddExpiryEntries([])
               setProduct((p) => (p ? { ...p, stock_qty: resultQty } : p))
             }}
-            className="bg-blue-600 text-white font-semibold py-3 rounded-2xl active:bg-blue-700"
+            className="bg-brand text-white font-semibold py-3 rounded-full active:bg-brand-hover"
           >
             {t('adjust_success_btn_again')}
           </button>
@@ -379,7 +379,7 @@ function StockAdjustContent() {
       {product && (
         <>
           {/* Product info */}
-          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm mb-5">
+          <div className="bg-white rounded-2xl p-4 border border-gray-100 mb-5">
             <p className="font-bold text-gray-900 text-lg">{product.name}</p>
             <p className="text-xs text-gray-400 font-mono mt-0.5">{product.barcode}</p>
             <div className="flex items-center justify-between mt-3">
@@ -424,7 +424,7 @@ function StockAdjustContent() {
                     onClick={() => setAmount(String(q))}
                     className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-colors ${
                       amount === String(q)
-                        ? 'bg-blue-600 text-white border-blue-600'
+                        ? 'bg-brand text-white border-brand'
                         : 'bg-white border-gray-200 text-gray-700 active:bg-gray-50'
                     }`}
                   >
@@ -445,7 +445,7 @@ function StockAdjustContent() {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder={t('adjust_amount_placeholder')}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -473,7 +473,7 @@ function StockAdjustContent() {
               <select
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
               >
                 <option value="">{t('adjust_reason_placeholder')}</option>
                 {REASON_KEYS.map((rk) => (
@@ -493,7 +493,7 @@ function StockAdjustContent() {
                 <select
                   value={selectedSupplierId}
                   onChange={(e) => setSelectedSupplierId(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
                 >
                   <option value="">{t('adjust_placeholder_supplier_none')}</option>
                   {suppliers.map((s) => (
@@ -506,11 +506,11 @@ function StockAdjustContent() {
                   <button
                     type="button"
                     onClick={() => setShowNewSupplier(true)}
-                    className="text-xs font-semibold text-blue-600 active:text-blue-700"
+                    className="text-xs font-semibold text-brand active:text-brand-hover"
                   >
                     {tSup('btn_add_supplier')}
                   </button>
-                  <Link href="/suppliers" className="text-xs text-blue-600 active:text-blue-700">
+                  <Link href="/suppliers" className="text-xs text-brand active:text-brand-hover">
                     {tSup('link_manage_suppliers')} &rsaquo;
                   </Link>
                 </div>
@@ -530,7 +530,7 @@ function StockAdjustContent() {
                         setAddExpiryEntries([{ expiry_date: todayStr, quantity: '' }])
                       }
                     }}
-                    className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="w-5 h-5 rounded border-gray-300 text-brand focus:ring-brand"
                   />
                   <span className="text-sm text-gray-700">{t('adjust_expiry_checkbox')}</span>
                 </label>
@@ -560,7 +560,7 @@ function StockAdjustContent() {
             <button
               type="submit"
               disabled={saving || !validAmount}
-              className="w-full bg-blue-600 text-white font-semibold py-4 rounded-2xl text-base active:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-brand text-white font-semibold py-4 rounded-full text-base active:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving
                 ? t('adjust_btn_saving')
@@ -585,7 +585,7 @@ function StockAdjustContent() {
                   setShowAddBatch(next)
                   if (next && !batchDate) setBatchDate(todayStr)
                 }}
-                className="text-sm font-semibold text-blue-600 active:text-blue-700"
+                className="text-sm font-semibold text-brand active:text-brand-hover"
               >
                 {showAddBatch ? t('batches_btn_cancel') : t('batches_btn_add')}
               </button>
@@ -593,7 +593,7 @@ function StockAdjustContent() {
 
             {/* Add batch form */}
             {showAddBatch && (
-              <form onSubmit={handleAddBatch} className="bg-blue-50 rounded-xl p-4 mb-4 space-y-3">
+              <form onSubmit={handleAddBatch} className="bg-brand-light rounded-xl p-4 mb-4 space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {t('batches_label_date')}
@@ -603,7 +603,7 @@ function StockAdjustContent() {
                     value={batchDate}
                     onChange={(e) => setBatchDate(e.target.value)}
                     required
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
                   />
                 </div>
                 <div>
@@ -617,7 +617,7 @@ function StockAdjustContent() {
                     onChange={(e) => setBatchQty(e.target.value)}
                     placeholder={t('batches_qty_placeholder')}
                     required
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
                   />
                 </div>
                 {(batchErrorKey || batchErrorRaw) && (
@@ -628,7 +628,7 @@ function StockAdjustContent() {
                 <button
                   type="submit"
                   disabled={batchSaving || !batchDate || !batchQty}
-                  className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl text-sm active:bg-blue-700 disabled:opacity-50"
+                  className="w-full bg-brand text-white font-semibold py-3 rounded-full text-sm active:bg-brand-hover disabled:opacity-50"
                 >
                   {batchSaving ? t('batches_btn_saving') : t('batches_btn_save')}
                 </button>

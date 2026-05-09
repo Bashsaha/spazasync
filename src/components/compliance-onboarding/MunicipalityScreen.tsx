@@ -28,7 +28,7 @@ export function MunicipalityScreen({ preFilledName, value, onChange }: Props) {
           <button
             type="button"
             onClick={() => onChange(value)}
-            className="w-full text-left rounded-xl border border-blue-500 bg-blue-50 text-blue-800 px-4 py-3 text-sm font-medium"
+            className="w-full text-left rounded-xl border border-brand bg-brand-light text-brand-hover px-4 py-3 text-sm font-medium"
           >
             ✅ {t('municipality_confirm_yes')}
           </button>

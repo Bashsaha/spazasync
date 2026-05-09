@@ -139,7 +139,7 @@ export function ProductPicker({ onSelect, onClose, recentIds = [] }: ProductPick
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t('picker_search_placeholder')}
             autoFocus
-            className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand"
           />
           {search && (
             <button

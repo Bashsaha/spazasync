@@ -229,7 +229,7 @@ export function ComplianceOnboardingModal({
             <button
               type="button"
               onClick={back}
-              className="text-sm text-blue-600 font-medium"
+              className="text-sm text-brand font-medium"
             >
               {t('btn_back')}
             </button>
@@ -304,7 +304,7 @@ export function ComplianceOnboardingModal({
             type="button"
             onClick={next}
             disabled={!canAdvance}
-            className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl active:bg-blue-700 disabled:opacity-40 text-base min-h-[48px]"
+            className="w-full bg-brand text-white font-semibold py-3 rounded-full active:bg-brand-hover disabled:opacity-40 text-base min-h-[48px]"
           >
             {t('btn_continue')}
           </button>

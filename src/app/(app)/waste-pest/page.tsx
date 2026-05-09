@@ -81,7 +81,7 @@ export default async function WastePestHubPage() {
         <li>
           <Link
             href="/waste-pest/pest"
-            className="block bg-white rounded-2xl p-4 border border-gray-100 shadow-sm active:bg-gray-50"
+            className="block bg-white rounded-2xl p-4 border border-gray-100 active:bg-gray-50"
           >
             <div className="flex items-center justify-between">
               <p className="font-semibold text-gray-900">{t('card_pest_title')}</p>
@@ -99,7 +99,7 @@ export default async function WastePestHubPage() {
         <li>
           <Link
             href="/waste-pest/waste"
-            className="block bg-white rounded-2xl p-4 border border-gray-100 shadow-sm active:bg-gray-50"
+            className="block bg-white rounded-2xl p-4 border border-gray-100 active:bg-gray-50"
           >
             <div className="flex items-center justify-between">
               <p className="font-semibold text-gray-900">{t('card_waste_title')}</p>

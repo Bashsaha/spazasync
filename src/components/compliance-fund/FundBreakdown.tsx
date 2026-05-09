@@ -14,7 +14,7 @@ interface Props {
 
 export function FundBreakdown({ cipcRegistered, t }: Props) {
   return (
-    <section className="bg-white border border-gray-100 rounded-2xl p-5 mb-4 shadow-sm">
+    <section className="bg-white border border-gray-100 rounded-2xl p-5 mb-4 ">
       <h2 className="text-sm font-semibold text-gray-900 mb-3">
         {t('breakdown_header')}
       </h2>
@@ -46,7 +46,7 @@ export function FundBreakdown({ cipcRegistered, t }: Props) {
 
       {cipcRegistered && (
         <div className="pt-4 border-t border-gray-100">
-          <p className="text-sm font-bold text-emerald-800 mb-2">
+          <p className="text-sm font-bold text-brand-hover mb-2">
             {t('tier2_title')}
           </p>
           <p className="text-xs text-gray-700 mb-2">{t('tier2_intro')}</p>

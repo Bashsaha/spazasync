@@ -82,7 +82,7 @@ export function JourneyStep({ step, defaultExpanded, children }: Props) {
 
   return (
     <section
-      className={`bg-white rounded-2xl border ${badge.ring} shadow-sm mb-3 overflow-hidden`}
+      className={`bg-white rounded-2xl border ${badge.ring} mb-3 overflow-hidden`}
     >
       <button
         type="button"

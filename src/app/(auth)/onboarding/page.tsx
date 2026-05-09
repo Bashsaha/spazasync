@@ -134,11 +134,11 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-blue-600">Movestock</h1>
+          <h1 className="text-3xl font-bold text-brand">Movestock</h1>
           <p className="text-gray-500 mt-1 text-sm">{subtitle}</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white rounded-2xl border border-gray-100 p-6">
           {step === 'language' ? (
             <div className="space-y-5">
               <h2 className="text-lg font-bold text-gray-900 text-center">
@@ -151,7 +151,7 @@ export default function OnboardingPage() {
               />
               <button
                 onClick={handleLanguageContinue}
-                className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition-colors text-base min-h-[48px]"
+                className="w-full bg-brand text-white font-semibold py-3 rounded-full hover:bg-brand-hover transition-colors text-base min-h-[48px]"
               >
                 {t('btn_continue')}
               </button>
@@ -168,7 +168,7 @@ export default function OnboardingPage() {
               </p>
               <a
                 href="/login"
-                className="block w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition-colors text-base text-center mt-4"
+                className="block w-full bg-brand text-white font-semibold py-3 rounded-full hover:bg-brand-hover transition-colors text-base text-center mt-4"
               >
                 {t('email_sent_link')}
               </a>
@@ -177,16 +177,16 @@ export default function OnboardingPage() {
             <div className="text-center space-y-4 py-2">
               <div className="text-5xl">🎉</div>
               <h2 className="text-lg font-bold text-gray-900">{t('shop_created_title')}</h2>
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <div className="bg-brand-light border border-brand-light rounded-xl p-4">
                 <p className="text-sm text-gray-600 mb-1">{t('shop_created_text')}</p>
-                <p className="text-3xl font-bold text-blue-600 tracking-wider">{generatedCode}</p>
+                <p className="text-3xl font-bold text-brand tracking-wider">{generatedCode}</p>
                 <button
                   type="button"
                   onClick={handleCopyCode}
                   className={`mt-3 text-sm font-semibold px-4 py-2 rounded-xl transition-colors ${
                     codeCopied
                       ? 'bg-green-100 text-green-700'
-                      : 'bg-white border border-blue-300 text-blue-700 active:bg-blue-100'
+                      : 'bg-white border border-brand-light text-brand-hover active:bg-brand-light'
                   }`}
                 >
                   {codeCopied ? `✓ ${t('shop_created_copied')}` : `📋 ${t('shop_created_copy')}`}
@@ -197,7 +197,7 @@ export default function OnboardingPage() {
               </div>
               <button
                 onClick={handleContinueToDashboard}
-                className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition-colors text-base min-h-[48px]"
+                className="w-full bg-brand text-white font-semibold py-3 rounded-full hover:bg-brand-hover transition-colors text-base min-h-[48px]"
               >
                 {t('btn_go_to_dashboard')}
               </button>
@@ -234,7 +234,7 @@ export default function OnboardingPage() {
         {step !== 'language' && step !== 'done' && (
           <p className="text-center text-sm text-gray-500 mt-4">
             {t('link_already_have_account')}{' '}
-            <a href="/login" className="text-blue-600 font-medium">
+            <a href="/login" className="text-brand font-medium">
               {t('link_sign_in_instead')}
             </a>
           </p>
@@ -268,7 +268,7 @@ function SignupForm({
           onChange={(e) => setEmail(e.target.value)}
           placeholder={t('placeholder_email')}
           required
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base"
         />
       </div>
       <div>
@@ -280,7 +280,7 @@ function SignupForm({
           placeholder={t('placeholder_password_hint')}
           required
           minLength={6}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand text-base"
         />
       </div>
       {error && (
@@ -289,7 +289,7 @@ function SignupForm({
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 text-base min-h-[48px]"
+        className="w-full bg-brand text-white font-semibold py-3 rounded-full hover:bg-brand-hover transition-colors disabled:opacity-50 text-base min-h-[48px]"
       >
         {loading ? t('btn_creating_account') : t('btn_continue')}
       </button>
@@ -329,7 +329,7 @@ function ShopSetupForm({
           onChange={(e) => setShopName(e.target.value)}
           placeholder={t('placeholder_shop_name')}
           required
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base"
         />
       </div>
       <div>
@@ -340,7 +340,7 @@ function ShopSetupForm({
           onChange={(e) => setOwnerName(e.target.value)}
           placeholder={t('placeholder_your_name')}
           required
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base"
         />
         <p className="text-xs text-gray-400 mt-1">
           {t('hint_owner_name')}
@@ -355,7 +355,7 @@ function ShopSetupForm({
           value={registrationNumber}
           onChange={(e) => setRegistrationNumber(e.target.value)}
           placeholder={t('placeholder_registration_number')}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base"
         />
         <p className="text-xs text-gray-400 mt-1">
           {t('hint_add_later')}
@@ -370,7 +370,7 @@ function ShopSetupForm({
           value={location}
           onChange={(e) => setLocation(e.target.value)}
           placeholder={t('placeholder_location')}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base"
         />
         <p className="text-xs text-gray-400 mt-1">
           {t('hint_add_later')}
@@ -383,7 +383,7 @@ function ShopSetupForm({
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 text-base min-h-[48px]"
+        className="w-full bg-brand text-white font-semibold py-3 rounded-full hover:bg-brand-hover transition-colors disabled:opacity-50 text-base min-h-[48px]"
       >
         {loading ? t('btn_creating_shop') : t('btn_create_shop')}
       </button>

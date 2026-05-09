@@ -91,7 +91,7 @@ export function StaffTrainingList({ tellers }: Props) {
                 className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg border ${
                   trained
                     ? 'border-gray-200 text-gray-600 active:bg-gray-50'
-                    : 'border-blue-200 text-blue-700 active:bg-blue-50'
+                    : 'border-brand-light text-brand-hover active:bg-brand-light'
                 }`}
               >
                 {trained ? t('staff_btn_clear') : t('staff_btn_mark_trained')}

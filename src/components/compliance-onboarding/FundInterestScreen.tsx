@@ -20,7 +20,7 @@ export function FundInterestScreen({ value, onPick }: Props) {
           type="button"
           onClick={() => onPick(true)}
           className={`w-full text-left rounded-xl border px-4 py-3 text-sm font-medium ${
-            value === true ? 'border-blue-500 bg-blue-50 text-blue-800' : 'border-gray-200 bg-white text-gray-800'
+            value === true ? 'border-brand bg-brand-light text-brand-hover' : 'border-gray-200 bg-white text-gray-800'
           }`}
         >
           ✅ {t('fund_yes')}
@@ -29,7 +29,7 @@ export function FundInterestScreen({ value, onPick }: Props) {
           type="button"
           onClick={() => onPick(false)}
           className={`w-full text-left rounded-xl border px-4 py-3 text-sm font-medium ${
-            value === false ? 'border-blue-500 bg-blue-50 text-blue-800' : 'border-gray-200 bg-white text-gray-800'
+            value === false ? 'border-brand bg-brand-light text-brand-hover' : 'border-gray-200 bg-white text-gray-800'
           }`}
         >
           {t('fund_no')}

@@ -39,9 +39,9 @@ export function VisaScreen({ value, onChange }: Props) {
       <h2 className="text-xl font-bold text-gray-900">{t('visa_title')}</h2>
       <p className="text-sm text-gray-600">{t('visa_subtitle')}</p>
 
-      <section className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm">
-        <h3 className="font-semibold text-blue-900 mb-1">{t('fronting_title')}</h3>
-        <p className="text-blue-800 leading-relaxed">{t('fronting_body')}</p>
+      <section className="bg-brand-light border border-brand-light rounded-xl p-4 text-sm">
+        <h3 className="font-semibold text-brand-hover mb-1">{t('fronting_title')}</h3>
+        <p className="text-brand-hover leading-relaxed">{t('fronting_body')}</p>
       </section>
 
       <div>
@@ -56,7 +56,7 @@ export function VisaScreen({ value, onChange }: Props) {
                 onClick={() => onChange({ ...value, type: opt })}
                 className={`w-full text-left rounded-xl border px-4 py-3 text-sm font-medium ${
                   selected
-                    ? 'border-blue-500 bg-blue-50 text-blue-800'
+                    ? 'border-brand bg-brand-light text-brand-hover'
                     : 'border-gray-200 bg-white text-gray-800'
                 }`}
               >

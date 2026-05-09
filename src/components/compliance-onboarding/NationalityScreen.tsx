@@ -20,7 +20,7 @@ export function NationalityScreen({ value, onPick }: Props) {
           onClick={() => onPick('sa_citizen')}
           className={`w-full text-left rounded-xl border px-4 py-3 text-sm font-medium ${
             value === 'sa_citizen'
-              ? 'border-blue-500 bg-blue-50 text-blue-800'
+              ? 'border-brand bg-brand-light text-brand-hover'
               : 'border-gray-200 bg-white text-gray-800'
           }`}
         >
@@ -31,7 +31,7 @@ export function NationalityScreen({ value, onPick }: Props) {
           onClick={() => onPick('foreign_national')}
           className={`w-full text-left rounded-xl border px-4 py-3 text-sm font-medium ${
             value === 'foreign_national'
-              ? 'border-blue-500 bg-blue-50 text-blue-800'
+              ? 'border-brand bg-brand-light text-brand-hover'
               : 'border-gray-200 bg-white text-gray-800'
           }`}
         >

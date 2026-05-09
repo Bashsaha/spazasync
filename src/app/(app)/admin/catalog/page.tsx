@@ -60,7 +60,7 @@ export default function AdminCatalogPage() {
         <h1 className="text-2xl font-bold text-gray-900">Barcode Catalog</h1>
         <button
           onClick={() => router.push('/admin/catalog/new')}
-          className="px-4 py-2 text-sm font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 text-sm font-semibold rounded-full bg-brand text-white hover:bg-brand-hover transition-colors"
         >
           Add Entry
         </button>
@@ -71,7 +71,7 @@ export default function AdminCatalogPage() {
         placeholder="Search by barcode or name..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-6"
+        className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand mb-6"
         aria-label="Search catalog"
       />
 
@@ -80,7 +80,7 @@ export default function AdminCatalogPage() {
           <p className="text-sm text-red-500 mb-4">{error}</p>
           <button
             onClick={() => fetchEntries(search, page)}
-            className="text-sm font-medium text-blue-600 hover:underline"
+            className="text-sm font-medium text-brand hover:underline"
           >
             Retry
           </button>
@@ -99,7 +99,7 @@ export default function AdminCatalogPage() {
             <button
               key={entry.id}
               onClick={() => router.push(`/admin/catalog/${entry.id}`)}
-              className="w-full text-left bg-white border border-gray-100 rounded-xl p-4 hover:border-blue-200 hover:bg-blue-50/30 transition-colors"
+              className="w-full text-left bg-white border border-gray-100 rounded-xl p-4 hover:border-brand-light hover:bg-brand-light/30 transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">

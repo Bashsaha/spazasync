@@ -119,11 +119,11 @@ export default async function InspectionPage() {
       {/* PDF download */}
       <a
         href="/api/reports/compliance-pdf"
-        className="flex items-center justify-between bg-blue-600 text-white rounded-2xl p-5 shadow-sm active:bg-blue-700 mb-3"
+        className="flex items-center justify-between bg-brand text-white rounded-full p-5 active:bg-brand-hover mb-3"
       >
         <div>
           <p className="font-bold text-lg">{t('download_pdf')}</p>
-          <p className="text-blue-100 text-sm">{t('download_hint')}</p>
+          <p className="text-brand-light text-sm">{t('download_hint')}</p>
         </div>
         <span className="text-3xl">📄</span>
       </a>
@@ -131,11 +131,11 @@ export default async function InspectionPage() {
       {/* Phase 37d — Food Safety Evidence Pack */}
       <a
         href="/api/reports/food-safety-pack"
-        className="flex items-center justify-between bg-emerald-600 text-white rounded-2xl p-5 shadow-sm active:bg-emerald-700 mb-4"
+        className="flex items-center justify-between bg-brand text-white rounded-full p-5 active:bg-brand-hover mb-4"
       >
         <div>
           <p className="font-bold text-lg">{t('download_evidence_pack')}</p>
-          <p className="text-emerald-100 text-sm">{t('download_evidence_hint')}</p>
+          <p className="text-brand-light text-sm">{t('download_evidence_hint')}</p>
         </div>
         <span className="text-3xl">🧾</span>
       </a>
@@ -146,7 +146,7 @@ export default async function InspectionPage() {
       </div>
 
       {/* Score breakdown */}
-      <section className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+      <section className="bg-white rounded-2xl border border-gray-100 ">
         <h2 className="text-sm font-semibold text-gray-700 px-4 pt-4 pb-2">
           {t('breakdown_header')}
         </h2>

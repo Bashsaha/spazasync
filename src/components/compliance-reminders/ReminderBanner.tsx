@@ -16,9 +16,9 @@ const TONE: Record<ReminderPriority, { wrap: string; title: string; body: string
     body: 'text-amber-800',
   },
   normal: {
-    wrap: 'bg-blue-50 border-blue-200 border-l-4 border-l-blue-500',
-    title: 'text-blue-900',
-    body: 'text-blue-800',
+    wrap: 'bg-brand-light border-brand-light border-l-4 border-l-brand',
+    title: 'text-brand-hover',
+    body: 'text-brand-hover',
   },
   low: {
     wrap: 'bg-gray-50 border-gray-200 border-l-4 border-l-gray-300',

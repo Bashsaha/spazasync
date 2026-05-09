@@ -34,11 +34,11 @@ export default async function SalesHubPage() {
       {/* Big primary CTA — Start a Sale */}
       <Link
         href="/sale"
-        className="flex items-center justify-between bg-blue-600 text-white rounded-2xl p-5 mb-4 shadow-sm active:bg-blue-700"
+        className="flex items-center justify-between bg-brand text-white rounded-full p-5 mb-4 active:bg-brand-hover"
       >
         <div>
           <p className="font-bold text-lg">{t('hub_start_sale')}</p>
-          <p className="text-blue-100 text-sm">{t('hub_start_sale_desc')}</p>
+          <p className="text-brand-light text-sm">{t('hub_start_sale_desc')}</p>
         </div>
         <span className="text-3xl">🛒</span>
       </Link>
@@ -70,7 +70,7 @@ export default async function SalesHubPage() {
       {/* View by date — drill-down link */}
       <Link
         href="/sales/history"
-        className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:bg-gray-50"
+        className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
       >
         <div>
           <p className="font-bold text-gray-900">{t('hub_view_history')}</p>

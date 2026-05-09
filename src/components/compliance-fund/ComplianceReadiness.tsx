@@ -19,13 +19,13 @@ interface Props {
 export function ComplianceReadiness({ result, t }: Props) {
   const ok = result.overall >= FUND_GREEN_SCORE_MIN
   return (
-    <section className="bg-white border border-gray-100 rounded-2xl p-5 mb-4 shadow-sm">
+    <section className="bg-white border border-gray-100 rounded-2xl p-5 mb-4 ">
       <h2 className="text-sm font-semibold text-gray-900 mb-3">
         {t('compliance_header')}
       </h2>
       <div className="flex items-baseline justify-between mb-3">
         <p className="text-sm text-gray-700">{t('compliance_score_label')}</p>
-        <p className={`text-lg font-bold ${ok ? 'text-emerald-700' : 'text-amber-700'}`}>
+        <p className={`text-lg font-bold ${ok ? 'text-brand-hover' : 'text-amber-700'}`}>
           {result.overall}/100 {ok ? '✅' : '⚠️'}
         </p>
       </div>
@@ -33,7 +33,7 @@ export function ComplianceReadiness({ result, t }: Props) {
         {result.categories.map((cat) => (
           <li key={cat.key} className="flex items-center justify-between">
             <span>{t(`compliance_cat_${cat.key}`)}</span>
-            <span className={cat.score === 100 ? 'text-emerald-700' : 'text-gray-700'}>
+            <span className={cat.score === 100 ? 'text-brand-hover' : 'text-gray-700'}>
               {cat.score === 100 ? '✅' : `${cat.score}%`}
             </span>
           </li>

@@ -4,7 +4,7 @@ import { getOverviewStats } from '@/lib/db/admin'
 const statCards = [
   { key: 'totalShops', label: 'Total Shops', color: 'bg-gray-50 border-gray-200 text-gray-900' },
   { key: 'activeShops', label: 'Active', color: 'bg-green-50 border-green-200 text-green-700' },
-  { key: 'trialingShops', label: 'Trialing', color: 'bg-blue-50 border-blue-200 text-blue-700' },
+  { key: 'trialingShops', label: 'Trialing', color: 'bg-brand-light border-brand-light text-brand-hover' },
   { key: 'expiredShops', label: 'Expired', color: 'bg-red-50 border-red-200 text-red-700' },
   { key: 'manualOverrideShops', label: 'Manual Override', color: 'bg-amber-50 border-amber-200 text-amber-700' },
   { key: 'recentSignUps', label: 'New This Week', color: 'bg-purple-50 border-purple-200 text-purple-700' },
@@ -44,7 +44,7 @@ export default async function AdminOverviewPage() {
 
       <Link
         href="/admin/shops"
-        className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+        className="inline-flex items-center gap-2 bg-brand text-white px-6 py-3 rounded-full font-semibold hover:bg-brand-hover transition-colors"
       >
         View All Shops
         <span aria-hidden="true">&rarr;</span>

@@ -31,7 +31,7 @@ export function InspectionReadinessPanel({
   showHeader = true,
 }: Props) {
   return (
-    <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <section className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
       {showHeader && (
         <h2 className="text-sm font-semibold text-gray-700 px-4 pt-4 pb-2">
           {t(headerKey)}
@@ -63,7 +63,7 @@ export function InspectionReadinessPanel({
             ) : (
               <Link
                 href={row.fixHref}
-                className="text-xs font-semibold text-blue-600 active:text-blue-800 shrink-0"
+                className="text-xs font-semibold text-brand active:text-brand-hover shrink-0"
               >
                 {t('fix_now')} &rsaquo;
               </Link>

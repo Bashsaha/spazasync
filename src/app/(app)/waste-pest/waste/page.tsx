@@ -140,7 +140,7 @@ export default function WasteManagementPage() {
         <>
           <form
             onSubmit={handleSave}
-            className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm mb-4"
+            className="bg-white rounded-2xl p-4 border border-gray-100 mb-4"
           >
             <h2 className="font-semibold text-gray-900 mb-4">{t('section_arrangement')}</h2>
 
@@ -154,7 +154,7 @@ export default function WasteManagementPage() {
                     onClick={() => setRemovalType(type)}
                     className={`w-full text-left px-4 py-3 rounded-xl border text-sm font-medium ${
                       removalType === type
-                        ? 'bg-blue-600 text-white border-blue-600'
+                        ? 'bg-brand text-white border-brand'
                         : 'bg-white text-gray-700 border-gray-200'
                     }`}
                   >
@@ -174,7 +174,7 @@ export default function WasteManagementPage() {
                     onClick={() => setFrequency(f)}
                     className={`px-3 py-3 rounded-xl border text-sm font-medium ${
                       frequency === f
-                        ? 'bg-blue-600 text-white border-blue-600'
+                        ? 'bg-brand text-white border-brand'
                         : 'bg-white text-gray-700 border-gray-200'
                     }`}
                   >
@@ -194,7 +194,7 @@ export default function WasteManagementPage() {
                 onChange={(e) => setProviderName(e.target.value)}
                 placeholder={t('placeholder_waste_provider')}
                 maxLength={100}
-                className="w-full border border-gray-200 rounded-xl px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-200 rounded-xl px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -203,7 +203,7 @@ export default function WasteManagementPage() {
             <button
               type="submit"
               disabled={!canSave}
-              className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 min-h-[48px]"
+              className="w-full bg-brand text-white font-bold py-4 rounded-full active:bg-brand-hover disabled:opacity-50 min-h-[48px]"
             >
               {saving ? (
                 <span className="inline-flex items-center justify-center gap-2">

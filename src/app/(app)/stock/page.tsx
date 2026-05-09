@@ -118,7 +118,7 @@ export default function StockPage() {
         </div>
         <button
           onClick={() => setScanning(true)}
-          className="flex items-center gap-1.5 text-sm font-semibold text-blue-600 border border-blue-300 px-3 py-2 rounded-xl active:bg-blue-50"
+          className="flex items-center gap-1.5 text-sm font-semibold text-brand border border-brand-light px-3 py-2 rounded-xl active:bg-brand-light"
         >
           {t('btn_scan')}
         </button>
@@ -140,12 +140,12 @@ export default function StockPage() {
       {/* Summary strip */}
       {!loading && !errorKey && (
         <div className="grid grid-cols-4 gap-2 mb-5">
-          <div className="bg-white rounded-2xl p-3 border border-gray-100 text-center shadow-sm">
+          <div className="bg-white rounded-2xl p-3 border border-gray-100 text-center ">
             <p className="text-xl font-bold text-gray-900">{products.length}</p>
             <p className="text-xs text-gray-500 mt-0.5">{t('summary_products')}</p>
           </div>
           <div
-            className={`rounded-2xl p-3 border text-center shadow-sm ${
+            className={`rounded-2xl p-3 border text-center ${
               lowCount > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-100'
             }`}
           >
@@ -155,7 +155,7 @@ export default function StockPage() {
             <p className="text-xs text-gray-500 mt-0.5">{t('summary_low')}</p>
           </div>
           <div
-            className={`rounded-2xl p-3 border text-center shadow-sm ${
+            className={`rounded-2xl p-3 border text-center ${
               outCount > 0 ? 'bg-red-50 border-red-200' : 'bg-white border-gray-100'
             }`}
           >
@@ -165,7 +165,7 @@ export default function StockPage() {
             <p className="text-xs text-gray-500 mt-0.5">{t('summary_out')}</p>
           </div>
           <div
-            className={`rounded-2xl p-3 border text-center shadow-sm ${
+            className={`rounded-2xl p-3 border text-center ${
               expiryCount > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-100'
             }`}
           >
@@ -183,7 +183,7 @@ export default function StockPage() {
         onChange={(e) => setSearch(e.target.value)}
         placeholder={t('search_placeholder')}
         aria-label={t('search_placeholder')}
-        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
+        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand mb-3"
       />
 
       {/* Tabs */}
@@ -194,7 +194,7 @@ export default function StockPage() {
             onClick={() => setTab(tabId)}
             className={`px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
               tab === tabId
-                ? 'bg-blue-600 text-white'
+                ? 'bg-brand text-white'
                 : 'bg-white border border-gray-200 text-gray-600 active:bg-gray-50'
             }`}
           >
@@ -222,7 +222,7 @@ export default function StockPage() {
           <div className="mb-4">
             <Link
               href="/expiry"
-              className="inline-flex items-center gap-1 text-sm text-blue-600 font-semibold active:text-blue-700"
+              className="inline-flex items-center gap-1 text-sm text-brand font-semibold active:text-brand-hover"
             >
               {t('expiry_see_all')}
             </Link>
@@ -238,7 +238,7 @@ export default function StockPage() {
                 <li key={ep.product_id}>
                   <Link
                     href={`/stock/${ep.product_id}`}
-                    className="flex items-center justify-between bg-white rounded-2xl p-4 border border-gray-100 shadow-sm active:bg-gray-50"
+                    className="flex items-center justify-between bg-white rounded-2xl p-4 border border-gray-100 active:bg-gray-50"
                   >
                     <div className="min-w-0">
                       <p className="font-semibold text-gray-900 truncate">{ep.product_name}</p>
@@ -283,7 +283,7 @@ export default function StockPage() {
               <li key={p.id}>
                 <Link
                   href={`/stock/${p.id}`}
-                  className="flex items-center justify-between bg-white rounded-2xl p-4 border border-gray-100 shadow-sm active:bg-gray-50"
+                  className="flex items-center justify-between bg-white rounded-2xl p-4 border border-gray-100 active:bg-gray-50"
                 >
                   <div className="min-w-0">
                     <p className="font-semibold text-gray-900 truncate">{p.name}</p>
@@ -301,7 +301,7 @@ export default function StockPage() {
                     >
                       {p.stock_qty}
                     </span>
-                    <span className="text-blue-600 font-bold text-lg leading-none">›</span>
+                    <span className="text-brand font-bold text-lg leading-none">›</span>
                   </div>
                 </Link>
               </li>
@@ -312,14 +312,14 @@ export default function StockPage() {
 
       {/* Stock take prompt if many out of stock */}
       {!loading && !errorKey && outCount >= 3 && (
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-2xl p-4 text-sm text-blue-800">
+        <div className="mt-6 bg-brand-light border border-brand-light rounded-2xl p-4 text-sm text-brand-hover">
           <p className="font-semibold mb-1">{t('out_of_stock_prompt', { count: outCount })}</p>
-          <p className="text-blue-800 mb-3">
+          <p className="text-brand-hover mb-3">
             {t('out_of_stock_desc')}
           </p>
           <Link
             href="/stock-take"
-            className="inline-block bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-xl active:bg-blue-700"
+            className="inline-block bg-brand text-white text-sm font-semibold px-4 py-2 rounded-full active:bg-brand-hover"
           >
             {t('btn_run_stock_take')}
           </Link>

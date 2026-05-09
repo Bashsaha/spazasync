@@ -42,7 +42,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
     <div
       role="status"
       aria-live="assertive"
-      className={`${bg} text-white text-sm font-medium px-4 py-3 rounded-2xl shadow-lg flex items-center justify-between gap-4 max-w-sm`}
+      className={`${bg} text-white text-sm font-medium px-4 py-3 rounded-2xl flex items-center justify-between gap-4 max-w-sm`}
     >
       <span>{toast.message}</span>
       <button

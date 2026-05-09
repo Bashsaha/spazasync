@@ -45,7 +45,7 @@ export function PaymentMethodSheet({ total, onConfirm, onDismiss }: PaymentMetho
               <button
                 type="button"
                 onClick={() => onConfirm('card')}
-                className="flex flex-col items-center justify-center gap-2 bg-blue-600 text-white font-semibold py-6 rounded-2xl active:bg-blue-700"
+                className="flex flex-col items-center justify-center gap-2 bg-brand text-white font-semibold py-6 rounded-full active:bg-brand-hover"
               >
                 <span className="text-3xl" aria-hidden>
                   💳
@@ -55,7 +55,7 @@ export function PaymentMethodSheet({ total, onConfirm, onDismiss }: PaymentMetho
               <button
                 type="button"
                 onClick={() => setStep('cash')}
-                className="flex flex-col items-center justify-center gap-2 bg-emerald-600 text-white font-semibold py-6 rounded-2xl active:bg-emerald-700"
+                className="flex flex-col items-center justify-center gap-2 bg-brand text-white font-semibold py-6 rounded-full active:bg-brand-hover"
               >
                 <span className="text-3xl" aria-hidden>
                   💵
@@ -97,7 +97,7 @@ export function PaymentMethodSheet({ total, onConfirm, onDismiss }: PaymentMetho
                 value={cashGiven}
                 onChange={(e) => setCashGiven(e.target.value)}
                 autoFocus
-                className="w-full border border-gray-200 rounded-xl pl-9 pr-4 py-4 text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full border border-gray-200 rounded-xl pl-9 pr-4 py-4 text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
             {cashGiven !== '' && !validCash && (
@@ -106,16 +106,16 @@ export function PaymentMethodSheet({ total, onConfirm, onDismiss }: PaymentMetho
               </p>
             )}
 
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-5">
-              <p className="text-xs text-emerald-700 mb-1">{t('cash_change_label')}</p>
-              <p className="text-3xl font-bold text-emerald-700">{formatZAR(change)}</p>
+            <div className="bg-brand-light border border-brand-light rounded-xl p-4 mb-5">
+              <p className="text-xs text-brand-hover mb-1">{t('cash_change_label')}</p>
+              <p className="text-3xl font-bold text-brand-hover">{formatZAR(change)}</p>
             </div>
 
             <button
               type="button"
               onClick={() => onConfirm('cash')}
               disabled={!validCash}
-              className="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl active:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed mb-2"
+              className="w-full bg-brand text-white font-bold py-4 rounded-full active:bg-brand-hover disabled:opacity-40 disabled:cursor-not-allowed mb-2"
             >
               {t('btn_confirm_payment')}
             </button>

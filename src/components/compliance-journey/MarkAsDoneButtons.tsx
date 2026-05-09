@@ -164,7 +164,7 @@ export function MarkAsDoneButtons({
           type="button"
           onClick={() => submit('mark_done')}
           disabled={isPending}
-          className="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg active:bg-blue-700"
+          className="w-full px-4 py-2.5 bg-brand text-white text-sm font-bold rounded-full active:bg-brand-hover"
         >
           {t('action_mark_done')}
         </button>

@@ -37,7 +37,7 @@ export function GenerateDocButton({ titleKey, descriptionKey, href, t }: Props) 
       {isEnabled ? (
         <Link
           href={href}
-          className="inline-flex items-center mt-3 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg active:bg-blue-700"
+          className="inline-flex items-center mt-3 px-4 py-2 bg-brand text-white text-sm font-semibold rounded-full active:bg-brand-hover"
         >
           {t('btn_generate_pdf')}
         </Link>

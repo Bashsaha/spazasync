@@ -68,7 +68,7 @@ export default function NewAdminAlertPage() {
             maxLength={200}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             placeholder="e.g. Inspection campaign — Gauteng"
           />
         </div>
@@ -81,7 +81,7 @@ export default function NewAdminAlertPage() {
             rows={4}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             placeholder="Plain English, short. This text appears as the banner body."
           />
         </div>
@@ -94,7 +94,7 @@ export default function NewAdminAlertPage() {
               maxLength={100}
               value={linkText}
               onChange={(e) => setLinkText(e.target.value)}
-              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               placeholder="Open guide"
             />
           </div>
@@ -105,7 +105,7 @@ export default function NewAdminAlertPage() {
               maxLength={500}
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
-              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               placeholder="https://… or /inspection"
             />
           </div>
@@ -117,7 +117,7 @@ export default function NewAdminAlertPage() {
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value as AdminAlertPriority)}
-              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             >
               <option value="normal">Normal</option>
               <option value="high">High</option>
@@ -129,7 +129,7 @@ export default function NewAdminAlertPage() {
             <select
               value={audience}
               onChange={(e) => setAudience(e.target.value as AdminAlertAudience)}
-              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             >
               <option value="all">All</option>
               <option value="sa_citizen">SA citizens</option>
@@ -142,7 +142,7 @@ export default function NewAdminAlertPage() {
               type="datetime-local"
               value={expiresAt}
               onChange={(e) => setExpiresAt(e.target.value)}
-              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
         </div>
@@ -157,7 +157,7 @@ export default function NewAdminAlertPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50"
+            className="px-6 py-2.5 bg-brand text-white font-semibold rounded-full hover:bg-brand-hover disabled:opacity-50"
           >
             {submitting ? 'Publishing…' : 'Publish'}
           </button>

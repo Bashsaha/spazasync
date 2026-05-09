@@ -38,7 +38,7 @@ export function UIFStep({ step, t }: Props) {
           href="https://www.ufiling.co.za"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block mt-3 text-blue-600 active:text-blue-800 underline text-sm font-semibold"
+          className="inline-block mt-3 text-brand active:text-brand-hover underline text-sm font-semibold"
         >
           {t('uif_open_portal')} →
         </a>

@@ -72,7 +72,7 @@ export default function NewSupplierPage() {
             placeholder={t('placeholder_name')}
             required
             maxLength={200}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -86,7 +86,7 @@ export default function NewSupplierPage() {
             onChange={(e) => setContactNumber(e.target.value)}
             placeholder={t('placeholder_contact')}
             maxLength={50}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -97,7 +97,7 @@ export default function NewSupplierPage() {
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
           >
             <option value="">{t('type_none')}</option>
             <option value="wholesaler">{t('type_wholesaler')}</option>
@@ -116,7 +116,7 @@ export default function NewSupplierPage() {
             onChange={(e) => setLocation(e.target.value)}
             placeholder={t('placeholder_location')}
             maxLength={200}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -125,7 +125,7 @@ export default function NewSupplierPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 min-h-[48px]"
+          className="w-full bg-brand text-white font-bold py-4 rounded-full active:bg-brand-hover disabled:opacity-50 min-h-[48px]"
         >
           {loading ? (
             <span className="inline-flex items-center justify-center gap-2">

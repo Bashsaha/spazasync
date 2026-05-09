@@ -51,14 +51,14 @@ export default async function InventoryHubPage() {
 
       {/* Summary strip */}
       <div className="grid grid-cols-3 gap-2 mb-5">
-        <div className="bg-white border border-gray-100 rounded-2xl p-3 text-center shadow-sm">
+        <div className="bg-white border border-gray-100 rounded-2xl p-3 text-center ">
           <p className="text-xl font-bold text-gray-900">{total}</p>
           <p className="text-xs text-gray-500 mt-0.5 leading-tight">
             {tPlural('summary_total', total)}
           </p>
         </div>
         <div
-          className={`rounded-2xl p-3 text-center shadow-sm border ${
+          className={`rounded-2xl p-3 text-center border ${
             low > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-100'
           }`}
         >
@@ -70,7 +70,7 @@ export default async function InventoryHubPage() {
           </p>
         </div>
         <div
-          className={`rounded-2xl p-3 text-center shadow-sm border ${
+          className={`rounded-2xl p-3 text-center border ${
             expiring > 0 ? 'bg-red-50 border-red-200' : 'bg-white border-gray-100'
           }`}
         >
@@ -87,7 +87,7 @@ export default async function InventoryHubPage() {
       <div className="space-y-3">
         <Link
           href="/stock"
-          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:bg-gray-50"
+          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
         >
           <div>
             <p className="font-bold text-gray-900">{t('card_stock')}</p>
@@ -98,7 +98,7 @@ export default async function InventoryHubPage() {
 
         <Link
           href="/products"
-          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:bg-gray-50"
+          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
         >
           <div>
             <p className="font-bold text-gray-900">{t('card_products')}</p>
@@ -109,7 +109,7 @@ export default async function InventoryHubPage() {
 
         <Link
           href="/stock-take"
-          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:bg-gray-50"
+          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
         >
           <div>
             <p className="font-bold text-gray-900">{t('card_count')}</p>
@@ -120,7 +120,7 @@ export default async function InventoryHubPage() {
 
         <Link
           href="/expiry"
-          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:bg-gray-50"
+          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
         >
           <div>
             <p className="font-bold text-gray-900">{t('card_expiry')}</p>
@@ -131,7 +131,7 @@ export default async function InventoryHubPage() {
 
         <Link
           href="/suppliers"
-          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:bg-gray-50"
+          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
         >
           <div>
             <p className="font-bold text-gray-900">{t('card_suppliers')}</p>

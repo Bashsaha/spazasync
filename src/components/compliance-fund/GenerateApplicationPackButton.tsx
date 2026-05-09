@@ -22,7 +22,7 @@ export function GenerateApplicationPackButton({ missingDocCount }: Props) {
   const disabled = missingDocCount > 0
 
   return (
-    <section className="bg-white border border-gray-100 rounded-2xl p-5 mb-4 shadow-sm">
+    <section className="bg-white border border-gray-100 rounded-2xl p-5 mb-4 ">
       <p className="text-sm font-semibold text-gray-900 mb-1">
         {t('pack_header')}
       </p>
@@ -42,7 +42,7 @@ export function GenerateApplicationPackButton({ missingDocCount }: Props) {
           </p>
           <Link
             href="/compliance/journey"
-            className="inline-block text-xs text-blue-600 font-semibold mt-2 active:text-blue-800"
+            className="inline-block text-xs text-brand font-semibold mt-2 active:text-brand-hover"
           >
             {t('pack_open_journey')} →
           </Link>
@@ -52,7 +52,7 @@ export function GenerateApplicationPackButton({ missingDocCount }: Props) {
           href="/api/reports/fund-application-pack"
           target="_blank"
           rel="noopener noreferrer"
-          className="block text-center w-full py-3 rounded-xl text-sm font-semibold text-white bg-emerald-600 active:bg-emerald-700"
+          className="block text-center w-full py-3 rounded-full text-sm font-semibold text-white bg-brand active:bg-brand-hover"
         >
           {t('pack_button')}
         </a>

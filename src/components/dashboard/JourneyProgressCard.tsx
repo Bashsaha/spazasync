@@ -43,7 +43,7 @@ export async function JourneyProgressCard({ shopId, userId, locale }: Props) {
     const { t } = await getServerTranslations(locale, ['dashboard', 'compliance-journey'])
 
     return (
-      <div className="bg-white border border-gray-100 rounded-2xl mb-4 shadow-sm overflow-hidden">
+      <div className="bg-white border border-gray-100 rounded-2xl mb-4 overflow-hidden">
         <Link
           href="/compliance/journey"
           className="block p-4 active:bg-gray-50"
@@ -58,7 +58,7 @@ export async function JourneyProgressCard({ shopId, userId, locale }: Props) {
           </div>
           <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-2">
             <div
-              className={`h-full rounded-full ${allDone ? 'bg-green-500' : 'bg-blue-500'}`}
+              className={`h-full rounded-full ${allDone ? 'bg-green-500' : 'bg-brand'}`}
               style={{ width: `${pct}%` }}
             />
           </div>
@@ -70,7 +70,7 @@ export async function JourneyProgressCard({ shopId, userId, locale }: Props) {
             <p className="text-sm text-gray-700">
               <span className="text-gray-500">{t('journey_card_next_label')} </span>
               <span className="font-semibold">{t(`step_${next.key}_title`)}</span>
-              <span className="text-blue-600 ml-1">{t('journey_card_continue_arrow')}</span>
+              <span className="text-brand ml-1">{t('journey_card_continue_arrow')}</span>
             </p>
           ) : null}
         </Link>

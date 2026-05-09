@@ -77,7 +77,7 @@ export default function ChecklistHistoryPage() {
   if (errorKey || !data) {
     return (
       <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
-        <a href="/checklist" className="text-sm text-blue-600 mb-6 inline-block">
+        <a href="/checklist" className="text-sm text-brand mb-6 inline-block">
           {t('back')}
         </a>
         <p className="text-red-600">{t(errorKey ?? 'msg_load_failed')}</p>
@@ -89,7 +89,7 @@ export default function ChecklistHistoryPage() {
 
   return (
     <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
-      <a href="/dashboard" className="text-sm text-blue-600 mb-2 inline-block">
+      <a href="/dashboard" className="text-sm text-brand mb-2 inline-block">
         {t('history_back')}
       </a>
       <h1 className="text-2xl font-bold text-gray-900">{t('history_title')}</h1>

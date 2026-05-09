@@ -56,7 +56,7 @@ export function CatalogImportSheet() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="text-sm font-semibold text-blue-600 border border-blue-300 px-3 py-2 rounded-xl active:bg-blue-50"
+        className="text-sm font-semibold text-brand border border-brand-light px-3 py-2 rounded-xl active:bg-brand-light"
       >
         {t('import_btn_open')}
       </button>
@@ -78,7 +78,7 @@ export function CatalogImportSheet() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('import_search_placeholder')}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-brand"
             />
 
             <div className="overflow-y-auto flex-1 -mx-4 px-4">
@@ -94,7 +94,7 @@ export function CatalogImportSheet() {
                     <button
                       key={item.barcode}
                       onClick={() => pick(item)}
-                      className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left active:bg-blue-50 transition-colors"
+                      className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left active:bg-brand-light transition-colors"
                     >
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">
@@ -105,7 +105,7 @@ export function CatalogImportSheet() {
                       {item.category && (
                         <span className="text-xs text-gray-400 shrink-0">{item.category}</span>
                       )}
-                      <span className="text-blue-600 font-bold text-lg leading-none shrink-0">›</span>
+                      <span className="text-brand font-bold text-lg leading-none shrink-0">›</span>
                     </button>
                   ))}
                 </div>

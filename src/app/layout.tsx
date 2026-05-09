@@ -1,7 +1,14 @@
 import type { Metadata, Viewport } from 'next'
-import { Noto_Sans_Ethiopic, Noto_Nastaliq_Urdu } from 'next/font/google'
+import { Plus_Jakarta_Sans, Noto_Sans_Ethiopic, Noto_Nastaliq_Urdu } from 'next/font/google'
 import './globals.css'
 import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar'
+
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-jakarta',
+  display: 'swap',
+})
 
 const notoEthiopic = Noto_Sans_Ethiopic({
   subsets: ['ethiopic'],
@@ -33,14 +40,17 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#2563eb',
+  themeColor: '#1ABC9C',
   viewportFit: 'cover',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${notoEthiopic.variable} ${notoNastaliqUrdu.variable}`}>
-      <body className="antialiased bg-gray-50 text-gray-900">
+    <html
+      lang="en"
+      className={`${plusJakarta.variable} ${notoEthiopic.variable} ${notoNastaliqUrdu.variable}`}
+    >
+      <body className="antialiased font-sans bg-surface text-ink">
         <ServiceWorkerRegistrar />
         {children}
       </body>

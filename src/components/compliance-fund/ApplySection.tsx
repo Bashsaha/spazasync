@@ -20,7 +20,7 @@ const SEFA_EMAIL = 'spaza@sefa.org.za'
 
 export function ApplySection({ t }: Props) {
   return (
-    <section className="bg-white border border-gray-100 rounded-2xl p-5 mb-4 shadow-sm">
+    <section className="bg-white border border-gray-100 rounded-2xl p-5 mb-4 ">
       <h2 className="text-sm font-semibold text-gray-900 mb-4">
         {t('apply_header')}
       </h2>
@@ -32,7 +32,7 @@ export function ApplySection({ t }: Props) {
             href={SEFA_PORTAL_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 text-xs font-semibold active:text-blue-800"
+            className="text-brand text-xs font-semibold active:text-brand-hover"
           >
             {t('apply_open_sefa_portal')} →
           </a>
@@ -47,7 +47,7 @@ export function ApplySection({ t }: Props) {
           <p className="font-semibold text-gray-900">📧 {t('apply_email_title')}</p>
           <a
             href={`mailto:${SEFA_EMAIL}`}
-            className="text-blue-600 text-xs font-semibold active:text-blue-800"
+            className="text-brand text-xs font-semibold active:text-brand-hover"
           >
             {SEFA_EMAIL}
           </a>
@@ -57,26 +57,26 @@ export function ApplySection({ t }: Props) {
           <p className="font-semibold text-gray-900">📞 {t('apply_help_title')}</p>
           <p className="text-xs text-gray-600">
             {t('apply_help_call_centre')}{' '}
-            <a href={`tel:${FUND_CALL_CENTRE.replace(/\s/g, '')}`} className="text-blue-600 font-semibold">
+            <a href={`tel:${FUND_CALL_CENTRE.replace(/\s/g, '')}`} className="text-brand font-semibold">
               {FUND_CALL_CENTRE}
             </a>
           </p>
           <p className="text-xs text-gray-500">{t('apply_help_hours')}</p>
           <p className="text-xs text-gray-600 mt-2">
             NEF:{' '}
-            <a href={`tel:${NEF_PHONE.replace(/\s/g, '')}`} className="text-blue-600 font-semibold">
+            <a href={`tel:${NEF_PHONE.replace(/\s/g, '')}`} className="text-brand font-semibold">
               {NEF_PHONE}
             </a>
           </p>
           <p className="text-xs text-gray-600">
             SEDFA:{' '}
-            <a href={`tel:${SEDFA_PHONE.replace(/\s/g, '')}`} className="text-blue-600 font-semibold">
+            <a href={`tel:${SEDFA_PHONE.replace(/\s/g, '')}`} className="text-brand font-semibold">
               {SEDFA_PHONE}
             </a>
           </p>
           <p className="text-xs text-gray-600">
             Email:{' '}
-            <a href={`mailto:${FUND_EMAIL}`} className="text-blue-600 font-semibold">
+            <a href={`mailto:${FUND_EMAIL}`} className="text-brand font-semibold">
               {FUND_EMAIL}
             </a>
           </p>

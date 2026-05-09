@@ -114,7 +114,7 @@ export function NotificationBell({ shopId }: { shopId: string }) {
           onClick={() => setIsOpen(false)}
         >
           <div
-            className="bg-white rounded-2xl w-full max-w-sm shadow-xl overflow-hidden"
+            className="bg-white rounded-2xl w-full max-w-sm overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-5 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between">
@@ -148,7 +148,7 @@ export function NotificationBell({ shopId }: { shopId: string }) {
                           type="button"
                           onClick={() => handleResolve(req.id, 'grant')}
                           disabled={busy}
-                          className="flex-1 bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-xl active:bg-blue-700 disabled:opacity-50"
+                          className="flex-1 bg-brand text-white text-sm font-semibold py-2.5 rounded-full active:bg-brand-hover disabled:opacity-50"
                         >
                           {t('bell_btn_grant')}
                         </button>

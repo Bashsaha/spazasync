@@ -35,7 +35,7 @@ export function JourneySummaryScreen({ steps, nationality, fundInterest, onFinis
                 step.status === 'done'
                   ? 'border-green-200 bg-green-50'
                   : isStartHere
-                    ? 'border-blue-300 bg-blue-50'
+                    ? 'border-brand-light bg-brand-light'
                     : 'border-gray-200 bg-white'
               }`}
             >
@@ -69,7 +69,7 @@ export function JourneySummaryScreen({ steps, nationality, fundInterest, onFinis
         type="button"
         onClick={onFinish}
         disabled={saving}
-        className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl active:bg-blue-700 disabled:opacity-50 text-base min-h-[48px]"
+        className="w-full bg-brand text-white font-semibold py-3 rounded-full active:bg-brand-hover disabled:opacity-50 text-base min-h-[48px]"
       >
         {saving ? (
           <span className="inline-flex items-center justify-center gap-2">

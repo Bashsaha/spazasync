@@ -115,7 +115,7 @@ export default function StockTakePage() {
         </p>
         <button
           onClick={() => router.push('/dashboard')}
-          className="w-full max-w-xs bg-blue-600 text-white font-semibold py-4 rounded-2xl active:bg-blue-700"
+          className="w-full max-w-xs bg-brand text-white font-semibold py-4 rounded-full active:bg-brand-hover"
         >
           {t('stock_take_btn_dashboard')}
         </button>
@@ -175,7 +175,7 @@ export default function StockTakePage() {
         ) : products.length === 0 ? (
           <div className="text-center mt-16">
             <p className="text-gray-400 text-sm">{t('stock_take_no_products')}</p>
-            <Link href="/products/new" className="text-blue-600 text-sm mt-2 inline-block">
+            <Link href="/products/new" className="text-brand text-sm mt-2 inline-block">
               {t('stock_take_add_first')}
             </Link>
           </div>
@@ -189,7 +189,7 @@ export default function StockTakePage() {
               <button
                 type="button"
                 onClick={markAllCorrect}
-                className="text-xs font-semibold text-blue-600 active:text-blue-700"
+                className="text-xs font-semibold text-brand active:text-brand-hover"
               >
                 {t('stock_take_mark_all_correct')}
               </button>
@@ -202,7 +202,7 @@ export default function StockTakePage() {
               <span className="w-16 text-center">{t('stock_take_col_count')}</span>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl overflow-hidden">
               {products.map((p, idx) => {
                 const inputVal = counts[p.id] ?? ''
                 const parsed = parseInt(inputVal, 10)
@@ -214,7 +214,7 @@ export default function StockTakePage() {
                     key={p.id}
                     className={`flex items-center gap-2 px-4 py-3 ${
                       idx !== products.length - 1 ? 'border-b border-gray-100' : ''
-                    } ${isChanged ? 'bg-blue-50' : ''}`}
+                    } ${isChanged ? 'bg-brand-light' : ''}`}
                   >
                     {/* product info */}
                     <div className="flex-1 min-w-0">
@@ -240,9 +240,9 @@ export default function StockTakePage() {
                       value={inputVal}
                       onChange={(e) => handleCount(p.id, e.target.value)}
                       aria-label={t('stock_take_input_label', { name: p.name })}
-                      className={`w-16 text-center border rounded-xl py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      className={`w-16 text-center border rounded-xl py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand ${
                         isChanged
-                          ? 'border-blue-500 text-blue-800 bg-white'
+                          ? 'border-brand text-brand-hover bg-white'
                           : 'border-gray-200 text-gray-900'
                       }`}
                     />
@@ -256,13 +256,13 @@ export default function StockTakePage() {
 
       {/* sticky submit bar */}
       {!isLoading && products.length > 0 && (
-        <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 shadow-lg">
+        <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 ">
           <div className="max-w-lg mx-auto px-4 py-3">
             <button
               type="submit"
               form="stock-take-form"
               disabled={isSubmitting || countedItems === 0}
-              className="w-full bg-blue-600 text-white font-semibold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-brand text-white font-semibold py-4 rounded-full active:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting
                 ? t('stock_take_btn_saving')

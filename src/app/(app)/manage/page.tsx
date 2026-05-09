@@ -20,7 +20,7 @@ export default async function ManageHubPage() {
       <div className="space-y-3">
         <Link
           href="/tellers"
-          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:bg-gray-50"
+          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
         >
           <div>
             <p className="font-bold text-gray-900">{t('card_staff')}</p>
@@ -31,22 +31,22 @@ export default async function ManageHubPage() {
 
         <Link
           href="/compliance/journey"
-          className="flex items-center justify-between bg-emerald-50 rounded-2xl p-5 border border-emerald-100 shadow-sm active:bg-emerald-100"
+          className="flex items-center justify-between bg-brand-light rounded-2xl p-5 border border-brand-light active:bg-brand-light"
         >
           <div>
-            <p className="font-bold text-emerald-900">{t('card_journey')}</p>
-            <p className="text-emerald-700 text-sm">{t('card_journey_desc')}</p>
+            <p className="font-bold text-brand-hover">{t('card_journey')}</p>
+            <p className="text-brand-hover text-sm">{t('card_journey_desc')}</p>
           </div>
           <span className="text-3xl">🗺️</span>
         </Link>
 
         <Link
           href="/inspection"
-          className="flex items-center justify-between bg-indigo-50 rounded-2xl p-5 border border-indigo-100 shadow-sm active:bg-indigo-100"
+          className="flex items-center justify-between bg-brand-light rounded-2xl p-5 border border-brand-light active:bg-brand-light"
         >
           <div>
-            <p className="font-bold text-indigo-900">{t('card_compliance')}</p>
-            <p className="text-indigo-600 text-sm">{t('card_compliance_desc')}</p>
+            <p className="font-bold text-brand-hover">{t('card_compliance')}</p>
+            <p className="text-brand text-sm">{t('card_compliance_desc')}</p>
           </div>
           <span className="text-3xl">📋</span>
         </Link>

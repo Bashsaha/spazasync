@@ -46,7 +46,7 @@ export default function SuppliersPage() {
         </div>
         <Link
           href="/suppliers/new"
-          className="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-xl active:bg-blue-700"
+          className="bg-brand text-white text-sm font-semibold px-4 py-2 rounded-full active:bg-brand-hover"
         >
           {t('btn_add')}
         </Link>
@@ -71,7 +71,7 @@ export default function SuppliersPage() {
             <li key={s.id}>
               <Link
                 href={`/suppliers/${s.id}`}
-                className="flex items-center justify-between bg-white rounded-2xl p-4 border border-gray-100 shadow-sm active:bg-gray-50"
+                className="flex items-center justify-between bg-white rounded-2xl p-4 border border-gray-100 active:bg-gray-50"
               >
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-gray-900 truncate">{s.name}</p>

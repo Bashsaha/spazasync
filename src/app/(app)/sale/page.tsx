@@ -264,7 +264,7 @@ export default function SalePage() {
           {(role === 'owner' || role === 'admin') && (
             <button
               onClick={clearActiveTeller}
-              className="text-xs text-blue-600 font-semibold active:text-blue-800"
+              className="text-xs text-brand font-semibold active:text-brand-hover"
             >
               {t('change_teller')}
             </button>
@@ -290,7 +290,7 @@ export default function SalePage() {
           <button
             onClick={() => setIsScannerOpen(true)}
             disabled={isScanLoading}
-            className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold py-4 rounded-2xl active:bg-blue-700 text-base disabled:opacity-60"
+            className="flex-1 flex items-center justify-center gap-2 bg-brand text-white font-semibold py-4 rounded-full active:bg-brand-hover text-base disabled:opacity-60"
           >
             {isScanLoading ? (
               <>
@@ -306,7 +306,7 @@ export default function SalePage() {
           </button>
           <button
             onClick={() => setIsPickerOpen(true)}
-            className="flex-1 flex items-center justify-center gap-2 border-2 border-blue-600 text-blue-600 font-semibold py-4 rounded-2xl active:bg-blue-50 text-base"
+            className="flex-1 flex items-center justify-center gap-2 border-2 border-brand text-brand font-semibold py-4 rounded-2xl active:bg-brand-light text-base"
           >
             <span className="text-lg">📋</span>
             {t('btn_add_manually')}
@@ -320,7 +320,7 @@ export default function SalePage() {
             <p className="text-gray-400 text-sm">{t('cart_empty')}</p>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-sm px-4">
+          <div className="bg-white rounded-2xl px-4">
             {items.map((item) => (
               <CartItem
                 key={item.product.id}

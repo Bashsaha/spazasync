@@ -34,7 +34,7 @@ export function ConfirmModal({
       role="dialog"
       aria-modal="true"
     >
-      <div className="w-full max-w-lg bg-white rounded-t-3xl p-6 shadow-xl">
+      <div className="w-full max-w-lg bg-white rounded-t-3xl p-6 ">
         <p className="text-gray-900 font-semibold text-base mb-6">{message}</p>
         <div className="flex flex-col gap-3">
           <button
@@ -43,7 +43,7 @@ export function ConfirmModal({
             className={`w-full py-3 rounded-xl font-semibold text-white ${
               isDestructive
                 ? 'bg-red-500 active:bg-red-600'
-                : 'bg-blue-600 active:bg-blue-700'
+                : 'bg-brand active:bg-brand-hover'
             }`}
           >
             {confirmLabel ?? t('confirm')}

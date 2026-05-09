@@ -279,7 +279,7 @@ export default function SettingsPage() {
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
       {saving && <FullScreenSpinner label={t('btn_saving')} />}
-      <a href="/dashboard" className="text-sm text-blue-600 mb-6 inline-block">
+      <a href="/dashboard" className="text-sm text-brand mb-6 inline-block">
         {t('back')}
       </a>
 
@@ -287,12 +287,12 @@ export default function SettingsPage() {
       <p className="text-sm text-gray-400 mb-6">{t('subtitle')}</p>
 
       {/* Compliance report */}
-      <div id="compliance" className="bg-indigo-50 border border-indigo-100 rounded-2xl px-4 py-4 mb-6">
+      <div id="compliance" className="bg-brand-light border border-brand-light rounded-2xl px-4 py-4 mb-6">
         <div className="flex items-start gap-3 mb-3">
           <span className="text-2xl">📋</span>
           <div>
-            <p className="font-bold text-indigo-900">{t('compliance_title')}</p>
-            <p className="text-sm text-indigo-700 mt-0.5">
+            <p className="font-bold text-brand-hover">{t('compliance_title')}</p>
+            <p className="text-sm text-brand-hover mt-0.5">
               {t('compliance_desc')}
             </p>
           </div>
@@ -301,19 +301,19 @@ export default function SettingsPage() {
           type="button"
           onClick={handleDownloadReport}
           disabled={downloading}
-          className="w-full bg-indigo-600 text-white font-semibold rounded-xl py-3 text-sm active:bg-indigo-700 disabled:opacity-50"
+          className="w-full bg-brand text-white font-semibold rounded-full py-3 text-sm active:bg-brand-hover disabled:opacity-50"
         >
           {downloading ? t('btn_generating_report') : t('btn_download_report')}
         </button>
       </div>
 
       {/* Compliance check (Phase 37b) — re-open the onboarding flow */}
-      <div className="bg-blue-50 border border-blue-100 rounded-2xl px-4 py-4 mb-6">
+      <div className="bg-brand-light border border-brand-light rounded-2xl px-4 py-4 mb-6">
         <div className="flex items-start gap-3 mb-3">
           <span className="text-2xl">🛡️</span>
           <div>
-            <p className="font-bold text-blue-900">{tCo('settings_section_title')}</p>
-            <p className="text-sm text-blue-700 mt-0.5">
+            <p className="font-bold text-brand-hover">{tCo('settings_section_title')}</p>
+            <p className="text-sm text-brand-hover mt-0.5">
               {tCo('settings_section_subtitle')}
             </p>
           </div>
@@ -322,26 +322,26 @@ export default function SettingsPage() {
           type="button"
           onClick={handleRedoCompliance}
           disabled={redoLoading}
-          className="w-full bg-blue-600 text-white font-semibold rounded-xl py-3 text-sm active:bg-blue-700 disabled:opacity-50"
+          className="w-full bg-brand text-white font-semibold rounded-full py-3 text-sm active:bg-brand-hover disabled:opacity-50"
         >
           {tCo('settings_redo_btn')}
         </button>
-        <p className="text-xs text-blue-700/70 mt-2">{tCo('settings_redo_hint')}</p>
+        <p className="text-xs text-brand-hover/70 mt-2">{tCo('settings_redo_hint')}</p>
       </div>
 
       {/* My Business Documents */}
       <a
         href="/documents"
-        className="block bg-emerald-50 border border-emerald-100 rounded-2xl px-4 py-4 mb-6 active:bg-emerald-100"
+        className="block bg-brand-light border border-brand-light rounded-2xl px-4 py-4 mb-6 active:bg-brand-light"
       >
         <div className="flex items-start gap-3">
           <span className="text-2xl">📄</span>
           <div className="flex-1">
-            <p className="font-bold text-emerald-900">{tDoc('settings_card_title')}</p>
-            <p className="text-sm text-emerald-700 mt-0.5">
+            <p className="font-bold text-brand-hover">{tDoc('settings_card_title')}</p>
+            <p className="text-sm text-brand-hover mt-0.5">
               {tDoc('settings_card_desc')}
             </p>
-            <span className="inline-block mt-2 text-sm font-semibold text-emerald-600">
+            <span className="inline-block mt-2 text-sm font-semibold text-brand">
               {tDoc('settings_card_btn')} &rsaquo;
             </span>
           </div>
@@ -351,16 +351,16 @@ export default function SettingsPage() {
       {/* My Waste & Pest Management */}
       <a
         href="/waste-pest"
-        className="block bg-emerald-50 border border-emerald-100 rounded-2xl px-4 py-4 mb-6 active:bg-emerald-100"
+        className="block bg-brand-light border border-brand-light rounded-2xl px-4 py-4 mb-6 active:bg-brand-light"
       >
         <div className="flex items-start gap-3">
           <span className="text-2xl">🧹</span>
           <div className="flex-1">
-            <p className="font-bold text-emerald-900">{tWp('settings_card_title')}</p>
-            <p className="text-sm text-emerald-700 mt-0.5">
+            <p className="font-bold text-brand-hover">{tWp('settings_card_title')}</p>
+            <p className="text-sm text-brand-hover mt-0.5">
               {tWp('settings_card_desc')}
             </p>
-            <span className="inline-block mt-2 text-sm font-semibold text-emerald-600">
+            <span className="inline-block mt-2 text-sm font-semibold text-brand">
               {tWp('settings_card_btn')} &rsaquo;
             </span>
           </div>
@@ -370,16 +370,16 @@ export default function SettingsPage() {
       {/* My Suppliers */}
       <a
         href="/suppliers"
-        className="block bg-emerald-50 border border-emerald-100 rounded-2xl px-4 py-4 mb-6 active:bg-emerald-100"
+        className="block bg-brand-light border border-brand-light rounded-2xl px-4 py-4 mb-6 active:bg-brand-light"
       >
         <div className="flex items-start gap-3">
           <span className="text-2xl">🚚</span>
           <div className="flex-1">
-            <p className="font-bold text-emerald-900">{tSup('settings_card_title')}</p>
-            <p className="text-sm text-emerald-700 mt-0.5">
+            <p className="font-bold text-brand-hover">{tSup('settings_card_title')}</p>
+            <p className="text-sm text-brand-hover mt-0.5">
               {tSup('settings_card_desc')}
             </p>
-            <span className="inline-block mt-2 text-sm font-semibold text-emerald-600">
+            <span className="inline-block mt-2 text-sm font-semibold text-brand">
               {tSup('settings_card_btn')} &rsaquo;
             </span>
           </div>
@@ -474,7 +474,7 @@ export default function SettingsPage() {
           </button>
         </div>
 
-        <a href="/checklist/history" className="block text-sm text-blue-600 mt-4">
+        <a href="/checklist/history" className="block text-sm text-brand mt-4">
           {tChk('history_link')} →
         </a>
       </div>
@@ -509,7 +509,7 @@ export default function SettingsPage() {
           {fundInterest && (
             <a
               href="/compliance/fund"
-              className="mt-3 inline-block text-sm text-blue-600 font-semibold active:text-blue-800"
+              className="mt-3 inline-block text-sm text-brand font-semibold active:text-brand-hover"
             >
               {t('fund_interest_open')} →
             </a>
@@ -532,7 +532,7 @@ export default function SettingsPage() {
                     settings.subscription_status === 'active'
                       ? 'bg-green-100 text-green-700'
                       : settings.subscription_status === 'trialing'
-                        ? 'bg-blue-100 text-blue-700'
+                        ? 'bg-brand-light text-brand-hover'
                         : settings.subscription_status === 'cancelled'
                           ? 'bg-amber-100 text-amber-700'
                           : 'bg-red-100 text-red-700'
@@ -572,7 +572,7 @@ export default function SettingsPage() {
       <div className="bg-gray-50 rounded-2xl px-4 py-3 mb-6 flex items-center justify-between">
         <div>
           <p className="text-xs text-gray-400">{t('shop_code_label')}</p>
-          <p className="font-mono font-bold text-blue-600 text-lg">{settings?.code}</p>
+          <p className="font-mono font-bold text-brand text-lg">{settings?.code}</p>
         </div>
         <p className="text-xs text-gray-300 text-right max-w-[140px]">
           {t('shop_code_hint')}
@@ -590,7 +590,7 @@ export default function SettingsPage() {
             onChange={(e) => setName(e.target.value)}
             required
             maxLength={100}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand"
             placeholder={t('placeholder_shop_name')}
           />
         </div>
@@ -604,7 +604,7 @@ export default function SettingsPage() {
             value={regNumber}
             onChange={(e) => setRegNumber(e.target.value)}
             maxLength={100}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand"
             placeholder={t('placeholder_reg_number')}
           />
           <p className="text-xs text-gray-400 mt-1">
@@ -621,7 +621,7 @@ export default function SettingsPage() {
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             maxLength={200}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand"
             placeholder={t('placeholder_location')}
           />
           <p className="text-xs text-gray-400 mt-1">
@@ -640,7 +640,7 @@ export default function SettingsPage() {
               onChange={(e) => setThreshold(Math.max(1, parseInt(e.target.value) || 1))}
               min={1}
               max={9999}
-              className="w-24 border border-gray-200 rounded-xl px-4 py-3 text-sm text-center focus:outline-none focus:border-blue-500"
+              className="w-24 border border-gray-200 rounded-xl px-4 py-3 text-sm text-center focus:outline-none focus:border-brand"
             />
             <span className="text-sm text-gray-500">{t('threshold_suffix')}</span>
           </div>
@@ -661,7 +661,7 @@ export default function SettingsPage() {
         <button
           type="submit"
           disabled={saving}
-          className="w-full bg-blue-600 text-white font-semibold rounded-2xl py-4 text-base active:bg-blue-700 disabled:opacity-50"
+          className="w-full bg-brand text-white font-semibold rounded-full py-4 text-base active:bg-brand-hover disabled:opacity-50"
         >
           {saving ? (
             <span className="inline-flex items-center justify-center gap-2">

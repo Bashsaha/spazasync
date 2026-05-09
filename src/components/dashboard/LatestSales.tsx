@@ -29,7 +29,7 @@ export async function LatestSales({ shopId, locale }: { shopId: string; locale: 
           </p>
           <Link
             href="/sales/history"
-            className="text-xs font-semibold text-blue-600 active:text-blue-700"
+            className="text-xs font-semibold text-brand active:text-brand-hover"
           >
             {tDash('latest_sales_see_all')}
           </Link>

@@ -28,13 +28,13 @@ export default function AppError({
         <button
           onClick={reset}
           autoFocus
-          className="bg-blue-600 text-white font-semibold px-6 py-3 rounded-xl active:bg-blue-700"
+          className="bg-brand text-white font-semibold px-6 py-3 rounded-full active:bg-brand-hover"
         >
           {t('error_btn_try_again')}
         </button>
         <Link
           href="/dashboard"
-          className="text-center text-blue-600 font-semibold px-6 py-3 rounded-xl border border-blue-200 active:bg-blue-50"
+          className="text-center text-brand font-semibold px-6 py-3 rounded-xl border border-brand-light active:bg-brand-light"
         >
           {t('btn_goto_dashboard')}
         </Link>

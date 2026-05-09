@@ -167,7 +167,7 @@ export default function ChecklistPage() {
   if (errorKey && !data) {
     return (
       <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
-        <a href="/dashboard" className="text-sm text-blue-600 mb-6 inline-block">
+        <a href="/dashboard" className="text-sm text-brand mb-6 inline-block">
           {t('back')}
         </a>
         <p className="text-red-600">{t(errorKey)}</p>
@@ -189,7 +189,7 @@ export default function ChecklistPage() {
   return (
     <main className="px-4 pt-10 pb-40 max-w-lg mx-auto">
       {saving && <FullScreenSpinner label={t('btn_saving')} />}
-      <a href="/dashboard" className="text-sm text-blue-600 mb-2 inline-block">
+      <a href="/dashboard" className="text-sm text-brand mb-2 inline-block">
         {t('back')}
       </a>
       <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
@@ -222,7 +222,7 @@ export default function ChecklistPage() {
                 value={fridgeTemp}
                 onChange={(e) => setFridgeTemp(e.target.value)}
                 placeholder={t('placeholder_temp')}
-                className="w-28 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-28 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
           )}
@@ -248,7 +248,7 @@ export default function ChecklistPage() {
                 value={freezerTemp}
                 onChange={(e) => setFreezerTemp(e.target.value)}
                 placeholder={t('placeholder_freezer_temp')}
-                className="w-28 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-28 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
           )}
@@ -334,7 +334,7 @@ export default function ChecklistPage() {
                   ? opt === 'removed'
                     ? 'bg-green-600 text-white border-green-600'
                     : opt === 'none_found'
-                    ? 'bg-blue-600 text-white border-blue-600'
+                    ? 'bg-brand text-white border-brand'
                     : 'bg-gray-700 text-white border-gray-700'
                   : 'bg-white text-gray-700 border-gray-200'
               }`}
@@ -349,7 +349,7 @@ export default function ChecklistPage() {
 
       <a
         href="/checklist/history"
-        className="block text-center text-sm text-blue-600 mb-4"
+        className="block text-center text-sm text-brand mb-4"
       >
         {t('history_link')} →
       </a>
@@ -364,7 +364,7 @@ export default function ChecklistPage() {
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl active:bg-blue-700 disabled:opacity-50 min-h-[48px]"
+            className="w-full bg-brand text-white font-bold py-4 rounded-full active:bg-brand-hover disabled:opacity-50 min-h-[48px]"
           >
             {saving ? (
               <span className="inline-flex items-center justify-center gap-2">

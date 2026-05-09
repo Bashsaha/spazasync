@@ -89,7 +89,7 @@ function ProductCard({ product }: { product: ExpiryProductDetail }) {
   const totalBatchQty = product.batches.reduce((sum, b) => sum + b.quantity, 0)
 
   return (
-    <li className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <li className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center justify-between p-4 text-left active:bg-gray-50"
@@ -231,7 +231,7 @@ export default function ExpiryPage() {
       {!loading && !errorKey && products.length > 0 && (
         <div className="grid grid-cols-3 gap-2 mb-5">
           <div
-            className={`rounded-2xl p-3 border text-center shadow-sm ${
+            className={`rounded-2xl p-3 border text-center ${
               expired.length > 0 ? 'bg-red-50 border-red-200' : 'bg-white border-gray-100'
             }`}
           >
@@ -241,7 +241,7 @@ export default function ExpiryPage() {
             <p className="text-xs text-gray-500 mt-0.5">{t('summary_expired')}</p>
           </div>
           <div
-            className={`rounded-2xl p-3 border text-center shadow-sm ${
+            className={`rounded-2xl p-3 border text-center ${
               expiringSoon.length > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-100'
             }`}
           >
@@ -250,7 +250,7 @@ export default function ExpiryPage() {
             </p>
             <p className="text-xs text-gray-500 mt-0.5">{t('summary_expiring')}</p>
           </div>
-          <div className="bg-white border-gray-100 rounded-2xl p-3 border text-center shadow-sm">
+          <div className="bg-white border-gray-100 rounded-2xl p-3 border text-center ">
             <p className="text-xl font-bold text-green-600">{ok.length}</p>
             <p className="text-xs text-gray-500 mt-0.5">{t('summary_ok')}</p>
           </div>
