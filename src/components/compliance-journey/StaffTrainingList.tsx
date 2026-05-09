@@ -46,7 +46,7 @@ export function StaffTrainingList({ tellers }: Props) {
 
   if (tellers.length === 0) {
     return (
-      <p className="text-sm text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+      <p className="text-sm text-gray-500 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2">
         {t('staff_empty')}
       </p>
     )
@@ -55,11 +55,11 @@ export function StaffTrainingList({ tellers }: Props) {
   return (
     <div className="space-y-2">
       {error && (
-        <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+        <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
           {error}
         </p>
       )}
-      <ul className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
+      <ul className="bg-white border border-gray-200 rounded-2xl divide-y divide-gray-100">
         {tellers.map((teller) => {
           const trained = !!teller.food_safety_trained_at
           const trainedDate = teller.food_safety_trained_at
@@ -88,7 +88,7 @@ export function StaffTrainingList({ tellers }: Props) {
                 type="button"
                 onClick={() => toggle(teller)}
                 disabled={isPending || busyId === teller.id}
-                className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg border ${
+                className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border ${
                   trained
                     ? 'border-gray-200 text-gray-600 active:bg-gray-50'
                     : 'border-brand-light text-brand-hover active:bg-brand-light'

@@ -152,7 +152,7 @@ export default function WasteManagementPage() {
                     key={type}
                     type="button"
                     onClick={() => setRemovalType(type)}
-                    className={`w-full text-left px-4 py-3 rounded-xl border text-sm font-medium ${
+                    className={`w-full text-left px-4 py-3 rounded-full border text-sm font-medium ${
                       removalType === type
                         ? 'bg-brand text-white border-brand'
                         : 'bg-white text-gray-700 border-gray-200'
@@ -172,7 +172,7 @@ export default function WasteManagementPage() {
                     key={f}
                     type="button"
                     onClick={() => setFrequency(f)}
-                    className={`px-3 py-3 rounded-xl border text-sm font-medium ${
+                    className={`px-3 py-3 rounded-full border text-sm font-medium ${
                       frequency === f
                         ? 'bg-brand text-white border-brand'
                         : 'bg-white text-gray-700 border-gray-200'
@@ -239,7 +239,7 @@ export default function WasteManagementPage() {
                 type="button"
                 onClick={handleConfirm}
                 disabled={confirming}
-                className={`w-full font-bold py-3 rounded-2xl min-h-[44px] disabled:opacity-50 ${
+                className={`w-full font-bold py-3 rounded-full min-h-[44px] disabled:opacity-50 ${
                   isStale
                     ? 'bg-amber-500 text-white active:bg-amber-600'
                     : 'bg-green-600 text-white active:bg-green-700'

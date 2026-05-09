@@ -18,7 +18,7 @@ export default function AppError({
   }, [error])
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center bg-gray-50">
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center bg-surface">
       <div className="text-5xl mb-4">⚠️</div>
       <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('error_page_title')}</h1>
       <p className="text-gray-500 text-sm mb-6 max-w-xs">

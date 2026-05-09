@@ -90,7 +90,7 @@ export function AreaPicker({ value, onChange, copyNamespace = 'auth' }: AreaPick
           value={selectValue}
           onChange={handleSelectChange}
           required
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand text-base"
+          className="w-full px-4 py-3 rounded-2xl border border-gray-200 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand text-base"
         >
           <option value="" disabled>
             {loaded ? '—' : '…'}

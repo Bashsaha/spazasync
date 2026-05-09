@@ -225,7 +225,7 @@ export default function SubscribePage() {
         {isActive && (
           <button
             onClick={() => router.push('/settings')}
-            className="w-full rounded-xl bg-gray-100 py-3 text-gray-700 font-medium hover:bg-gray-200 transition-colors"
+            className="w-full rounded-full bg-gray-100 py-3 text-gray-700 font-medium hover:bg-gray-200 transition-colors"
           >
             {t('subscribe_btn_goto_settings')}
           </button>

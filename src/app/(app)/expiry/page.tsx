@@ -102,7 +102,7 @@ function ProductCard({ product }: { product: ExpiryProductDetail }) {
           )}
         </div>
         <div className="flex items-center gap-2 ml-3 shrink-0">
-          <span className={`text-xs font-bold px-2 py-1 rounded-lg ${config.badge}`}>
+          <span className={`text-xs font-bold px-2 py-1 rounded-full ${config.badge}`}>
             {t('badge_tracked', { count: totalBatchQty })}
           </span>
           <span className="text-gray-300 text-sm">{expanded ? '▲' : '▼'}</span>
@@ -165,12 +165,12 @@ function UrgencySection({
     <section className="mb-6">
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className={`w-full flex items-center justify-between ${config.bg} ${config.border} border rounded-xl px-4 py-3 mb-2`}
+        className={`w-full flex items-center justify-between ${config.bg} ${config.border} border rounded-full px-4 py-3 mb-2`}
         aria-expanded={!collapsed}
       >
         <div className="flex items-center gap-2">
           <span className={`text-sm font-bold ${config.text}`}>{t(config.labelKey)}</span>
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${config.badge}`}>
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${config.badge}`}>
             {products.length}
           </span>
         </div>

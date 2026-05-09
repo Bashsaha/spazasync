@@ -54,7 +54,7 @@ export function ReminderBanner({ reminder }: ReminderBannerProps) {
             href={reminder.ctaHref}
             target={isExternal ? '_blank' : undefined}
             rel={isExternal ? 'noopener noreferrer' : undefined}
-            className="flex-1 min-w-[160px] text-center bg-white border border-current/30 font-semibold py-2 px-4 rounded-xl text-sm active:bg-current/10"
+            className="flex-1 min-w-[160px] text-center bg-white border border-current/30 font-semibold py-2 px-4 rounded-2xl text-sm active:bg-current/10"
           >
             {t(reminder.ctaKey, reminder.params)}
           </a>
@@ -62,7 +62,7 @@ export function ReminderBanner({ reminder }: ReminderBannerProps) {
         <DismissButton
           reminderKey={reminder.key}
           reminderType={reminder.type}
-          className="px-4 py-2 bg-white border border-current/30 font-medium rounded-xl text-sm active:bg-current/10"
+          className="px-4 py-2 bg-white border border-current/30 font-medium rounded-2xl text-sm active:bg-current/10"
         />
       </div>
     </div>

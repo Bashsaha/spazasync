@@ -53,7 +53,7 @@ export function DismissButton({
       disabled={busy}
       className={
         className ??
-        'text-sm text-gray-500 px-3 py-1.5 rounded-lg border border-gray-200 active:bg-gray-100 disabled:opacity-50'
+        'text-sm text-gray-500 px-3 py-1.5 rounded-full border border-gray-200 active:bg-gray-100 disabled:opacity-50'
       }
       aria-label={t('cta_dismiss')}
     >

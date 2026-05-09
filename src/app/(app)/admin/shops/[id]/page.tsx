@@ -265,15 +265,15 @@ export default function AdminShopDetailPage() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white border border-gray-100 rounded-xl p-3 text-center">
+        <div className="bg-white border border-gray-100 rounded-2xl p-3 text-center">
           <p className="text-2xl font-bold text-gray-900">{shop.product_count}</p>
           <p className="text-xs text-gray-400">Products</p>
         </div>
-        <div className="bg-white border border-gray-100 rounded-xl p-3 text-center">
+        <div className="bg-white border border-gray-100 rounded-2xl p-3 text-center">
           <p className="text-2xl font-bold text-gray-900">{shop.teller_count}</p>
           <p className="text-xs text-gray-400">Active Tellers</p>
         </div>
-        <div className="bg-white border border-gray-100 rounded-xl p-3 text-center">
+        <div className="bg-white border border-gray-100 rounded-2xl p-3 text-center">
           <p className="text-2xl font-bold text-gray-900">{shop.recent_sales_count}</p>
           <p className="text-xs text-gray-400">Sales (30d)</p>
         </div>
@@ -295,7 +295,7 @@ export default function AdminShopDetailPage() {
           <button
             onClick={handleAccessClick}
             disabled={accessToggling}
-            className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
+            className={`text-sm font-medium px-4 py-2 rounded-full transition-colors ${
               shop.access_granted
                 ? 'bg-red-50 text-red-600 hover:bg-red-100'
                 : 'bg-green-50 text-green-600 hover:bg-green-100'
@@ -314,7 +314,7 @@ export default function AdminShopDetailPage() {
                 id="sub-status"
                 value={subStatus}
                 onChange={(e) => setSubStatus(e.target.value as SubscriptionStatus)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+                className="w-full border border-gray-200 rounded-2xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
               >
                 <option value="trialing">Trialing</option>
                 <option value="active">Active</option>
@@ -332,7 +332,7 @@ export default function AdminShopDetailPage() {
                 type="date"
                 value={subEndDate}
                 onChange={(e) => setSubEndDate(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
@@ -387,7 +387,7 @@ export default function AdminShopDetailPage() {
                 required
                 value={payAmount}
                 onChange={(e) => setPayAmount(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
             <div>
@@ -396,7 +396,7 @@ export default function AdminShopDetailPage() {
                 id="pay-method"
                 value={payMethod}
                 onChange={(e) => setPayMethod(e.target.value as 'eft' | 'cash' | 'card' | 'other')}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+                className="w-full border border-gray-200 rounded-2xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
               >
                 <option value="eft">EFT</option>
                 <option value="cash">Cash</option>
@@ -413,7 +413,7 @@ export default function AdminShopDetailPage() {
               value={payRef}
               onChange={(e) => setPayRef(e.target.value)}
               maxLength={200}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
           <div>
@@ -424,7 +424,7 @@ export default function AdminShopDetailPage() {
               value={payNotes}
               onChange={(e) => setPayNotes(e.target.value)}
               maxLength={500}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
           <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">

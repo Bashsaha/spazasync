@@ -37,7 +37,7 @@ export function BarcodeScanButton() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-1.5 text-sm font-semibold text-brand border border-brand-light px-3 py-2 rounded-xl active:bg-brand-light"
+        className="flex items-center gap-1.5 text-sm font-semibold text-brand border border-brand-light px-3 py-2 rounded-full active:bg-brand-light"
         aria-label={t('btn_scan_aria')}
       >
         {t('btn_scan')}

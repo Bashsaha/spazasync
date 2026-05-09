@@ -400,7 +400,7 @@ function StockAdjustContent() {
                   key={m}
                   type="button"
                   onClick={() => { setMode(m); if (m === 'remove') { setTrackAddExpiry(false); setAddExpiryEntries([]) } }}
-                  className={`flex-1 py-3 rounded-2xl text-sm font-semibold transition-colors ${
+                  className={`flex-1 py-3 rounded-full text-sm font-semibold transition-colors ${
                     mode === m
                       ? m === 'add'
                         ? 'bg-green-500 text-white'
@@ -422,7 +422,7 @@ function StockAdjustContent() {
                     key={q}
                     type="button"
                     onClick={() => setAmount(String(q))}
-                    className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-colors ${
+                    className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
                       amount === String(q)
                         ? 'bg-brand text-white border-brand'
                         : 'bg-white border-gray-200 text-gray-700 active:bg-gray-50'
@@ -473,7 +473,7 @@ function StockAdjustContent() {
               <select
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+                className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
               >
                 <option value="">{t('adjust_reason_placeholder')}</option>
                 {REASON_KEYS.map((rk) => (
@@ -493,7 +493,7 @@ function StockAdjustContent() {
                 <select
                   value={selectedSupplierId}
                   onChange={(e) => setSelectedSupplierId(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+                  className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
                 >
                   <option value="">{t('adjust_placeholder_supplier_none')}</option>
                   {suppliers.map((s) => (
@@ -603,7 +603,7 @@ function StockAdjustContent() {
                     value={batchDate}
                     onChange={(e) => setBatchDate(e.target.value)}
                     required
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+                    className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
                   />
                 </div>
                 <div>
@@ -617,7 +617,7 @@ function StockAdjustContent() {
                     onChange={(e) => setBatchQty(e.target.value)}
                     placeholder={t('batches_qty_placeholder')}
                     required
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+                    className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
                   />
                 </div>
                 {(batchErrorKey || batchErrorRaw) && (
@@ -650,7 +650,7 @@ function StockAdjustContent() {
                   return (
                     <div
                       key={b.id}
-                      className="bg-white rounded-xl border border-gray-100 p-3 flex items-center justify-between"
+                      className="bg-white rounded-2xl border border-gray-100 p-3 flex items-center justify-between"
                     >
                       <div>
                         <p className="text-sm font-semibold text-gray-900">

@@ -64,7 +64,7 @@ export function NewSupplierModal({ onCreated, onDismiss }: NewSupplierModalProps
         <p className="text-sm text-gray-500 mb-5">{t('add_desc')}</p>
 
         {errorMessage && (
-          <p className="text-red-500 text-sm mb-4 bg-red-50 rounded-lg px-3 py-2">{errorMessage}</p>
+          <p className="text-red-500 text-sm mb-4 bg-red-50 rounded-xl px-3 py-2">{errorMessage}</p>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -102,7 +102,7 @@ export function NewSupplierModal({ onCreated, onDismiss }: NewSupplierModalProps
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+              className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
             >
               <option value="">{t('type_none')}</option>
               <option value="wholesaler">{t('type_wholesaler')}</option>
@@ -129,7 +129,7 @@ export function NewSupplierModal({ onCreated, onDismiss }: NewSupplierModalProps
             <button
               type="button"
               onClick={onDismiss}
-              className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-xl font-medium active:bg-gray-50"
+              className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-full font-medium active:bg-gray-50"
             >
               {tCommon('cancel')}
             </button>

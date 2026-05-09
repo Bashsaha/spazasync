@@ -90,7 +90,7 @@ export default function MonthlyComplianceAlert() {
         <button
           onClick={handleView}
           disabled={loading}
-          className="bg-white text-brand text-sm font-semibold px-4 py-1.5 rounded-lg shrink-0 disabled:opacity-50"
+          className="bg-white text-brand text-sm font-semibold px-4 py-1.5 rounded-full shrink-0 disabled:opacity-50"
         >
           {loading ? t('loading') : t('monthly_cta_view')}
         </button>

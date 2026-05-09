@@ -224,7 +224,7 @@ function NewProductContent() {
           <select
             value={form.supplier_id}
             onChange={(e) => setForm((f) => ({ ...f, supplier_id: e.target.value }))}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+            className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
           >
             <option value="">{t('placeholder_supplier_none')}</option>
             {suppliers.map((s) => (

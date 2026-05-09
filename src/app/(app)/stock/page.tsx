@@ -118,7 +118,7 @@ export default function StockPage() {
         </div>
         <button
           onClick={() => setScanning(true)}
-          className="flex items-center gap-1.5 text-sm font-semibold text-brand border border-brand-light px-3 py-2 rounded-xl active:bg-brand-light"
+          className="flex items-center gap-1.5 text-sm font-semibold text-brand border border-brand-light px-3 py-2 rounded-full active:bg-brand-light"
         >
           {t('btn_scan')}
         </button>
@@ -183,7 +183,7 @@ export default function StockPage() {
         onChange={(e) => setSearch(e.target.value)}
         placeholder={t('search_placeholder')}
         aria-label={t('search_placeholder')}
-        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand mb-3"
+        className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand mb-3"
       />
 
       {/* Tabs */}
@@ -192,7 +192,7 @@ export default function StockPage() {
           <button
             key={tabId}
             onClick={() => setTab(tabId)}
-            className={`px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
+            className={`px-3 py-2 rounded-full text-sm font-semibold transition-colors ${
               tab === tabId
                 ? 'bg-brand text-white'
                 : 'bg-white border border-gray-200 text-gray-600 active:bg-gray-50'
@@ -248,12 +248,12 @@ export default function StockPage() {
                     </div>
                     <div className="flex items-center gap-2 ml-4 shrink-0">
                       {ep.expired_qty > 0 && (
-                        <span className="text-xs font-bold px-2 py-1 rounded-lg bg-red-100 text-red-700">
+                        <span className="text-xs font-bold px-2 py-1 rounded-full bg-red-100 text-red-700">
                           {t('expiry_badge_expired', { count: ep.expired_qty })}
                         </span>
                       )}
                       {ep.expiring_soon_qty > 0 && (
-                        <span className="text-xs font-bold px-2 py-1 rounded-lg bg-amber-100 text-amber-700">
+                        <span className="text-xs font-bold px-2 py-1 rounded-full bg-amber-100 text-amber-700">
                           {t('expiry_badge_soon', { count: ep.expiring_soon_qty })}
                         </span>
                       )}
@@ -291,7 +291,7 @@ export default function StockPage() {
                   </div>
                   <div className="flex items-center gap-3 ml-4 shrink-0">
                     <span
-                      className={`text-sm font-bold px-2.5 py-1 rounded-lg ${
+                      className={`text-sm font-bold px-2.5 py-1 rounded-xl ${
                         isOut
                           ? 'bg-red-100 text-red-700'
                           : isLow

@@ -34,13 +34,13 @@ export function ConfirmModal({
       role="dialog"
       aria-modal="true"
     >
-      <div className="w-full max-w-lg bg-white rounded-t-3xl p-6 ">
+      <div className="w-full max-w-lg bg-white rounded-t-2xl p-6 ">
         <p className="text-gray-900 font-semibold text-base mb-6">{message}</p>
         <div className="flex flex-col gap-3">
           <button
             onClick={onConfirm}
             autoFocus
-            className={`w-full py-3 rounded-xl font-semibold text-white ${
+            className={`w-full py-3 rounded-full font-semibold text-white ${
               isDestructive
                 ? 'bg-red-500 active:bg-red-600'
                 : 'bg-brand active:bg-brand-hover'
@@ -50,7 +50,7 @@ export function ConfirmModal({
           </button>
           <button
             onClick={onCancel}
-            className="w-full py-3 rounded-xl font-semibold text-gray-600 bg-gray-100 active:bg-gray-200"
+            className="w-full py-3 rounded-full font-semibold text-gray-600 bg-gray-100 active:bg-gray-200"
           >
             {cancelLabel ?? t('cancel')}
           </button>

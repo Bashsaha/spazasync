@@ -34,7 +34,7 @@ export function PaymentMethodSheet({ total, onConfirm, onDismiss }: PaymentMetho
       onClick={onDismiss}
     >
       <div
-        className="bg-white w-full max-w-lg rounded-t-3xl p-6 pb-[max(24px,env(safe-area-inset-bottom))] animate-in slide-in-from-bottom"
+        className="bg-white w-full max-w-lg rounded-t-2xl p-6 pb-[max(24px,env(safe-area-inset-bottom))] animate-in slide-in-from-bottom"
         onClick={(e) => e.stopPropagation()}
       >
         {step === 'method' && (

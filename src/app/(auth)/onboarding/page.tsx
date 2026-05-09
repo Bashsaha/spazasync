@@ -131,7 +131,7 @@ export default function OnboardingPage() {
     t('onboarding_step2_title')
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-surface flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-brand">Movestock</h1>
@@ -183,7 +183,7 @@ export default function OnboardingPage() {
                 <button
                   type="button"
                   onClick={handleCopyCode}
-                  className={`mt-3 text-sm font-semibold px-4 py-2 rounded-xl transition-colors ${
+                  className={`mt-3 text-sm font-semibold px-4 py-2 rounded-full transition-colors ${
                     codeCopied
                       ? 'bg-green-100 text-green-700'
                       : 'bg-white border border-brand-light text-brand-hover active:bg-brand-light'
@@ -284,7 +284,7 @@ function SignupForm({
         />
       </div>
       {error && (
-        <p className="text-red-600 text-sm bg-red-50 rounded-lg px-3 py-2">{error}</p>
+        <p className="text-red-600 text-sm bg-red-50 rounded-xl px-3 py-2">{error}</p>
       )}
       <button
         type="submit"
@@ -378,7 +378,7 @@ function ShopSetupForm({
       </div>
       <AreaPicker value={area} onChange={setArea} copyNamespace="auth" />
       {error && (
-        <p className="text-red-600 text-sm bg-red-50 rounded-lg px-3 py-2">{error}</p>
+        <p className="text-red-600 text-sm bg-red-50 rounded-xl px-3 py-2">{error}</p>
       )}
       <button
         type="submit"

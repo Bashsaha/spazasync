@@ -56,7 +56,7 @@ export function CatalogImportSheet() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="text-sm font-semibold text-brand border border-brand-light px-3 py-2 rounded-xl active:bg-brand-light"
+        className="text-sm font-semibold text-brand border border-brand-light px-3 py-2 rounded-full active:bg-brand-light"
       >
         {t('import_btn_open')}
       </button>
@@ -94,7 +94,7 @@ export function CatalogImportSheet() {
                     <button
                       key={item.barcode}
                       onClick={() => pick(item)}
-                      className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left active:bg-brand-light transition-colors"
+                      className="w-full flex items-center gap-3 px-3 py-3 rounded-full text-left active:bg-brand-light transition-colors"
                     >
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">

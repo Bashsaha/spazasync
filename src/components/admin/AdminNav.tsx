@@ -48,7 +48,7 @@ export default function AdminNav({ hasShop }: { hasShop?: boolean }) {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                  className={`px-3 py-1.5 text-sm rounded-xl transition-colors ${
                     isActive
                       ? 'bg-brand-light text-brand-hover font-semibold'
                       : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'

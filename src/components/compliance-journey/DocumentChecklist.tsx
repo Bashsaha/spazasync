@@ -32,7 +32,7 @@ export function DocumentChecklist({
     <section>
       <h4 className="text-sm font-semibold text-gray-800 mb-2">{t(headerKey)}</h4>
       {isEmpty ? (
-        <p className="text-sm text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+        <p className="text-sm text-gray-500 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2">
           {fallbackKey ? t(fallbackKey) : t('checklist_unknown_fallback')}
         </p>
       ) : (

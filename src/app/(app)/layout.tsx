@@ -57,7 +57,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const initial = initialChar || 'M'
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface">
       <LanguageProvider
         initialLocale={initialLocale}
         namespaces={['common', 'sale', 'sales', 'dashboard', 'stock', 'summary', 'products', 'tellers', 'expiry', 'settings', 'suppliers', 'checklist', 'documents', 'waste-pest', 'inspection', 'inventory', 'manage', 'compliance-onboarding', 'compliance-journey', 'compliance-fund', 'compliance-reminders']}

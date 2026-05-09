@@ -54,7 +54,7 @@ export function VisaScreen({ value, onChange }: Props) {
                 key={opt}
                 type="button"
                 onClick={() => onChange({ ...value, type: opt })}
-                className={`w-full text-left rounded-xl border px-4 py-3 text-sm font-medium ${
+                className={`w-full text-left rounded-full border px-4 py-3 text-sm font-medium ${
                   selected
                     ? 'border-brand bg-brand-light text-brand-hover'
                     : 'border-gray-200 bg-white text-gray-800'
@@ -78,7 +78,7 @@ export function VisaScreen({ value, onChange }: Props) {
           onChange={(e) =>
             onChange({ ...value, expiryDate: e.target.value || null })
           }
-          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm disabled:bg-gray-50 disabled:text-gray-400"
+          className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm disabled:bg-gray-50 disabled:text-gray-400"
         />
         <label className="mt-2 flex items-center gap-2 text-sm text-gray-700">
           <input

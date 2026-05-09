@@ -104,7 +104,7 @@ export function HealthCertificateStep({ step, data, t, tInsp }: Props) {
         </div>
       </section>
 
-      <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+      <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
         ⏰ {t('coa_renewal_note')}
       </p>
 

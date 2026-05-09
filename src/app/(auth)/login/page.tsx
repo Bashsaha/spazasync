@@ -57,7 +57,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-surface flex flex-col items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm">
         {/* Logo / App name */}
         <div className="text-center mb-8">
@@ -149,7 +149,7 @@ function RecentUsersRow({
             <button
               type="button"
               onClick={() => onSelect(u)}
-              className="flex-1 flex items-center gap-3 bg-white border border-gray-200 rounded-2xl px-3 py-2.5 text-left active:bg-gray-50 min-h-[48px]"
+              className="flex-1 flex items-center gap-3 bg-white border border-gray-200 rounded-full px-3 py-2.5 text-left active:bg-gray-50 min-h-[48px]"
             >
               <span className="w-9 h-9 rounded-full bg-brand-light text-brand-hover font-bold flex items-center justify-center shrink-0">
                 {initialForRecentUser(u)}
@@ -238,7 +238,7 @@ function OwnerLoginForm({
       </div>
 
       {error && (
-        <p className="text-red-600 text-sm bg-red-50 rounded-lg px-3 py-2">{error}</p>
+        <p className="text-red-600 text-sm bg-red-50 rounded-xl px-3 py-2">{error}</p>
       )}
 
       <button
@@ -360,7 +360,7 @@ function TellerLoginForm({
       </div>
 
       {error && (
-        <p className="text-red-600 text-sm bg-red-50 rounded-lg px-3 py-2">{error}</p>
+        <p className="text-red-600 text-sm bg-red-50 rounded-xl px-3 py-2">{error}</p>
       )}
 
       <button

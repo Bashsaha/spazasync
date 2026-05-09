@@ -33,7 +33,7 @@ export function GenerateApplicationPackButton({ missingDocCount }: Props) {
           <button
             type="button"
             disabled
-            className="w-full py-3 rounded-xl text-sm font-semibold text-gray-400 bg-gray-100 cursor-not-allowed"
+            className="w-full py-3 rounded-full text-sm font-semibold text-gray-400 bg-gray-100 cursor-not-allowed"
           >
             {t('pack_button')}
           </button>

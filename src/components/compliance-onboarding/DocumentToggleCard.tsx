@@ -38,7 +38,7 @@ export function DocumentToggleCard({ label, state, onCycle }: DocumentToggleCard
     <button
       type="button"
       onClick={() => onCycle(NEXT[state])}
-      className={`w-full text-left rounded-xl border px-4 py-3 transition-colors ${STATE_STYLES[state]}`}
+      className={`w-full text-left rounded-full border px-4 py-3 transition-colors ${STATE_STYLES[state]}`}
     >
       <div className="flex items-start justify-between gap-3">
         <span className="text-sm font-medium leading-tight">{label}</span>

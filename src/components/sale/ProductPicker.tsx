@@ -28,7 +28,7 @@ function ProductRow({
         onSelect(product)
         onClose()
       }}
-      className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 text-left"
+      className="w-full flex items-center justify-between px-4 py-3 rounded-full hover:bg-gray-50 active:bg-gray-100 text-left"
     >
       <div>
         <p className="text-sm font-medium text-gray-900">{product.name}</p>
@@ -154,7 +154,7 @@ export function ProductPicker({ onSelect, onClose, recentIds = [] }: ProductPick
         </div>
 
         {usingStaleCache && (
-          <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mb-3">
+          <p className="text-xs text-amber-600 bg-amber-50 rounded-xl px-3 py-2 mb-3">
             {t('picker_offline_stale')}
           </p>
         )}

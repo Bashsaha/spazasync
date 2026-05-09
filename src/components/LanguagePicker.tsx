@@ -39,7 +39,7 @@ export function LanguagePicker({ value, onChange, variant = 'full' }: LanguagePi
           key={loc}
           type="button"
           onClick={() => onChange(loc)}
-          className={`w-full rounded-xl px-4 py-3.5 text-left text-base font-medium transition-colors ${
+          className={`w-full rounded-full px-4 py-3.5 text-left text-base font-medium transition-colors ${
             value === loc
               ? 'bg-brand text-white'
               : 'bg-white text-gray-900 border border-gray-200 hover:border-brand-light'

@@ -136,7 +136,7 @@ function SalesHistoryContent() {
             value={date}
             max={today}
             onChange={(e) => navigateToDate(e.target.value)}
-            className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+            className="flex-1 border border-gray-200 rounded-2xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
             aria-label={t('pick_date')}
           />
           <button
@@ -184,7 +184,7 @@ function SalesHistoryContent() {
       )}
 
       {profitTrackingOn && totals && totals.profit === null && totals.saleCount > 0 && (
-        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-4">
+        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-4">
           {t('profit_unavailable')}
         </p>
       )}
@@ -202,7 +202,7 @@ function SalesHistoryContent() {
           </a>
           <a
             href={pdfUrl(prevYear, prevMonth)}
-            className="flex-1 text-center bg-white border border-gray-200 text-gray-700 text-sm font-semibold py-2.5 rounded-xl active:bg-gray-50"
+            className="flex-1 text-center bg-white border border-gray-200 text-gray-700 text-sm font-semibold py-2.5 rounded-2xl active:bg-gray-50"
           >
             {t('download_pdf_prev_month')}
           </a>

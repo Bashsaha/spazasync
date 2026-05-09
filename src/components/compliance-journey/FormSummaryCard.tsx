@@ -70,7 +70,7 @@ export function FormSummaryCard({
       </dl>
       {children}
       {footerKey && (
-        <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3">
+        <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mt-3">
           ⚠️ {t(footerKey)}
         </p>
       )}

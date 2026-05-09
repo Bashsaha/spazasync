@@ -60,7 +60,7 @@ export function CIPCStep({ step, data, t, isForeignNational = false }: Props) {
         </ul>
         <p className="text-xs text-gray-500">{t('cipc_cost')}</p>
         {showFundCallout && (
-          <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3">
+          <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mt-3">
             💰 {t('cipc_fund_callout')}
           </p>
         )}
@@ -91,7 +91,7 @@ export function CIPCStep({ step, data, t, isForeignNational = false }: Props) {
 
       <FormSummaryCard rows={formRows} t={t} headerKey="cipc_form_header" />
 
-      <p className="text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+      <p className="text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2">
         ℹ️ {t('cipc_annual_return_note')}
       </p>
 

@@ -40,7 +40,7 @@ export function ServiceWorkerRegistrar() {
       <span>A new version is available</span>
       <button
         onClick={() => window.location.reload()}
-        className="bg-white text-brand font-semibold text-xs px-3 py-1 rounded-lg active:bg-brand-light"
+        className="bg-white text-brand font-semibold text-xs px-3 py-1 rounded-full active:bg-brand-light"
       >
         Reload
       </button>

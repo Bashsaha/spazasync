@@ -91,7 +91,7 @@ export default function AdminAlertsPage() {
             <button
               key={a.id}
               onClick={() => router.push(`/admin/alerts/${a.id}`)}
-              className="w-full text-left bg-white border border-gray-100 rounded-xl p-4 hover:border-brand-light hover:bg-brand-light/30 transition-colors"
+              className="w-full text-left bg-white border border-gray-100 rounded-full p-4 hover:border-brand-light hover:bg-brand-light/30 transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">

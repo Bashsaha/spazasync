@@ -41,7 +41,7 @@ export function OfficeDirections({ offices, areaText, t, headerKey }: Props) {
   return (
     <section>
       <h4 className="text-sm font-semibold text-gray-800 mb-2">{t(headerKey)}</h4>
-      <div className="bg-white border border-gray-200 rounded-xl p-4 text-sm">
+      <div className="bg-white border border-gray-200 rounded-2xl p-4 text-sm">
         <p className="text-2xl mb-2" aria-hidden="true">📍</p>
         <p className="font-bold text-gray-900">{primary.name}</p>
         <p className="text-gray-700 whitespace-pre-line mt-1">{primary.address}</p>
@@ -94,7 +94,7 @@ export function OfficeDirections({ offices, areaText, t, headerKey }: Props) {
       </div>
 
       {rest.length > 0 && (
-        <details className="mt-2 bg-white border border-gray-100 rounded-xl">
+        <details className="mt-2 bg-white border border-gray-100 rounded-2xl">
           <summary className="px-4 py-3 text-sm font-semibold text-gray-700 cursor-pointer">
             {t('office_other_nearby')}
           </summary>

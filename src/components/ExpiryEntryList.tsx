@@ -52,7 +52,7 @@ export function ExpiryEntryList({ entries, onChange, totalStockQty }: ExpiryEntr
               value={entry.expiry_date}
               onChange={(e) => updateEntry(i, 'expiry_date', e.target.value)}
               min={today}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+              className="w-full border border-gray-200 rounded-2xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
           <div className="w-24">

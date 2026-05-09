@@ -48,12 +48,12 @@ export function SARSStep({ step, data, t }: Props) {
           <p className="text-gray-600 mb-3">{t('sars_no_data_yet')}</p>
         )}
         {annual < 1_000_000 ? (
-          <div className="bg-green-50 border border-green-100 rounded-lg p-3 text-green-800">
+          <div className="bg-green-50 border border-green-100 rounded-xl p-3 text-green-800">
             <p className="font-semibold mb-1">{t('sars_qualify_turnover_title')}</p>
             <p className="text-sm">{t('sars_qualify_turnover_body')}</p>
           </div>
         ) : (
-          <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 text-amber-800">
+          <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-amber-800">
             <p className="font-semibold mb-1">{t('sars_above_threshold_title')}</p>
             <p className="text-sm">{t('sars_above_threshold_body')}</p>
           </div>
@@ -82,7 +82,7 @@ export function SARSStep({ step, data, t }: Props) {
         </a>
       </section>
 
-      <p className="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+      <p className="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2">
         ℹ️ {t('sars_tax_clearance_note')}
       </p>
 

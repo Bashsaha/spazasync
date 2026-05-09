@@ -112,7 +112,7 @@ export default function PestControlListPage() {
                 <button
                   type="button"
                   onClick={() => setConfirmId(log.id)}
-                  className="text-xs text-red-600 font-medium px-2 py-1 rounded-lg active:bg-red-50 shrink-0"
+                  className="text-xs text-red-600 font-medium px-2 py-1 rounded-full active:bg-red-50 shrink-0"
                 >
                   {t('pest_delete_btn')}
                 </button>

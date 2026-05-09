@@ -112,7 +112,7 @@ export default function AdminCatalogNewPage() {
           <button
             type="button"
             onClick={() => router.push('/admin/catalog')}
-            className="px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+            className="px-4 py-2.5 rounded-full text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
           >
             Cancel
           </button>

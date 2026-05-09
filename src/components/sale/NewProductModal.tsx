@@ -183,7 +183,7 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
             <button
               type="button"
               onClick={onDismiss}
-              className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-xl font-medium active:bg-gray-50"
+              className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-full font-medium active:bg-gray-50"
             >
               {t('cancel')}
             </button>
@@ -212,7 +212,7 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
         </p>
 
         {error && (
-          <p className="text-red-500 text-sm mb-4 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+          <p className="text-red-500 text-sm mb-4 bg-red-50 rounded-xl px-3 py-2">{error}</p>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -312,7 +312,7 @@ export function NewProductModal({ barcode, suggestedName, onCreated, onDismiss }
             <button
               type="button"
               onClick={onDismiss}
-              className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-xl font-medium active:bg-gray-50"
+              className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-full font-medium active:bg-gray-50"
             >
               {t('cancel')}
             </button>

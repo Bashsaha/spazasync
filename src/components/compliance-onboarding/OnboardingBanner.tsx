@@ -47,7 +47,7 @@ export function OnboardingBanner({ onStart }: OnboardingBannerProps) {
           type="button"
           onClick={handleDismiss}
           disabled={dismissing}
-          className="px-4 bg-white border border-brand-light text-brand-hover font-medium py-2 rounded-xl active:bg-brand-light text-sm disabled:opacity-50"
+          className="px-4 bg-white border border-brand-light text-brand-hover font-medium py-2 rounded-full active:bg-brand-light text-sm disabled:opacity-50"
         >
           {t('banner_btn_later')}
         </button>

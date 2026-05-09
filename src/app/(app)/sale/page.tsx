@@ -218,7 +218,7 @@ export default function SalePage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <main className="min-h-screen bg-surface flex items-center justify-center">
         <p className="text-gray-400 text-sm">{t('loading')}</p>
       </main>
     )
@@ -306,7 +306,7 @@ export default function SalePage() {
           </button>
           <button
             onClick={() => setIsPickerOpen(true)}
-            className="flex-1 flex items-center justify-center gap-2 border-2 border-brand text-brand font-semibold py-4 rounded-2xl active:bg-brand-light text-base"
+            className="flex-1 flex items-center justify-center gap-2 border-2 border-brand text-brand font-semibold py-4 rounded-full active:bg-brand-light text-base"
           >
             <span className="text-lg">📋</span>
             {t('btn_add_manually')}

@@ -17,7 +17,7 @@ export function EmployeesScreen({ value, onPick }: Props) {
         <button
           type="button"
           onClick={() => onPick(true)}
-          className={`w-full text-left rounded-xl border px-4 py-3 text-sm font-medium ${
+          className={`w-full text-left rounded-full border px-4 py-3 text-sm font-medium ${
             value === true ? 'border-brand bg-brand-light text-brand-hover' : 'border-gray-200 bg-white text-gray-800'
           }`}
         >
@@ -26,7 +26,7 @@ export function EmployeesScreen({ value, onPick }: Props) {
         <button
           type="button"
           onClick={() => onPick(false)}
-          className={`w-full text-left rounded-xl border px-4 py-3 text-sm font-medium ${
+          className={`w-full text-left rounded-full border px-4 py-3 text-sm font-medium ${
             value === false ? 'border-brand bg-brand-light text-brand-hover' : 'border-gray-200 bg-white text-gray-800'
           }`}
         >

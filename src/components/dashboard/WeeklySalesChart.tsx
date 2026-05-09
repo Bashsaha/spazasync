@@ -38,7 +38,7 @@ function CustomTooltip({
   const revenue = payload[0]?.value ?? 0
   const salesCount = payload[0]?.payload?.salesCount ?? 0
   return (
-    <div className="bg-white border border-gray-100 rounded-xl px-3 py-2 text-xs">
+    <div className="bg-white border border-gray-100 rounded-2xl px-3 py-2 text-xs">
       <p className="font-semibold text-gray-700">{label}</p>
       <p className="text-brand-hover">R {Number(revenue).toFixed(2)}</p>
       <p className="text-gray-400">{salesCount} {salesCount === 1 ? saleOne : saleOther}</p>

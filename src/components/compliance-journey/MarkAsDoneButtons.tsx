@@ -136,7 +136,7 @@ export function MarkAsDoneButtons({
   return (
     <div className="space-y-2">
       {error && (
-        <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+        <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
           {error}
         </p>
       )}
@@ -146,7 +146,7 @@ export function MarkAsDoneButtons({
             type="button"
             onClick={() => setOpenForm('mark_received')}
             disabled={isPending}
-            className="flex-1 min-w-[140px] px-4 py-2.5 bg-green-600 text-white text-sm font-bold rounded-lg active:bg-green-700"
+            className="flex-1 min-w-[140px] px-4 py-2.5 bg-green-600 text-white text-sm font-bold rounded-full active:bg-green-700"
           >
             {t('action_received')} ✓
           </button>
@@ -174,7 +174,7 @@ export function MarkAsDoneButtons({
             type="button"
             onClick={() => setOpenForm('mark_applied')}
             disabled={isPending}
-            className="flex-1 px-4 py-2.5 bg-amber-500 text-white text-sm font-bold rounded-lg active:bg-amber-600"
+            className="flex-1 px-4 py-2.5 bg-amber-500 text-white text-sm font-bold rounded-full active:bg-amber-600"
           >
             {t('action_applied')} →
           </button>
@@ -182,7 +182,7 @@ export function MarkAsDoneButtons({
             type="button"
             onClick={() => setOpenForm('mark_received')}
             disabled={isPending}
-            className="flex-1 px-4 py-2.5 bg-green-600 text-white text-sm font-bold rounded-lg active:bg-green-700"
+            className="flex-1 px-4 py-2.5 bg-green-600 text-white text-sm font-bold rounded-full active:bg-green-700"
           >
             {t('action_received')} ✓
           </button>
@@ -226,12 +226,12 @@ function ApplyForm({
           value={refNumber}
           onChange={(e) => setRefNumber(e.target.value)}
           placeholder={t('form_applied_ref_placeholder')}
-          className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-base"
+          className="mt-1 w-full border border-gray-300 rounded-xl px-3 py-2 text-base"
           autoFocus
         />
       </label>
       {error && (
-        <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+        <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
           {error}
         </p>
       )}
@@ -239,7 +239,7 @@ function ApplyForm({
         <button
           type="submit"
           disabled={isPending}
-          className="flex-1 px-4 py-2.5 bg-amber-500 text-white text-sm font-bold rounded-lg active:bg-amber-600"
+          className="flex-1 px-4 py-2.5 bg-amber-500 text-white text-sm font-bold rounded-full active:bg-amber-600"
         >
           {t('btn_save')}
         </button>
@@ -300,7 +300,7 @@ function ReceiveForm({
           value={refNumber}
           onChange={(e) => setRefNumber(e.target.value)}
           placeholder={t('form_received_ref_placeholder')}
-          className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-base"
+          className="mt-1 w-full border border-gray-300 rounded-xl px-3 py-2 text-base"
           autoFocus
           required
         />
@@ -313,7 +313,7 @@ function ReceiveForm({
           type="date"
           value={dateIssued}
           onChange={(e) => setDateIssued(e.target.value)}
-          className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-base"
+          className="mt-1 w-full border border-gray-300 rounded-xl px-3 py-2 text-base"
         />
       </label>
       {hasExpiry && (
@@ -325,12 +325,12 @@ function ReceiveForm({
             type="date"
             value={expiry}
             onChange={(e) => setExpiry(e.target.value)}
-            className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-base"
+            className="mt-1 w-full border border-gray-300 rounded-xl px-3 py-2 text-base"
           />
         </label>
       )}
       {error && (
-        <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+        <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
           {error}
         </p>
       )}
@@ -338,7 +338,7 @@ function ReceiveForm({
         <button
           type="submit"
           disabled={isPending}
-          className="flex-1 px-4 py-2.5 bg-green-600 text-white text-sm font-bold rounded-lg active:bg-green-700"
+          className="flex-1 px-4 py-2.5 bg-green-600 text-white text-sm font-bold rounded-full active:bg-green-700"
         >
           {t('btn_save')}
         </button>

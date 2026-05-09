@@ -47,15 +47,15 @@ export function FoodSafetyStep({ step, data, t }: Props) {
           {t('food_options_header')}
         </h4>
         <ul className="space-y-2 text-sm">
-          <li className="bg-white border border-gray-200 rounded-xl p-3">
+          <li className="bg-white border border-gray-200 rounded-2xl p-3">
             <p className="font-semibold text-gray-900">{t('food_option_online_title')}</p>
             <p className="text-gray-600 mt-1">{t('food_option_online_desc')}</p>
           </li>
-          <li className="bg-white border border-gray-200 rounded-xl p-3">
+          <li className="bg-white border border-gray-200 rounded-2xl p-3">
             <p className="font-semibold text-gray-900">{t('food_option_virtual_title')}</p>
             <p className="text-gray-600 mt-1">{t('food_option_virtual_desc')}</p>
           </li>
-          <li className="bg-white border border-gray-200 rounded-xl p-3">
+          <li className="bg-white border border-gray-200 rounded-2xl p-3">
             <p className="font-semibold text-gray-900">{t('food_option_inperson_title')}</p>
             <p className="text-gray-600 mt-1">{t('food_option_inperson_desc')}</p>
           </li>
@@ -67,13 +67,13 @@ export function FoodSafetyStep({ step, data, t }: Props) {
           {t('food_owner_status_header')}
         </h4>
         {ownerTrained ? (
-          <p className="text-sm text-green-700 bg-green-50 border border-green-100 rounded-lg px-3 py-2">
+          <p className="text-sm text-green-700 bg-green-50 border border-green-100 rounded-xl px-3 py-2">
             ✅ {t('food_owner_trained', {
               date: data.ownerProfile?.food_safety_training_date ?? '',
             })}
           </p>
         ) : (
-          <p className="text-sm text-gray-600 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+          <p className="text-sm text-gray-600 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2">
             {t('food_owner_not_trained')}
           </p>
         )}

@@ -156,7 +156,7 @@ export function NotificationBell({ shopId }: { shopId: string }) {
                           type="button"
                           onClick={() => handleResolve(req.id, 'deny')}
                           disabled={busy}
-                          className="flex-1 bg-white border border-gray-200 text-gray-700 text-sm font-semibold py-2.5 rounded-xl active:bg-gray-50 disabled:opacity-50"
+                          className="flex-1 bg-white border border-gray-200 text-gray-700 text-sm font-semibold py-2.5 rounded-full active:bg-gray-50 disabled:opacity-50"
                         >
                           {t('bell_btn_deny')}
                         </button>

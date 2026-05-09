@@ -222,7 +222,7 @@ export default function EditAdminAlertPage({
         </div>
 
         {error && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
+          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl p-3">
             {error}
           </p>
         )}
@@ -239,7 +239,7 @@ export default function EditAdminAlertPage({
             type="button"
             onClick={handleExpireNow}
             disabled={submitting}
-            className="px-4 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 font-medium rounded-xl hover:bg-amber-100"
+            className="px-4 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 font-medium rounded-full hover:bg-amber-100"
           >
             Expire now
           </button>
@@ -247,7 +247,7 @@ export default function EditAdminAlertPage({
             type="button"
             onClick={handleDelete}
             disabled={submitting}
-            className="px-4 py-2.5 bg-red-50 text-red-700 border border-red-200 font-medium rounded-xl hover:bg-red-100 ml-auto"
+            className="px-4 py-2.5 bg-red-50 text-red-700 border border-red-200 font-medium rounded-full hover:bg-red-100 ml-auto"
           >
             Delete
           </button>

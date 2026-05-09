@@ -149,7 +149,7 @@ export default function EditSupplierPage() {
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
+            className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
           >
             <option value="">{t('type_none')}</option>
             <option value="wholesaler">{t('type_wholesaler')}</option>

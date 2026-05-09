@@ -228,7 +228,7 @@ export default function EditDocumentPage() {
             <button
               type="button"
               onClick={() => setOwnerMode('sa')}
-              className={`flex-1 py-3 text-sm font-semibold rounded-xl ${
+              className={`flex-1 py-3 text-sm font-semibold rounded-full ${
                 ownerMode === 'sa' ? 'bg-white shadow text-gray-900' : 'text-gray-500'
               }`}
             >
@@ -237,7 +237,7 @@ export default function EditDocumentPage() {
             <button
               type="button"
               onClick={() => setOwnerMode('foreign')}
-              className={`flex-1 py-3 text-sm font-semibold rounded-xl ${
+              className={`flex-1 py-3 text-sm font-semibold rounded-full ${
                 ownerMode === 'foreign' ? 'bg-white shadow text-gray-900' : 'text-gray-500'
               }`}
             >
@@ -269,7 +269,7 @@ export default function EditDocumentPage() {
             <select
               value={permitType}
               onChange={(e) => setPermitType(e.target.value as PermitType)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
+              className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
             >
               {PERMIT_TYPES.map((p) => (
                 <option key={p} value={p}>
@@ -284,7 +284,7 @@ export default function EditDocumentPage() {
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as DocumentStatus)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
+              className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
             >
               {STATUS_OPTIONS[docType].map((s) => (
                 <option key={s} value={s}>

@@ -30,7 +30,7 @@ export function GenerateDocButton({ titleKey, descriptionKey, href, t }: Props) 
   const isEnabled = !!href
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4">
+    <div className="bg-white border border-gray-200 rounded-2xl p-4">
       <p className="text-2xl mb-2" aria-hidden="true">📄</p>
       <p className="font-semibold text-gray-900">{t(titleKey)}</p>
       <p className="text-sm text-gray-500 mt-1">{t(descriptionKey)}</p>
@@ -45,7 +45,7 @@ export function GenerateDocButton({ titleKey, descriptionKey, href, t }: Props) 
         <button
           type="button"
           disabled
-          className="inline-flex items-center mt-3 px-4 py-2 bg-gray-100 text-gray-400 text-sm font-semibold rounded-lg cursor-not-allowed"
+          className="inline-flex items-center mt-3 px-4 py-2 bg-gray-100 text-gray-400 text-sm font-semibold rounded-full cursor-not-allowed"
           title={t('btn_generate_coming_soon')}
         >
           {t('btn_generate_coming_soon')}

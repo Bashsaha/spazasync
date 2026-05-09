@@ -329,7 +329,7 @@ export default function ChecklistPage() {
               key={opt}
               type="button"
               onClick={() => setExpiredAction(expiredAction === opt ? null : opt)}
-              className={`rounded-xl py-3 text-sm font-semibold border transition-colors ${
+              className={`rounded-full py-3 text-sm font-semibold border transition-colors ${
                 expiredAction === opt
                   ? opt === 'removed'
                     ? 'bg-green-600 text-white border-green-600'

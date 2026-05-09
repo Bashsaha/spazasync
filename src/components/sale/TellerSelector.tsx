@@ -60,7 +60,7 @@ export function TellerSelector({ onSelect, selectedId }: Props) {
           <button
             key={t.id}
             onClick={() => onSelect(t)}
-            className={`w-full text-left px-4 py-3 rounded-2xl border font-semibold text-sm min-h-[48px] ${
+            className={`w-full text-left px-4 py-3 rounded-full border font-semibold text-sm min-h-[48px] ${
               t.id === selectedId
                 ? 'bg-brand text-white border-brand'
                 : 'bg-white text-gray-900 border-gray-200 active:bg-gray-50'

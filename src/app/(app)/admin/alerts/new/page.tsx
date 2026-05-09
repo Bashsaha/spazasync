@@ -148,7 +148,7 @@ export default function NewAdminAlertPage() {
         </div>
 
         {error && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
+          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl p-3">
             {error}
           </p>
         )}

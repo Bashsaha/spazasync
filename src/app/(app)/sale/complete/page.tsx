@@ -15,7 +15,7 @@ function SaleCompleteContent() {
   const isOffline = searchParams.get('offline') === '1'
 
   return (
-    <main className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-6 text-center">
+    <main className="min-h-screen bg-surface flex flex-col items-center justify-center px-6 text-center">
       {/* icon changes based on online/offline */}
       <div
         className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 ${
@@ -58,7 +58,7 @@ function SaleCompleteContent() {
 
 function SaleCompleteFallback() {
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <main className="min-h-screen bg-surface flex items-center justify-center">
       <p className="text-gray-400 text-sm">Loading…</p>
     </main>
   )
