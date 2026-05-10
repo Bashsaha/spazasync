@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { X } from 'lucide-react'
 import type { DailySummaryData, LowStockItem, ExpiringProductAlert } from '@/types'
 import { useTranslation } from '@/components/LanguageProvider'
 import { Spinner } from '@/components/Spinner'
@@ -111,10 +112,10 @@ export default function DailySummaryAlert() {
         </button>
         <button
           onClick={handleDismiss}
-          className="text-brand-light text-lg leading-none shrink-0"
+          className="text-brand-light shrink-0"
           aria-label={t('dismiss')}
         >
-          ✕
+          <X className="w-5 h-5" strokeWidth={2} />
         </button>
       </div>
     )
@@ -135,10 +136,10 @@ export default function DailySummaryAlert() {
               <h2 className="text-lg font-bold text-gray-900">{t('modal_title')}</h2>
               <button
                 onClick={handleCloseModal}
-                className="text-gray-400 text-xl leading-none"
+                className="text-gray-400"
                 aria-label={t('close')}
               >
-                ✕
+                <X className="w-5 h-5" strokeWidth={2} />
               </button>
             </div>
           </div>

@@ -1,5 +1,6 @@
 'use client'
 
+import { X } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 
 interface ExpiryEntry {
@@ -74,10 +75,10 @@ export function ExpiryEntryList({ entries, onChange, totalStockQty }: ExpiryEntr
           <button
             type="button"
             onClick={() => removeEntry(i)}
-            className={`text-red-400 active:text-red-600 text-lg font-bold px-1 ${i === 0 ? 'mt-6' : 'mt-1'}`}
+            className={`text-red-400 active:text-red-600 px-1 ${i === 0 ? 'mt-6' : 'mt-1'}`}
             aria-label={t('entry_btn_remove_aria')}
           >
-            ✕
+            <X className="w-5 h-5" strokeWidth={2.25} />
           </button>
         </div>
       ))}

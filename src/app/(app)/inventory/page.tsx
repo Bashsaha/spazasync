@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Package, Tag, ClipboardList, Clock, Truck } from 'lucide-react'
 import { getShopAuth } from '@/lib/auth/shop-auth'
 import { getExpiryStats } from '@/lib/db/batches'
 import { getTellerAccessStatus } from '@/lib/db/access-requests'
@@ -93,7 +94,7 @@ export default async function InventoryHubPage() {
             <p className="font-bold text-gray-900">{t('card_stock')}</p>
             <p className="text-gray-400 text-sm">{t('card_stock_desc')}</p>
           </div>
-          <span className="text-3xl">📦</span>
+          <Package className="w-7 h-7 text-brand" strokeWidth={1.75} />
         </Link>
 
         <Link
@@ -104,7 +105,7 @@ export default async function InventoryHubPage() {
             <p className="font-bold text-gray-900">{t('card_products')}</p>
             <p className="text-gray-400 text-sm">{t('card_products_desc')}</p>
           </div>
-          <span className="text-3xl">🏷️</span>
+          <Tag className="w-7 h-7 text-brand" strokeWidth={1.75} />
         </Link>
 
         <Link
@@ -115,7 +116,7 @@ export default async function InventoryHubPage() {
             <p className="font-bold text-gray-900">{t('card_count')}</p>
             <p className="text-gray-400 text-sm">{t('card_count_desc')}</p>
           </div>
-          <span className="text-3xl">📋</span>
+          <ClipboardList className="w-7 h-7 text-brand" strokeWidth={1.75} />
         </Link>
 
         <Link
@@ -126,7 +127,7 @@ export default async function InventoryHubPage() {
             <p className="font-bold text-gray-900">{t('card_expiry')}</p>
             <p className="text-gray-400 text-sm">{t('card_expiry_desc')}</p>
           </div>
-          <span className="text-3xl">⏰</span>
+          <Clock className="w-7 h-7 text-brand" strokeWidth={1.75} />
         </Link>
 
         <Link
@@ -137,7 +138,7 @@ export default async function InventoryHubPage() {
             <p className="font-bold text-gray-900">{t('card_suppliers')}</p>
             <p className="text-gray-400 text-sm">{t('card_suppliers_desc')}</p>
           </div>
-          <span className="text-3xl">🚚</span>
+          <Truck className="w-7 h-7 text-brand" strokeWidth={1.75} />
         </Link>
       </div>
     </main>

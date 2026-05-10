@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { Camera, ClipboardList, ShoppingCart } from 'lucide-react'
 import { useActiveTeller } from '@/hooks/useActiveTeller'
 import { useCart } from '@/hooks/useCart'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
@@ -299,7 +300,7 @@ export default function SalePage() {
               </>
             ) : (
               <>
-                <span className="text-lg">📷</span>
+                <Camera className="w-5 h-5" strokeWidth={2} />
                 {t('btn_scan')}
               </>
             )}
@@ -308,7 +309,7 @@ export default function SalePage() {
             onClick={() => setIsPickerOpen(true)}
             className="flex-1 flex items-center justify-center gap-2 border-2 border-brand text-brand font-semibold py-4 rounded-full active:bg-brand-light text-base"
           >
-            <span className="text-lg">📋</span>
+            <ClipboardList className="w-5 h-5" strokeWidth={2} />
             {t('btn_add_manually')}
           </button>
         </div>
@@ -316,7 +317,7 @@ export default function SalePage() {
         {/* cart */}
         {items.length === 0 ? (
           <div className="text-center mt-16">
-            <p className="text-4xl mb-3">🛒</p>
+            <ShoppingCart className="w-12 h-12 mx-auto mb-3 text-gray-300" strokeWidth={1.5} />
             <p className="text-gray-400 text-sm">{t('cart_empty')}</p>
           </div>
         ) : (

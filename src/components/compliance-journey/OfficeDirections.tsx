@@ -7,6 +7,7 @@
  * card, never a wrong address.
  */
 
+import { MapPin, Phone, Mail, Clock } from 'lucide-react'
 import type { MunicipalityOffice } from '@/types'
 
 type T = (key: string, params?: Record<string, string | number>) => string
@@ -42,29 +43,29 @@ export function OfficeDirections({ offices, areaText, t, headerKey }: Props) {
     <section>
       <h4 className="text-sm font-semibold text-gray-800 mb-2">{t(headerKey)}</h4>
       <div className="bg-white border border-gray-200 rounded-2xl p-4 text-sm">
-        <p className="text-2xl mb-2" aria-hidden="true">📍</p>
+        <MapPin className="w-6 h-6 mb-2 text-brand" strokeWidth={1.75} aria-hidden="true" />
         <p className="font-bold text-gray-900">{primary.name}</p>
         <p className="text-gray-700 whitespace-pre-line mt-1">{primary.address}</p>
         {primary.phone && (
-          <p className="text-gray-700 mt-2">
-            <span aria-hidden="true">📞 </span>
+          <p className="text-gray-700 mt-2 flex items-center gap-1.5">
+            <Phone className="w-4 h-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
             <a href={`tel:${primary.phone.replace(/\s+/g, '')}`} className="text-brand active:text-brand-hover">
               {primary.phone}
             </a>
           </p>
         )}
         {primary.email && (
-          <p className="text-gray-700 mt-1">
-            <span aria-hidden="true">📧 </span>
+          <p className="text-gray-700 mt-1 flex items-center gap-1.5">
+            <Mail className="w-4 h-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
             <a href={`mailto:${primary.email}`} className="text-brand active:text-brand-hover break-all">
               {primary.email}
             </a>
           </p>
         )}
         {primary.hours && (
-          <p className="text-gray-700 mt-1">
-            <span aria-hidden="true">🕐 </span>
-            {primary.hours}
+          <p className="text-gray-700 mt-1 flex items-center gap-1.5">
+            <Clock className="w-4 h-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+            <span>{primary.hours}</span>
           </p>
         )}
         {primary.online_form_url && (
@@ -103,7 +104,12 @@ export function OfficeDirections({ offices, areaText, t, headerKey }: Props) {
               <li key={o.id} className="text-sm">
                 <p className="font-semibold text-gray-900">{o.name}</p>
                 <p className="text-gray-600 whitespace-pre-line mt-0.5">{o.address}</p>
-                {o.phone && <p className="text-gray-600 mt-0.5">📞 {o.phone}</p>}
+                {o.phone && (
+                  <p className="text-gray-600 mt-0.5 flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5 shrink-0" strokeWidth={1.75} />
+                    <span>{o.phone}</span>
+                  </p>
+                )}
               </li>
             ))}
           </ul>

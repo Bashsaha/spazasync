@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { ShoppingCart, Calendar } from 'lucide-react'
 import { getShopAuth } from '@/lib/auth/shop-auth'
 import { Skeleton } from '@/components/Skeleton'
 import { TodaySummary } from '@/components/dashboard/TodaySummary'
@@ -40,7 +41,7 @@ export default async function SalesHubPage() {
           <p className="font-bold text-lg">{t('hub_start_sale')}</p>
           <p className="text-brand-light text-sm">{t('hub_start_sale_desc')}</p>
         </div>
-        <span className="text-3xl">🛒</span>
+        <ShoppingCart className="w-7 h-7" strokeWidth={2} />
       </Link>
 
       {/* Today's totals — streams in */}
@@ -76,7 +77,7 @@ export default async function SalesHubPage() {
           <p className="font-bold text-gray-900">{t('hub_view_history')}</p>
           <p className="text-gray-400 text-sm">{t('hub_view_history_desc')}</p>
         </div>
-        <span className="text-3xl">📅</span>
+        <Calendar className="w-7 h-7 text-brand" strokeWidth={1.75} />
       </Link>
     </main>
   )

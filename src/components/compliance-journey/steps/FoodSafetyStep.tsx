@@ -11,6 +11,7 @@
  * want a single "Yes I'm done" checkbox; others will use the staff list).
  */
 
+import { Check } from 'lucide-react'
 import { StaffTrainingList } from '../StaffTrainingList'
 import { GenerateDocButton } from '../GenerateDocButton'
 import { MarkAsDoneButtons } from '../MarkAsDoneButtons'
@@ -67,10 +68,11 @@ export function FoodSafetyStep({ step, data, t }: Props) {
           {t('food_owner_status_header')}
         </h4>
         {ownerTrained ? (
-          <p className="text-sm text-green-700 bg-green-50 border border-green-100 rounded-xl px-3 py-2">
-            ✅ {t('food_owner_trained', {
+          <p className="flex items-start gap-1.5 text-sm text-green-700 bg-green-50 border border-green-100 rounded-xl px-3 py-2">
+            <Check className="w-4 h-4 mt-0.5 shrink-0" strokeWidth={2.25} />
+            <span>{t('food_owner_trained', {
               date: data.ownerProfile?.food_safety_training_date ?? '',
-            })}
+            })}</span>
           </p>
         ) : (
           <p className="text-sm text-gray-600 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2">

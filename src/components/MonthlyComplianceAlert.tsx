@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { X } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import type { ComplianceScoreResult } from '@/types'
 
@@ -96,10 +97,10 @@ export default function MonthlyComplianceAlert() {
         </button>
         <button
           onClick={handleDismiss}
-          className="text-brand-light text-lg leading-none shrink-0"
+          className="text-brand-light shrink-0"
           aria-label={t('monthly_cta_dismiss')}
         >
-          ✕
+          <X className="w-5 h-5" strokeWidth={2} />
         </button>
       </div>
     )
@@ -127,10 +128,10 @@ export default function MonthlyComplianceAlert() {
             <h2 className="text-lg font-bold text-gray-900">{t('monthly_alert_title')}</h2>
             <button
               onClick={handleCloseModal}
-              className="text-gray-400 text-xl leading-none"
+              className="text-gray-400"
               aria-label={t('monthly_cta_dismiss')}
             >
-              ✕
+              <X className="w-5 h-5" strokeWidth={2} />
             </button>
           </div>
 

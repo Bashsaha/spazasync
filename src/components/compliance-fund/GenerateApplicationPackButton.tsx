@@ -10,6 +10,7 @@
  */
 
 import Link from 'next/link'
+import { AlertTriangle } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 
 interface Props {
@@ -37,8 +38,9 @@ export function GenerateApplicationPackButton({ missingDocCount }: Props) {
           >
             {t('pack_button')}
           </button>
-          <p className="text-xs text-amber-700 mt-2">
-            ⚠️ {t('pack_missing_hint', { count: missingDocCount })}
+          <p className="flex items-start gap-1.5 text-xs text-amber-700 mt-2">
+            <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" strokeWidth={1.75} />
+            <span>{t('pack_missing_hint', { count: missingDocCount })}</span>
           </p>
           <Link
             href="/compliance/journey"

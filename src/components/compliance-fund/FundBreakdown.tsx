@@ -5,6 +5,8 @@
  * blended finance up to R300k. Server component — pure presentation.
  */
 
+import { Lightbulb } from 'lucide-react'
+
 type T = (key: string, params?: Record<string, string | number>) => string
 
 interface Props {
@@ -38,8 +40,9 @@ export function FundBreakdown({ cipcRegistered, t }: Props) {
           </li>
         </ul>
         {!cipcRegistered && (
-          <p className="text-xs text-amber-700 mt-3 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
-            💡 {t('tier1_cipc_unlock_hint')}
+          <p className="flex items-start gap-1.5 text-xs text-amber-700 mt-3 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+            <Lightbulb className="w-3.5 h-3.5 mt-0.5 shrink-0" strokeWidth={1.75} />
+            <span>{t('tier1_cipc_unlock_hint')}</span>
           </p>
         )}
       </div>

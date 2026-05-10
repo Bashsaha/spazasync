@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
@@ -169,7 +170,7 @@ function RecentUsersRow({
               aria-label={t('recent_users_remove')}
               className="w-9 h-9 flex items-center justify-center text-gray-300 active:text-gray-600 shrink-0"
             >
-              ✕
+              <X className="w-4 h-4" strokeWidth={2} />
             </button>
           </li>
         ))}

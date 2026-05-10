@@ -18,6 +18,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
+import { Check, ArrowRight } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import type { ComplianceJourneyStep, JourneyStepAction } from '@/types'
 
@@ -148,7 +149,7 @@ export function MarkAsDoneButtons({
             disabled={isPending}
             className="flex-1 min-w-[140px] px-4 py-2.5 bg-green-600 text-white text-sm font-bold rounded-full active:bg-green-700"
           >
-            {t('action_received')} ✓
+            <span className="inline-flex items-center gap-1.5 justify-center">{t('action_received')}<Check className="w-4 h-4" strokeWidth={2.5} /></span>
           </button>
           <button
             type="button"
@@ -176,7 +177,7 @@ export function MarkAsDoneButtons({
             disabled={isPending}
             className="flex-1 px-4 py-2.5 bg-amber-500 text-white text-sm font-bold rounded-full active:bg-amber-600"
           >
-            {t('action_applied')} →
+            <span className="inline-flex items-center gap-1.5 justify-center">{t('action_applied')}<ArrowRight className="w-4 h-4" strokeWidth={2.5} /></span>
           </button>
           <button
             type="button"
@@ -184,7 +185,7 @@ export function MarkAsDoneButtons({
             disabled={isPending}
             className="flex-1 px-4 py-2.5 bg-green-600 text-white text-sm font-bold rounded-full active:bg-green-700"
           >
-            {t('action_received')} ✓
+            <span className="inline-flex items-center gap-1.5 justify-center">{t('action_received')}<Check className="w-4 h-4" strokeWidth={2.5} /></span>
           </button>
         </div>
       )}

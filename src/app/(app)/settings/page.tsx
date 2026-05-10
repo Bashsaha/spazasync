@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { ClipboardList, Shield, FileText, Sparkles, Truck, Wallet } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
 import { Spinner, FullScreenSpinner } from '@/components/Spinner'
@@ -289,7 +290,7 @@ export default function SettingsPage() {
       {/* Compliance report */}
       <div id="compliance" className="bg-brand-light border border-brand-light rounded-2xl px-4 py-4 mb-6">
         <div className="flex items-start gap-3 mb-3">
-          <span className="text-2xl">📋</span>
+          <ClipboardList className="w-6 h-6 text-brand-hover shrink-0" strokeWidth={1.75} />
           <div>
             <p className="font-bold text-brand-hover">{t('compliance_title')}</p>
             <p className="text-sm text-brand-hover mt-0.5">
@@ -310,7 +311,7 @@ export default function SettingsPage() {
       {/* Compliance check (Phase 37b) — re-open the onboarding flow */}
       <div className="bg-brand-light border border-brand-light rounded-2xl px-4 py-4 mb-6">
         <div className="flex items-start gap-3 mb-3">
-          <span className="text-2xl">🛡️</span>
+          <Shield className="w-6 h-6 text-brand-hover shrink-0" strokeWidth={1.75} />
           <div>
             <p className="font-bold text-brand-hover">{tCo('settings_section_title')}</p>
             <p className="text-sm text-brand-hover mt-0.5">
@@ -335,7 +336,7 @@ export default function SettingsPage() {
         className="block bg-brand-light border border-brand-light rounded-2xl px-4 py-4 mb-6 active:bg-brand-light"
       >
         <div className="flex items-start gap-3">
-          <span className="text-2xl">📄</span>
+          <FileText className="w-6 h-6 text-brand-hover shrink-0" strokeWidth={1.75} />
           <div className="flex-1">
             <p className="font-bold text-brand-hover">{tDoc('settings_card_title')}</p>
             <p className="text-sm text-brand-hover mt-0.5">
@@ -354,7 +355,7 @@ export default function SettingsPage() {
         className="block bg-brand-light border border-brand-light rounded-2xl px-4 py-4 mb-6 active:bg-brand-light"
       >
         <div className="flex items-start gap-3">
-          <span className="text-2xl">🧹</span>
+          <Sparkles className="w-6 h-6 text-brand-hover shrink-0" strokeWidth={1.75} />
           <div className="flex-1">
             <p className="font-bold text-brand-hover">{tWp('settings_card_title')}</p>
             <p className="text-sm text-brand-hover mt-0.5">
@@ -373,7 +374,7 @@ export default function SettingsPage() {
         className="block bg-brand-light border border-brand-light rounded-2xl px-4 py-4 mb-6 active:bg-brand-light"
       >
         <div className="flex items-start gap-3">
-          <span className="text-2xl">🚚</span>
+          <Truck className="w-6 h-6 text-brand-hover shrink-0" strokeWidth={1.75} />
           <div className="flex-1">
             <p className="font-bold text-brand-hover">{tSup('settings_card_title')}</p>
             <p className="text-sm text-brand-hover mt-0.5">
@@ -397,7 +398,7 @@ export default function SettingsPage() {
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xl">💰</span>
+              <Wallet className="w-5 h-5 text-brand" strokeWidth={1.75} />
               <p className="font-semibold text-gray-900">{t('profit_tracking_title')}</p>
             </div>
             <p className="text-sm text-gray-500">{t('profit_tracking_desc')}</p>
@@ -485,7 +486,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-xl">💰</span>
+                <Wallet className="w-5 h-5 text-brand" strokeWidth={1.75} />
                 <p className="font-semibold text-gray-900">{t('fund_interest_label')}</p>
               </div>
               <p className="text-sm text-gray-500">{t('fund_interest_help')}</p>

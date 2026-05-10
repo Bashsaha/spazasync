@@ -11,6 +11,7 @@
  */
 
 import Link from 'next/link'
+import { Check, X } from 'lucide-react'
 import type { InspectionReadinessResult } from '@/types'
 
 type T = (key: string, params?: Record<string, string | number>) => string
@@ -45,14 +46,18 @@ export function InspectionReadinessPanel({
           >
             <div className="flex items-center gap-3 min-w-0">
               <span
-                className={`shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                className={`shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full ${
                   row.pass
                     ? 'bg-green-100 text-green-700'
                     : 'bg-red-100 text-red-700'
                 }`}
                 aria-hidden="true"
               >
-                {row.pass ? '✓' : '✗'}
+                {row.pass ? (
+                  <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
+                ) : (
+                  <X className="w-3.5 h-3.5" strokeWidth={2.5} />
+                )}
               </span>
               <p className="text-sm text-gray-800 truncate">{t(row.key)}</p>
             </div>

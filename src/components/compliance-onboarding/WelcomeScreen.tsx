@@ -1,5 +1,6 @@
 'use client'
 
+import { Shield } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 
 interface Props {
@@ -10,7 +11,7 @@ export function WelcomeScreen({ onContinue }: Props) {
   const { t } = useTranslation('compliance-onboarding')
   return (
     <div className="flex flex-col gap-6 text-center py-6">
-      <div className="text-5xl">🛡️</div>
+      <Shield className="w-12 h-12 mx-auto text-brand" strokeWidth={1.5} />
       <h2 className="text-xl font-bold text-gray-900">{t('welcome_title')}</h2>
       <p className="text-sm text-gray-600 leading-relaxed">{t('welcome_text')}</p>
       <p className="text-sm text-gray-400">{t('welcome_duration')}</p>

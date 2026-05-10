@@ -6,6 +6,7 @@
  */
 
 import Link from 'next/link'
+import { Check, X } from 'lucide-react'
 import type { FundReadinessDocRow } from '@/lib/compliance/fund'
 import type { BusinessDocument, DocumentType } from '@/types'
 
@@ -54,13 +55,15 @@ export function DocumentReadiness({ rows, documents, t }: Props) {
                   )}
                   <p className="text-xs mt-0.5">
                     {row.ok ? (
-                      <span className="text-brand-hover">
-                        ✅ {t(`doc_status_${status}`)}
+                      <span className="inline-flex items-center gap-1 text-brand-hover">
+                        <Check className="w-3.5 h-3.5 text-green-600" strokeWidth={2.25} />
+                        {t(`doc_status_${status}`)}
                         {dbRow?.reference_number ? ` · ${dbRow.reference_number}` : ''}
                       </span>
                     ) : (
-                      <span className="text-red-700">
-                        ❌ {t(`doc_status_${status}`)}
+                      <span className="inline-flex items-center gap-1 text-red-700">
+                        <X className="w-3.5 h-3.5" strokeWidth={2.25} />
+                        {t(`doc_status_${status}`)}
                       </span>
                     )}
                   </p>

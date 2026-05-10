@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Mail, PartyPopper, Check, Copy } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
@@ -158,7 +159,7 @@ export default function OnboardingPage() {
             </div>
           ) : step === 'email-sent' ? (
             <div className="text-center space-y-4 py-2">
-              <div className="text-5xl">📧</div>
+              <Mail className="w-12 h-12 mx-auto text-brand" strokeWidth={1.5} />
               <h2 className="text-lg font-bold text-gray-900">{t('email_sent_title')}</h2>
               <p className="text-gray-600 text-sm">
                 {t('email_sent_text', { email })}
@@ -175,7 +176,7 @@ export default function OnboardingPage() {
             </div>
           ) : step === 'done' ? (
             <div className="text-center space-y-4 py-2">
-              <div className="text-5xl">🎉</div>
+              <PartyPopper className="w-12 h-12 mx-auto text-brand" strokeWidth={1.5} />
               <h2 className="text-lg font-bold text-gray-900">{t('shop_created_title')}</h2>
               <div className="bg-brand-light border border-brand-light rounded-xl p-4">
                 <p className="text-sm text-gray-600 mb-1">{t('shop_created_text')}</p>
@@ -183,13 +184,23 @@ export default function OnboardingPage() {
                 <button
                   type="button"
                   onClick={handleCopyCode}
-                  className={`mt-3 text-sm font-semibold px-4 py-2 rounded-full transition-colors ${
+                  className={`mt-3 inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full transition-colors ${
                     codeCopied
                       ? 'bg-green-100 text-green-700'
                       : 'bg-white border border-brand-light text-brand-hover active:bg-brand-light'
                   }`}
                 >
-                  {codeCopied ? `✓ ${t('shop_created_copied')}` : `📋 ${t('shop_created_copy')}`}
+                  {codeCopied ? (
+                    <>
+                      <Check className="w-4 h-4" strokeWidth={2.25} />
+                      {t('shop_created_copied')}
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" strokeWidth={1.75} />
+                      {t('shop_created_copy')}
+                    </>
+                  )}
                 </button>
                 <p className="text-xs text-gray-500 mt-3">
                   {t('shop_created_subtext')}

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Check } from 'lucide-react'
 import type { Product } from '@/types'
 import { useTranslation } from '@/components/LanguageProvider'
 import { FullScreenSpinner } from '@/components/Spinner'
@@ -107,7 +108,7 @@ export default function StockTakePage() {
     return (
       <main className="min-h-screen bg-surface flex flex-col items-center justify-center px-6 text-center">
         <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-6">
-          <span className="text-4xl">✓</span>
+          <Check className="w-10 h-10 text-green-700" strokeWidth={2.5} />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('stock_take_success_title')}</h1>
         <p className="text-gray-500 text-sm mb-10">

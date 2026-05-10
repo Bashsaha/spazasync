@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
+import { AlertTriangle } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 
 export default function AppError({
@@ -19,7 +20,7 @@ export default function AppError({
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center bg-surface">
-      <div className="text-5xl mb-4">⚠️</div>
+      <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-amber-500" strokeWidth={1.75} />
       <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('error_page_title')}</h1>
       <p className="text-gray-500 text-sm mb-6 max-w-xs">
         {t('error_page_desc')}

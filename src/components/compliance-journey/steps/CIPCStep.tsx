@@ -7,6 +7,7 @@
  * still can).
  */
 
+import { Wallet } from 'lucide-react'
 import { FormSummaryCard, type FormSummaryRow } from '../FormSummaryCard'
 import { MarkAsDoneButtons } from '../MarkAsDoneButtons'
 import { generateGoodsDescription } from '@/lib/compliance/goods-description'
@@ -60,8 +61,9 @@ export function CIPCStep({ step, data, t, isForeignNational = false }: Props) {
         </ul>
         <p className="text-xs text-gray-500">{t('cipc_cost')}</p>
         {showFundCallout && (
-          <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mt-3">
-            💰 {t('cipc_fund_callout')}
+          <p className="flex items-start gap-1.5 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mt-3">
+            <Wallet className="w-3.5 h-3.5 mt-0.5 shrink-0" strokeWidth={1.75} />
+            <span>{t('cipc_fund_callout')}</span>
           </p>
         )}
       </section>

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { FileText, Receipt } from 'lucide-react'
 import { getShopAuth } from '@/lib/auth/shop-auth'
 import { getComplianceScore } from '@/lib/db/compliance-score'
 import { listBusinessDocuments } from '@/lib/db/business-documents'
@@ -125,7 +126,7 @@ export default async function InspectionPage() {
           <p className="font-bold text-lg">{t('download_pdf')}</p>
           <p className="text-brand-light text-sm">{t('download_hint')}</p>
         </div>
-        <span className="text-3xl">📄</span>
+        <FileText className="w-7 h-7" strokeWidth={1.75} />
       </a>
 
       {/* Phase 37d — Food Safety Evidence Pack */}
@@ -137,7 +138,7 @@ export default async function InspectionPage() {
           <p className="font-bold text-lg">{t('download_evidence_pack')}</p>
           <p className="text-brand-light text-sm">{t('download_evidence_hint')}</p>
         </div>
-        <span className="text-3xl">🧾</span>
+        <Receipt className="w-7 h-7" strokeWidth={1.75} />
       </a>
 
       {/* Pre-check list (extracted to reusable panel — Phase 37c) */}

@@ -10,6 +10,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
+import { Check } from 'lucide-react'
 import { formatInTimeZone } from 'date-fns-tz'
 import { SAST_TZ } from '@/lib/utils/date'
 import { useTranslation } from '@/components/LanguageProvider'
@@ -75,8 +76,9 @@ export function StaffTrainingList({ tellers }: Props) {
                   {teller.name}
                 </p>
                 {trained ? (
-                  <p className="text-xs text-green-700 mt-0.5">
-                    ✅ {t('staff_trained_on', { date: trainedDate ?? '' })}
+                  <p className="text-xs text-green-700 mt-0.5 flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5" strokeWidth={2.25} />
+                    {t('staff_trained_on', { date: trainedDate ?? '' })}
                   </p>
                 ) : (
                   <p className="text-xs text-gray-500 mt-0.5">

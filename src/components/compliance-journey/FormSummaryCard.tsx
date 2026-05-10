@@ -10,6 +10,7 @@
  */
 
 import Link from 'next/link'
+import { AlertTriangle } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 type T = (key: string, params?: Record<string, string | number>) => string
@@ -70,8 +71,9 @@ export function FormSummaryCard({
       </dl>
       {children}
       {footerKey && (
-        <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mt-3">
-          ⚠️ {t(footerKey)}
+        <p className="flex items-start gap-1.5 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mt-3">
+          <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" strokeWidth={1.75} />
+          <span>{t(footerKey)}</span>
         </p>
       )}
     </section>

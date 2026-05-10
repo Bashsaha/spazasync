@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { Check } from 'lucide-react'
 import type { Product, ProductBatch, Supplier } from '@/types'
 import { formatZAR } from '@/lib/utils/currency'
 import { ConfirmModal } from '@/components/ConfirmModal'
@@ -319,7 +320,7 @@ function StockAdjustContent() {
   if (done && product) {
     return (
       <main className="px-4 pt-10 pb-24 max-w-lg mx-auto flex flex-col items-center text-center">
-        <div className="text-5xl mb-4">✓</div>
+        <Check className="w-12 h-12 mb-4 text-green-600" strokeWidth={2.5} />
         <h2 className="text-2xl font-bold text-gray-900 mb-1">{t('adjust_success_title')}</h2>
         <p className="text-gray-500 mb-2">{product.name}</p>
         <p className="text-4xl font-bold text-gray-900 mb-1">{resultQty}</p>

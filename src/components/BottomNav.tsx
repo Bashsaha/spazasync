@@ -2,49 +2,50 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Home, Receipt, Package, Users, Settings, Shield, Plus, type LucideIcon } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 
 interface NavItem {
   href: string
   labelKey: string
-  icon: string
+  Icon: LucideIcon
   /** Other path prefixes that should also light this tab as active. */
   matches?: string[]
 }
 
 const ownerNav: NavItem[] = [
-  { href: '/dashboard', labelKey: 'nav_home', icon: '🏠' },
+  { href: '/dashboard', labelKey: 'nav_home', Icon: Home },
   {
     href: '/sales',
     labelKey: 'nav_sales',
-    icon: '🧾',
+    Icon: Receipt,
     matches: ['/sales'],
   },
   {
     href: '/inventory',
     labelKey: 'nav_inventory',
-    icon: '📦',
+    Icon: Package,
     matches: ['/inventory', '/products', '/stock', '/stock-take', '/expiry', '/suppliers'],
   },
   {
     href: '/manage',
     labelKey: 'nav_manage',
-    icon: '👤',
+    Icon: Users,
     matches: ['/manage', '/tellers', '/inspection', '/checklist', '/documents', '/waste-pest'],
   },
-  { href: '/settings', labelKey: 'nav_settings', icon: '⚙️', matches: ['/settings', '/subscribe'] },
+  { href: '/settings', labelKey: 'nav_settings', Icon: Settings, matches: ['/settings', '/subscribe'] },
 ]
 
-const adminExtra: NavItem = { href: '/admin', labelKey: 'nav_admin', icon: '🛡️', matches: ['/admin'] }
+const adminExtra: NavItem = { href: '/admin', labelKey: 'nav_admin', Icon: Shield, matches: ['/admin'] }
 
 // Tellers see two tabs: their primary sale flow + the inventory hub (which
 // itself decides whether to show "request access" or the granted tile grid).
 const tellerNav: NavItem[] = [
-  { href: '/sale', labelKey: 'nav_sales', icon: '🧾', matches: ['/sale'] },
+  { href: '/sale', labelKey: 'nav_sales', Icon: Receipt, matches: ['/sale'] },
   {
     href: '/inventory',
     labelKey: 'nav_inventory',
-    icon: '📦',
+    Icon: Package,
     matches: ['/inventory', '/products', '/stock', '/stock-take', '/expiry', '/suppliers'],
   },
 ]
@@ -83,9 +84,7 @@ export function BottomNav({ role, hasShop }: BottomNavProps) {
           style={{ bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
           aria-label={t('nav_start_sale')}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
-          </svg>
+          <Plus className="w-6 h-6" strokeWidth={2.5} />
           <span className="text-sm font-bold whitespace-nowrap">{t('nav_new_sale')}</span>
         </Link>
       )}
@@ -117,7 +116,7 @@ export function BottomNav({ role, hasShop }: BottomNavProps) {
                 }`}
                 aria-current={isActive ? 'page' : undefined}
               >
-                <span className="text-xl leading-none">{item.icon}</span>
+                <item.Icon className="w-5 h-5" strokeWidth={isActive ? 2.25 : 1.75} />
                 <span className={`text-[10px] font-semibold ${isActive ? 'text-brand' : 'text-gray-400'}`}>
                   {label}
                 </span>

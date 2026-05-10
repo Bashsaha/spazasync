@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Users, Map, ClipboardList } from 'lucide-react'
 import { getShopAuth } from '@/lib/auth/shop-auth'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 
@@ -26,7 +27,7 @@ export default async function ManageHubPage() {
             <p className="font-bold text-gray-900">{t('card_staff')}</p>
             <p className="text-gray-400 text-sm">{t('card_staff_desc')}</p>
           </div>
-          <span className="text-3xl">👤</span>
+          <Users className="w-7 h-7 text-brand" strokeWidth={1.75} />
         </Link>
 
         <Link
@@ -37,7 +38,7 @@ export default async function ManageHubPage() {
             <p className="font-bold text-brand-hover">{t('card_journey')}</p>
             <p className="text-brand-hover text-sm">{t('card_journey_desc')}</p>
           </div>
-          <span className="text-3xl">🗺️</span>
+          <Map className="w-7 h-7 text-brand-hover" strokeWidth={1.75} />
         </Link>
 
         <Link
@@ -48,7 +49,7 @@ export default async function ManageHubPage() {
             <p className="font-bold text-brand-hover">{t('card_compliance')}</p>
             <p className="text-brand text-sm">{t('card_compliance_desc')}</p>
           </div>
-          <span className="text-3xl">📋</span>
+          <ClipboardList className="w-7 h-7 text-brand-hover" strokeWidth={1.75} />
         </Link>
       </div>
     </main>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { CreditCard, Banknote } from 'lucide-react'
 import { formatZAR } from '@/lib/utils/currency'
 import { useTranslation } from '@/components/LanguageProvider'
 
@@ -47,9 +48,7 @@ export function PaymentMethodSheet({ total, onConfirm, onDismiss }: PaymentMetho
                 onClick={() => onConfirm('card')}
                 className="flex flex-col items-center justify-center gap-2 bg-brand text-white font-semibold py-6 rounded-full active:bg-brand-hover"
               >
-                <span className="text-3xl" aria-hidden>
-                  💳
-                </span>
+                <CreditCard className="w-8 h-8" strokeWidth={1.75} />
                 <span className="text-base">{t('btn_card')}</span>
               </button>
               <button
@@ -57,9 +56,7 @@ export function PaymentMethodSheet({ total, onConfirm, onDismiss }: PaymentMetho
                 onClick={() => setStep('cash')}
                 className="flex flex-col items-center justify-center gap-2 bg-brand text-white font-semibold py-6 rounded-full active:bg-brand-hover"
               >
-                <span className="text-3xl" aria-hidden>
-                  💵
-                </span>
+                <Banknote className="w-8 h-8" strokeWidth={1.75} />
                 <span className="text-base">{t('btn_cash')}</span>
               </button>
             </div>

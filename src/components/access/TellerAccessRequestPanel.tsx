@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Lock } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import type { AccessRequest, TellerAccessStatus } from '@/types'
 
@@ -68,8 +69,8 @@ export function TellerAccessRequestPanel({
       </div>
 
       <div className="bg-white border border-gray-100 rounded-2xl p-6 ">
-        <div className="flex items-center justify-center w-14 h-14 rounded-full bg-brand-light mx-auto mb-4 text-3xl">
-          🔒
+        <div className="flex items-center justify-center w-14 h-14 rounded-full bg-brand-light mx-auto mb-4">
+          <Lock className="w-7 h-7 text-brand-hover" strokeWidth={1.75} />
         </div>
 
         {isPending ? (

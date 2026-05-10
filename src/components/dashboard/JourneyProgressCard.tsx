@@ -9,6 +9,7 @@
  */
 
 import Link from 'next/link'
+import { Wallet } from 'lucide-react'
 import { getJourneyProgressSummary } from '@/lib/db/journey'
 import { getServerTranslations } from '@/lib/i18n/server'
 import type { SupportedLocale } from '@/lib/i18n/types'
@@ -77,9 +78,10 @@ export async function JourneyProgressCard({ shopId, userId, locale }: Props) {
         {showFundTeaser && (
           <Link
             href="/compliance/fund"
-            className="block px-4 py-2 text-xs text-amber-700 bg-amber-50 border-t border-amber-100 active:bg-amber-100"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs text-amber-700 bg-amber-50 border-t border-amber-100 active:bg-amber-100"
           >
-            💰 {t('journey_card_fund_teaser')}
+            <Wallet className="w-3.5 h-3.5" strokeWidth={1.75} />
+            {t('journey_card_fund_teaser')}
           </Link>
         )}
       </div>

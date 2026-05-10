@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Search } from 'lucide-react'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 
 export default async function NotFound() {
@@ -7,7 +8,7 @@ export default async function NotFound() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center bg-surface">
-      <div className="text-5xl mb-4">🔍</div>
+      <Search className="w-12 h-12 mx-auto mb-4 text-gray-400" strokeWidth={1.5} />
       <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('not_found_title')}</h1>
       <p className="text-gray-500 text-sm mb-6 max-w-xs">
         {t('not_found_desc')}

@@ -2,6 +2,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Suspense } from 'react'
+import { Check, WifiOff } from 'lucide-react'
 import { formatZAR } from '@/lib/utils/currency'
 import { useTranslation } from '@/components/LanguageProvider'
 
@@ -22,7 +23,11 @@ function SaleCompleteContent() {
           isOffline ? 'bg-amber-100' : 'bg-green-100'
         }`}
       >
-        <span className="text-4xl">{isOffline ? '📶' : '✓'}</span>
+        {isOffline ? (
+          <WifiOff className="w-9 h-9 text-amber-700" strokeWidth={2} />
+        ) : (
+          <Check className="w-10 h-10 text-green-700" strokeWidth={2.5} />
+        )}
       </div>
 
       <h1 className="text-2xl font-bold text-gray-900 mb-2">

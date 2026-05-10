@@ -1,5 +1,6 @@
 'use client'
 
+import { Check, Circle, Wallet } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import { Spinner } from '@/components/Spinner'
 import type { JourneyStep, NationalityType } from '@/types'
@@ -40,10 +41,14 @@ export function JourneySummaryScreen({ steps, nationality, fundInterest, onFinis
               }`}
             >
               <div className="flex items-start justify-between gap-3">
-                <span className={`text-sm font-medium ${
+                <span className={`flex items-center gap-1.5 text-sm font-medium ${
                   step.status === 'done' ? 'text-green-800' : 'text-gray-900'
                 }`}>
-                  {step.status === 'done' ? '✅ ' : '🔴 '}
+                  {step.status === 'done' ? (
+                    <Check className="w-4 h-4 text-green-600 shrink-0" strokeWidth={2.25} />
+                  ) : (
+                    <Circle className="w-4 h-4 text-red-500 shrink-0" strokeWidth={2} fill="currentColor" />
+                  )}
                   {label}
                 </span>
                 <span className="text-xs whitespace-nowrap text-gray-500">
@@ -60,8 +65,9 @@ export function JourneySummaryScreen({ steps, nationality, fundInterest, onFinis
       </div>
 
       {showFundTeaser && (
-        <p className="text-sm bg-amber-50 border border-amber-200 text-amber-900 rounded-xl px-4 py-3">
-          💰 {t('summary_fund_teaser')}
+        <p className="flex items-start gap-1.5 text-sm bg-amber-50 border border-amber-200 text-amber-900 rounded-xl px-4 py-3">
+          <Wallet className="w-4 h-4 mt-0.5 shrink-0" strokeWidth={1.75} />
+          <span>{t('summary_fund_teaser')}</span>
         </p>
       )}
 

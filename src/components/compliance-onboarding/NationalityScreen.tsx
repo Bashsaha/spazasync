@@ -1,5 +1,6 @@
 'use client'
 
+import { Check } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import type { NationalityType } from '@/types'
 
@@ -24,7 +25,7 @@ export function NationalityScreen({ value, onPick }: Props) {
               : 'border-gray-200 bg-white text-gray-800'
           }`}
         >
-          ✅ {t('nationality_yes')}
+          <span className="inline-flex items-center gap-1.5"><Check className="w-4 h-4" strokeWidth={2.25} />{t('nationality_yes')}</span>
         </button>
         <button
           type="button"

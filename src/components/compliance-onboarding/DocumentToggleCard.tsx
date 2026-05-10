@@ -1,5 +1,6 @@
 'use client'
 
+import { Check, HelpCircle } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import type { DocumentToggleState } from '@/types'
 
@@ -21,10 +22,10 @@ const STATE_STYLES: Record<DocumentToggleState, string> = {
   unsure: 'border-amber-300 bg-amber-50 text-amber-800',
 }
 
-const STATE_BADGE: Record<DocumentToggleState, string> = {
-  unselected: '',
-  have: '✅',
-  unsure: '❓',
+function StateIcon({ state }: { state: DocumentToggleState }) {
+  if (state === 'have') return <Check className="w-3.5 h-3.5 inline" strokeWidth={2.25} />
+  if (state === 'unsure') return <HelpCircle className="w-3.5 h-3.5 inline" strokeWidth={1.75} />
+  return null
 }
 
 export function DocumentToggleCard({ label, state, onCycle }: DocumentToggleCardProps) {
@@ -42,8 +43,9 @@ export function DocumentToggleCard({ label, state, onCycle }: DocumentToggleCard
     >
       <div className="flex items-start justify-between gap-3">
         <span className="text-sm font-medium leading-tight">{label}</span>
-        <span className="text-xs whitespace-nowrap">
-          {STATE_BADGE[state]} {t(stateLabelKey)}
+        <span className="text-xs whitespace-nowrap inline-flex items-center gap-1">
+          <StateIcon state={state} />
+          {t(stateLabelKey)}
         </span>
       </div>
     </button>

@@ -10,6 +10,7 @@
  *   E) Action row — MarkAsDoneButtons (standard: applied → received)
  */
 
+import { AlertTriangle } from 'lucide-react'
 import { DocumentChecklist } from '../DocumentChecklist'
 import { FormSummaryCard, type FormSummaryRow } from '../FormSummaryCard'
 import { OfficeDirections } from '../OfficeDirections'
@@ -69,8 +70,9 @@ export function TradingPermitStep({ step, data, t, isForeignNational = false }: 
   return (
     <>
       {isForeignNational && (
-        <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-          ⚠️ {t('permit_foreign_visa_link_notice')}
+        <p className="flex items-start gap-1.5 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+          <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" strokeWidth={1.75} />
+          <span>{t('permit_foreign_visa_link_notice')}</span>
         </p>
       )}
 

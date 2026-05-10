@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { X } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import type {
   ComplianceOnboardingPayload,
@@ -242,10 +243,10 @@ export function ComplianceOnboardingModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-sm text-gray-400"
+            className="text-gray-400"
             aria-label={t('btn_close')}
           >
-            ✕
+            <X className="w-5 h-5" strokeWidth={2} />
           </button>
         </div>
 

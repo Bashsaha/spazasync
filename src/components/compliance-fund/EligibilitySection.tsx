@@ -10,6 +10,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { Check, Square, AlertTriangle } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 
 interface Props {
@@ -116,8 +117,9 @@ export function EligibilitySection({
       </div>
 
       {blocked && (
-        <p className="mt-4 text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
-          ⚠️ {t('eligibility_blocked_warning')}
+        <p className="flex items-start gap-1.5 mt-4 text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+          <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" strokeWidth={1.75} />
+          <span>{t('eligibility_blocked_warning')}</span>
         </p>
       )}
       {error && (
@@ -141,9 +143,11 @@ function CheckRow({
   return (
     <div>
       <div className="flex items-center gap-2">
-        <span className="text-brand text-base leading-none">
-          {checked ? '✅' : '☐'}
-        </span>
+        {checked ? (
+          <Check className="w-4 h-4 text-brand" strokeWidth={2.25} />
+        ) : (
+          <Square className="w-4 h-4 text-gray-400" strokeWidth={1.75} />
+        )}
         <p className="text-sm font-medium text-gray-900">{label}</p>
       </div>
       <p className="text-xs text-gray-500 ml-6 mt-0.5">

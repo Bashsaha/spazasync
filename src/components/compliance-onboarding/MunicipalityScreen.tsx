@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Check } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import { AreaPicker, type AreaPickerValue } from './AreaPicker'
 
@@ -30,7 +31,7 @@ export function MunicipalityScreen({ preFilledName, value, onChange }: Props) {
             onClick={() => onChange(value)}
             className="w-full text-left rounded-full border border-brand bg-brand-light text-brand-hover px-4 py-3 text-sm font-medium"
           >
-            ✅ {t('municipality_confirm_yes')}
+            <span className="inline-flex items-center gap-1.5"><Check className="w-4 h-4" strokeWidth={2.25} />{t('municipality_confirm_yes')}</span>
           </button>
           <button
             type="button"

@@ -19,6 +19,7 @@
  */
 
 import { useState, type ReactNode } from 'react'
+import { Landmark, Stethoscope, Building2, Wallet, Users, GraduationCap, ClipboardList, ChevronDown, type LucideIcon } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import type {
   ComplianceJourneyStep,
@@ -61,14 +62,14 @@ interface Props {
   children: ReactNode
 }
 
-const STEP_ICON: Record<JourneyStepKey, string> = {
-  municipal_registration: '🏛️',
-  coa: '🩺',
-  cipc: '🏢',
-  sars_tax: '💰',
-  uif: '👥',
-  food_safety_training: '🎓',
-  smmesa: '📋',
+const STEP_ICON: Record<JourneyStepKey, LucideIcon> = {
+  municipal_registration: Landmark,
+  coa: Stethoscope,
+  cipc: Building2,
+  sars_tax: Wallet,
+  uif: Users,
+  food_safety_training: GraduationCap,
+  smmesa: ClipboardList,
 }
 
 export function JourneyStep({ step, defaultExpanded, children }: Props) {
@@ -91,9 +92,10 @@ export function JourneyStep({ step, defaultExpanded, children }: Props) {
         aria-expanded={expanded}
       >
         <div className="flex items-start gap-3">
-          <span className="text-2xl shrink-0" aria-hidden="true">
-            {STEP_ICON[step.key]}
-          </span>
+          {(() => {
+            const Icon = STEP_ICON[step.key]
+            return <Icon className="w-7 h-7 text-brand shrink-0" strokeWidth={1.75} aria-hidden="true" />
+          })()}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <span
@@ -118,9 +120,7 @@ export function JourneyStep({ step, defaultExpanded, children }: Props) {
               <p className="text-sm text-gray-500 mt-1">{t(whyKey)}</p>
             )}
           </div>
-          <span className={`shrink-0 text-gray-400 ${expanded ? 'rotate-180' : ''} transition-transform`}>
-            ▾
-          </span>
+          <ChevronDown className={`w-5 h-5 shrink-0 text-gray-400 ${expanded ? 'rotate-180' : ''} transition-transform`} strokeWidth={1.75} />
         </div>
       </button>
       {expanded && !isLocked && (

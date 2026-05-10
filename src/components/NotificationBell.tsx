@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from '@/components/LanguageProvider'
 import type { AccessRequestWithTeller } from '@/types'
@@ -122,10 +123,10 @@ export function NotificationBell({ shopId }: { shopId: string }) {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="text-gray-400 text-xl leading-none"
+                className="text-gray-400"
                 aria-label={t('bell_btn_close')}
               >
-                ✕
+                <X className="w-5 h-5" strokeWidth={2} />
               </button>
             </div>
 

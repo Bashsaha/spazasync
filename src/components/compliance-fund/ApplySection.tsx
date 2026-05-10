@@ -5,6 +5,8 @@
  * SEFA portal, fund email, fund call centre.
  */
 
+import { Monitor, Building2, Mail, Phone } from 'lucide-react'
+
 type T = (key: string, params?: Record<string, string | number>) => string
 
 interface Props {
@@ -27,7 +29,7 @@ export function ApplySection({ t }: Props) {
 
       <div className="space-y-4 text-sm">
         <div>
-          <p className="font-semibold text-gray-900">💻 {t('apply_online_title')}</p>
+          <p className="flex items-center gap-1.5 font-semibold text-gray-900"><Monitor className="w-4 h-4" strokeWidth={1.75} />{t('apply_online_title')}</p>
           <a
             href={SEFA_PORTAL_URL}
             target="_blank"
@@ -39,12 +41,12 @@ export function ApplySection({ t }: Props) {
         </div>
 
         <div>
-          <p className="font-semibold text-gray-900">🏢 {t('apply_in_person_title')}</p>
+          <p className="flex items-center gap-1.5 font-semibold text-gray-900"><Building2 className="w-4 h-4" strokeWidth={1.75} />{t('apply_in_person_title')}</p>
           <p className="text-xs text-gray-600">{t('apply_in_person_desc')}</p>
         </div>
 
         <div>
-          <p className="font-semibold text-gray-900">📧 {t('apply_email_title')}</p>
+          <p className="flex items-center gap-1.5 font-semibold text-gray-900"><Mail className="w-4 h-4" strokeWidth={1.75} />{t('apply_email_title')}</p>
           <a
             href={`mailto:${SEFA_EMAIL}`}
             className="text-brand text-xs font-semibold active:text-brand-hover"
@@ -54,7 +56,7 @@ export function ApplySection({ t }: Props) {
         </div>
 
         <div className="pt-3 border-t border-gray-100">
-          <p className="font-semibold text-gray-900">📞 {t('apply_help_title')}</p>
+          <p className="flex items-center gap-1.5 font-semibold text-gray-900"><Phone className="w-4 h-4" strokeWidth={1.75} />{t('apply_help_title')}</p>
           <p className="text-xs text-gray-600">
             {t('apply_help_call_centre')}{' '}
             <a href={`tel:${FUND_CALL_CENTRE.replace(/\s/g, '')}`} className="text-brand font-semibold">

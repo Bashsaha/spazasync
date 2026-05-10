@@ -9,6 +9,7 @@
  */
 
 import Link from 'next/link'
+import { FileText } from 'lucide-react'
 
 type T = (key: string, params?: Record<string, string | number>) => string
 
@@ -31,7 +32,7 @@ export function GenerateDocButton({ titleKey, descriptionKey, href, t }: Props) 
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-4">
-      <p className="text-2xl mb-2" aria-hidden="true">📄</p>
+      <FileText className="w-6 h-6 mb-2 text-brand" strokeWidth={1.75} aria-hidden="true" />
       <p className="font-semibold text-gray-900">{t(titleKey)}</p>
       <p className="text-sm text-gray-500 mt-1">{t(descriptionKey)}</p>
       {isEnabled ? (
