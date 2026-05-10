@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ClipboardList, Shield, FileText, Sparkles, Truck, Wallet } from 'lucide-react'
+import { ClipboardList, Shield, Wallet } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
 import { Spinner, FullScreenSpinner } from '@/components/Spinner'
@@ -31,10 +31,7 @@ interface ShopSettings {
 export default function SettingsPage() {
   const router = useRouter()
   const { t, tPlural, locale, setLocale } = useTranslation('settings')
-  const { t: tSup } = useTranslation('suppliers')
-  const { t: tDoc } = useTranslation('documents')
   const { t: tChk } = useTranslation('checklist')
-  const { t: tWp } = useTranslation('waste-pest')
   const { t: tCo } = useTranslation('compliance-onboarding')
   const [redoLoading, setRedoLoading] = useState(false)
   const [settings, setSettings] = useState<ShopSettings | null>(null)
@@ -329,63 +326,6 @@ export default function SettingsPage() {
         </button>
         <p className="text-xs text-brand-hover/70 mt-2">{tCo('settings_redo_hint')}</p>
       </div>
-
-      {/* My Business Documents */}
-      <a
-        href="/documents"
-        className="block bg-brand-light border border-brand-light rounded-2xl px-4 py-4 mb-6 active:bg-brand-light"
-      >
-        <div className="flex items-start gap-3">
-          <FileText className="w-6 h-6 text-brand-hover shrink-0" strokeWidth={1.75} />
-          <div className="flex-1">
-            <p className="font-bold text-brand-hover">{tDoc('settings_card_title')}</p>
-            <p className="text-sm text-brand-hover mt-0.5">
-              {tDoc('settings_card_desc')}
-            </p>
-            <span className="inline-block mt-2 text-sm font-semibold text-brand">
-              {tDoc('settings_card_btn')} &rsaquo;
-            </span>
-          </div>
-        </div>
-      </a>
-
-      {/* My Waste & Pest Management */}
-      <a
-        href="/waste-pest"
-        className="block bg-brand-light border border-brand-light rounded-2xl px-4 py-4 mb-6 active:bg-brand-light"
-      >
-        <div className="flex items-start gap-3">
-          <Sparkles className="w-6 h-6 text-brand-hover shrink-0" strokeWidth={1.75} />
-          <div className="flex-1">
-            <p className="font-bold text-brand-hover">{tWp('settings_card_title')}</p>
-            <p className="text-sm text-brand-hover mt-0.5">
-              {tWp('settings_card_desc')}
-            </p>
-            <span className="inline-block mt-2 text-sm font-semibold text-brand">
-              {tWp('settings_card_btn')} &rsaquo;
-            </span>
-          </div>
-        </div>
-      </a>
-
-      {/* My Suppliers */}
-      <a
-        href="/suppliers"
-        className="block bg-brand-light border border-brand-light rounded-2xl px-4 py-4 mb-6 active:bg-brand-light"
-      >
-        <div className="flex items-start gap-3">
-          <Truck className="w-6 h-6 text-brand-hover shrink-0" strokeWidth={1.75} />
-          <div className="flex-1">
-            <p className="font-bold text-brand-hover">{tSup('settings_card_title')}</p>
-            <p className="text-sm text-brand-hover mt-0.5">
-              {tSup('settings_card_desc')}
-            </p>
-            <span className="inline-block mt-2 text-sm font-semibold text-brand">
-              {tSup('settings_card_btn')} &rsaquo;
-            </span>
-          </div>
-        </div>
-      </a>
 
       {/* Language */}
       <div className="bg-white border border-gray-100 rounded-2xl px-4 py-4 mb-6">
