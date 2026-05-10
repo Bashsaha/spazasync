@@ -58,6 +58,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${plusJakarta.variable} ${notoEthiopic.variable} ${notoNastaliqUrdu.variable}`}
     >
       <body className="antialiased font-sans bg-surface text-ink">
+        {/* Capture beforeinstallprompt as early as possible — Chrome only fires
+            it once, often before React hydrates. Stash it on window so the
+            InstallPwaButton can read it on mount even if it loaded late. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.__bipEvent = null;
+              window.addEventListener('beforeinstallprompt', function (e) {
+                e.preventDefault();
+                window.__bipEvent = e;
+                window.dispatchEvent(new CustomEvent('bip-ready'));
+              });
+              window.addEventListener('appinstalled', function () {
+                window.__bipEvent = null;
+                window.dispatchEvent(new CustomEvent('bip-installed'));
+              });
+            `,
+          }}
+        />
         <ServiceWorkerRegistrar />
         {children}
       </body>

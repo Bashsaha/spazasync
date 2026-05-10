@@ -10,6 +10,12 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
+declare global {
+  interface Window {
+    __bipEvent?: BeforeInstallPromptEvent | null
+  }
+}
+
 function isStandalone(): boolean {
   if (typeof window === 'undefined') return false
   if (window.matchMedia?.('(display-mode: standalone)').matches) return true
@@ -22,7 +28,7 @@ function isIos(): boolean {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent)
 }
 
-/** "Add to Home Screen" prompt for the dashboard.
+/** "Add to Home Screen" prompt.
  *
  *  Always visible until the app is actually installed:
  *  - Android/desktop Chrome/Edge: shows the install button as soon as
@@ -31,6 +37,11 @@ function isIos(): boolean {
  *  - iOS Safari: shows manual instructions (no programmatic prompt exists).
  *  - Hides permanently only when display-mode flips to standalone or the
  *    `appinstalled` event fires.
+ *
+ *  The `beforeinstallprompt` event is captured by an inline script in the
+ *  root layout and stashed on `window.__bipEvent` — Chrome only fires it
+ *  once and often before React hydrates, so reading it from window covers
+ *  the late-mount case.
  */
 export function InstallPwaButton() {
   const { t } = useTranslation('common')
@@ -47,17 +58,31 @@ export function InstallPwaButton() {
     if (isIos()) {
       setShowIos(true)
     }
-    function onPrompt(e: Event) {
-      e.preventDefault()
-      setDeferred(e as BeforeInstallPromptEvent)
+
+    // Pick up the event if the inline script already captured it.
+    if (typeof window !== 'undefined' && window.__bipEvent) {
+      setDeferred(window.__bipEvent)
+    }
+
+    function onReady() {
+      if (window.__bipEvent) setDeferred(window.__bipEvent)
     }
     function onInstalled() {
       setInstalled(true)
       setDeferred(null)
     }
+    function onPrompt(e: Event) {
+      // Fallback for browsers/cases where the inline script missed it.
+      e.preventDefault()
+      setDeferred(e as BeforeInstallPromptEvent)
+    }
+    window.addEventListener('bip-ready', onReady)
+    window.addEventListener('bip-installed', onInstalled)
     window.addEventListener('beforeinstallprompt', onPrompt)
     window.addEventListener('appinstalled', onInstalled)
     return () => {
+      window.removeEventListener('bip-ready', onReady)
+      window.removeEventListener('bip-installed', onInstalled)
       window.removeEventListener('beforeinstallprompt', onPrompt)
       window.removeEventListener('appinstalled', onInstalled)
     }
@@ -72,9 +97,11 @@ export function InstallPwaButton() {
     await deferred.prompt()
     const choice = await deferred.userChoice
     setDeferred(null)
-    // If the user dismissed Chrome's native prompt, leave the banner visible
-    // so they can try again — the banner only goes away once `appinstalled`
-    // fires or the app loads in standalone mode.
+    if (typeof window !== 'undefined') window.__bipEvent = null
+    // If the user dismissed Chrome's native prompt, leave the banner in a
+    // state where it'll re-appear on next page-load (Chrome may re-fire
+    // beforeinstallprompt). The banner only goes away permanently once
+    // `appinstalled` fires or the app loads in standalone mode.
     if (choice.outcome === 'accepted') {
       // appinstalled handler will flip `installed` to true.
     }
@@ -85,7 +112,7 @@ export function InstallPwaButton() {
   if (!deferred && !showIos) return null
 
   return (
-    <div className="bg-brand-light border border-brand-light rounded-2xl p-4 mb-4">
+    <div className="bg-brand-light border border-brand-light rounded-2xl p-4 mb-4 mx-4 mt-4">
       <p className="text-sm font-semibold text-brand-hover">{t('install_title')}</p>
       <p className="text-xs text-brand-hover mt-1">{t('install_desc')}</p>
 

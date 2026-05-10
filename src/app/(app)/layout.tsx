@@ -7,6 +7,7 @@ import { BottomNav } from '@/components/BottomNav'
 import { TopAppBar } from '@/components/TopAppBar'
 import DailySummaryAlert from '@/components/DailySummaryAlert'
 import MonthlyComplianceAlert from '@/components/MonthlyComplianceAlert'
+import { InstallPwaButton } from '@/components/InstallPwaButton'
 import type { SupportedLocale } from '@/lib/i18n/types'
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '@/lib/i18n/types'
 
@@ -69,6 +70,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             initial={initial}
             bellShopId={role === 'owner' || role === 'admin' ? shopId : undefined}
           />
+          <InstallPwaButton />
           {role !== 'teller' && <DailySummaryAlert />}
           {role !== 'teller' && <MonthlyComplianceAlert />}
           <OfflineSyncProvider>
