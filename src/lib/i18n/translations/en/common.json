@@ -52,6 +52,7 @@
   "install_desc": "Open it like any app — faster, fullscreen, works offline.",
   "install_button": "Add to home screen",
   "install_ios_hint": "On iPhone, tap the Share button below, then “Add to Home Screen”.",
+  "install_android_hint": "Tap the menu (⋮) at the top of Chrome, then “Install app” or “Add to Home screen”.",
   "install_dismiss": "Not now",
 
   "error_page_title": "Something went wrong",

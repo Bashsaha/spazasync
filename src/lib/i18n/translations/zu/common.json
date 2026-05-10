@@ -52,6 +52,7 @@
   "install_desc": "Yivule njengoba unganamuphi i-app — esheshayo, isikrini esigcwele, isebenza ngaphandle kwentanethi.",
   "install_button": "Engeza kusikrini sasekhaya",
   "install_ios_hint": "Ku-iPhone, thinta inkinobho yokwabelana ngezansi, bese kuthi “Add to Home Screen”.",
+  "install_android_hint": "Thinta imenyu (⋮) phezulu ku-Chrome, bese ukhetha “Install app” noma “Add to Home screen”.",
   "install_dismiss": "Hhayi manje",
 
   "error_page_title": "Kukhona okungalungile",

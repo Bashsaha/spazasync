@@ -52,6 +52,7 @@
   "install_desc": "U fur sida app kasta — degdeg ah, shaashad buuxda, oo offline shaqayn karta.",
   "install_button": "Ku dar shaashadda guriga",
   "install_ios_hint": "Ku iPhone, taabo badhanka Wadaag ee hoose, ka dibna “Add to Home Screen”.",
+  "install_android_hint": "Taabo menu-ga (⋮) ee Chrome sare, ka dibna “Install app” ama “Add to Home screen”.",
   "install_dismiss": "Hadda maya",
 
   "error_page_title": "Wax baa qaldamay",

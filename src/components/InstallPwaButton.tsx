@@ -19,7 +19,6 @@ declare global {
 function isStandalone(): boolean {
   if (typeof window === 'undefined') return false
   if (window.matchMedia?.('(display-mode: standalone)').matches) return true
-  // iOS Safari uses navigator.standalone instead of the media query.
   return Boolean((navigator as Navigator & { standalone?: boolean }).standalone)
 }
 
@@ -28,15 +27,22 @@ function isIos(): boolean {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent)
 }
 
+function isAndroid(): boolean {
+  if (typeof navigator === 'undefined') return false
+  return /Android/i.test(navigator.userAgent)
+}
+
 /** "Add to Home Screen" prompt.
  *
- *  Always visible until the app is actually installed:
- *  - Android/desktop Chrome/Edge: shows the install button as soon as
- *    `beforeinstallprompt` fires; "Not now" closes it for the current
- *    page-load only — it returns on the next navigation/refresh.
- *  - iOS Safari: shows manual instructions (no programmatic prompt exists).
- *  - Hides permanently only when display-mode flips to standalone or the
- *    `appinstalled` event fires.
+ *  Visibility:
+ *  - Hidden ONLY when running in standalone (display-mode: standalone or
+ *    iOS navigator.standalone) — i.e. the app is actually installed.
+ *  - Otherwise always visible. If Chrome fired `beforeinstallprompt`, the
+ *    button triggers the native install dialog. If it didn't (Chrome
+ *    suppressed it, criteria not met, or we're not on Chrome), we fall back
+ *    to written instructions for the platform (Android menu / iOS share).
+ *  - "Not now" hides the banner for the current page-load only; it returns
+ *    on the next navigation/refresh.
  *
  *  The `beforeinstallprompt` event is captured by an inline script in the
  *  root layout and stashed on `window.__bipEvent` — Chrome only fires it
@@ -48,18 +54,19 @@ export function InstallPwaButton() {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null)
   const [installed, setInstalled] = useState(false)
   const [hiddenForSession, setHiddenForSession] = useState(false)
-  const [showIos, setShowIos] = useState(false)
+  const [platform, setPlatform] = useState<'ios' | 'android' | 'other'>('other')
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+
     if (isStandalone()) {
       setInstalled(true)
       return
     }
-    if (isIos()) {
-      setShowIos(true)
-    }
 
-    // Pick up the event if the inline script already captured it.
+    setPlatform(isIos() ? 'ios' : isAndroid() ? 'android' : 'other')
+
     if (typeof window !== 'undefined' && window.__bipEvent) {
       setDeferred(window.__bipEvent)
     }
@@ -72,7 +79,6 @@ export function InstallPwaButton() {
       setDeferred(null)
     }
     function onPrompt(e: Event) {
-      // Fallback for browsers/cases where the inline script missed it.
       e.preventDefault()
       setDeferred(e as BeforeInstallPromptEvent)
     }
@@ -98,18 +104,18 @@ export function InstallPwaButton() {
     const choice = await deferred.userChoice
     setDeferred(null)
     if (typeof window !== 'undefined') window.__bipEvent = null
-    // If the user dismissed Chrome's native prompt, leave the banner in a
-    // state where it'll re-appear on next page-load (Chrome may re-fire
-    // beforeinstallprompt). The banner only goes away permanently once
-    // `appinstalled` fires or the app loads in standalone mode.
     if (choice.outcome === 'accepted') {
       // appinstalled handler will flip `installed` to true.
     }
   }
 
+  // Server render must match initial client render — render nothing until
+  // we've confirmed the runtime state on the client. (Keeps hydration clean
+  // and avoids a flash of the banner on already-installed standalone clients.)
+  if (!mounted) return null
   if (installed || hiddenForSession) return null
-  // Nothing to show: not installed, no native prompt fired, not iOS.
-  if (!deferred && !showIos) return null
+
+  const hint = platform === 'ios' ? t('install_ios_hint') : platform === 'android' ? t('install_android_hint') : null
 
   return (
     <div className="bg-brand-light border border-brand-light rounded-2xl p-4 mb-4 mx-4 mt-4">
@@ -135,7 +141,7 @@ export function InstallPwaButton() {
         </div>
       ) : (
         <>
-          <p className="text-xs text-brand-hover mt-2">{t('install_ios_hint')}</p>
+          {hint && <p className="text-xs text-brand-hover mt-2">{hint}</p>}
           <button
             type="button"
             onClick={hideForNow}

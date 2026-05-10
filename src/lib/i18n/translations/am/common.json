@@ -52,6 +52,7 @@
   "install_desc": "እንደ ማንኛውም መተግበሪያ ይክፈቱት — ፈጣን፣ ሙሉ-ስክሪን፣ ከመስመር ውጭ ይሰራል።",
   "install_button": "ወደ መነሻ ስክሪን ያክሉ",
   "install_ios_hint": "በiPhone ላይ ከታች ያለውን የማጋራት አዝራር ይንኩ፣ ከዚያ “Add to Home Screen”።",
+  "install_android_hint": "ከ Chrome አናት ላይ ያለውን ሜኑ (⋮) ይንኩ፣ ከዚያ “Install app” ወይም “Add to Home screen”።",
   "install_dismiss": "አሁን አይደለም",
 
   "error_page_title": "የሆነ ችግር ተፈጥሯል",
