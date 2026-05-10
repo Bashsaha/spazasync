@@ -47,11 +47,17 @@ function pathMatches(pathname: string, prefix: string): boolean {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Skip proxy for Next.js internals and static files
+  // Skip proxy for Next.js internals and static files. Manifest + service
+  // worker MUST be reachable without auth — Chrome's installability checker
+  // and the navigator.serviceWorker.register() call both fetch them
+  // pre-auth, and a redirect-to-/login would block PWA install (BUG-021).
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon') ||
-    pathname.match(/\.(svg|png|jpg|jpeg|gif|ico|css|js)$/)
+    pathname === '/manifest.json' ||
+    pathname === '/sw.js' ||
+    pathname === '/offline.html' ||
+    pathname.match(/\.(svg|png|jpg|jpeg|gif|ico|css|js|json|webmanifest)$/)
   ) {
     return NextResponse.next()
   }
@@ -182,6 +188,6 @@ export const config = {
      * - _next/image  (image optimisation)
      * - favicon.ico
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|offline.html|apple-touch-icon.png|.*\\.(?:svg|png|jpg|jpeg|gif|webp|json|webmanifest)$).*)',
   ],
 }
