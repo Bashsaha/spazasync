@@ -10,7 +10,18 @@
  *  - navigation           → network-first, fall back to cache, then /offline.html
  */
 
-const CACHE = 'movestock-v5'
+const CACHE = 'movestock-v6'
+
+// Resources that MUST always be fetched fresh from the network so Chrome's
+// installability checker (and the platform's home-screen icon installer) sees
+// the latest manifest + icons. Caching these caused users to keep installing
+// the old SVG-only manifest as a non-standalone shortcut. (BUG-021)
+const NEVER_CACHE_PATHS = [
+  '/manifest.json',
+  '/apple-touch-icon.png',
+  '/icons/',
+  '/sw.js',
+]
 
 // Read-only API endpoints safe to serve stale-while-revalidate. Each unique URL
 // (incl. query string) is cached separately. Adding endpoints here makes pages
@@ -68,6 +79,12 @@ self.addEventListener('fetch', (event) => {
 
   // Only intercept same-origin GET requests
   if (request.method !== 'GET' || url.origin !== self.location.origin) return
+
+  // Never intercept the manifest or icons — Chrome's install pipeline reads
+  // these directly to decide whether the site qualifies as a standalone PWA.
+  // A stale cached response here makes Chrome install a bookmark shortcut
+  // instead of a WebAPK. Let them go straight to network.
+  if (NEVER_CACHE_PATHS.some((p) => url.pathname === p || url.pathname.startsWith(p))) return
 
   // Next.js static chunks — cache-first (they're content-hashed)
   if (url.pathname.startsWith('/_next/static/')) {

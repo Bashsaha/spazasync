@@ -27,7 +27,11 @@ const notoNastaliqUrdu = Noto_Nastaliq_Urdu({
 export const metadata: Metadata = {
   title: 'Movestock',
   description: 'Sales and stock management for your spaza shop',
-  manifest: '/manifest.json',
+  // Versioned URL — bumps when manifest content changes so Chrome treats it
+  // as a brand-new resource and re-evaluates installability instead of using
+  // a cached "not installable" verdict from a previous manifest. Bump on every
+  // manifest change.
+  manifest: '/manifest.json?v=2026-05-10',
   icons: {
     icon: [
       { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
