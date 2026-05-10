@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   // as a brand-new resource and re-evaluates installability instead of using
   // a cached "not installable" verdict from a previous manifest. Bump on every
   // manifest change.
-  manifest: '/manifest.json?v=2026-05-10b',
+  manifest: '/manifest.json?v=2026-05-10c',
   icons: {
     icon: [
       { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },

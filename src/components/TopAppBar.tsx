@@ -57,7 +57,7 @@ export function TopAppBar({
   }
 
   return (
-    <header className="sticky top-0 z-30 bg-white border-b border-gray-100">
+    <header className="sticky top-0 z-30 bg-white">
       <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="font-bold text-brand truncate text-base leading-tight">Movestock</p>

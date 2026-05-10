@@ -15,6 +15,13 @@
   --font-sans: var(--font-jakarta);
 }
 
+html {
+  /* Paint the safe-area inset (the strip behind the OS status bar in
+     standalone PWAs) the same white as the header so there's no visible
+     seam between the system status bar and the app chrome. */
+  background: #FFFFFF;
+}
+
 body {
   background: var(--color-surface);
   color: var(--color-ink);
