@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { Supplier } from '@/types'
 import { Skeleton } from '@/components/Skeleton'
+import { BackButton } from '@/components/BackButton'
 import { useTranslation } from '@/components/LanguageProvider'
 import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
 
@@ -39,9 +40,7 @@ export default function SuppliersPage() {
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <Link href="/profile" className="text-gray-400 active:text-gray-600 text-sm">
-            {t('back')}
-          </Link>
+          <BackButton fallbackHref="/profile" />
           <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
         </div>
         <Link

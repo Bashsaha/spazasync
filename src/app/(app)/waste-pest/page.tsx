@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { BackButton } from '@/components/BackButton'
 import { getShopAuth } from '@/lib/auth/shop-auth'
 import { redirect } from 'next/navigation'
 import {
@@ -69,9 +70,7 @@ export default async function WastePestHubPage() {
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/profile" className="text-gray-400 active:text-gray-600 text-sm">
-          {t('back')}
-        </Link>
+        <BackButton fallbackHref="/profile" />
         <h1 className="text-2xl font-bold text-gray-900">{t('hub_title')}</h1>
       </div>
 

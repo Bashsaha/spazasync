@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useTranslation } from '@/components/LanguageProvider'
 import { Skeleton } from '@/components/Skeleton'
+import { BackButton } from '@/components/BackButton'
 import type { BusinessDocument, DocumentType } from '@/types'
 import { DOCUMENT_TYPES } from '@/lib/validation/schemas'
 import { computeDocumentStatus } from '@/lib/compliance/document-status'
@@ -99,9 +100,7 @@ export default function DocumentsPage() {
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/profile" className="text-gray-400 active:text-gray-600 text-sm">
-          {t('back')}
-        </Link>
+        <BackButton fallbackHref="/profile" />
         <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
       </div>
 

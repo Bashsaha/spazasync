@@ -6,8 +6,8 @@
  * or did not opt in to fund_interest.
  */
 
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { BackButton } from '@/components/BackButton'
 import { getShopAuth } from '@/lib/auth/shop-auth'
 import { getFundReadinessData } from '@/lib/db/fund-readiness'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
@@ -39,9 +39,7 @@ export default async function FundReadinessPage() {
   return (
     <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
       <div className="flex items-center gap-3 mb-2">
-        <Link href="/compliance/journey" className="text-gray-400 active:text-gray-600 text-sm">
-          {t('back')}
-        </Link>
+        <BackButton fallbackHref="/compliance/journey" />
         <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
       </div>
       <p className="text-sm text-gray-500 mb-6">{t('subtitle')}</p>
