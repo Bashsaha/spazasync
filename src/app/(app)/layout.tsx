@@ -8,6 +8,8 @@ import { TopAppBar } from '@/components/TopAppBar'
 import DailySummaryAlert from '@/components/DailySummaryAlert'
 import MonthlyComplianceAlert from '@/components/MonthlyComplianceAlert'
 import { InstallPwaButton } from '@/components/InstallPwaButton'
+import { ChecklistReminderFab } from '@/components/ChecklistReminderFab'
+import { getTodayChecklist, todaySAST } from '@/lib/db/daily-checklist'
 import type { SupportedLocale } from '@/lib/i18n/types'
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '@/lib/i18n/types'
 
@@ -57,6 +59,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .toUpperCase()
   const initial = initialChar || 'M'
 
+  // Owners only — show a pulsing reminder FAB whenever today's daily
+  // checklist hasn't been done yet. One Postgres round trip; failures
+  // silently disable the reminder rather than blocking layout render.
+  let showChecklistReminder = false
+  if (shopId && (role === 'owner' || role === 'admin')) {
+    try {
+      const checklist = await getTodayChecklist(shopId, todaySAST())
+      showChecklistReminder = checklist === null
+    } catch {
+      showChecklistReminder = false
+    }
+  }
+
   return (
     <div className="min-h-screen bg-surface">
       <LanguageProvider
@@ -77,6 +92,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             {children}
           </OfflineSyncProvider>
           <BottomNav role={role} hasShop={!!shopId} />
+          {showChecklistReminder && <ChecklistReminderFab />}
         </ToastProvider>
       </LanguageProvider>
     </div>

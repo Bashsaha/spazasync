@@ -55,6 +55,7 @@
   "history_done": "Done",
   "history_partial": "Saved",
   "history_link": "View full history",
+  "reminder_aria": "Daily checklist not done yet — tap to open",
   "history_back": "← Back to dashboard",
 
   "status_done": "Today's checklist done ✓",
