@@ -1,13 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Maskable icon: safe zone is central 80%, so fill the entire canvas -->
-  <rect width="512" height="512" fill="#f97316"/>
-  <text
-    x="256"
-    y="360"
-    font-size="320"
-    font-family="Arial, Helvetica, sans-serif"
-    font-weight="800"
-    fill="white"
-    text-anchor="middle"
-  >S</text>
+  <!-- Maskable: full bleed; safe zone is the central 80% (radius 205 from center) -->
+  <rect width="512" height="512" fill="#1ABC9C"/>
+  <!-- Centered checkbox tile inside safe zone -->
+  <rect x="166" y="166" width="180" height="180" rx="32" fill="none" stroke="#FFFFFF" stroke-width="22"/>
+  <path d="M204 262 L246 304 L312 220" fill="none" stroke="#FFFFFF" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

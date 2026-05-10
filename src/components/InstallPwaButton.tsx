@@ -10,9 +10,6 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
-const DISMISS_KEY = 'spaza_install_dismissed_at'
-const DISMISS_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000
-
 function isStandalone(): boolean {
   if (typeof window === 'undefined') return false
   if (window.matchMedia?.('(display-mode: standalone)').matches) return true
@@ -25,32 +22,21 @@ function isIos(): boolean {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent)
 }
 
-function isDismissedRecently(): boolean {
-  try {
-    const raw = localStorage.getItem(DISMISS_KEY)
-    if (!raw) return false
-    const at = Number(raw)
-    if (!Number.isFinite(at)) return false
-    return Date.now() - at < DISMISS_COOLDOWN_MS
-  } catch {
-    return false
-  }
-}
-
-/** Dismissible "Add to Home Screen" prompt for the dashboard.
+/** "Add to Home Screen" prompt for the dashboard.
  *
- *  - Android/desktop Chrome/Edge: captures `beforeinstallprompt` and exposes a
- *    real install button that triggers the native prompt.
- *  - iOS Safari: no programmatic prompt exists, so we render manual
- *    instructions instead.
- *  - Hidden once installed (display-mode: standalone) or dismissed within
- *    the last 7 days.
+ *  Always visible until the app is actually installed:
+ *  - Android/desktop Chrome/Edge: shows the install button as soon as
+ *    `beforeinstallprompt` fires; "Not now" closes it for the current
+ *    page-load only — it returns on the next navigation/refresh.
+ *  - iOS Safari: shows manual instructions (no programmatic prompt exists).
+ *  - Hides permanently only when display-mode flips to standalone or the
+ *    `appinstalled` event fires.
  */
 export function InstallPwaButton() {
   const { t } = useTranslation('common')
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null)
   const [installed, setInstalled] = useState(false)
-  const [dismissed, setDismissed] = useState(false)
+  const [hiddenForSession, setHiddenForSession] = useState(false)
   const [showIos, setShowIos] = useState(false)
 
   useEffect(() => {
@@ -58,13 +44,8 @@ export function InstallPwaButton() {
       setInstalled(true)
       return
     }
-    if (isDismissedRecently()) {
-      setDismissed(true)
-      return
-    }
     if (isIos()) {
       setShowIos(true)
-      return
     }
     function onPrompt(e: Event) {
       e.preventDefault()
@@ -82,13 +63,8 @@ export function InstallPwaButton() {
     }
   }, [])
 
-  function dismiss() {
-    try {
-      localStorage.setItem(DISMISS_KEY, String(Date.now()))
-    } catch {
-      // ignore
-    }
-    setDismissed(true)
+  function hideForNow() {
+    setHiddenForSession(true)
   }
 
   async function install() {
@@ -96,10 +72,15 @@ export function InstallPwaButton() {
     await deferred.prompt()
     const choice = await deferred.userChoice
     setDeferred(null)
-    if (choice.outcome === 'dismissed') dismiss()
+    // If the user dismissed Chrome's native prompt, leave the banner visible
+    // so they can try again — the banner only goes away once `appinstalled`
+    // fires or the app loads in standalone mode.
+    if (choice.outcome === 'accepted') {
+      // appinstalled handler will flip `installed` to true.
+    }
   }
 
-  if (installed || dismissed) return null
+  if (installed || hiddenForSession) return null
   // Nothing to show: not installed, no native prompt fired, not iOS.
   if (!deferred && !showIos) return null
 
@@ -119,7 +100,7 @@ export function InstallPwaButton() {
           </button>
           <button
             type="button"
-            onClick={dismiss}
+            onClick={hideForNow}
             className="px-4 text-sm text-brand-hover active:text-brand-hover min-h-[40px]"
           >
             {t('install_dismiss')}
@@ -130,7 +111,7 @@ export function InstallPwaButton() {
           <p className="text-xs text-brand-hover mt-2">{t('install_ios_hint')}</p>
           <button
             type="button"
-            onClick={dismiss}
+            onClick={hideForNow}
             className="mt-2 text-xs text-brand-hover font-semibold active:text-brand-hover"
           >
             {t('install_dismiss')}
