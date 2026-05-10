@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   // as a brand-new resource and re-evaluates installability instead of using
   // a cached "not installable" verdict from a previous manifest. Bump on every
   // manifest change.
-  manifest: '/manifest.json?v=2026-05-10',
+  manifest: '/manifest.json?v=2026-05-10b',
   icons: {
     icon: [
       { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
     title: 'Movestock',
   },
 }
@@ -51,7 +51,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#1ABC9C',
+  themeColor: '#FFFFFF',
   viewportFit: 'cover',
 }
 
