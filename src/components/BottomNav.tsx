@@ -79,7 +79,7 @@ export function BottomNav({ role, hasShop }: BottomNavProps) {
       {showFab && (
         <Link
           href="/sale"
-          className="fixed z-50 right-4 bg-brand text-white rounded-full active:bg-brand-hover transition-colors flex items-center gap-2 pl-4 pr-5 h-14"
+          className="fixed z-30 right-4 bg-brand text-white rounded-full active:bg-brand-hover transition-colors flex items-center gap-2 pl-4 pr-5 h-14"
           style={{ bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
           aria-label={t('nav_start_sale')}
         >
