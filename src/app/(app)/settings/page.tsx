@@ -280,8 +280,8 @@ export default function SettingsPage() {
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
       {saving && <FullScreenSpinner label={t('btn_saving')} />}
-      <a href="/dashboard" className="text-sm text-brand mb-6 inline-block">
-        {t('back')}
+      <a href="/profile" className="text-sm text-brand mb-6 inline-block">
+        ‹ {t('back')}
       </a>
 
       <h1 className="text-2xl font-bold text-gray-900 mb-1">{t('title')}</h1>

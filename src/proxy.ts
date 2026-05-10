@@ -7,10 +7,12 @@ import { isTellerInventoryGranted } from '@/lib/db/access-requests'
 const PUBLIC_ROUTES = ['/login', '/onboarding', '/auth/callback', '/api/auth/teller-login', '/api/onboarding', '/api/subscribe/notify', '/api/external']
 
 // Routes a teller can always reach — pre- or post-grant.
-// Includes /inventory (the request-access UI lives there) and the access-request API.
+// Includes /inventory (the request-access UI lives there), the access-request
+// API, and /profile (where Switch user lives).
 const TELLER_ALWAYS_ALLOWED = [
   '/sale',
   '/inventory',
+  '/profile',
   '/api/access-requests',
   // existing API endpoints the sale flow uses
   '/api/sales',

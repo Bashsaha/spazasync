@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Receipt, Package, Users, Settings, Shield, Plus, type LucideIcon } from 'lucide-react'
+import { Home, Receipt, Package, Users, Shield, Plus, type LucideIcon } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 
 interface NavItem {
@@ -33,7 +33,6 @@ const ownerNav: NavItem[] = [
     Icon: Users,
     matches: ['/manage', '/tellers', '/inspection', '/checklist', '/documents', '/waste-pest'],
   },
-  { href: '/settings', labelKey: 'nav_settings', Icon: Settings, matches: ['/settings', '/subscribe'] },
 ]
 
 const adminExtra: NavItem = { href: '/admin', labelKey: 'nav_admin', Icon: Shield, matches: ['/admin'] }
