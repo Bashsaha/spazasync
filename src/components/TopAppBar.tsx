@@ -60,9 +60,11 @@ export function TopAppBar({
     <header className="sticky top-0 z-30 bg-white border-b border-gray-100">
       <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="font-bold text-gray-900 truncate text-base leading-tight">{title}</p>
-          {subtitle && (
-            <p className="text-xs text-gray-400 truncate leading-tight mt-0.5">{subtitle}</p>
+          <p className="font-bold text-brand truncate text-base leading-tight">Movestock</p>
+          {(subtitle || title) && (
+            <p className="text-xs text-gray-400 truncate leading-tight mt-0.5">
+              {subtitle ?? title}
+            </p>
           )}
         </div>
 

@@ -673,6 +673,10 @@ export default function SettingsPage() {
           )}
         </button>
       </form>
+
+      <p className="text-center text-xs text-gray-400 mt-8 mb-4">
+        Movestock — a product of Veyon
+      </p>
     </main>
   )
 }
