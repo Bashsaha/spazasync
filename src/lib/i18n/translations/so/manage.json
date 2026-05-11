@@ -1,14 +1,12 @@
 {
   "title": "Maamul",
   "hint": "Shaqaalaha iyo raaliyaynta",
-
   "card_staff": "Maamul Shaqaalaha",
   "card_staff_desc": "Dadka ku iibiya taleefankaaga",
-  "card_compliance": "Maamul Raaliyaynta",
-  "card_compliance_desc": "Warqadaha, hubinta maalinlaha, warbixinta kormeeraha",
+  "card_compliance": "Inspection Documents",
+  "card_compliance_desc": "Compliance score and inspection pack download",
   "card_journey": "Compliance Journey",
   "card_journey_desc": "Step-by-step plan to keep your shop legal",
-
   "bell_title": "Codsiyo sugaya",
   "bell_empty": "Ma jiraan codsiyo sugaya",
   "bell_pending_one": "{count} codsi sugaya",

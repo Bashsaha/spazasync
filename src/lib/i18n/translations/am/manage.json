@@ -1,14 +1,12 @@
 {
   "title": "አስተዳድር",
   "hint": "ሰራተኞች እና ተገዢነት",
-
   "card_staff": "ሰራተኞችን አስተዳድር",
   "card_staff_desc": "በስልክዎ ላይ ሽያጭ የሚያስኬዱ ሰዎች",
-  "card_compliance": "ተገዢነትን አስተዳድር",
-  "card_compliance_desc": "ሰነዶች፣ የዕለት ቼኮች፣ የተቆጣጣሪ ሪፖርት",
+  "card_compliance": "Inspection Documents",
+  "card_compliance_desc": "Compliance score and inspection pack download",
   "card_journey": "Compliance Journey",
   "card_journey_desc": "Step-by-step plan to keep your shop legal",
-
   "bell_title": "የሚጠባበቁ ጥያቄዎች",
   "bell_empty": "ምንም የሚጠባበቅ ጥያቄ የለም",
   "bell_pending_one": "{count} የሚጠባበቅ ጥያቄ",

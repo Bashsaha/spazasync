@@ -20,10 +20,8 @@
   "fix_now": "Fix now",
   "ok": "Done",
 
-  "download_pdf": "Download Report PDF",
-  "download_hint": "A full compliance report you can show the inspector.",
-  "download_evidence_pack": "Generate Evidence Pack",
-  "download_evidence_hint": "30 days of checklists, temperatures, suppliers, and pest control in one document.",
+  "download_inspection_pack": "Download Inspection Pack",
+  "download_inspection_pack_hint": "Score, documents, checklists, stock, suppliers, pest control and staff training in one PDF.",
 
   "breakdown_header": "How your score is calculated",
   "breakdown_contribution": "{score}/100 × {weight}% weight",

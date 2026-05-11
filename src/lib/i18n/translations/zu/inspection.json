@@ -2,13 +2,11 @@
   "title": "Lungiselela Ukuhlolwa",
   "subtitle": "Amaphuzu akho okulandela imithetho nalokho okumele ukulungise ngaphambi kokuba umhloli afike.",
   "back": "← Emuva",
-
   "score_label": "Amaphuzu Okulandela Imithetho",
   "score_out_of": "kwangu-100",
   "band_ready": "Sewulungele ukuhlolwa",
   "band_improving": "Zimbalwa izinto okumele zilungiswe",
   "band_urgent": "Phuthumayo: lungisa lezi ngaphambi kokuba umhloli afike",
-
   "pre_check_header": "Uhlu lwezinto zosuku lokuhlolwa",
   "pc_municipal": "Ukubhaliswa kukamasipala kukhona erekhodini",
   "pc_coa": "Isitifiketi Sokwamukelwa sisalungile",
@@ -19,12 +17,6 @@
   "pc_temp_today": "Amarekhodi ezinga lokushisa abhaliswe namuhla",
   "fix_now": "Lungisa manje",
   "ok": "Kuqediwe",
-
-  "download_pdf": "Landa Umbiko we-PDF",
-  "download_hint": "Umbiko opheleleyo wokulandela imithetho ongawukhombisa umhloli.",
-  "download_evidence_pack": "Khipha Iphakheji Yobufakazi",
-  "download_evidence_hint": "Izinsuku ezingu-30 zezinhlolokhono, amazinga okushisa, abahlinzeki, nokulawulwa kwezinambuzane kuwumbhalo owodwa.",
-
   "breakdown_header": "Ukuthi amaphuzu akho abaliwa kanjani",
   "breakdown_contribution": "{score}/100 × {weight}% isisindo",
   "cat_checklist": "Izinhlu zansuku zonke",
@@ -32,20 +24,19 @@
   "cat_suppliers": "Amarekhodi ababaphakeli",
   "cat_documents": "Amadokhumenti ebhizinisi",
   "cat_waste_pest": "Udoti & ukulawulwa kwezinambuzane",
-
   "tip_checklist": "Bhala uhlu lwansuku zonke njalo ekuseni — ukuphuzweni {pct}%.",
   "tip_expiry": "{count} izinto eziphelelwe yisikhathi zisesitokweni. Zikhiphe kumashalofu.",
   "tip_suppliers": "Engeza umphakeli kuzinye izinto ezingu-{count}.",
   "tip_documents": "Bhalisa amadokhumenti akho ebhizinisi futhi ubagcine besebenza.",
   "tip_waste_pest": "Bhala ukuvakasha kokulawula izinambuzane futhi uqinisekise isivumelwano sakho sodoti nyanga zonke.",
-
   "monthly_alert_title": "Amaphuzu akho enyanga okulandela imithetho",
   "monthly_alert_body": "Amaphuzu akho enyanga edlule bekungu-{score}/100. {tip}",
   "monthly_alert_tip_good": "Umsebenzi omuhle — qhubeka njalo.",
   "monthly_alert_tip_improve": "Nakhu okufanele ukusebenzele.",
   "monthly_cta_view": "Buka umbiko wonke",
   "monthly_cta_dismiss": "Kamuva",
-
   "loading": "Amaphuzu akho ayalayisha…",
-  "error_load": "Amaphuzu akho awakhonanga ukulayisha. Zama futhi."
+  "error_load": "Amaphuzu akho awakhonanga ukulayisha. Zama futhi.",
+  "download_inspection_pack": "Download Inspection Pack",
+  "download_inspection_pack_hint": "Score, documents, checklists, stock, suppliers, pest control and staff training in one PDF."
 }

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { FileText, Receipt } from 'lucide-react'
+import { FileText } from 'lucide-react'
 import { getShopAuth } from '@/lib/auth/shop-auth'
 import { getComplianceScore } from '@/lib/db/compliance-score'
 import { listBusinessDocuments } from '@/lib/db/business-documents'
@@ -117,28 +117,16 @@ export default async function InspectionPage() {
         </div>
       </section>
 
-      {/* PDF download */}
+      {/* Inspection Pack download */}
       <a
-        href="/api/reports/compliance-pdf"
-        className="flex items-center justify-between bg-brand text-white rounded-full p-5 active:bg-brand-hover mb-3"
-      >
-        <div>
-          <p className="font-bold text-lg">{t('download_pdf')}</p>
-          <p className="text-brand-light text-sm">{t('download_hint')}</p>
-        </div>
-        <FileText className="w-7 h-7" strokeWidth={1.75} />
-      </a>
-
-      {/* Phase 37d — Food Safety Evidence Pack */}
-      <a
-        href="/api/reports/food-safety-pack"
+        href="/api/reports/inspection-pack"
         className="flex items-center justify-between bg-brand text-white rounded-full p-5 active:bg-brand-hover mb-4"
       >
         <div>
-          <p className="font-bold text-lg">{t('download_evidence_pack')}</p>
-          <p className="text-brand-light text-sm">{t('download_evidence_hint')}</p>
+          <p className="font-bold text-lg">{t('download_inspection_pack')}</p>
+          <p className="text-brand-light text-sm">{t('download_inspection_pack_hint')}</p>
         </div>
-        <Receipt className="w-7 h-7" strokeWidth={1.75} />
+        <FileText className="w-7 h-7" strokeWidth={1.75} />
       </a>
 
       {/* Pre-check list (extracted to reusable panel — Phase 37c) */}

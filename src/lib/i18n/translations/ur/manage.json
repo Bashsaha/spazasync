@@ -1,14 +1,12 @@
 {
   "title": "انتظام",
   "hint": "عملہ اور تعمیل",
-
   "card_staff": "عملے کا انتظام",
   "card_staff_desc": "وہ لوگ جو آپ کے فون پر فروخت چلاتے ہیں",
-  "card_compliance": "تعمیل کا انتظام",
-  "card_compliance_desc": "دستاویزات، روزانہ چیک، انسپکٹر رپورٹ",
+  "card_compliance": "Inspection Documents",
+  "card_compliance_desc": "Compliance score and inspection pack download",
   "card_journey": "Compliance Journey",
   "card_journey_desc": "Step-by-step plan to keep your shop legal",
-
   "bell_title": "زیر التوا درخواستیں",
   "bell_empty": "کوئی زیر التوا درخواست نہیں",
   "bell_pending_one": "{count} زیر التوا درخواست",
