@@ -3,7 +3,6 @@
   "banner_subtitle": "Waxay qaadanaysaa qiyaastii 2 daqiiqo — qorshahaaga gaarka ah ayaan u dhisaynaa.",
   "banner_btn_start": "Bilow",
   "banner_btn_later": "Hadda maya",
-
   "step_progress": "{current} ka mid ah {total}",
   "btn_back": "← Dib u noqo",
   "btn_continue": "Sii wad",
@@ -11,20 +10,17 @@
   "btn_lets_get_started": "Aan bilowno",
   "btn_close": "Xir",
   "btn_saving": "Waa la kaydinayaa…",
-
   "welcome_title": "Aan eegno halka dukaankaagu marayo",
   "welcome_text": "Su'aalo dhowr ah ayaan ku weydiin doonaa si Movestock kuugu hagto wax kasta oo aad u baahan tahay si aad furan u sii ahaato oo u hoggaansamto sharciga.",
   "welcome_duration": "Waxay qaadanaysaa qiyaastii 2 daqiiqo.",
-
   "nationality_title": "Ma muwaadin Koonfur Afrikaan ah baad tahay?",
   "nationality_subtitle": "Tani waxay nooga caawinaysaa inaan ku tusno shuruudaha saxda ah iyo maalgelinta aad u-qalmi karto.",
   "nationality_yes": "Haa, muwaadin SA",
   "nationality_no": "Maya, ajnabi",
-
   "visa_title": "Tell us about your visa or permit",
   "visa_subtitle": "Your trading permit is linked to your visa. Knowing the type and expiry helps us remind you to renew on time.",
   "fronting_title": "Good to know",
-  "fronting_body": "All business registrations must be in your own name using your own valid documents. Registering on behalf of someone who doesn't have the right documents is a criminal offence under the Immigration Act. Movestock helps YOU register YOUR business properly.",
+  "fronting_body": "All business registrations must be in your own name using your own valid documents. Registering a business on behalf of someone who lacks the right to trade is a criminal offence under both the B-BBEE Act (Section 13O — up to 10 years in prison and a fine of 10% of annual turnover) and the Immigration Act (Section 42). Movestock helps YOU register YOUR business properly.",
   "visa_type_label": "What type of visa or permit do you have?",
   "visa_type_business_visa": "Business visa",
   "visa_type_asylum_seeker_s22": "Asylum seeker permit (Section 22)",
@@ -33,7 +29,6 @@
   "visa_type_other": "Other",
   "visa_expiry_label": "When does your visa or permit expire?",
   "visa_expiry_dont_know": "I don't know / it doesn't expire",
-
   "municipality_title": "Maamulka magaalo ee dukaankaagu ku yaal waa kee?",
   "municipality_search_placeholder": "Raadi…",
   "municipality_popular_label": "Caan ah:",
@@ -44,12 +39,10 @@
   "municipality_confirm_yes": "Haa, waa sax",
   "municipality_confirm_change": "Beddel",
   "municipality_no_match": "Macluumaad guud ayaan kuu tusi doonnaa. Tan waxaad ka cusboonaysiin kartaa Dejinta markii dambe.",
-
   "employees_title": "Ma haysataa shaqaale?",
   "employees_subtitle": "Haddaad shaqaale haysato, sidoo kale waxaad u baahan tahay diiwaangelinta UIF. Tan ayaan kuu weydiin doonaa.",
   "employees_yes": "Haa",
   "employees_no": "Maya, anigoo kaliya",
-
   "documents_title": "Kuwee aad horay u haysatay?",
   "documents_subtitle": "Hal mar taabo haddaad haysato. Mar kale taabo haddaad la shakisan tahay. Mar kale taabo si aad u tirtirto.",
   "documents_state_unselected": "Ma haysto",
@@ -61,7 +54,6 @@
   "doc_sars_tax": "Diiwaangelinta canshuurta SARS",
   "doc_uif": "Diiwaangelinta UIF (shaqaalaha)",
   "doc_food_safety_training": "Tababar ammaanka cuntada",
-
   "food_safety_title": "Ma dhameystay tababar ammaanka cuntada adiga ama shaqaalahaagu?",
   "food_safety_subtitle": "Kormeerayaasha caafimaadku waxay tan hubiyaan markay bixinayaan Shahaadada Caafimaadka.",
   "food_safety_yes": "Haa, shahaado ayaan haystaa",
@@ -70,13 +62,11 @@
   "food_safety_when_label": "Goorma ayaad dhameysay?",
   "food_safety_provider_label": "Magaca bixiyaha tababarka (ikhtiyaari)",
   "food_safety_provider_placeholder": "tusaale koorso SAQA ah",
-
   "fund_title": "Ma ogtahay?",
   "fund_intro": "Dawladdu waxay siisaa ilaa R300,000 dukaamada spaza — deeqo alaab, qaboojiyayaal, jajab, iyo tababar. Qaar waa lacag bilaash ah, qaarna waa amaah aan korsaar lahayn.",
   "fund_question": "Ma jeclaan lahayd Movestock inuu hubiyo haddaad u-qalanto?",
   "fund_yes": "Haa, hubi xaq u yeelashadayda",
   "fund_no": "Hadda maya",
-
   "summary_title": "Waa kan qorshahaaga",
   "summary_subtitle_one": "{count} tallaabo si dukaankaagu si buuxda ugu hoggaansamo",
   "summary_subtitle_other": "{count} tallaabo si dukaankaagu si buuxda ugu hoggaansamo",
@@ -84,7 +74,6 @@
   "summary_step_todo": "Tallaabada {n}",
   "summary_step_start_here": "Tallaabada {n} — Halkan ka bilow",
   "summary_fund_teaser": "Markii aad dhamaysato kuwan, waxaad u-qalmi kartaa ilaa R300,000 oo maalgelin dawladeed.",
-
   "settings_section_title": "Hubinta u-hoggaansanaanta",
   "settings_section_subtitle": "Cusboonaysii dhalashada, maamulka magaalada, iyo jawaabaha kale ee hoggaansanaanta.",
   "settings_redo_btn": "Dib u sameey hubinta",
@@ -99,6 +88,5 @@
   "settings_value_unknown": "Lama jawaabin",
   "settings_value_sa_citizen": "Muwaadin SA",
   "settings_value_foreign_national": "Ajnabi",
-
   "error_save_failed": "Jawaabahaaga ma kaydin karin. Fadlan isku day mar kale."
 }

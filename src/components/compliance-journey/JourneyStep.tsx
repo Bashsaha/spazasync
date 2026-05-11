@@ -60,6 +60,8 @@ interface Props {
   step: ComplianceJourneyStep
   defaultExpanded?: boolean
   children: ReactNode
+  /** id attribute on the outer section — used by NextStepHero scroll anchor. */
+  id?: string
 }
 
 const STEP_ICON: Record<JourneyStepKey, LucideIcon> = {
@@ -72,7 +74,7 @@ const STEP_ICON: Record<JourneyStepKey, LucideIcon> = {
   smmesa: ClipboardList,
 }
 
-export function JourneyStep({ step, defaultExpanded, children }: Props) {
+export function JourneyStep({ step, defaultExpanded, children, id }: Props) {
   const { t } = useTranslation('compliance-journey')
   const [expanded, setExpanded] = useState(Boolean(defaultExpanded))
   const badge = STATUS_BADGE[step.status]
@@ -83,6 +85,7 @@ export function JourneyStep({ step, defaultExpanded, children }: Props) {
 
   return (
     <section
+      id={id}
       className={`bg-white rounded-2xl border ${badge.ring} mb-3 overflow-hidden`}
     >
       <button

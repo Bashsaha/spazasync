@@ -3,7 +3,6 @@
   "banner_subtitle": "Kuthatha cishe imizuzu emi-2 — sizokwakhela uhlelo lwakho lobuqu.",
   "banner_btn_start": "Qala",
   "banner_btn_later": "Hhayi manje",
-
   "step_progress": "{current} kwa-{total}",
   "btn_back": "← Buyela emuva",
   "btn_continue": "Qhubeka",
@@ -11,20 +10,17 @@
   "btn_lets_get_started": "Asiqaleni",
   "btn_close": "Vala",
   "btn_saving": "Iyalondolozwa…",
-
   "welcome_title": "Asibuke ukuthi isitolo sakho sikuphi",
   "welcome_text": "Sizobuza imibuzo embalwa esheshayo ukuze i-Movestock ikuhole kukho konke okudingayo ukuze sivuleke futhi sihambisane nomthetho.",
   "welcome_duration": "Kuthatha cishe imizuzu emi-2.",
-
   "nationality_title": "Uyisakhamuzi saseNingizimu Afrika?",
   "nationality_subtitle": "Lokhu kusisiza sikukhombise izimfanelo ezifanele kanye noxhaso ongafaneleka kulo.",
   "nationality_yes": "Yebo, isakhamuzi saseSA",
   "nationality_no": "Cha, ngingowezizwe",
-
   "visa_title": "Tell us about your visa or permit",
   "visa_subtitle": "Your trading permit is linked to your visa. Knowing the type and expiry helps us remind you to renew on time.",
   "fronting_title": "Good to know",
-  "fronting_body": "All business registrations must be in your own name using your own valid documents. Registering on behalf of someone who doesn't have the right documents is a criminal offence under the Immigration Act. Movestock helps YOU register YOUR business properly.",
+  "fronting_body": "All business registrations must be in your own name using your own valid documents. Registering a business on behalf of someone who lacks the right to trade is a criminal offence under both the B-BBEE Act (Section 13O — up to 10 years in prison and a fine of 10% of annual turnover) and the Immigration Act (Section 42). Movestock helps YOU register YOUR business properly.",
   "visa_type_label": "What type of visa or permit do you have?",
   "visa_type_business_visa": "Business visa",
   "visa_type_asylum_seeker_s22": "Asylum seeker permit (Section 22)",
@@ -33,7 +29,6 @@
   "visa_type_other": "Other",
   "visa_expiry_label": "When does your visa or permit expire?",
   "visa_expiry_dont_know": "I don't know / it doesn't expire",
-
   "municipality_title": "Umasipala wesitolo sakho yimuphi?",
   "municipality_search_placeholder": "Sesha…",
   "municipality_popular_label": "Edumile:",
@@ -44,12 +39,10 @@
   "municipality_confirm_yes": "Yebo, kulungile",
   "municipality_confirm_change": "Shintsha",
   "municipality_no_match": "Sizokukhombisa ulwazi olujwayelekile. Ungalubuyekeza lokhu Ezilungiselelweni kamuva.",
-
   "employees_title": "Unabasebenzi?",
   "employees_subtitle": "Uma uqasha abasebenzi, udinga futhi ukubhalisa kwe-UIF. Sizobuza ngakho ngokulandelayo.",
   "employees_yes": "Yebo",
   "employees_no": "Cha, yimi nje",
-
   "documents_title": "Yiziphi onazo kakade?",
   "documents_subtitle": "Thepha kanye uma unayo. Thepha futhi uma ungaqinisekile. Thepha futhi ukususa.",
   "documents_state_unselected": "Anginayo lena",
@@ -61,7 +54,6 @@
   "doc_sars_tax": "Ukubhalisa kwe-SARS",
   "doc_uif": "Ukubhalisa kwe-UIF (kubasebenzi)",
   "doc_food_safety_training": "Ukuqeqeshwa kokuphepha kokudla",
-
   "food_safety_title": "Ingabe wena noma abasebenzi bakho seniqede ukuqeqeshwa kokuphepha kokudla?",
   "food_safety_subtitle": "Abahloli bezempilo bahlola lokhu lapho bekhipha Isitifiketi Sezempilo.",
   "food_safety_yes": "Yebo, nginesitifiketi",
@@ -70,13 +62,11 @@
   "food_safety_when_label": "Wakuqeda nini?",
   "food_safety_provider_label": "Igama lomhlinzeki wokuqeqeshwa (okukhethwayo)",
   "food_safety_provider_placeholder": "isib. ikhosi egunyaziwe nge-SAQA",
-
   "fund_title": "Ubukwazi?",
   "fund_intro": "Uhulumeni unikeza kuze kufike ku-R300,000 ezitolo zaspaza — uxhaso lwesitokwe, izifudumezi, amashalofu, kanye nokuqeqesha. Olunye lumahhala, olunye yimali ebolekiwe engenanzalo.",
   "fund_question": "Ungathanda ukuthi i-Movestock ihlole ukuthi uyafaneleka yini?",
   "fund_yes": "Yebo, hlola ukufaneleka kwami",
   "fund_no": "Hhayi manje",
-
   "summary_title": "Nakhu uhlelo lwakho",
   "summary_subtitle_one": "{count} isinyathelo ukwenza isitolo sakho sihambisane nomthetho",
   "summary_subtitle_other": "{count} izinyathelo ukwenza isitolo sakho sihambisane nomthetho",
@@ -84,7 +74,6 @@
   "summary_step_todo": "Isinyathelo {n}",
   "summary_step_start_here": "Isinyathelo {n} — Qala lapha",
   "summary_fund_teaser": "Lapho usuqedile lokhu, ungafaneleka uxhaso lukahulumeni oluze kufike ku-R300,000.",
-
   "settings_section_title": "Ukuhlolwa kokuhambisana",
   "settings_section_subtitle": "Buyekeza ubuzwe bakho, umasipala, kanye nezinye izimpendulo zokuhambisana.",
   "settings_redo_btn": "Phinda ukuhlolwa kokuhambisana",
@@ -99,6 +88,5 @@
   "settings_value_unknown": "Akuphendulwanga",
   "settings_value_sa_citizen": "Isakhamuzi saseSA",
   "settings_value_foreign_national": "Owezizwe",
-
   "error_save_failed": "Asikwazanga ukulondoloza izimpendulo zakho. Sicela uzame futhi."
 }

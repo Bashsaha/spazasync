@@ -117,7 +117,7 @@ const MUNICIPALITIES: SeedMunicipality[] = [
     requirements: [
       {
         requirement_type: 'trading_permit',
-        fees: 'Contact municipality for current fees',
+        fees: 'R300 for a 3-year permit (Informal Trader Permit). Source: joburg.org.za (verify current tariff annually)',
         estimated_processing_time: '4-8 weeks (includes department circulation and possible advertising period)',
         documents_required: [
           { name: 'Certified copy of SA ID (not older than 3 months)', applies_to: 'sa_citizen', required: true },
@@ -161,7 +161,7 @@ const MUNICIPALITIES: SeedMunicipality[] = [
         requirement_type: 'trading_permit',
         documents_required: [
           { name: 'Certified copy of SA ID', applies_to: 'sa_citizen', required: true },
-          { name: 'Home Affairs documents for foreigners (certified copies)', applies_to: 'foreign_national', required: true, notes: 'Foreign nationals need proof of R5 million investment in existing SA business + business visa' },
+          { name: 'Home Affairs documents for foreigners (certified copies)', applies_to: 'foreign_national', required: true, notes: 'Foreign nationals need proof of R5 million capital investment + business visa (Immigration Act Regulations 2014, Reg 15)' },
           { name: 'Affidavit and certified ID of stand/erf owner', applies_to: 'all', required: true, notes: 'Required if property is zoned as Residential 5' },
           { name: 'Proof of ownership or permission to use premises', applies_to: 'all', required: true, notes: 'If City-owned property: Special Power of Attorney from City Manager through Group Property (Ou Raadsaal or Tshwane House)' },
         ],
@@ -248,8 +248,20 @@ const MUNICIPALITIES: SeedMunicipality[] = [
     ],
     requirements: [
       {
-        requirement_type: 'coa',
+        requirement_type: 'trading_permit',
+        fees: 'Annual renewal: free. Source: durban.gov.za (verify current tariff annually)',
+        estimated_processing_time: '~21 days',
         additional_notes: '6,110 applications submitted by Feb 2025 deadline, ~1,562 licences approved. Inspections by multidisciplinary team: Metro Police, SAPS, Fire & Emergency, Business Licensing.',
+        documents_required: [
+          { name: 'Certified copy of SA ID', applies_to: 'sa_citizen', required: true },
+          { name: 'Passport with valid visa or permit', applies_to: 'foreign_national', required: true, notes: 'Section 22 asylum seeker or Section 24 refugee permit accepted' },
+          { name: 'Proof of premises (lease, title deed, or landlord affidavit)', applies_to: 'all', required: true },
+          { name: 'Certificate of Acceptability', applies_to: 'all', required: true },
+        ],
+      },
+      {
+        requirement_type: 'coa',
+        additional_notes: 'Certificate of Acceptability application. Contact Business Licensing (031 311 4535) or visit nearest Sizakala Centre.',
         documents_required: [
           { name: 'Certificate of Acceptability application form', applies_to: 'all', required: true, notes: 'Download: https://www.durban.gov.za/uploads/0000/6/2025/09/21/certificate-of-acceptability-for-food-premises.pdf' },
         ],

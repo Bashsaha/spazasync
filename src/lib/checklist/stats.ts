@@ -1,9 +1,11 @@
 import type { DailyChecklist, ChecklistStats } from '@/types'
 
-/** Classify whether a fridge temperature is within R638's 1–5°C range. */
+/** Classify whether a fridge temperature is within R638's ≤5°C limit.
+ *  R638 mandates only the upper bound — there is no regulatory lower limit,
+ *  so we only flag temps above 5°C (not below 1°C). */
 export function fridgeInRange(temp: number | null): boolean {
   if (temp === null) return true // unknown = not flagged
-  return temp >= 1 && temp <= 5
+  return temp <= 5
 }
 
 /** Classify whether a freezer temperature is at or below -18°C. */

@@ -27,18 +27,24 @@ function row(overrides: Partial<DailyChecklist> = {}): DailyChecklist {
   }
 }
 
-describe('fridgeInRange (R638 1–5°C)', () => {
-  it('accepts 1°C (lower bound)', () => {
+describe('fridgeInRange (R638 ≤5°C upper limit only — no lower bound in regulation)', () => {
+  it('accepts -5°C (very cold fridge — not a violation)', () => {
+    expect(fridgeInRange(-5)).toBe(true)
+  })
+  it('accepts 0°C (near-freezing fridge — not a violation)', () => {
+    expect(fridgeInRange(0)).toBe(true)
+  })
+  it('accepts 1°C', () => {
     expect(fridgeInRange(1)).toBe(true)
   })
   it('accepts 5°C (upper bound)', () => {
     expect(fridgeInRange(5)).toBe(true)
   })
-  it('rejects 0.9°C', () => {
-    expect(fridgeInRange(0.9)).toBe(false)
-  })
-  it('rejects 5.1°C', () => {
+  it('rejects 5.1°C (above limit)', () => {
     expect(fridgeInRange(5.1)).toBe(false)
+  })
+  it('rejects 8°C', () => {
+    expect(fridgeInRange(8)).toBe(false)
   })
   it('treats null as not-flagged (true)', () => {
     expect(fridgeInRange(null)).toBe(true)

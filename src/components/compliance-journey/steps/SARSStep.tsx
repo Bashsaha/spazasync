@@ -47,7 +47,7 @@ export function SARSStep({ step, data, t }: Props) {
         ) : (
           <p className="text-gray-600 mb-3">{t('sars_no_data_yet')}</p>
         )}
-        {annual < 1_000_000 ? (
+        {annual < 2_300_000 ? (
           <div className="bg-green-50 border border-green-100 rounded-xl p-3 text-green-800">
             <p className="font-semibold mb-1">{t('sars_qualify_turnover_title')}</p>
             <p className="text-sm">{t('sars_qualify_turnover_body')}</p>

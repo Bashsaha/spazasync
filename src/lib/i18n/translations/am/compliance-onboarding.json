@@ -3,7 +3,6 @@
   "banner_subtitle": "በ2 ደቂቃ ገደማ ይሆናል — የእርስዎን ግላዊ እቅድ እንሠራለን።",
   "banner_btn_start": "ጀምር",
   "banner_btn_later": "አሁን አይደለም",
-
   "step_progress": "{current} ከ {total}",
   "btn_back": "← ተመለስ",
   "btn_continue": "ቀጥል",
@@ -11,20 +10,17 @@
   "btn_lets_get_started": "እንጀምር",
   "btn_close": "ዝጋ",
   "btn_saving": "በማስቀመጥ ላይ…",
-
   "welcome_title": "ሱቅዎ የት እንዳለ እንመልከት",
   "welcome_text": "Movestock ሱቅዎን ክፍት እና ተገዢ ለማድረግ የሚያስፈልጉትን ሁሉ እንዲመራዎት ጥቂት ፈጣን ጥያቄዎችን እንጠይቃለን።",
   "welcome_duration": "ወደ 2 ደቂቃ ይሆናል።",
-
   "nationality_title": "የደቡብ አፍሪካ ዜጋ ነዎት?",
   "nationality_subtitle": "ይህ ለእርስዎ ትክክለኛ ሁኔታዎችን እና ሊያገኙ የሚችሉትን ድጋፍ እንዲያሳዩ ይረዳናል።",
   "nationality_yes": "አዎ፣ የSA ዜጋ ነኝ",
   "nationality_no": "አይደለም፣ የውጭ ዜጋ ነኝ",
-
   "visa_title": "Tell us about your visa or permit",
   "visa_subtitle": "Your trading permit is linked to your visa. Knowing the type and expiry helps us remind you to renew on time.",
   "fronting_title": "Good to know",
-  "fronting_body": "All business registrations must be in your own name using your own valid documents. Registering on behalf of someone who doesn't have the right documents is a criminal offence under the Immigration Act. Movestock helps YOU register YOUR business properly.",
+  "fronting_body": "All business registrations must be in your own name using your own valid documents. Registering a business on behalf of someone who lacks the right to trade is a criminal offence under both the B-BBEE Act (Section 13O — up to 10 years in prison and a fine of 10% of annual turnover) and the Immigration Act (Section 42). Movestock helps YOU register YOUR business properly.",
   "visa_type_label": "What type of visa or permit do you have?",
   "visa_type_business_visa": "Business visa",
   "visa_type_asylum_seeker_s22": "Asylum seeker permit (Section 22)",
@@ -33,7 +29,6 @@
   "visa_type_other": "Other",
   "visa_expiry_label": "When does your visa or permit expire?",
   "visa_expiry_dont_know": "I don't know / it doesn't expire",
-
   "municipality_title": "ሱቅዎ ያለበት ማዘጋጃ ቤት የትኛው ነው?",
   "municipality_search_placeholder": "ፈልግ…",
   "municipality_popular_label": "ታዋቂዎች:",
@@ -44,12 +39,10 @@
   "municipality_confirm_yes": "አዎ፣ ትክክል ነው",
   "municipality_confirm_change": "ለውጥ",
   "municipality_no_match": "አጠቃላይ መረጃ እናሳይዎታለን። ይህን በቅንብሮች ውስጥ ማዘመን ይችላሉ።",
-
   "employees_title": "ሰራተኞች አሉዎት?",
   "employees_subtitle": "ሰራተኞች ካሉዎት፣ የUIF ምዝገባም ያስፈልግዎታል። ቀጥሎ እንጠይቃለን።",
   "employees_yes": "አዎ",
   "employees_no": "የለም፣ እኔ ብቻ",
-
   "documents_title": "ከእነዚህ ውስጥ ያሉዎት የትኞቹ ናቸው?",
   "documents_subtitle": "ካሉዎት አንድ ጊዜ ይንኩ። እርግጠኛ ካልሆኑ ሁለት ጊዜ ይንኩ። ለማጥፋት ሶስት ጊዜ ይንኩ።",
   "documents_state_unselected": "ይህ የለኝም",
@@ -61,7 +54,6 @@
   "doc_sars_tax": "የSARS ግብር ምዝገባ",
   "doc_uif": "የUIF ምዝገባ (ለሰራተኞች)",
   "doc_food_safety_training": "የምግብ ደህንነት ስልጠና",
-
   "food_safety_title": "እርስዎ ወይም ሰራተኞችዎ የምግብ ደህንነት ስልጠና ጨርሰዋል?",
   "food_safety_subtitle": "የጤና ተቆጣጣሪዎች የጤና ሰርተፊኬት ሲሰጡ ይህንን ይፈትሻሉ።",
   "food_safety_yes": "አዎ፣ ሰርተፊኬት አለኝ",
@@ -70,13 +62,11 @@
   "food_safety_when_label": "መቼ ጨርሰው ነበር?",
   "food_safety_provider_label": "የስልጠና አቅራቢ ስም (አማራጭ)",
   "food_safety_provider_placeholder": "ምሳ. SAQA-የተመሰከረ ኮርስ",
-
   "fund_title": "ያውቁ ኖሯል?",
   "fund_intro": "መንግስት እስከ R300,000 ለስፓዛ ሱቆች ያቀርባል — ለክምችት፣ ለማቀዝቀዣ፣ ለመደርደሪያ እና ለስልጠና ድጋፍ። ጥቂቱ ነጻ ገንዘብ ሲሆን፣ ቀሪው ወለድ-አልባ ብድር ነው።",
   "fund_question": "Movestock ይህን ብቁ መሆንዎን እንዲያረጋግጥ ይፈልጋሉ?",
   "fund_yes": "አዎ፣ ብቁ መሆኔን ይመልከቱ",
   "fund_no": "አሁን አይደለም",
-
   "summary_title": "የእርስዎ እቅድ ይኸውና",
   "summary_subtitle_one": "ሱቅዎን ሙሉ በሙሉ ተገዢ ለማድረግ {count} ደረጃ",
   "summary_subtitle_other": "ሱቅዎን ሙሉ በሙሉ ተገዢ ለማድረግ {count} ደረጃዎች",
@@ -84,7 +74,6 @@
   "summary_step_todo": "ደረጃ {n}",
   "summary_step_start_here": "ደረጃ {n} — እዚህ ይጀምሩ",
   "summary_fund_teaser": "እነዚህን ካጠናቀቁ በኋላ እስከ R300,000 የሚደርስ የመንግስት ድጋፍ ሊያገኙ ይችላሉ።",
-
   "settings_section_title": "የተገዢነት ምርመራ",
   "settings_section_subtitle": "ዜግነትዎን፣ ማዘጋጃ ቤትዎን እና ሌሎች የተገዢነት መልሶችዎን ያዘምኑ።",
   "settings_redo_btn": "ምርመራውን ድገሙ",
@@ -99,6 +88,5 @@
   "settings_value_unknown": "አልተመለሰም",
   "settings_value_sa_citizen": "የSA ዜጋ",
   "settings_value_foreign_national": "የውጭ ዜጋ",
-
   "error_save_failed": "መልሶችዎን ማስቀመጥ አልተቻለም። እባክዎ እንደገና ይሞክሩ።"
 }

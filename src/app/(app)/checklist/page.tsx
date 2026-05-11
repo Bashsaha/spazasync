@@ -148,6 +148,9 @@ export default function ChecklistPage() {
       setData((prev) => (prev ? { ...prev, checklist: saved } : prev))
       emitDataChanged()
       addToast(t('msg_saved'), 'success')
+      // Re-run the (app) layout's server component so the pulsing
+      // ChecklistReminderFab disappears now that today's checklist is done.
+      router.refresh()
       router.push('/dashboard')
     } catch {
       setErrorKey('msg_save_failed')

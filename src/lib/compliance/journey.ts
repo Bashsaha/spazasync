@@ -24,17 +24,22 @@ import type {
 } from '@/types'
 
 /**
- * Canonical step order shown on /compliance/journey. The trading permit is
- * Step 1 because it's what shop owners are asked for first when an inspector
- * walks in, but it's locked until CIPC + SARS + food-safety training are done.
+ * Canonical step order — reflects the real-world dependency chain:
+ *  1. Food Safety Training  — prerequisite for the CoA (R638 Reg 10)
+ *  2. CIPC                  — prerequisite for trading permit + funding
+ *  3. SARS Tax              — prerequisite for trading permit
+ *  4. Health Certificate    — needs food-safety training; can run with CIPC/SARS
+ *  5. Trading Permit        — depends on 1+2+3 (CoA runs alongside)
+ *  6. UIF                   — only if has_employees
+ *  7. SMMESA                — only if SA citizen + fund_interest; needs CIPC
  */
 export const JOURNEY_STEP_ORDER: readonly JourneyStepKey[] = [
-  'municipal_registration',
-  'coa',
+  'food_safety_training',
   'cipc',
   'sars_tax',
+  'coa',
+  'municipal_registration',
   'uif',
-  'food_safety_training',
   'smmesa',
 ] as const
 

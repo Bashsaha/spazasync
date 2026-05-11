@@ -37,9 +37,23 @@ export function FoodSafetyStep({ step, data, t }: Props) {
         <h4 className="font-semibold text-gray-800 mb-2">
           {t('food_what_header')}
         </h4>
-        <ol className="list-decimal list-inside text-gray-700 space-y-1.5">
+        <ol className="list-decimal list-inside text-gray-700 space-y-1.5 mb-3">
           <li>{t('food_what_layer_1')}</li>
           <li>{t('food_what_layer_2')}</li>
+        </ol>
+        <p className="text-xs text-gray-500">{t('food_what_note')}</p>
+      </section>
+
+      {/* Numbered how-to */}
+      <section>
+        <h4 className="text-sm font-semibold text-gray-800 mb-2">{t('food_how_header')}</h4>
+        <ol className="space-y-2">
+          {(['food_how_step_1','food_how_step_2','food_how_step_3','food_how_step_4','food_how_step_5'] as const).map((key, i) => (
+            <li key={key} className="flex gap-2.5 text-sm text-gray-700">
+              <span className="w-5 h-5 rounded-full bg-brand text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+              <span>{t(key)}</span>
+            </li>
+          ))}
         </ol>
       </section>
 

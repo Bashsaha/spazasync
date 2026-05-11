@@ -69,6 +69,19 @@ export function TradingPermitStep({ step, data, t, isForeignNational = false }: 
 
   return (
     <>
+      {/* Numbered how-to */}
+      <section>
+        <h4 className="text-sm font-semibold text-gray-800 mb-2">{t('permit_how_header')}</h4>
+        <ol className="space-y-2">
+          {(['permit_how_step_1','permit_how_step_2','permit_how_step_3','permit_how_step_4','permit_how_step_5'] as const).map((key, i) => (
+            <li key={key} className="flex gap-2.5 text-sm text-gray-700">
+              <span className="w-5 h-5 rounded-full bg-brand text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+              <span>{t(key)}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
       {isForeignNational && (
         <p className="flex items-start gap-1.5 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
           <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" strokeWidth={1.75} />

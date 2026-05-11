@@ -21,6 +21,9 @@ export function UIFStep({ step, t }: Props) {
       <section className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-sm">
         <h4 className="font-semibold text-gray-800 mb-2">{t('uif_what_header')}</h4>
         <p className="text-gray-700 mb-2">{t('uif_what_body')}</p>
+        <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-2">
+          ⚠️ {t('uif_who_must_register')}
+        </p>
         <p className="text-xs text-gray-500">{t('uif_cost')}</p>
       </section>
 

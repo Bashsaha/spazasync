@@ -58,19 +58,19 @@ const SHOP_BASE = { has_employees: false, fund_interest: false }
 // ── generateJourneySteps — visibility ────────────────────────────────────────
 
 describe('generateJourneySteps — step visibility', () => {
-  it('SA citizen, employees, fund_interest → all 7 steps', () => {
+  it('SA citizen, employees, fund_interest → all 7 steps in correct dependency order', () => {
     const steps = generateJourneySteps(
       makeOwner({ nationality_type: 'sa_citizen' }),
       { has_employees: true, fund_interest: true },
       [],
     )
     expect(steps.map((s) => s.key)).toEqual([
-      'municipal_registration',
-      'coa',
+      'food_safety_training',
       'cipc',
       'sars_tax',
+      'coa',
+      'municipal_registration',
       'uif',
-      'food_safety_training',
       'smmesa',
     ])
     expect(steps.length).toBe(7)
@@ -83,11 +83,11 @@ describe('generateJourneySteps — step visibility', () => {
       [],
     )
     expect(steps.map((s) => s.key)).toEqual([
-      'municipal_registration',
-      'coa',
+      'food_safety_training',
       'cipc',
       'sars_tax',
-      'food_safety_training',
+      'coa',
+      'municipal_registration',
     ])
   })
 
@@ -383,9 +383,10 @@ describe('schema enums (Phase 37c)', () => {
     expect(DOCUMENT_STATUSES).toContain('in_progress')
   })
 
-  it('JOURNEY_STEP_ORDER has all 7 keys in dependency order', () => {
+  it('JOURNEY_STEP_ORDER has all 7 keys starting with food_safety_training', () => {
     expect(JOURNEY_STEP_ORDER.length).toBe(7)
-    expect(JOURNEY_STEP_ORDER[0]).toBe('municipal_registration')
+    expect(JOURNEY_STEP_ORDER[0]).toBe('food_safety_training')
+    expect(JOURNEY_STEP_ORDER[4]).toBe('municipal_registration')
   })
 })
 

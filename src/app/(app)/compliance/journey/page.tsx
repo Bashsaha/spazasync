@@ -18,6 +18,7 @@ import { getJourneyData } from '@/lib/db/journey'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 import { JourneyProgress } from '@/components/compliance-journey/JourneyProgress'
 import { JourneyStep } from '@/components/compliance-journey/JourneyStep'
+import { NextStepHero } from '@/components/compliance-journey/NextStepHero'
 import { VisaPermitWarning } from '@/components/compliance-journey/VisaPermitWarning'
 import { TradingPermitStep } from '@/components/compliance-journey/steps/TradingPermitStep'
 import { HealthCertificateStep } from '@/components/compliance-journey/steps/HealthCertificateStep'
@@ -72,18 +73,27 @@ export default async function ComplianceJourneyPage() {
         />
       )}
 
+      <NextStepHero steps={data.steps} t={t} />
+
       <JourneyProgress steps={data.steps} t={t} showFundTeaser={showFundTeaser} />
 
       <div>
         {data.steps.map((step) => (
           <JourneyStep
             key={step.key}
+            id={`step-${step.key}`}
             step={step}
             defaultExpanded={step.key === currentStepKey}
           >
             {renderStepBody(step, data, t, tInsp, isForeignNational)}
           </JourneyStep>
         ))}
+      </div>
+
+      {/* Lightweight POPIA awareness note */}
+      <div className="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 mt-4 mb-8">
+        <p className="text-xs font-semibold text-blue-800 mb-1">{t('popia_title')}</p>
+        <p className="text-xs text-blue-700 leading-relaxed">{t('popia_body')}</p>
       </div>
     </main>
   )

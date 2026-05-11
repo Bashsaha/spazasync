@@ -1,10 +1,10 @@
 /**
- * Phase 37c — Step 2: Health Certificate (Certificate of Acceptability).
+ * Step: Health Certificate (Certificate of Acceptability, R638 of 2018).
  *
- * Reframes the existing inspection-readiness panel as "are you ready to
- * apply for your CoA?" and surfaces the same data without duplicating it.
- * The CoA expires every 24 months — `hasExpiry={true}` on the action row
- * surfaces the expiry date input on "I've received".
+ * R638 sets NO fixed national expiry — re-apply only if shop address,
+ * ownership, or person-in-charge changes. Municipalities may schedule
+ * periodic re-inspections. `hasExpiry={true}` keeps the optional expiry
+ * date field if the owner's municipality does issue a dated certificate.
  */
 
 import { InspectionReadinessPanel } from '@/components/compliance/InspectionReadinessPanel'
@@ -51,6 +51,19 @@ export function HealthCertificateStep({ step, data, t, tInsp }: Props) {
 
   return (
     <>
+      {/* Numbered how-to */}
+      <section>
+        <h4 className="text-sm font-semibold text-gray-800 mb-2">{t('coa_how_header')}</h4>
+        <ol className="space-y-2">
+          {(['coa_how_step_1','coa_how_step_2','coa_how_step_3','coa_how_step_4','coa_how_step_5'] as const).map((key, i) => (
+            <li key={key} className="flex gap-2.5 text-sm text-gray-700">
+              <span className="w-5 h-5 rounded-full bg-brand text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+              <span>{t(key)}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
       <section>
         <h4 className="text-sm font-semibold text-gray-800 mb-2">
           {t('coa_readiness_header')}
@@ -104,8 +117,8 @@ export function HealthCertificateStep({ step, data, t, tInsp }: Props) {
         </div>
       </section>
 
-      <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-        ⏰ {t('coa_renewal_note')}
+      <p className="text-xs text-blue-800 bg-blue-50 border border-blue-200 rounded-xl px-3 py-2">
+        ℹ️ {t('coa_no_fixed_expiry_note')}
       </p>
 
       <MarkAsDoneButtons step={step} variant="standard" hasExpiry={true} />
