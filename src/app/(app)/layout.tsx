@@ -39,11 +39,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     if (shop?.name) shopName = shop.name as string
   }
 
-  // Fetch the signed-in person's display name from tellers for both owners and
-  // tellers — owners have a tellers row created at onboarding (user_id is set).
-  // This is shown as the subtitle so the user always knows who is logged in.
+  // Fetch the signed-in person's display name from tellers for owners, tellers,
+  // and dual-role admins (admins promoted from owners keep their shop_id and
+  // their tellers row). The lookup is by user_id + shop_id, so excluding admin
+  // here was a bug — admins with a shop wouldn't see their name. (BUG-029.)
   let personName: string | null = null
-  if (shopId && (role === 'owner' || role === 'teller')) {
+  if (shopId) {
     const { data: teller } = await supabase
       .from('tellers')
       .select('name')
