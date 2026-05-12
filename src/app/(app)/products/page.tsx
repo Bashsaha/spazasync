@@ -9,7 +9,7 @@ import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string; missing_cost?: string }>
+  searchParams: Promise<{ search?: string; missing_cost?: string; missing_supplier?: string }>
 }) {
   const supabase = await createClient()
   const {
@@ -17,38 +17,57 @@ export default async function ProductsPage({
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { search = '', missing_cost } = await searchParams
+  const { search = '', missing_cost, missing_supplier } = await searchParams
   const missingCostOnly = missing_cost === '1'
+  const missingSupplierOnly = missing_supplier === '1'
+
+  const shopId = user.app_metadata?.shop_id as string
 
   const locale = await getServerLocale()
   const [products, { t }, shopRow] = await Promise.all([
-    listProducts(search || undefined, { missingCost: missingCostOnly }),
+    listProducts(search || undefined, {
+      missingCost: missingCostOnly,
+      missingSupplier: missingSupplierOnly,
+    }),
     getServerTranslations(locale, ['products']),
     supabase
       .from('shops')
       .select('profit_tracking_enabled, id')
-      .eq('id', user.app_metadata?.shop_id as string)
+      .eq('id', shopId)
       .single(),
   ])
 
   const profitTracking = Boolean(shopRow.data?.profit_tracking_enabled)
 
-  // Count products still missing cost (for the banner, independent of the current filter)
-  let missingCostCount = 0
-  if (profitTracking) {
-    const { count } = await supabase
+  // Banner counts run independently of the current filter so they stay
+  // accurate when the user toggles between filtered + unfiltered views.
+  const [missingCostRes, missingSupplierRes, suppliersRes] = await Promise.all([
+    profitTracking
+      ? supabase
+          .from('products')
+          .select('id', { count: 'exact', head: true })
+          .eq('shop_id', shopId)
+          .is('cost_price', null)
+      : Promise.resolve({ count: 0 } as { count: number | null }),
+    supabase
       .from('products')
       .select('id', { count: 'exact', head: true })
-      .eq('shop_id', user.app_metadata?.shop_id as string)
-      .is('cost_price', null)
-    missingCostCount = count ?? 0
-  }
+      .eq('shop_id', shopId)
+      .is('supplier_id', null),
+    supabase
+      .from('suppliers')
+      .select('id', { count: 'exact', head: true })
+      .eq('shop_id', shopId),
+  ])
+  const missingCostCount = missingCostRes.count ?? 0
+  const missingSupplierCount = missingSupplierRes.count ?? 0
+  const suppliersCount = suppliersRes.count ?? 0
 
   return (
-    <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-36 max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="text-gray-400 active:text-gray-600 text-sm">
+          <Link href="/inventory" className="text-gray-400 active:text-gray-600 text-sm">
             {t('back')}
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
@@ -104,6 +123,52 @@ export default async function ProductsPage({
         </div>
       )}
 
+      {/* Missing-supplier tip (soft gray — supplier gaps are operational, not a data integrity issue) */}
+      {suppliersCount === 0 ? (
+        <Link
+          href="/suppliers/new"
+          className="block bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-4 active:bg-gray-100"
+        >
+          <p className="text-sm font-semibold text-gray-800">{t('add_first_supplier_tip')}</p>
+          <p className="text-xs text-gray-600 mt-1">{t('add_first_supplier_btn')}</p>
+        </Link>
+      ) : missingSupplierCount > 0 ? (
+        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-4">
+          <p className="text-sm font-semibold text-gray-800">
+            {missingSupplierOnly
+              ? t('missing_supplier_filter_active', { count: missingSupplierCount })
+              : t('missing_supplier_banner', { count: missingSupplierCount })}
+          </p>
+          <div className="mt-2">
+            {missingSupplierOnly ? (
+              <Link
+                href="/products"
+                className="text-xs font-semibold text-gray-700 underline active:text-gray-900"
+              >
+                {t('missing_supplier_show_all')}
+              </Link>
+            ) : (
+              <Link
+                href="/products?missing_supplier=1"
+                className="text-xs font-semibold text-gray-700 underline active:text-gray-900"
+              >
+                {t('missing_supplier_filter_btn')}
+              </Link>
+            )}
+          </div>
+        </div>
+      ) : missingSupplierOnly ? (
+        <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-4">
+          <p className="text-sm font-semibold text-green-800">{t('missing_supplier_all_done')}</p>
+          <Link
+            href="/products"
+            className="text-xs font-semibold text-green-700 underline active:text-green-900 mt-2 inline-block"
+          >
+            {t('missing_supplier_show_all')}
+          </Link>
+        </div>
+      ) : null}
+
       <form method="GET" className="mb-4">
         <input
           name="search"
@@ -112,15 +177,18 @@ export default async function ProductsPage({
           className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
         />
         {missingCostOnly && <input type="hidden" name="missing_cost" value="1" />}
+        {missingSupplierOnly && <input type="hidden" name="missing_supplier" value="1" />}
       </form>
 
       {products.length === 0 ? (
         <p className="text-center text-gray-400 text-sm mt-12">
           {missingCostOnly
             ? t('missing_cost_all_done')
-            : search
-              ? t('empty_search')
-              : t('empty_no_search')}
+            : missingSupplierOnly
+              ? t('missing_supplier_all_done')
+              : search
+                ? t('empty_search')
+                : t('empty_no_search')}
         </p>
       ) : (
         <ul className="space-y-2">

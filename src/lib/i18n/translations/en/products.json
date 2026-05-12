@@ -42,6 +42,13 @@
   "missing_cost_show_all": "← Show all products",
   "missing_cost_all_done": "All products have cost prices now.",
   "missing_cost_pill": "No cost",
+  "missing_supplier_banner": "{count} products don't have a supplier linked.",
+  "missing_supplier_filter_btn": "Show only products missing a supplier →",
+  "missing_supplier_filter_active": "Showing {count} products that don't have a supplier.",
+  "missing_supplier_show_all": "← Show all products",
+  "missing_supplier_all_done": "All products have a supplier linked now.",
+  "add_first_supplier_tip": "You haven't added any suppliers yet.",
+  "add_first_supplier_btn": "Add your first supplier →",
 
   "btn_save_product": "Add Product",
   "btn_save_changes": "Save Changes",

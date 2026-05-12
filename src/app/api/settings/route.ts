@@ -22,24 +22,43 @@ export async function GET() {
     return NextResponse.json({ error: 'Shop not found' }, { status: 404 })
   }
 
-  // Count products missing cost_price — used by UI to nudge owner when toggle is on
-  const { count: missingCostCount } = await auth.supabase
-    .from('products')
-    .select('id', { count: 'exact', head: true })
-    .eq('shop_id', auth.shopId)
-    .is('cost_price', null)
-
-  // Phase 37e — owner's nationality drives whether the fund_interest toggle is visible
-  const { data: ownerProfile } = await auth.supabase
-    .from('owner_profiles')
-    .select('nationality_type')
-    .eq('user_id', auth.user.id)
-    .maybeSingle()
+  // Counts run in parallel: missing cost (gates on profit_tracking_enabled in UI),
+  // missing supplier (always-on nudge), and total suppliers (suppress missing-supplier
+  // nudge when shop has zero suppliers — show "add your first supplier" tip instead).
+  const [
+    { count: missingCostCount },
+    { count: missingSupplierCount },
+    { count: suppliersCount },
+    { data: ownerProfile },
+  ] = await Promise.all([
+    auth.supabase
+      .from('products')
+      .select('id', { count: 'exact', head: true })
+      .eq('shop_id', auth.shopId)
+      .is('cost_price', null),
+    auth.supabase
+      .from('products')
+      .select('id', { count: 'exact', head: true })
+      .eq('shop_id', auth.shopId)
+      .is('supplier_id', null),
+    auth.supabase
+      .from('suppliers')
+      .select('id', { count: 'exact', head: true })
+      .eq('shop_id', auth.shopId),
+    // Phase 37e — owner's nationality drives whether the fund_interest toggle is visible
+    auth.supabase
+      .from('owner_profiles')
+      .select('nationality_type')
+      .eq('user_id', auth.user.id)
+      .maybeSingle(),
+  ])
 
   return NextResponse.json(
     {
       ...shop,
       products_missing_cost: missingCostCount ?? 0,
+      products_missing_supplier: missingSupplierCount ?? 0,
+      suppliers_count: suppliersCount ?? 0,
       nationality_type: (ownerProfile?.nationality_type as string | null) ?? null,
     },
     { headers: STABLE_READ_CACHE },

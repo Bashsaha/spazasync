@@ -69,10 +69,13 @@ export function BottomNav({ role, hasShop }: BottomNavProps) {
       : ownerNav
 
   // Hide the FAB on the /sale flow itself (where the user is already running a
-  // sale) and on /sales (the hub already has a big "Start a Sale" CTA). Tellers
-  // never need the FAB because their primary tab IS /sale.
+  // sale) and on /sales (the hub already has a big "Start a Sale" CTA). Also
+  // hide on /stock-take where the page has its own primary "Update Stock"
+  // sticky submit bar — two CTAs fighting for the same corner is the bug.
+  // Tellers never need the FAB because their primary tab IS /sale.
   const onSalePage = pathname === '/sale' || pathname.startsWith('/sale/')
-  const showFab = role !== 'teller' && !onSalePage
+  const onStockTake = pathname === '/stock-take'
+  const showFab = role !== 'teller' && !onSalePage && !onStockTake
 
   return (
     <>

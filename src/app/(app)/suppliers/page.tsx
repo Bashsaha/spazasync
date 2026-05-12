@@ -37,7 +37,7 @@ export default function SuppliersPage() {
   }
 
   return (
-    <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-36 max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <BackButton fallbackHref="/profile" />

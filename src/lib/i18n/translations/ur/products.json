@@ -42,6 +42,13 @@
   "missing_cost_show_all": "← تمام پروڈکٹس دکھائیں",
   "missing_cost_all_done": "اب تمام پروڈکٹس میں خریداری کی قیمتیں ہیں۔",
   "missing_cost_pill": "قیمت نہیں",
+  "missing_supplier_banner": "{count} پروڈکٹس سے سپلائر منسلک نہیں ہے۔",
+  "missing_supplier_filter_btn": "صرف وہ پروڈکٹس دکھائیں جن میں سپلائر نہیں ہے →",
+  "missing_supplier_filter_active": "{count} پروڈکٹس دکھائے جا رہے ہیں جن میں سپلائر نہیں ہے۔",
+  "missing_supplier_show_all": "← سب پروڈکٹس دکھائیں",
+  "missing_supplier_all_done": "اب تمام پروڈکٹس سے سپلائر منسلک ہے۔",
+  "add_first_supplier_tip": "آپ نے ابھی تک کوئی سپلائر شامل نہیں کیا۔",
+  "add_first_supplier_btn": "اپنا پہلا سپلائر شامل کریں →",
 
   "btn_save_product": "مصنوعات شامل کریں",
   "btn_save_changes": "تبدیلیاں محفوظ کریں",

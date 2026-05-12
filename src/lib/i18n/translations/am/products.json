@@ -42,6 +42,13 @@
   "missing_cost_show_all": "← ሁሉንም እቃዎች አሳይ",
   "missing_cost_all_done": "ሁሉም እቃዎች አሁን የግዢ ዋጋ አላቸው።",
   "missing_cost_pill": "ዋጋ የለም",
+  "missing_supplier_banner": "{count} እቃዎች አቅራቢ የተገናኘ የላቸውም።",
+  "missing_supplier_filter_btn": "አቅራቢ የሌላቸውን እቃዎች ብቻ አሳይ →",
+  "missing_supplier_filter_active": "{count} አቅራቢ የሌላቸውን እቃዎች በማሳየት ላይ።",
+  "missing_supplier_show_all": "← ሁሉንም እቃዎች አሳይ",
+  "missing_supplier_all_done": "ሁሉም እቃዎች አሁን አቅራቢ ተገናኝቶላቸዋል።",
+  "add_first_supplier_tip": "ገና አቅራቢ አልጨመሩም።",
+  "add_first_supplier_btn": "የመጀመሪያ አቅራቢዎን ያክሉ →",
 
   "btn_save_product": "ምርት ጨምር",
   "btn_save_changes": "ለውጦችን አስቀምጥ",

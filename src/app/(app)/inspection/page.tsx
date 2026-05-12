@@ -66,7 +66,7 @@ export default async function InspectionPage() {
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
       <div className="flex items-center gap-3 mb-2">
-        <Link href="/dashboard" className="text-gray-400 active:text-gray-600 text-sm">
+        <Link href="/manage" className="text-gray-400 active:text-gray-600 text-sm">
           {t('back')}
         </Link>
         <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>

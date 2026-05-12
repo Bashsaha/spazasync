@@ -170,7 +170,7 @@ export default function ChecklistPage() {
   if (errorKey && !data) {
     return (
       <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
-        <a href="/dashboard" className="text-sm text-brand mb-6 inline-block">
+        <a href="/manage" className="text-sm text-brand mb-6 inline-block">
           {t('back')}
         </a>
         <p className="text-red-600">{t(errorKey)}</p>
@@ -192,7 +192,7 @@ export default function ChecklistPage() {
   return (
     <main className="px-4 pt-10 pb-40 max-w-lg mx-auto">
       {saving && <FullScreenSpinner label={t('btn_saving')} />}
-      <a href="/dashboard" className="text-sm text-brand mb-2 inline-block">
+      <a href="/manage" className="text-sm text-brand mb-2 inline-block">
         {t('back')}
       </a>
       <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>

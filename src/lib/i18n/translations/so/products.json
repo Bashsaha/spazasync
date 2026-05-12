@@ -42,6 +42,13 @@
   "missing_cost_show_all": "← Tus dhammaan alaabta",
   "missing_cost_all_done": "Dhammaan alaabtu hadda way leeyihiin qiimaha iibsashada.",
   "missing_cost_pill": "Qiimo la’aan",
+  "missing_supplier_banner": "{count} alaab weli ma laha iibiye la xidhiidha.",
+  "missing_supplier_filter_btn": "Tus kaliya alaabta aan lahayn iibiye →",
+  "missing_supplier_filter_active": "Waxaa la tusinayaa {count} alaab oo aan lahayn iibiye.",
+  "missing_supplier_show_all": "← Tus dhammaan alaabta",
+  "missing_supplier_all_done": "Dhammaan alaabtu hadda way leeyihiin iibiye la xidhiidha.",
+  "add_first_supplier_tip": "Weli iibiyayaal ma aad ku darin.",
+  "add_first_supplier_btn": "Ku dar iibiyahaaga koowaad →",
 
   "btn_save_product": "Ku dar Alaab",
   "btn_save_changes": "Keydi Bedelada",

@@ -1,5 +1,69 @@
 # Movestock — Task Tracking
 
+## BUG-026 → 028 — Inventory cluster UX (proposed, not started)
+
+### BUG-026 — Back buttons in Inventory pages route to /dashboard instead of /inventory
+**Symptom:** From the Inventory tab, tapping a card (Stock, Products, Count Stock, Expiry, Suppliers) opens the page — but the "Back" link in the page header sends the user to `/dashboard`, breaking the tab's mental model. Users expect to land back on the Inventory hub.
+**Files to touch (change `href="/dashboard"` → `href="/inventory"` on the back link only):**
+- `src/app/(app)/products/page.tsx:51`
+- `src/app/(app)/products/new/page.tsx`
+- `src/app/(app)/products/[id]/page.tsx`
+- `src/app/(app)/stock/page.tsx:114`
+- `src/app/(app)/stock/[id]/page.tsx`
+- `src/app/(app)/stock-take/page.tsx:144`
+- `src/app/(app)/expiry/page.tsx:224`
+- `src/app/(app)/suppliers/new/page.tsx`
+- `src/app/(app)/suppliers/[id]/page.tsx`
+**Out of scope (similar issue on Manage cluster — `checklist`, `inspection`, `documents/[type]`, `tellers`, `waste-pest/*`):** not touching unless you say so — those are owned by `/manage`, not `/inventory`. Ask if you want them fixed in the same pass.
+
+### BUG-027 — Stock-take "Update Stock" sticky button hidden behind the New Sale FAB
+**Symptom:** On `/stock-take`, the sticky bottom submit bar sits at `bottom-0` (covered by the 72px `BottomNav`) and the floating "New Sale" FAB sits at `bottom: 72px + safe-area` — so the submit button is double-covered: invisible under the nav and obscured by the FAB.
+**Root cause:** Two competing fixed-position elements. The submit bar uses `fixed bottom-0`, ignoring the `BottomNav` that already paints there. The page-level FAB has nothing to defer to.
+**Fix:**
+1. Lift the sticky submit bar on `stock-take/page.tsx` above the `BottomNav` — change wrapper to `fixed bottom-[calc(64px+env(safe-area-inset-bottom,0px))]` (64px ≈ nav height; FAB sits at 72px above the same baseline, so the submit bar will sit just below the FAB without overlap).
+2. Hide the New Sale FAB on `/stock-take` — extend the existing exclusion list in `BottomNav.tsx` (already hides on `/sale`). The Update Stock button IS the primary action on this page; two CTAs fighting for the same corner is the bug. Pattern already used on `/sale`.
+3. Bump `<main>` padding-bottom from `pb-32` to `pb-44` so the last counted row clears the lifted submit bar.
+4. While we're here: extend the same `pb-32 → pb-40+` rule wherever a list ends near the FAB. Audit `/products`, `/stock`, `/expiry`, `/suppliers` — verify last list item has ≥ 96px clearance from the FAB top edge. (FAB top = `bottom 72px + h-14` = ~128px from screen bottom.) Only change pages that currently let content sit under the FAB.
+
+### BUG-028 — Add "products without supplier" nudge alongside "products without cost"
+**Feature:** Mirror the existing missing-cost nudge so owners can spot products with no supplier linked. UX intentionally softer than missing-cost (cost feeds the profit dashboard — a hard data gap; supplier is operationally useful but not blocking).
+
+**UX rules I'm proposing (call out anything you want changed):**
+1. **Tone:** "Tip", not "Alert". Use **slate/gray** card (not amber). Amber should mean *something is wrong*; supplier-less products aren't wrong, they're just less useful for the goods-received flow + compliance docs.
+2. **Where it appears:**
+   - On `/stock-take` — below the missing-cost banner (when missing-cost is amber, supplier tip is gray; visual hierarchy preserves "cost first" priority).
+   - On `/products` — same gray tip banner with a "Show only" filter, matching the missing-cost pattern.
+3. **No nag if zero suppliers exist on the shop yet.** A shop with 0 suppliers should be nudged to *create* suppliers first, not flagged for "missing supplier on every product". So: if `suppliers.count === 0`, suppress the banner entirely and instead the tip text says "Add your first supplier" linking to `/suppliers/new`. (Prevents a noisy "47 products without supplier!" the moment they open the app.)
+4. **No pill on the product row.** Missing-cost gets a pill because cost gaps blow up profit charts. Supplier gaps don't break anything — keep the row clean. Tip lives in the banner only.
+5. **Not gated on a toggle** (unlike missing-cost which gates on `profit_tracking_enabled`). Supplier tracking is always on once you have ≥1 supplier.
+6. **Dismiss?** No persistent dismiss. The banner disappears the moment count hits 0. Adding a dismiss state isn't worth a new column.
+
+**Implementation:**
+- `src/app/api/settings/route.ts` GET: add `products_missing_supplier: number` and `suppliers_count: number` to the response (one extra `count: 'exact', head: true` query each, runs in parallel with the existing missing-cost count).
+- `src/lib/db/products.ts` `listProducts`: add `opts.missingSupplier?: boolean` → `query.is('supplier_id', null)`.
+- `src/app/(app)/products/page.tsx`: accept `missing_supplier=1` searchParam, fetch the count, render the gray banner + filter toggle.
+- `src/app/(app)/stock-take/page.tsx`: render the gray tip card under the missing-cost amber card.
+- i18n: new keys in `stock.json` (`missing_supplier_tip`, `missing_supplier_btn`) and `products.json` (`missing_supplier_banner`, `missing_supplier_filter_active`, `missing_supplier_filter_btn`, `missing_supplier_show_all`, `missing_supplier_all_done`, `add_first_supplier_tip`) — **× 5 locales** (`en`, `so`, `am`, `zu`, `ur`) per the i18n Coverage Rule. Parity test must stay green.
+
+**Out of scope:**
+- No DB migration (uses existing `products.supplier_id`).
+- No new API routes.
+- No changes to the goods-received flow.
+- No backfill UI (linking suppliers in bulk) — separate phase if requested.
+
+### Verification before marking complete
+- `npx tsc --noEmit` clean.
+- `npm test` — 616/616 still green (including `i18n.test.ts` parity).
+- Manual smoke on dev server: tab into Inventory → open each of the 5 child pages → tap Back → confirm lands on `/inventory`. Open `/stock-take` with ≥1 product → confirm "Update Stock" button visible, not under FAB, FAB hidden. Set one product's `supplier_id=null` → confirm gray tip appears on `/stock-take` and `/products`, filter works, banner disappears when all products have suppliers.
+- Add entries to `tasks/bugs.md` for BUG-026 and BUG-027 (BUG-028 is a feature, not a bug — skip).
+
+### Open questions for you before I start
+1. Manage-cluster back buttons (checklist, inspection, documents, tellers, waste-pest) — fix in the same pass, or leave for later?
+2. The "Add your first supplier" fallback on shops with 0 suppliers — keep, or just show nothing?
+3. Anywhere else in the app you've noticed FAB-overlap I should clean up while the audit is live?
+
+---
+
 ## Phase 37 — Compliance Module (7 sub-phases)
 
 The Compliance Module helps spaza shop owners get legally compliant: trading permits, Certificates of Acceptability, fund applications, document packs. Read [docs spec from user] for full scope, design rules, build order. **DO NOT auto-start a sub-phase — wait for explicit go-ahead between each one per Phase Gating rule.**

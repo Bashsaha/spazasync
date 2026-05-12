@@ -121,5 +121,11 @@
 
   "missing_cost_alert_one": "Profit tracking is on, but {count} product doesn't have a cost price yet. Add one so your profit is accurate.",
   "missing_cost_alert_other": "Profit tracking is on, but {count} products don't have a cost price yet. Add them so your profit is accurate.",
-  "missing_cost_btn": "Add cost prices \u2192"
+  "missing_cost_btn": "Add cost prices \u2192",
+
+  "missing_supplier_tip_one": "{count} product doesn't have a supplier linked yet. Linking suppliers makes restocking faster.",
+  "missing_supplier_tip_other": "{count} products don't have a supplier linked yet. Linking suppliers makes restocking faster.",
+  "missing_supplier_btn": "Add suppliers to products \u2192",
+  "add_first_supplier_tip": "You haven't added any suppliers yet.",
+  "add_first_supplier_btn": "Add your first supplier \u2192"
 }

@@ -121,5 +121,11 @@
   "missing_cost_alert_other": "የትርፍ ክትትል በርቷል፣ ግን {count} እቃዎች ገና የግዢ ዋጋ የላቸውም። ትርፍዎ ትክክል እንዲሆን ያክሉ።",
   "missing_cost_btn": "የግዢ ዋጋ ያክሉ \u2192",
   "stock_take_progress": "{counted} ከ{total} ቆጠሩ",
-  "stock_take_mark_all_correct": "ሁሉም ትክክል — እንደቆጠሩ ምልክት ያድርጉ"
+  "stock_take_mark_all_correct": "ሁሉም ትክክል — እንደቆጠሩ ምልክት ያድርጉ",
+
+  "missing_supplier_tip_one": "{count} እቃ ገና አቅራቢ የለውም። አቅራቢዎችን ማገናኘት ድጋሚ መሙላትን ቀላል ያደርጋል።",
+  "missing_supplier_tip_other": "{count} እቃዎች ገና አቅራቢ የላቸውም። አቅራቢዎችን ማገናኘት ድጋሚ መሙላትን ቀላል ያደርጋል።",
+  "missing_supplier_btn": "ለእቃዎች አቅራቢ ያክሉ →",
+  "add_first_supplier_tip": "ገና አቅራቢ አልጨመሩም።",
+  "add_first_supplier_btn": "የመጀመሪያ አቅራቢዎን ያክሉ →"
 }

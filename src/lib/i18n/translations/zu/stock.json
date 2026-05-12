@@ -121,5 +121,11 @@
   "missing_cost_alert_other": "Ukulandelela inzuzo kuvuliwe, kodwa {count} imikhiqizo ayinayo intengo yokuthengwa. Yifake ukuze inzuzo yakho ibe yiqiniso.",
   "missing_cost_btn": "Faka izintengo zokuthengwa \u2192",
   "stock_take_progress": "{counted} kwe-{total} kubalwe",
-  "stock_take_mark_all_correct": "Konke kulungile — maka njengokubalwe"
+  "stock_take_mark_all_correct": "Konke kulungile — maka njengokubalwe",
+
+  "missing_supplier_tip_one": "{count} umkhiqizo awunaye umthumeli oxhunyiwe. Ukuxhuma abathumeli kwenza ukufakwa kabusha kushesha.",
+  "missing_supplier_tip_other": "{count} imikhiqizo ayinabo abathumeli abaxhunyiwe. Ukuxhuma abathumeli kwenza ukufakwa kabusha kushesha.",
+  "missing_supplier_btn": "Faka abathumeli emikhiqizweni →",
+  "add_first_supplier_tip": "Awukafaki abathumeli okwamanje.",
+  "add_first_supplier_btn": "Faka umthumeli wakho wokuqala →"
 }

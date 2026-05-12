@@ -22,6 +22,8 @@ export default function StockTakePage() {
   const [savedCount, setSavedCount] = useState<number | null>(null)
   const [profitTrackingEnabled, setProfitTrackingEnabled] = useState(false)
   const [productsMissingCost, setProductsMissingCost] = useState(0)
+  const [productsMissingSupplier, setProductsMissingSupplier] = useState(0)
+  const [suppliersCount, setSuppliersCount] = useState(0)
 
   const loadStockTake = useCallback(() => {
     Promise.all([
@@ -33,6 +35,8 @@ export default function StockTakePage() {
         if (settingsData) {
           setProfitTrackingEnabled(Boolean(settingsData.profit_tracking_enabled))
           setProductsMissingCost(settingsData.products_missing_cost ?? 0)
+          setProductsMissingSupplier(settingsData.products_missing_supplier ?? 0)
+          setSuppliersCount(settingsData.suppliers_count ?? 0)
         }
         setErrorKey(null)
       })
@@ -138,10 +142,10 @@ export default function StockTakePage() {
   return (
     <>
       {isSubmitting && <FullScreenSpinner label={t('stock_take_btn_saving')} />}
-      <main className="px-4 pt-8 pb-32 max-w-lg mx-auto">
+      <main className="px-4 pt-8 pb-44 max-w-lg mx-auto">
         {/* header */}
         <div className="flex items-center gap-3 mb-1">
-          <Link href="/dashboard" className="text-gray-400 text-sm active:text-gray-600">
+          <Link href="/inventory" className="text-gray-400 text-sm active:text-gray-600">
             {t('back')}
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{t('stock_take_title')}</h1>
@@ -150,7 +154,7 @@ export default function StockTakePage() {
           {t('stock_take_subtitle')}
         </p>
 
-        {/* Missing cost price alert */}
+        {/* Missing cost price alert (amber — gates profit dashboard) */}
         {!isLoading && profitTrackingEnabled && productsMissingCost > 0 && (
           <Link
             href="/products?missing_cost=1"
@@ -162,6 +166,29 @@ export default function StockTakePage() {
             <p className="text-xs text-amber-600 mt-1">{t('missing_cost_btn')}</p>
           </Link>
         )}
+
+        {/* Missing supplier tip (soft gray — operational, not a hard gap) */}
+        {!isLoading && suppliersCount === 0 ? (
+          <Link
+            href="/suppliers/new"
+            className="block bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-4 active:bg-gray-100"
+          >
+            <p className="text-sm font-semibold text-gray-800">{t('add_first_supplier_tip')}</p>
+            <p className="text-xs text-gray-600 mt-1">{t('add_first_supplier_btn')}</p>
+          </Link>
+        ) : !isLoading && productsMissingSupplier > 0 ? (
+          <Link
+            href="/products?missing_supplier=1"
+            className="block bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-4 active:bg-gray-100"
+          >
+            <p className="text-sm font-semibold text-gray-800">
+              {tPlural('missing_supplier_tip', productsMissingSupplier, {
+                count: productsMissingSupplier,
+              })}
+            </p>
+            <p className="text-xs text-gray-600 mt-1">{t('missing_supplier_btn')}</p>
+          </Link>
+        ) : null}
 
         {/* error banner */}
         {(errorKey || errorRaw) && (
@@ -255,9 +282,12 @@ export default function StockTakePage() {
         )}
       </main>
 
-      {/* sticky submit bar */}
+      {/* sticky submit bar — sits above the BottomNav (~64px tall + safe-area) */}
       {!isLoading && products.length > 0 && (
-        <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 ">
+        <div
+          className="fixed inset-x-0 bg-white border-t border-gray-200 z-30"
+          style={{ bottom: 'calc(64px + env(safe-area-inset-bottom, 0px))' }}
+        >
           <div className="max-w-lg mx-auto px-4 py-3">
             <button
               type="submit"
