@@ -1,30 +1,45 @@
 'use client'
 
+import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ClipboardCheck } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
+import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
 
 /** Animated daily-checklist nudge.
  *
- *  Renders a small circular floating button in the bottom-LEFT corner,
- *  mirroring the New Sale FAB on the right. Pulses (expanding ring) so
- *  it's hard to miss until the owner taps it.
+ *  Renders a small circular floating button in the bottom-LEFT corner.
+ *  Pulses (expanding ring) until the owner taps it or completes the checklist.
  *
- *  Mounted at the (app) layout level — the parent only renders it for
- *  owners on days where the checklist isn't yet complete, so this
- *  component just owns the visual + the path-based hide logic.
+ *  `initialVisible` comes from the server-side layout render. After any
+ *  DATA_CHANGED event (e.g. checklist saved) the component re-checks the
+ *  status API so it dismisses itself without waiting for router.refresh().
  *
- *  Hidden on /sale (the FAB is the priority there) and /checklist (we
- *  don't need to nudge the user back to the page they're already on).
+ *  Hidden on /sale and /checklist.
  */
-export function ChecklistReminderFab() {
+export function ChecklistReminderFab({ initialVisible }: { initialVisible: boolean }) {
+  const [visible, setVisible] = useState(initialVisible)
   const pathname = usePathname()
   const { t } = useTranslation('checklist')
 
+  const recheck = useCallback(async () => {
+    try {
+      const res = await fetch('/api/daily-checklist/status', { cache: 'no-store' })
+      if (res.ok) {
+        const { completed } = await res.json() as { completed: boolean }
+        if (completed) setVisible(false)
+      }
+    } catch {
+      // silently ignore — FAB stays visible until next check
+    }
+  }, [])
+
+  useRefetchOnVisible(recheck)
+
   const onSalePage = pathname === '/sale' || pathname.startsWith('/sale/')
   const onChecklistPage = pathname === '/checklist' || pathname.startsWith('/checklist/')
-  if (onSalePage || onChecklistPage) return null
+  if (!visible || onSalePage || onChecklistPage) return null
 
   return (
     <Link
@@ -33,8 +48,7 @@ export function ChecklistReminderFab() {
       className="fixed z-30 left-4 w-12 h-12 rounded-full bg-amber-500 text-white flex items-center justify-center active:bg-amber-600 transition-colors"
       style={{ bottom: 'calc(76px + env(safe-area-inset-bottom, 0px))' }}
     >
-      {/* Two stacked pulse rings so the animation reads even on simple
-          backgrounds. animate-ping is Tailwind's slow expanding ring. */}
+      {/* Two stacked pulse rings so the animation reads even on simple backgrounds. */}
       <span className="absolute inset-0 rounded-full bg-amber-400 opacity-75 animate-ping" />
       <span className="absolute inset-0 rounded-full bg-amber-400 opacity-50 animate-ping" style={{ animationDelay: '0.6s' }} />
       <ClipboardCheck className="w-6 h-6 relative" strokeWidth={2} />

@@ -128,7 +128,7 @@ export default function DailySummaryAlert() {
     const hasExpired = expiring.some((e) => e.expired_qty > 0)
 
     return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/50 z-[60] flex items-end sm:items-center justify-center p-4">
         <div className="bg-white rounded-2xl w-full max-w-sm max-h-[80vh] overflow-y-auto ">
           {/* Header */}
           <div className="px-5 pt-5 pb-3 border-b border-gray-100">

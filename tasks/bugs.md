@@ -184,6 +184,33 @@ Also added `/auth/callback` to `PUBLIC_ROUTES` in middleware so the route is rea
 
 ## BUG-022: Daily-checklist reminder FAB keeps pulsing after the checklist is saved
 **Symptom:** After completing today's checklist, the pulsing amber reminder FAB stayed on every page until the app was hard-reloaded.
-**Root cause:** The `(app)` layout is a server component that resolves `showChecklistReminder` once via `getTodayChecklist(...)`. On save, the checklist page calls `router.push('/dashboard')` — that re-renders the dashboard page but reuses the cached layout segment, so the stale `showChecklistReminder=true` keeps the FAB mounted.
-**Fix:** Added `router.refresh()` immediately before the `router.push('/dashboard')` in `src/app/(app)/checklist/page.tsx::handleSave`. `refresh()` invalidates the route cache and re-runs the server layout, so the FAB unmounts as soon as the save succeeds.
-**Prevention rule:** When a client mutation flips a condition that is computed in a parent **server layout** (not just the page), `router.push` is not enough — the layout segment is cached. Call `router.refresh()` before/after the push (or use `revalidatePath` from a server action) so the layout re-evaluates. Any time you add a server-rendered banner/FAB/notification whose visibility depends on DB state, audit every client mutation that changes that state and make sure it triggers `router.refresh()`.
+**Root cause:** The `(app)` layout is a server component that resolves `showChecklistReminder` once via `getTodayChecklist(...)`. On save, the checklist page called `router.refresh()` immediately followed by `router.push('/dashboard')` — but `refresh()` is fire-and-forget and the push races it. In Next.js App Router, shared layout segments are cached across in-segment navigations, so the new dashboard render reused the stale `showChecklistReminder=true` layout. The first attempted fix (just adding `router.refresh()`) did not work for this reason.
+**Fix:** Converted the FAB to an event-driven client component instead of relying on the server-cached flag:
+1. New endpoint `GET /api/daily-checklist/status` → `{ completed: boolean }` (lightweight check, much cheaper than the full GET).
+2. `ChecklistReminderFab` now takes `initialVisible: boolean` (the server-determined initial state, so no first-paint flash) and uses `useRefetchOnVisible` to listen for `DATA_CHANGED` events. After every `emitDataChanged()` (already fired by `checklist/page.tsx::handleSave`) the FAB re-queries the status endpoint and hides itself when `completed: true`.
+3. Layout now always mounts the FAB for owners/admins with a `shopId` and passes the server flag down as the initial state.
+**Prevention rule:** Layout-level UI whose visibility depends on DB state cannot be reliably reset by `router.refresh()` after a client mutation — shared layout segments are cached across in-segment pushes and `refresh()` is not awaitable. The correct pattern is a **client component that owns its own state**, initialised from a server-passed prop (so first paint is right), and refreshed via the `DATA_CHANGED` event bus + a lightweight status endpoint. Pair `emitDataChanged()` in the mutation with `useRefetchOnVisible` in the dependent component.
+
+---
+
+## BUG-023: Daily summary modal renders behind the Complete Sale bar
+**Symptom:** When the evening daily-summary modal pops on the dashboard while the user is on `/sale` with items in the cart, the bottom of the modal is hidden behind the sticky "Complete Sale" cart bar — buttons inside the modal are unreachable.
+**Root cause:** Both `DailySummaryAlert`'s modal backdrop and `CartSummary`'s sticky bar use `z-50`. The modal is rendered in the `(app)` layout _before_ `{children}` (which contains `CartSummary`), so at equal z-index the later-painted cart bar wins the stacking contest.
+**Fix:** Bumped the `DailySummaryAlert` modal backdrop from `z-50` to `z-[60]` in `src/components/DailySummaryAlert.tsx`.
+**Prevention rule:** When a modal/overlay coexists with sticky page chrome (cart bars, BottomNav, FABs), the modal must sit at a strictly higher z-index than any sticky element in the segment — equal z-index falls back to DOM order, and layout-level modals lose to page-level sticky bars. Reserve `z-50` for sticky page chrome and `z-[60]+` for full-screen overlays.
+
+---
+
+## BUG-024: Logged-in person's name never shown for owners
+**Symptom:** Tellers see their name in the top app bar subtitle ("Movestock / Alice"), but owners only see the shop name — so an owner using a shared device cannot tell at a glance which account is signed in.
+**Root cause:** `(app)/layout.tsx` fetched the display name from `tellers` only when `role === 'teller'`. Owners _do_ have a `tellers` row (created at onboarding with `user_id` set so they can pick themselves on the sale page), but the layout never looked at it.
+**Fix:** Unified the name lookup — for both `owner` and `teller` roles with a `shopId`, query `tellers` by `user_id + shop_id` and pass the result as the TopAppBar `subtitle`. The avatar initial now uses the person's name too, falling back to the shop name only when no teller row exists.
+**Prevention rule:** "Who is signed in" is a person-level fact and must be sourced from a person-level row (`tellers.user_id` in this codebase), never from the shop. When adding role-conditional data fetches in a shared layout, audit whether the underlying table actually has rows for the other role too — it often does, and the role check is overcautious.
+
+---
+
+## BUG-025: Redundant "Your monthly compliance score" banner duplicates the dashboard ComplianceCard
+**Symptom:** Owners saw two compliance surfaces every month — the persistent `ComplianceCard` on the dashboard (score ring + "Action needed" list) _and_ a separate teal "Your monthly compliance score" banner from `MonthlyComplianceAlert`. Both opened the same data; the banner felt like noise.
+**Root cause:** `MonthlyComplianceAlert` was added before `ComplianceCard` was made permanent on the dashboard, and was never removed when `ComplianceCard` took over the role of surfacing the score and actions.
+**Fix:** Removed `MonthlyComplianceAlert` from the `(app)` layout and deleted the now-unused component file. Stripped the stale comment referencing it from `/api/compliance-score/route.ts`. The `ComplianceCard` continues to show the score ring + actions, and `/inspection` still provides the full category breakdown the banner's modal used to show.
+**Prevention rule:** Before adding a new banner/alert/modal that surfaces existing data, check whether a permanent dashboard surface already covers it. Banners are for transient, time-bound info (subscription expiring, low stock today, expiring batches) — not for data that already has a permanent home.

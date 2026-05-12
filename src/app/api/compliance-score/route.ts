@@ -7,7 +7,6 @@ import { STABLE_READ_CACHE } from '@/lib/utils/api'
  * GET /api/compliance-score
  *
  * Returns the authenticated shop's compliance score + category breakdown.
- * Used by MonthlyComplianceAlert and available for any future admin surface.
  */
 export async function GET() {
   const auth = await getShopAuth()

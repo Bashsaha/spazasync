@@ -6,7 +6,6 @@ import { LanguageProvider } from '@/components/LanguageProvider'
 import { BottomNav } from '@/components/BottomNav'
 import { TopAppBar } from '@/components/TopAppBar'
 import DailySummaryAlert from '@/components/DailySummaryAlert'
-import MonthlyComplianceAlert from '@/components/MonthlyComplianceAlert'
 import { InstallPwaButton } from '@/components/InstallPwaButton'
 import { ChecklistReminderFab } from '@/components/ChecklistReminderFab'
 import { getTodayChecklist, todaySAST } from '@/lib/db/daily-checklist'
@@ -40,23 +39,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     if (shop?.name) shopName = shop.name as string
   }
 
-  // For tellers, also fetch their display name so the avatar + dropdown reflect
-  // *who* is signed in (not just which shop). One small query — RLS limits it
-  // to the teller's own row.
-  let tellerName: string | null = null
-  if (role === 'teller') {
+  // Fetch the signed-in person's display name from tellers for both owners and
+  // tellers — owners have a tellers row created at onboarding (user_id is set).
+  // This is shown as the subtitle so the user always knows who is logged in.
+  let personName: string | null = null
+  if (shopId && (role === 'owner' || role === 'teller')) {
     const { data: teller } = await supabase
       .from('tellers')
       .select('name')
       .eq('user_id', user.id)
+      .eq('shop_id', shopId)
       .maybeSingle()
-    tellerName = (teller?.name as string | undefined) ?? null
+    personName = (teller?.name as string | undefined) ?? null
   }
 
-  const initialChar = (role === 'teller' && tellerName ? tellerName : shopName)
-    .trim()
-    .charAt(0)
-    .toUpperCase()
+  const initialChar = (personName ?? shopName).trim().charAt(0).toUpperCase()
   const initial = initialChar || 'M'
 
   // Owners only — show a pulsing reminder FAB whenever today's daily
@@ -81,18 +78,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <ToastProvider>
           <TopAppBar
             title={shopName}
-            subtitle={role === 'teller' ? tellerName ?? undefined : undefined}
+            subtitle={personName ?? undefined}
             initial={initial}
             bellShopId={role === 'owner' || role === 'admin' ? shopId : undefined}
           />
           <InstallPwaButton />
           {role !== 'teller' && <DailySummaryAlert />}
-          {role !== 'teller' && <MonthlyComplianceAlert />}
           <OfflineSyncProvider>
             {children}
           </OfflineSyncProvider>
           <BottomNav role={role} hasShop={!!shopId} />
-          {showChecklistReminder && <ChecklistReminderFab />}
+          {(role === 'owner' || role === 'admin') && shopId && (
+            <ChecklistReminderFab initialVisible={showChecklistReminder} />
+          )}
         </ToastProvider>
       </LanguageProvider>
     </div>
