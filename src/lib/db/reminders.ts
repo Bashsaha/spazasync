@@ -14,7 +14,7 @@ import { getComplianceScore } from '@/lib/db/compliance-score'
 import { getChecklistStreakStatus } from '@/lib/db/daily-checklist'
 import { generateJourneySteps } from '@/lib/compliance/journey'
 import { computeFundReadiness } from '@/lib/compliance/fund'
-import { pickTopReminder } from '@/lib/compliance/reminders'
+import { evaluateReminders, sortByPriority, pickTopReminder } from '@/lib/compliance/reminders'
 import type {
   AdminAlert,
   BusinessDocument,
@@ -137,6 +137,116 @@ export async function getDashboardReminder(
   void recordShown(shopId, top).catch(() => {})
 
   return top
+}
+
+/**
+ * Same composite read as `getDashboardReminder`, but returns the FULL sorted
+ * list of non-dismissed reminders (highest priority first). Used by the
+ * notification bell so the owner can see every active reminder, not just the
+ * top one. Skips the `shown_at` upsert — the bell is a passive read.
+ */
+export async function listDashboardReminders(
+  shopId: string,
+  userId: string,
+): Promise<Reminder[]> {
+  const supabase = await createClient()
+  const todayISO = formatInTimeZone(new Date(), SAST_TZ, 'yyyy-MM-dd')
+
+  const [
+    shopResult,
+    ownerProfileResult,
+    documentsResult,
+    scoreResult,
+    streakResult,
+    alertsResult,
+    ledgerResult,
+  ] = await Promise.all([
+    supabase
+      .from('shops')
+      .select('id, has_employees, fund_interest, fund_township_rural, fund_owner_managed')
+      .eq('id', shopId)
+      .maybeSingle(),
+    supabase
+      .from('owner_profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle(),
+    supabase
+      .from('business_documents')
+      .select('*')
+      .eq('shop_id', shopId)
+      .order('document_type'),
+    getComplianceScore(supabase, shopId),
+    getChecklistStreakStatus(shopId),
+    supabase
+      .from('admin_alerts')
+      .select('*')
+      .order('priority', { ascending: false }),
+    supabase
+      .from('compliance_reminders')
+      .select('*')
+      .eq('shop_id', shopId),
+  ])
+
+  const shop = shopResult.data as Pick<
+    Shop,
+    'id' | 'has_employees' | 'fund_interest' | 'fund_township_rural' | 'fund_owner_managed'
+  > | null
+  if (!shop) return []
+
+  const ownerProfile = (ownerProfileResult.data as OwnerProfile | null) ?? null
+  const documents = (documentsResult.data as BusinessDocument[] | null) ?? []
+  const adminAlerts = (alertsResult.data as AdminAlert[] | null) ?? []
+  const ledger = (ledgerResult.data as ComplianceReminderRow[] | null) ?? []
+
+  const journeySteps = generateJourneySteps(
+    ownerProfile,
+    { has_employees: shop.has_employees, fund_interest: shop.fund_interest },
+    documents,
+  )
+
+  const lastJourneyActivity =
+    documents
+      .map((d) => d.updated_at)
+      .filter(Boolean)
+      .sort()
+      .pop() ?? null
+
+  const fundReadiness = computeFundReadiness({
+    nationality_type: ownerProfile?.nationality_type ?? null,
+    fund_interest: shop.fund_interest,
+    fund_township_rural: shop.fund_township_rural,
+    fund_owner_managed: shop.fund_owner_managed,
+    documents,
+    complianceScore: scoreResult.result.overall,
+  })
+  const fundQualified = fundReadiness.status === 'green'
+
+  const daysSinceChecklist = Number.isFinite(streakResult.daysSinceLastCompleted)
+    ? streakResult.daysSinceLastCompleted
+    : 999
+
+  const inputs = {
+    todayISO,
+    ownerProfile,
+    shop: { has_employees: shop.has_employees, fund_interest: shop.fund_interest },
+    documents,
+    journeySteps,
+    lastJourneyActivity,
+    complianceScore: scoreResult.result.overall,
+    scoreBand: scoreResult.result.band,
+    daysSinceChecklist,
+    checklistCompletedToday: streakResult.completedToday,
+    adminAlerts,
+    ledger,
+    fundQualified,
+  }
+
+  const dismissedKeys = new Set(
+    ledger.filter((row) => row.dismissed_at !== null).map((row) => row.reminder_key),
+  )
+  const all = evaluateReminders(inputs).filter((r) => !dismissedKeys.has(r.key))
+  return sortByPriority(all)
 }
 
 async function recordShown(shopId: string, reminder: Reminder): Promise<void> {

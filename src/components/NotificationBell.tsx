@@ -1,29 +1,42 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { X } from 'lucide-react'
+import Link from 'next/link'
+import { X, ChevronRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from '@/components/LanguageProvider'
-import type { AccessRequestWithTeller } from '@/types'
+import type { AccessRequestWithTeller, Reminder } from '@/types'
 
 const PENDING_URL = '/api/access-requests?status=pending'
+const REMINDERS_URL = '/api/compliance-reminders'
+
+const PRIORITY_DOT: Record<string, string> = {
+  urgent: 'bg-red-500',
+  high: 'bg-amber-500',
+  normal: 'bg-brand',
+  low: 'bg-gray-400',
+}
 
 /**
- * Owner-only floating-bell with Supabase Realtime backing.
+ * Owner-only notification drawer. Surfaces two things:
+ *   1. Pending teller inventory-access requests (Realtime-backed).
+ *   2. Smart compliance reminders (Phase 37g) — refetched on bell open and
+ *      after any dismiss/grant action.
  *
- * Listens to INSERT/UPDATE events on `access_requests` where shop_id matches.
- * RLS guarantees the owner only receives events for their own shop, but we
- * also filter client-side so the WebSocket payload stays small. Falls back
- * to a one-shot HTTP fetch on mount in case the WebSocket is delayed; the
- * supabase-js client auto-reconnects if the connection drops.
+ * Reminders are rendered as clickable rows: tap to navigate to the related
+ * page (ctaHref) — that implicitly acknowledges the reminder; the cross
+ * button explicitly dismisses it via the existing `/dismiss` endpoint.
  */
 export function NotificationBell({ shopId }: { shopId: string }) {
   const { t, tPlural } = useTranslation('manage')
+  const { t: tRem } = useTranslation('compliance-reminders')
   const [pending, setPending] = useState<AccessRequestWithTeller[]>([])
+  const [reminders, setReminders] = useState<Reminder[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [pendingActionId, setPendingActionId] = useState<string | null>(null)
+  const [dismissingKey, setDismissingKey] = useState<string | null>(null)
 
-  const refetch = useCallback(async () => {
+  const refetchAccess = useCallback(async () => {
     try {
       const res = await fetch(PENDING_URL, { cache: 'no-store' })
       if (!res.ok) return
@@ -34,9 +47,22 @@ export function NotificationBell({ shopId }: { shopId: string }) {
     }
   }, [])
 
-  // Initial fetch + Realtime subscription. Cleans up on unmount.
+  const refetchReminders = useCallback(async () => {
+    try {
+      const res = await fetch(REMINDERS_URL, { cache: 'no-store' })
+      if (!res.ok) return
+      const data = (await res.json()) as { reminders: Reminder[] }
+      setReminders(data.reminders ?? [])
+    } catch {
+      /* network — leave existing list */
+    }
+  }, [])
+
+  // Initial fetch + Realtime subscription for access requests. Reminders are
+  // polled lazily: on mount (for badge count) and again on bell open.
   useEffect(() => {
-    refetch()
+    refetchAccess()
+    refetchReminders()
 
     const supabase = createClient()
     const channel = supabase
@@ -50,8 +76,7 @@ export function NotificationBell({ shopId }: { shopId: string }) {
           filter: `shop_id=eq.${shopId}`,
         },
         () => {
-          // Any insert/update — re-pull the list (cheap; capped to 50 rows).
-          refetch()
+          refetchAccess()
         },
       )
       .subscribe()
@@ -59,7 +84,14 @@ export function NotificationBell({ shopId }: { shopId: string }) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [shopId, refetch])
+  }, [shopId, refetchAccess, refetchReminders])
+
+  function handleOpen() {
+    setIsOpen(true)
+    // Bell opens — refresh both lists so the drawer is current.
+    refetchAccess()
+    refetchReminders()
+  }
 
   async function handleResolve(id: string, action: 'grant' | 'deny') {
     setPendingActionId(id)
@@ -70,7 +102,6 @@ export function NotificationBell({ shopId }: { shopId: string }) {
         body: JSON.stringify({ action }),
       })
       if (res.ok) {
-        // Optimistic — Realtime will also remove it, but make the UI feel snappy.
         setPending((prev) => prev.filter((r) => r.id !== id))
       }
     } finally {
@@ -78,16 +109,35 @@ export function NotificationBell({ shopId }: { shopId: string }) {
     }
   }
 
-  const count = pending.length
-  const hasPending = count > 0
+  async function handleDismissReminder(r: Reminder) {
+    setDismissingKey(r.key)
+    // Optimistic — remove immediately. If the call fails, refetch will restore.
+    setReminders((prev) => prev.filter((x) => x.key !== r.key))
+    try {
+      await fetch('/api/compliance-reminders/dismiss', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reminder_type: r.type, reminder_key: r.key }),
+      })
+    } catch {
+      refetchReminders()
+    } finally {
+      setDismissingKey(null)
+    }
+  }
+
+  const accessCount = pending.length
+  const reminderCount = reminders.length
+  const totalCount = accessCount + reminderCount
+  const hasAny = totalCount > 0
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setIsOpen(true)}
+        onClick={handleOpen}
         className="relative w-9 h-9 flex items-center justify-center rounded-full active:bg-gray-100"
-        aria-label={tPlural('bell_pending', count, { count })}
+        aria-label={tPlural('bell_pending', totalCount, { count: totalCount })}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -102,9 +152,9 @@ export function NotificationBell({ shopId }: { shopId: string }) {
           <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
           <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
         </svg>
-        {hasPending && (
+        {hasAny && (
           <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
-            {count > 9 ? '9+' : count}
+            {totalCount > 9 ? '9+' : totalCount}
           </span>
         )}
       </button>
@@ -130,42 +180,102 @@ export function NotificationBell({ shopId }: { shopId: string }) {
               </button>
             </div>
 
-            {!hasPending ? (
+            {!hasAny ? (
               <div className="px-5 py-8 text-center">
                 <p className="text-sm text-gray-400">{t('bell_empty')}</p>
               </div>
             ) : (
-              <ul className="max-h-[60vh] overflow-y-auto divide-y divide-gray-50">
-                {pending.map((req) => {
-                  const busy = pendingActionId === req.id
-                  return (
-                    <li key={req.id} className="px-5 py-4">
-                      <p className="text-sm font-semibold text-gray-900">
-                        {t('bell_request_label', { name: req.teller_name })}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-0.5">{t('bell_grant_hint')}</p>
-                      <div className="flex gap-2 mt-3">
-                        <button
-                          type="button"
-                          onClick={() => handleResolve(req.id, 'grant')}
-                          disabled={busy}
-                          className="flex-1 bg-brand text-white text-sm font-semibold py-2.5 rounded-full active:bg-brand-hover disabled:opacity-50"
-                        >
-                          {t('bell_btn_grant')}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleResolve(req.id, 'deny')}
-                          disabled={busy}
-                          className="flex-1 bg-white border border-gray-200 text-gray-700 text-sm font-semibold py-2.5 rounded-full active:bg-gray-50 disabled:opacity-50"
-                        >
-                          {t('bell_btn_deny')}
-                        </button>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
+              <div className="max-h-[70vh] overflow-y-auto">
+                {reminderCount > 0 && (
+                  <section>
+                    <h3 className="px-5 pt-4 pb-1 text-xs font-bold uppercase tracking-wide text-gray-400">
+                      {t('bell_section_reminders')}
+                    </h3>
+                    <ul className="divide-y divide-gray-50">
+                      {reminders.map((r) => {
+                        const busy = dismissingKey === r.key
+                        const title = tRem(r.titleKey, r.params)
+                        const body = tRem(r.bodyKey, r.params)
+                        const ctaLabel = r.ctaKey ? tRem(r.ctaKey, r.params) : t('bell_btn_view')
+                        const dot = PRIORITY_DOT[r.priority] ?? 'bg-gray-400'
+                        return (
+                          <li key={r.key} className="px-5 py-3 flex items-start gap-3">
+                            <span
+                              className={`${dot} w-2 h-2 rounded-full mt-1.5 shrink-0`}
+                              aria-hidden="true"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-gray-900 leading-snug">
+                                {title}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-0.5 leading-snug">{body}</p>
+                              <div className="flex items-center gap-3 mt-2">
+                                {r.ctaHref && (
+                                  <Link
+                                    href={r.ctaHref}
+                                    onClick={() => setIsOpen(false)}
+                                    className="text-xs font-semibold text-brand active:text-brand-hover inline-flex items-center gap-0.5"
+                                  >
+                                    {ctaLabel}
+                                    <ChevronRight className="w-3 h-3" strokeWidth={2.5} />
+                                  </Link>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => handleDismissReminder(r)}
+                                  disabled={busy}
+                                  className="text-xs font-semibold text-gray-400 active:text-gray-600 disabled:opacity-50"
+                                >
+                                  {t('bell_btn_dismiss')}
+                                </button>
+                              </div>
+                            </div>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </section>
+                )}
+
+                {accessCount > 0 && (
+                  <section>
+                    <h3 className="px-5 pt-4 pb-1 text-xs font-bold uppercase tracking-wide text-gray-400">
+                      {t('bell_section_access')}
+                    </h3>
+                    <ul className="divide-y divide-gray-50">
+                      {pending.map((req) => {
+                        const busy = pendingActionId === req.id
+                        return (
+                          <li key={req.id} className="px-5 py-4">
+                            <p className="text-sm font-semibold text-gray-900">
+                              {t('bell_request_label', { name: req.teller_name })}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-0.5">{t('bell_grant_hint')}</p>
+                            <div className="flex gap-2 mt-3">
+                              <button
+                                type="button"
+                                onClick={() => handleResolve(req.id, 'grant')}
+                                disabled={busy}
+                                className="flex-1 bg-brand text-white text-sm font-semibold py-2.5 rounded-full active:bg-brand-hover disabled:opacity-50"
+                              >
+                                {t('bell_btn_grant')}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleResolve(req.id, 'deny')}
+                                disabled={busy}
+                                className="flex-1 bg-white border border-gray-200 text-gray-700 text-sm font-semibold py-2.5 rounded-full active:bg-gray-50 disabled:opacity-50"
+                              >
+                                {t('bell_btn_deny')}
+                              </button>
+                            </div>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </section>
+                )}
+              </div>
             )}
           </div>
         </div>

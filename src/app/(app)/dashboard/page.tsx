@@ -9,7 +9,6 @@ import { LatestSales } from '@/components/dashboard/LatestSales'
 import { ComplianceCard } from '@/components/dashboard/ComplianceCard'
 import { JourneyProgressCard } from '@/components/dashboard/JourneyProgressCard'
 import { DashboardComplianceOnboarding } from '@/components/compliance-onboarding/DashboardComplianceOnboarding'
-import { DashboardReminder } from '@/components/compliance-reminders/DashboardReminder'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 import type { DocumentStatus, NationalityType, OnboardingDocumentType } from '@/types'
 
@@ -157,17 +156,9 @@ export default async function DashboardPage({
         )
       })()}
 
-      {/* Phase 37g — Smart reminders banner (owners only). Renders the highest-
-          priority reminder; null when nothing eligible. Sits above onboarding
-          + compliance card so the most-urgent next action is the first thing
-          owners see. */}
-      {role === 'owner' && shop?.id && (
-        <Suspense fallback={null}>
-          <DashboardReminder shopId={shop.id} userId={user.id} />
-        </Suspense>
-      )}
-
       {/* Compliance onboarding banner + modal (owners only, Phase 37b). */}
+      {/* Phase 37g smart reminders moved to the notification bell — see
+          NotificationBell.tsx for the full list rendered there. */}
       {role === 'owner' && shop?.id && (
         <DashboardComplianceOnboarding
           shop={{
