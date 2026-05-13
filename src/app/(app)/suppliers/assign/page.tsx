@@ -103,7 +103,7 @@ export default function AssignSupplierPage() {
   const noSuppliers = !loading && suppliers.length === 0
 
   return (
-    <main className="px-4 pt-10 pb-44 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-60 max-w-lg mx-auto">
       <div className="flex items-center gap-3 mb-2">
         <BackButton fallbackHref="/suppliers" />
         <h1 className="text-2xl font-bold text-gray-900">{t('assign_title')}</h1>

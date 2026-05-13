@@ -44,7 +44,7 @@ export default async function InventoryHubPage() {
   const expiring = expiryStats.expiringProducts + expiryStats.expiredProducts
 
   return (
-    <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-44 max-w-lg mx-auto">
       <div className="mb-5">
         <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
         <p className="text-sm text-gray-400 mt-0.5">{t('hint')}</p>
