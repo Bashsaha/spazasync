@@ -59,5 +59,12 @@
 
   "admin_alert_title": "{title}",
   "admin_alert_body": "{message}",
-  "admin_alert_cta": "Open"
+  "admin_alert_cta": "Open",
+
+  "products_missing_cost_title": "{count} alaab ma laha qiimo iibsi",
+  "products_missing_cost_body": "Ku dar qiimaha iibsiga si jaantusyada faa'iidada ay u sax noqdaan.",
+  "cta_set_cost_prices": "Ku dar qiimaha iibsiga",
+  "products_missing_supplier_title": "{count} alaab ma laha alaabadaye la xidhiidha",
+  "products_missing_supplier_body": "Xidhiidhinta alaabadayaasha way fudaynaysaa dib-u-buuxinta.",
+  "cta_assign_suppliers": "Ku xidh alaabadayaal"
 }

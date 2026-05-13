@@ -43,5 +43,23 @@
   "settings_card_title": "My Suppliers",
   "settings_card_desc": "Keep a record of where you buy stock. Inspectors may ask where your products come from.",
   "settings_card_btn": "Manage Suppliers",
-  "loading": "Loading\u2026"
+  "loading": "Loading\u2026",
+
+  "assign_card_title": "{count} products need a supplier",
+  "assign_card_desc": "Pick a supplier and assign it to many products in one go.",
+  "assign_title": "Assign Supplier",
+  "assign_hint": "Tick products, pick a supplier, then tap Assign.",
+  "assign_empty": "All products already have a supplier linked.",
+  "assign_no_suppliers": "You haven't added a supplier yet. Add one first, then come back to assign.",
+  "assign_select_all": "Select all",
+  "assign_clear_all": "Clear",
+  "assign_count_one": "{count} product without a supplier",
+  "assign_count_other": "{count} products without a supplier",
+  "assign_pick_supplier": "Choose a supplier\u2026",
+  "assign_action_one": "Assign to {count} product",
+  "assign_action_other": "Assign to {count} products",
+  "assign_saving": "Saving\u2026",
+  "assign_success_one": "{count} product updated",
+  "assign_success_other": "{count} products updated",
+  "assign_error": "Could not assign supplier. Try again."
 }

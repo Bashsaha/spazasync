@@ -2,6 +2,7 @@
 
 import { useRef, useCallback, useState } from 'react'
 import type { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser'
+import { isValidBarcode } from '@/lib/barcode/validate'
 
 interface UseScannerOptions {
   onScan: (barcode: string) => void
@@ -43,6 +44,10 @@ export function useScanner({ onScan, onError }: UseScannerOptions): UseScannerRe
   const nativeRafRef = useRef<number | null>(null)
   const stoppedRef = useRef(false)
   const hasScanned = useRef(false)
+  // 2-frame confirmation: we only accept a decoded value after seeing the
+  // exact same string in two consecutive frames/callbacks. Kills the single-
+  // frame misreads ZXing's TRY_HARDER mode can produce on blurry frames.
+  const pendingScan = useRef<string | null>(null)
   const [isScanning, setIsScanning] = useState(false)
   const [zoomCapability, setZoomCapability] = useState<UseScannerReturn['zoomCapability']>(null)
 
@@ -123,6 +128,7 @@ export function useScanner({ onScan, onError }: UseScannerOptions): UseScannerRe
     async (videoEl: HTMLVideoElement) => {
       hasScanned.current = false
       stoppedRef.current = false
+      pendingScan.current = null
 
       // Probe native BarcodeDetector. Available on Chrome Android 83+, backed by
       // Google's ML Kit — 5-10x faster and more accurate than ZXing JS.
@@ -175,10 +181,19 @@ export function useScanner({ onScan, onError }: UseScannerOptions): UseScannerRe
             try {
               if (videoEl.readyState >= 2) {
                 const codes = await detector.detect(videoEl)
-                if (codes.length > 0 && !hasScanned.current) {
-                  hasScanned.current = true
-                  onScan(codes[0].rawValue)
-                  return
+                // Pick the first decode that passes length+checksum validation.
+                const valid = codes.find((c) => isValidBarcode(c.rawValue, c.format))
+                if (valid && !hasScanned.current) {
+                  // 2-frame confirm: same value must appear twice in a row.
+                  if (pendingScan.current === valid.rawValue) {
+                    hasScanned.current = true
+                    onScan(valid.rawValue)
+                    return
+                  }
+                  pendingScan.current = valid.rawValue
+                } else if (codes.length === 0) {
+                  // Reset confirmation if the camera loses the code mid-confirm.
+                  pendingScan.current = null
                 }
               }
             } catch (err) {
@@ -225,9 +240,20 @@ export function useScanner({ onScan, onError }: UseScannerOptions): UseScannerRe
                 onError?.(error as Error)
               }
               if (result && !hasScanned.current) {
+                const text = result.getText()
+                // Map ZXing BarcodeFormat enum back to our lower-case ids for
+                // validation. `getBarcodeFormat()` returns a numeric enum we
+                // resolve via .toString() against the BarcodeFormat names.
+                // ZXing's getBarcodeFormat() returns a numeric enum; we pass
+                // null and let isValidBarcode auto-detect by digit count.
+                if (!isValidBarcode(text, null)) return
+                if (pendingScan.current !== text) {
+                  pendingScan.current = text
+                  return
+                }
                 hasScanned.current = true
                 stopScanning()
-                onScan(result.getText())
+                onScan(text)
               }
             },
           )

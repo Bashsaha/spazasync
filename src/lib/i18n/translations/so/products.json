@@ -47,6 +47,7 @@
   "missing_supplier_filter_active": "Waxaa la tusinayaa {count} alaab oo aan lahayn iibiye.",
   "missing_supplier_show_all": "← Tus dhammaan alaabta",
   "missing_supplier_all_done": "Dhammaan alaabtu hadda way leeyihiin iibiye la xidhiidha.",
+  "missing_supplier_assign_btn": "Ku xidh iibiyayaal hal mar →",
   "add_first_supplier_tip": "Weli iibiyayaal ma aad ku darin.",
   "add_first_supplier_btn": "Ku dar iibiyahaaga koowaad →",
 

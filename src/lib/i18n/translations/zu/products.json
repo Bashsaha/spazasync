@@ -47,6 +47,7 @@
   "missing_supplier_filter_active": "Kuboniswa imikhiqizo engu-{count} engenabo abathumeli.",
   "missing_supplier_show_all": "← Bonisa yonke imikhiqizo",
   "missing_supplier_all_done": "Yonke imikhiqizo manje inabo abathumeli abaxhunyiwe.",
+  "missing_supplier_assign_btn": "Nikeza abathumeli ngokushesha →",
   "add_first_supplier_tip": "Awukafaki abathumeli okwamanje.",
   "add_first_supplier_btn": "Faka umthumeli wakho wokuqala →",
 

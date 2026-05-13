@@ -178,7 +178,7 @@ export default function StockTakePage() {
           </Link>
         ) : !isLoading && productsMissingSupplier > 0 ? (
           <Link
-            href="/products?missing_supplier=1"
+            href="/suppliers/assign"
             className="block bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-4 active:bg-gray-100"
           >
             <p className="text-sm font-semibold text-gray-800">

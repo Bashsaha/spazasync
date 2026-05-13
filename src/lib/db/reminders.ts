@@ -41,6 +41,9 @@ export async function getDashboardReminder(
     streakResult,
     alertsResult,
     ledgerResult,
+    missingCostResult,
+    missingSupplierResult,
+    suppliersCountResult,
   ] = await Promise.all([
     supabase
       .from('shops')
@@ -67,6 +70,17 @@ export async function getDashboardReminder(
       .from('compliance_reminders')
       .select('*')
       .eq('shop_id', shopId),
+    supabase
+      .from('products')
+      .select('id', { count: 'exact', head: true })
+      .is('cost_price', null),
+    supabase
+      .from('products')
+      .select('id', { count: 'exact', head: true })
+      .is('supplier_id', null),
+    supabase
+      .from('suppliers')
+      .select('id', { count: 'exact', head: true }),
   ])
 
   const shop = shopResult.data as Pick<
@@ -128,6 +142,9 @@ export async function getDashboardReminder(
     adminAlerts,
     ledger,
     fundQualified,
+    productsMissingCost: missingCostResult.count ?? 0,
+    productsMissingSupplier: missingSupplierResult.count ?? 0,
+    suppliersCount: suppliersCountResult.count ?? 0,
   })
 
   if (!top) return null
@@ -160,6 +177,9 @@ export async function listDashboardReminders(
     streakResult,
     alertsResult,
     ledgerResult,
+    missingCostResult,
+    missingSupplierResult,
+    suppliersCountResult,
   ] = await Promise.all([
     supabase
       .from('shops')
@@ -186,6 +206,17 @@ export async function listDashboardReminders(
       .from('compliance_reminders')
       .select('*')
       .eq('shop_id', shopId),
+    supabase
+      .from('products')
+      .select('id', { count: 'exact', head: true })
+      .is('cost_price', null),
+    supabase
+      .from('products')
+      .select('id', { count: 'exact', head: true })
+      .is('supplier_id', null),
+    supabase
+      .from('suppliers')
+      .select('id', { count: 'exact', head: true }),
   ])
 
   const shop = shopResult.data as Pick<
@@ -240,6 +271,9 @@ export async function listDashboardReminders(
     adminAlerts,
     ledger,
     fundQualified,
+    productsMissingCost: missingCostResult.count ?? 0,
+    productsMissingSupplier: missingSupplierResult.count ?? 0,
+    suppliersCount: suppliersCountResult.count ?? 0,
   }
 
   const dismissedKeys = new Set(

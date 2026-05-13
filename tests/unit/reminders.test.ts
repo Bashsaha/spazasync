@@ -90,6 +90,9 @@ function makeInputs(over: Partial<ReminderEvaluatorInputs> = {}): ReminderEvalua
     adminAlerts: [],
     ledger: [],
     fundQualified: false,
+    productsMissingCost: 0,
+    productsMissingSupplier: 0,
+    suppliersCount: 0,
     ...over,
   }
 }
@@ -458,5 +461,57 @@ describe('Priority ordering', () => {
 
   it('returns null when nothing eligible', () => {
     expect(pickTopReminder(makeInputs())).toBeNull()
+  })
+})
+
+describe('products_missing_cost reminder', () => {
+  it('fires when count >= 1', () => {
+    const out = evaluateReminders(makeInputs({ productsMissingCost: 3 }))
+    const r = out.find((x) => x.type === 'products_missing_cost')
+    expect(r).toBeDefined()
+    expect(r?.priority).toBe('normal')
+    expect(r?.params?.count).toBe(3)
+    expect(r?.ctaHref).toBe('/products?missing_cost=1')
+    expect(r?.key.startsWith('products_missing_cost_')).toBe(true)
+  })
+  it('does not fire when count = 0', () => {
+    const out = evaluateReminders(makeInputs({ productsMissingCost: 0 }))
+    expect(out.find((x) => x.type === 'products_missing_cost')).toBeUndefined()
+  })
+})
+
+describe('products_missing_supplier reminder', () => {
+  it('fires when count >= 1 AND suppliersCount >= 1', () => {
+    const out = evaluateReminders(
+      makeInputs({ productsMissingSupplier: 5, suppliersCount: 2 }),
+    )
+    const r = out.find((x) => x.type === 'products_missing_supplier')
+    expect(r).toBeDefined()
+    expect(r?.priority).toBe('low')
+    expect(r?.params?.count).toBe(5)
+    expect(r?.ctaHref).toBe('/suppliers/assign')
+  })
+  it('suppressed when shop has zero suppliers', () => {
+    const out = evaluateReminders(
+      makeInputs({ productsMissingSupplier: 5, suppliersCount: 0 }),
+    )
+    expect(out.find((x) => x.type === 'products_missing_supplier')).toBeUndefined()
+  })
+  it('does not fire when count = 0', () => {
+    const out = evaluateReminders(
+      makeInputs({ productsMissingSupplier: 0, suppliersCount: 3 }),
+    )
+    expect(out.find((x) => x.type === 'products_missing_supplier')).toBeUndefined()
+  })
+  it('two reminders are independent (both can fire)', () => {
+    const out = evaluateReminders(
+      makeInputs({
+        productsMissingCost: 2,
+        productsMissingSupplier: 3,
+        suppliersCount: 1,
+      }),
+    )
+    expect(out.find((x) => x.type === 'products_missing_cost')).toBeDefined()
+    expect(out.find((x) => x.type === 'products_missing_supplier')).toBeDefined()
   })
 })

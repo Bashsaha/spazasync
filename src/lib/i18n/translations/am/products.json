@@ -47,6 +47,7 @@
   "missing_supplier_filter_active": "{count} አቅራቢ የሌላቸውን እቃዎች በማሳየት ላይ።",
   "missing_supplier_show_all": "← ሁሉንም እቃዎች አሳይ",
   "missing_supplier_all_done": "ሁሉም እቃዎች አሁን አቅራቢ ተገናኝቶላቸዋል።",
+  "missing_supplier_assign_btn": "አቅራቢ በብዛት መድብ →",
   "add_first_supplier_tip": "ገና አቅራቢ አልጨመሩም።",
   "add_first_supplier_btn": "የመጀመሪያ አቅራቢዎን ያክሉ →",
 

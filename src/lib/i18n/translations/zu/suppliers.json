@@ -43,5 +43,23 @@
   "settings_card_title": "Abahlinzeki Bami",
   "settings_card_desc": "Gcina irekhodi yokuthi isitoko usithengaphi. Abahloli bangabuza ukuthi imikhiqizo yakho ivela kuphi.",
   "settings_card_btn": "Phatha Abahlinzeki",
-  "loading": "Iyalayisha\u2026"
+  "loading": "Iyalayisha\u2026",
+
+  "assign_card_title": "{count} imikhiqizo idinga umthumeli",
+  "assign_card_desc": "Khetha umthumeli oyedwa bese uwunika imikhiqizo eminingi ngesikhathi esisodwa.",
+  "assign_title": "Nikeza Umthumeli",
+  "assign_hint": "Maka imikhiqizo, khetha umthumeli, bese uthephe Nikeza.",
+  "assign_empty": "Yonke imikhiqizo isivele inomthumeli oxhunyiwe.",
+  "assign_no_suppliers": "Awukabungezi umthumeli. Engeza oyedwa kuqala bese ubuya uzonikeza.",
+  "assign_select_all": "Khetha konke",
+  "assign_clear_all": "Sula",
+  "assign_count_one": "{count} umkhiqizo ongenamthumeli",
+  "assign_count_other": "{count} imikhiqizo engenamthumeli",
+  "assign_pick_supplier": "Khetha umthumeli\u2026",
+  "assign_action_one": "Nikeza umkhiqizo ongu-{count}",
+  "assign_action_other": "Nikeza imikhiqizo engu-{count}",
+  "assign_saving": "Iyagcina\u2026",
+  "assign_success_one": "Umkhiqizo ongu-{count} uvuselelwe",
+  "assign_success_other": "Imikhiqizo engu-{count} ivuselelwe",
+  "assign_error": "Ayikwazanga ukunikeza umthumeli. Zama futhi."
 }

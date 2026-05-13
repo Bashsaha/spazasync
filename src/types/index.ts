@@ -894,6 +894,8 @@ export type ReminderType =
   | 'score_drop'
   | 'checklist_streak'
   | 'admin_alert'
+  | 'products_missing_cost'
+  | 'products_missing_supplier'
 
 export type ReminderPriority = 'urgent' | 'high' | 'normal' | 'low'
 
@@ -978,4 +980,12 @@ export interface ReminderEvaluatorInputs {
   ledger: ComplianceReminderRow[]
   /** True iff the shop currently qualifies for the fund (green status). */
   fundQualified: boolean
+  /** Count of products with NULL cost_price. Drives the "products_missing_cost" reminder. */
+  productsMissingCost: number
+  /** Count of products with NULL supplier_id. Drives the "products_missing_supplier" reminder. */
+  productsMissingSupplier: number
+  /** Count of suppliers for the shop. Used to suppress the missing-supplier reminder
+   *  when the shop has 0 suppliers (day-one shops shouldn't be told to assign suppliers
+   *  before they've added any — same rule as the BUG-028 inventory tip). */
+  suppliersCount: number
 }

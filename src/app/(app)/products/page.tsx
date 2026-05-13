@@ -139,7 +139,13 @@ export default async function ProductsPage({
               ? t('missing_supplier_filter_active', { count: missingSupplierCount })
               : t('missing_supplier_banner', { count: missingSupplierCount })}
           </p>
-          <div className="mt-2">
+          <div className="mt-2 flex flex-col gap-1">
+            <Link
+              href="/suppliers/assign"
+              className="text-xs font-semibold text-brand underline active:text-brand-hover"
+            >
+              {t('missing_supplier_assign_btn')}
+            </Link>
             {missingSupplierOnly ? (
               <Link
                 href="/products"

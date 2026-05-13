@@ -43,5 +43,23 @@
   "settings_card_title": "Alaabadayaashayda",
   "settings_card_desc": "Hayso diiwaan meesha aad badeecada ka iibsato. Kormeerayaasha ayaa weydiin kara halka badeecadahaadu ka yimaadaan.",
   "settings_card_btn": "Maaree Alaabadayaasha",
-  "loading": "Waa la soo rarayaa\u2026"
+  "loading": "Waa la soo rarayaa\u2026",
+
+  "assign_card_title": "{count} alaab u baahan alaabadaye",
+  "assign_card_desc": "Dooro alaabadaye oo ku xidh badeecado badan hal mar.",
+  "assign_title": "Ku xidh Alaabadaye",
+  "assign_hint": "Calaamadi alaabta, dooro alaabadaye, ka dibna taabo Ku xidh.",
+  "assign_empty": "Dhammaan alaabtu hore ayay u leeyihiin alaabadaye la xidhiidha.",
+  "assign_no_suppliers": "Wali ma aadan kudarin alaabadaye. Mid ku dar marka hore, kadibna ku noqo si aad u xidho.",
+  "assign_select_all": "Dooro dhammaan",
+  "assign_clear_all": "Tirtir",
+  "assign_count_one": "{count} alaab oo aan lahayn alaabadaye",
+  "assign_count_other": "{count} alaab oo aan lahayn alaabadaye",
+  "assign_pick_supplier": "Dooro alaabadaye\u2026",
+  "assign_action_one": "Ku xidh {count} alaab",
+  "assign_action_other": "Ku xidh {count} alaab",
+  "assign_saving": "Waa la kaydiyaa\u2026",
+  "assign_success_one": "{count} alaab waa la cusbooneysiiyay",
+  "assign_success_other": "{count} alaab waa la cusbooneysiiyay",
+  "assign_error": "Ma suurtagal ah in la xidho alaabadaye. Isku day mar kale."
 }

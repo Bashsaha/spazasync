@@ -365,6 +365,49 @@ function checklistStreakCandidates(
   ]
 }
 
+function productsMissingCostCandidates(
+  inputs: ReminderEvaluatorInputs,
+): Reminder[] {
+  if (inputs.productsMissingCost <= 0) return []
+  const bucket = isoMonday(inputs.todayISO)
+  const key = `products_missing_cost_${bucket}`
+  return [
+    {
+      key,
+      type: 'products_missing_cost',
+      priority: 'normal',
+      titleKey: 'products_missing_cost_title',
+      bodyKey: 'products_missing_cost_body',
+      params: { count: inputs.productsMissingCost },
+      ctaKey: 'cta_set_cost_prices',
+      ctaHref: '/products?missing_cost=1',
+    },
+  ]
+}
+
+function productsMissingSupplierCandidates(
+  inputs: ReminderEvaluatorInputs,
+): Reminder[] {
+  if (inputs.productsMissingSupplier <= 0) return []
+  // Suppress when the shop has zero suppliers — same rule as BUG-028: day-one
+  // shops shouldn't be nudged to "assign suppliers" before they've added any.
+  if (inputs.suppliersCount <= 0) return []
+  const bucket = isoMonday(inputs.todayISO)
+  const key = `products_missing_supplier_${bucket}`
+  return [
+    {
+      key,
+      type: 'products_missing_supplier',
+      priority: 'low',
+      titleKey: 'products_missing_supplier_title',
+      bodyKey: 'products_missing_supplier_body',
+      params: { count: inputs.productsMissingSupplier },
+      ctaKey: 'cta_assign_suppliers',
+      ctaHref: '/suppliers/assign',
+    },
+  ]
+}
+
 function adminAlertCandidates(inputs: ReminderEvaluatorInputs): Reminder[] {
   const nationality = inputs.ownerProfile?.nationality_type ?? null
   return inputs.adminAlerts
@@ -420,6 +463,8 @@ export function evaluateReminders(
     ...fundNudgeCandidates(inputs),
     ...scoreDropCandidates(inputs),
     ...checklistStreakCandidates(inputs),
+    ...productsMissingCostCandidates(inputs),
+    ...productsMissingSupplierCandidates(inputs),
     ...adminAlertCandidates(inputs),
   ]
 }

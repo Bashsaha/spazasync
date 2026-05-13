@@ -45,10 +45,16 @@ export async function GET(request: Request) {
   }
 
   // Search or list all — no catalog fallback needed
-  const base = supabase.from('products').select('*').order('name')
-  const { data, error } = search
-    ? await base.or(`name.ilike.%${search}%,barcode.ilike.%${search}%`)
-    : await base
+  const missingSupplier = searchParams.get('missing_supplier') === '1'
+  const missingCost = searchParams.get('missing_cost') === '1'
+
+  let q = supabase.from('products').select('*').order('name')
+  if (search) {
+    q = q.or(`name.ilike.%${search}%,barcode.ilike.%${search}%`)
+  }
+  if (missingSupplier) q = q.is('supplier_id', null)
+  if (missingCost) q = q.is('cost_price', null)
+  const { data, error } = await q
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ products: data }, { headers: STABLE_READ_CACHE })

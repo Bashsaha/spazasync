@@ -47,6 +47,7 @@
   "missing_supplier_filter_active": "Showing {count} products that don't have a supplier.",
   "missing_supplier_show_all": "← Show all products",
   "missing_supplier_all_done": "All products have a supplier linked now.",
+  "missing_supplier_assign_btn": "Assign suppliers in bulk →",
   "add_first_supplier_tip": "You haven't added any suppliers yet.",
   "add_first_supplier_btn": "Add your first supplier →",
 

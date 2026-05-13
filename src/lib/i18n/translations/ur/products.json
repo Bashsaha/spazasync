@@ -47,6 +47,7 @@
   "missing_supplier_filter_active": "{count} پروڈکٹس دکھائے جا رہے ہیں جن میں سپلائر نہیں ہے۔",
   "missing_supplier_show_all": "← سب پروڈکٹس دکھائیں",
   "missing_supplier_all_done": "اب تمام پروڈکٹس سے سپلائر منسلک ہے۔",
+  "missing_supplier_assign_btn": "ایک ساتھ سپلائرز منسلک کریں →",
   "add_first_supplier_tip": "آپ نے ابھی تک کوئی سپلائر شامل نہیں کیا۔",
   "add_first_supplier_btn": "اپنا پہلا سپلائر شامل کریں →",
 
