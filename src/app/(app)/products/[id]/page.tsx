@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { Product, Supplier } from '@/types'
 import { NewSupplierModal } from '@/components/NewSupplierModal'
@@ -128,16 +127,21 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_price')}</label>
-          <input
-            type="number"
-            inputMode="decimal"
-            step="0.01"
-            min="0.01"
-            value={form.price}
-            onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-            required
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
-          />
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 pointer-events-none">
+              R
+            </span>
+            <input
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              min="0.01"
+              value={form.price}
+              onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+              required
+              className="w-full border border-gray-200 rounded-xl pl-8 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+            />
+          </div>
         </div>
 
         {profitTracking && (
@@ -145,17 +149,22 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t('label_cost_price')}
             </label>
-            <input
-              type="number"
-              inputMode="decimal"
-              step="0.01"
-              min="0"
-              value={form.cost_price}
-              onChange={(e) => setForm((f) => ({ ...f, cost_price: e.target.value }))}
-              placeholder={t('placeholder_cost_price')}
-              required
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
-            />
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 pointer-events-none">
+                R
+              </span>
+              <input
+                type="number"
+                inputMode="decimal"
+                step="0.01"
+                min="0"
+                value={form.cost_price}
+                onChange={(e) => setForm((f) => ({ ...f, cost_price: e.target.value }))}
+                placeholder={t('placeholder_cost_price')}
+                required
+                className="w-full border border-gray-200 rounded-xl pl-8 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+              />
+            </div>
             <p className="text-xs text-gray-400 mt-1">{t('hint_cost_price')}</p>
           </div>
         )}
@@ -164,38 +173,38 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {t('label_supplier')} <span className="text-gray-400 font-normal">{t('label_optional')}</span>
           </label>
-          <select
-            value={form.supplier_id}
-            onChange={(e) => setForm((f) => ({ ...f, supplier_id: e.target.value }))}
-            className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
-          >
-            <option value="">{t('placeholder_supplier_none')}</option>
-            {suppliers.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-          <div className="flex items-center justify-between mt-1">
-            {suppliers.length === 0 && (
-              <span className="text-xs text-gray-400">{t('no_suppliers_hint')}</span>
-            )}
-            <div className="flex items-center gap-3 ml-auto">
-              <button
-                type="button"
-                onClick={() => setShowNewSupplier(true)}
-                className="text-xs font-semibold text-brand active:text-brand-hover"
+          {suppliers.length === 0 ? (
+            <button
+              type="button"
+              onClick={() => setShowNewSupplier(true)}
+              className="w-full flex items-center justify-between border border-dashed border-gray-300 rounded-xl px-4 py-3 text-sm text-brand font-semibold bg-white active:bg-gray-50"
+            >
+              <span>{t('btn_add_supplier')}</span>
+              <span className="text-lg leading-none">+</span>
+            </button>
+          ) : (
+            <>
+              <select
+                value={form.supplier_id}
+                onChange={(e) => {
+                  if (e.target.value === '__new__') {
+                    setShowNewSupplier(true)
+                    return
+                  }
+                  setForm((f) => ({ ...f, supplier_id: e.target.value }))
+                }}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
               >
-                {t('btn_add_supplier')}
-              </button>
-              <Link
-                href="/suppliers"
-                className="text-xs text-brand active:text-brand-hover"
-              >
-                {t('link_manage_suppliers')} &rsaquo;
-              </Link>
-            </div>
-          </div>
+                <option value="">{t('placeholder_supplier_none')}</option>
+                {suppliers.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+                <option value="__new__">+ {t('btn_add_supplier')}</option>
+              </select>
+            </>
+          )}
         </div>
 
         <div>

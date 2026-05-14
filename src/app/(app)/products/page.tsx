@@ -133,36 +133,22 @@ export default async function ProductsPage({
           <p className="text-xs text-gray-600 mt-1">{t('add_first_supplier_btn')}</p>
         </Link>
       ) : missingSupplierCount > 0 ? (
-        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-4">
-          <p className="text-sm font-semibold text-gray-800">
-            {missingSupplierOnly
-              ? t('missing_supplier_filter_active', { count: missingSupplierCount })
-              : t('missing_supplier_banner', { count: missingSupplierCount })}
-          </p>
-          <div className="mt-2 flex flex-col gap-1">
-            <Link
-              href="/suppliers/assign"
-              className="text-xs font-semibold text-brand underline active:text-brand-hover"
-            >
+        <Link
+          href="/suppliers/assign"
+          className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-4 active:bg-gray-100"
+        >
+          <div className="min-w-0 pr-3">
+            <p className="text-sm font-semibold text-gray-800">
+              {missingSupplierOnly
+                ? t('missing_supplier_filter_active', { count: missingSupplierCount })
+                : t('missing_supplier_banner', { count: missingSupplierCount })}
+            </p>
+            <p className="text-xs text-brand font-semibold mt-1">
               {t('missing_supplier_assign_btn')}
-            </Link>
-            {missingSupplierOnly ? (
-              <Link
-                href="/products"
-                className="text-xs font-semibold text-gray-700 underline active:text-gray-900"
-              >
-                {t('missing_supplier_show_all')}
-              </Link>
-            ) : (
-              <Link
-                href="/products?missing_supplier=1"
-                className="text-xs font-semibold text-gray-700 underline active:text-gray-900"
-              >
-                {t('missing_supplier_filter_btn')}
-              </Link>
-            )}
+            </p>
           </div>
-        </div>
+          <span className="text-gray-400 text-xl shrink-0">&rsaquo;</span>
+        </Link>
       ) : missingSupplierOnly ? (
         <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-4">
           <p className="text-sm font-semibold text-green-800">{t('missing_supplier_all_done')}</p>

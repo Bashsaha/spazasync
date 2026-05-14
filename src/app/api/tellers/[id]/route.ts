@@ -11,7 +11,9 @@ export async function PATCH(
   const { user, supabase } = auth
 
   const role = user.app_metadata?.role as string | undefined
-  if (role !== 'owner') return NextResponse.json({ error: 'Only owners can manage tellers' }, { status: 403 })
+  if (role !== 'owner' && role !== 'admin') {
+    return NextResponse.json({ error: 'Only owners can manage tellers' }, { status: 403 })
+  }
 
   const { data, error } = await supabase
     .from('tellers')

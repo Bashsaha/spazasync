@@ -29,7 +29,9 @@ export async function POST(request: Request) {
   const { user, shopId, supabase } = auth
 
   const role = user.app_metadata?.role as string | undefined
-  if (role !== 'owner') return NextResponse.json({ error: 'Only owners can add tellers' }, { status: 403 })
+  if (role !== 'owner' && role !== 'admin') {
+    return NextResponse.json({ error: 'Only owners can add tellers' }, { status: 403 })
+  }
 
   // Look up shop code (needed for synthetic email)
   const { data: shop, error: shopError } = await supabase

@@ -56,7 +56,7 @@ export default function NewTellerPage() {
         {t('add_desc')}
       </p>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_name')}</label>
           <input
@@ -64,6 +64,7 @@ export default function NewTellerPage() {
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             placeholder={t('placeholder_name')}
             required
+            autoComplete="off"
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
@@ -76,6 +77,7 @@ export default function NewTellerPage() {
             onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
             placeholder={t('placeholder_password')}
             required
+            autoComplete="new-password"
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
           <p className="text-xs text-gray-400 mt-1">
