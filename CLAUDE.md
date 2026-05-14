@@ -153,6 +153,33 @@ Plan to `tasks/todo.md` with checkable items → verify with user → mark progr
 
 ---
 
+## Pre-Production Checklist (CRITICAL — read this when user asks "is this production ready")
+
+The app is **NOT production-ready** until every item below is ticked off. These are intentionally listed here so that any "is it ready to launch?" / "can I show this to real users?" / "production ready?" question triggers a re-read of this section. Do not declare the app production-ready without explicitly walking the user through each item and confirming its state.
+
+### Auth & identity
+- [ ] **Google OAuth consent screen verified** — currently the app is in "Testing" mode in Google Cloud Console, so users see "This app isn't verified — Advanced → Continue" the first time they sign in. To remove that warning: Google Cloud Console → APIs & Services → OAuth consent screen → fill in app logo, privacy policy URL, terms of service URL, then publish + submit for verification. Verification is free; Google reviews automatically for non-sensitive scopes (we only request `email` + `profile`). Takes ~1–2 weeks. Without this, every new owner sees a phishing-style warning at signup — major trust-killer.
+- [ ] **OAuth support email is on a Movestock domain** — currently set to a personal Gmail in the consent screen. Change to `hello@movestock.co.za` (or similar) once the custom domain has email forwarding configured. The support email is shown publicly on the consent screen — personal Gmail looks unprofessional and weakens trust signals.
+
+### Domain & infrastructure
+- [ ] **Custom domain live on Vercel** — not `*.vercel.app`. Vercel preview URLs have near-zero Safe Browsing reputation; Chrome heuristics fire aggressively against them. A registered `.co.za` domain accumulates reputation and is durable against future heuristic shifts.
+- [ ] **Email forwarding configured for the custom domain** — via Cloudflare Email Routing (if DNS is on CF) or ImprovMX / Forward Email (free tier). Required for the OAuth support email above, customer support, and any future transactional email needs.
+- [ ] **Custom SMTP configured in Supabase** (Resend or similar) — Supabase's default mailer is rate-limited to ~4 emails/hour and routes to spam. Even though we no longer use email-OTP for owner auth, Supabase still sends emails for password resets (tellers), email verification, etc. Without custom SMTP, those flows silently fail.
+
+### Security
+- [ ] **Rate limiting on auth + sensitive endpoints** — `/api/auth/teller-login`, `/api/tellers`, `/api/onboarding` should be IP-throttled to prevent brute-force on teller PINs (6 digits = 1M space).
+- [ ] **CSP headers** — currently none. Add a Content-Security-Policy header in `next.config.ts` once the app is on a stable domain.
+- [ ] **Secrets review** — confirm no service-role keys, OAuth secrets, or PayFast passphrases leak into any client bundle. Grep the build output (`.next/static/**`) before each release.
+
+### Compliance & legal
+- [ ] **Privacy policy page** — required for Google OAuth verification. Must list what data is collected (email, name, shop info, sales data) and how it's used.
+- [ ] **Terms of service page** — required for Google OAuth verification. Standard SaaS terms.
+- [ ] **POPIA compliance review** — South African data protection act. Already noted in CLAUDE.md compliance journey. Check that data export + deletion paths exist for owners.
+
+When the user asks any variant of "is this production ready" / "can I launch" / "ready for users" — re-read this section and report the state of each item before answering.
+
+---
+
 ## Living Project Awareness
 
 ### File Structure
