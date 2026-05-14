@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Mail, PartyPopper, Check, Copy } from 'lucide-react'
+import { PartyPopper, Check, Copy } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
@@ -13,10 +13,10 @@ import type { SupportedLocale } from '@/lib/i18n/types'
 export default function OnboardingPage() {
   const router = useRouter()
   const { locale, t, setLocale } = useTranslation()
-  const [step, setStep] = useState<'language' | 'signup' | 'email-sent' | 'setup' | 'done'>('language')
+  const [step, setStep] = useState<'language' | 'enter-email' | 'enter-code' | 'setup' | 'done'>('language')
   const [selectedLanguage, setSelectedLanguage] = useState<SupportedLocale>(locale)
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [code, setCode] = useState('')
   const [shopName, setShopName] = useState('')
   const [ownerName, setOwnerName] = useState('')
   const [registrationNumber, setRegistrationNumber] = useState('')
@@ -42,35 +42,50 @@ export default function OnboardingPage() {
 
   function handleLanguageContinue() {
     setLocale(selectedLanguage)
-    setStep('signup')
+    setStep('enter-email')
   }
 
-  async function handleSignup(e: React.FormEvent) {
+  async function handleSendCode(e: React.FormEvent) {
     e.preventDefault()
     setError('')
     setLoading(true)
 
     const supabase = createClient()
-    const { error: authError } = await supabase.auth.signUp({ email, password })
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true },
+    })
 
-    if (authError) {
-      if (authError.message.includes('already registered')) {
-        setError(t('error_email_registered'))
-      } else {
-        setError(authError.message)
-      }
+    if (otpError) {
+      setError(otpError.message)
       setLoading(false)
       return
     }
 
-    // Try signing in immediately (works if Supabase auto-confirms emails)
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
-    if (!signInError) {
-      setStep('setup')
-    } else {
-      // Email confirmation required — show the "check your email" screen
-      setStep('email-sent')
+    setCode('')
+    setStep('enter-code')
+    setLoading(false)
+  }
+
+  async function handleVerifyCode(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    const supabase = createClient()
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email,
+      token: code,
+      type: 'email',
+    })
+
+    if (verifyError) {
+      setError(t('otp_error_wrong_code'))
+      setLoading(false)
+      return
     }
+
+    setStep('setup')
     setLoading(false)
   }
 
@@ -126,8 +141,8 @@ export default function OnboardingPage() {
 
   const subtitle =
     step === 'language' ? t('language_step_subtitle') :
-    step === 'signup' ? t('onboarding_step1_title') :
-    step === 'email-sent' ? t('onboarding_step2_heading') :
+    step === 'enter-email' ? t('onboarding_step1_title') :
+    step === 'enter-code' ? t('onboarding_step1_title') :
     step === 'done' ? t('shop_created_title') :
     t('onboarding_step2_title')
 
@@ -156,23 +171,6 @@ export default function OnboardingPage() {
               >
                 {t('btn_continue')}
               </button>
-            </div>
-          ) : step === 'email-sent' ? (
-            <div className="text-center space-y-4 py-2">
-              <Mail className="w-12 h-12 mx-auto text-brand" strokeWidth={1.5} />
-              <h2 className="text-lg font-bold text-gray-900">{t('email_sent_title')}</h2>
-              <p className="text-gray-600 text-sm">
-                {t('email_sent_text', { email })}
-              </p>
-              <p className="text-gray-400 text-xs">
-                {t('email_sent_spam_hint')}
-              </p>
-              <a
-                href="/login"
-                className="block w-full bg-brand text-white font-semibold py-3 rounded-full hover:bg-brand-hover transition-colors text-base text-center mt-4"
-              >
-                {t('email_sent_link')}
-              </a>
             </div>
           ) : step === 'done' ? (
             <div className="text-center space-y-4 py-2">
@@ -213,15 +211,28 @@ export default function OnboardingPage() {
                 {t('btn_go_to_dashboard')}
               </button>
             </div>
-          ) : step === 'signup' ? (
-            <SignupForm
+          ) : step === 'enter-email' ? (
+            <EmailStep
               email={email}
               setEmail={setEmail}
-              password={password}
-              setPassword={setPassword}
               error={error}
               loading={loading}
-              onSubmit={handleSignup}
+              onSubmit={handleSendCode}
+            />
+          ) : step === 'enter-code' ? (
+            <CodeStep
+              email={email}
+              code={code}
+              setCode={setCode}
+              error={error}
+              loading={loading}
+              onSubmit={handleVerifyCode}
+              onChangeEmail={() => {
+                setStep('enter-email')
+                setCode('')
+                setError('')
+              }}
+              onResend={handleSendCode}
             />
           ) : (
             <ShopSetupForm
@@ -255,19 +266,18 @@ export default function OnboardingPage() {
   )
 }
 
-// ── Step 1: Create account ───────────────────────────────────
+// ── Step 1a: Enter email, send OTP ───────────────────────────
 
-function SignupForm({
-  email, setEmail, password, setPassword, error, loading, onSubmit,
+function EmailStep({
+  email, setEmail, error, loading, onSubmit,
 }: {
   email: string; setEmail: (v: string) => void
-  password: string; setPassword: (v: string) => void
   error: string; loading: boolean; onSubmit: (e: React.FormEvent) => void
 }) {
   const { t } = useTranslation()
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4" autoComplete="off">
       <p className="text-sm text-gray-600">
         {t('onboarding_step1_subtitle')} — {t('onboarding_step1_description')}
       </p>
@@ -283,20 +293,7 @@ function SignupForm({
           autoComplete="email"
           className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base"
         />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_choose_password')}</label>
-        <input
-          type="password"
-          name="new-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder={t('placeholder_password_hint')}
-          required
-          minLength={6}
-          autoComplete="new-password"
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand text-base"
-        />
+        <p className="text-xs text-gray-400 mt-1">{t('otp_hint_send_code')}</p>
       </div>
       {error && (
         <p className="text-red-600 text-sm bg-red-50 rounded-xl px-3 py-2">{error}</p>
@@ -306,8 +303,67 @@ function SignupForm({
         disabled={loading}
         className="w-full bg-brand text-white font-semibold py-3 rounded-full hover:bg-brand-hover transition-colors disabled:opacity-50 text-base min-h-[48px]"
       >
-        {loading ? t('btn_creating_account') : t('btn_continue')}
+        {loading ? t('otp_btn_sending_code') : t('otp_btn_send_code')}
       </button>
+    </form>
+  )
+}
+
+// ── Step 1b: Verify OTP ──────────────────────────────────────
+
+function CodeStep({
+  email, code, setCode, error, loading, onSubmit, onChangeEmail, onResend,
+}: {
+  email: string
+  code: string; setCode: (v: string) => void
+  error: string; loading: boolean
+  onSubmit: (e: React.FormEvent) => void
+  onChangeEmail: () => void
+  onResend: (e: React.FormEvent) => void
+}) {
+  const { t } = useTranslation()
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-4" autoComplete="off">
+      <p className="text-sm text-gray-600">{t('otp_hint_check_email', { email })}</p>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('otp_label_code')}</label>
+        <input
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          maxLength={6}
+          value={code}
+          onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          placeholder={t('otp_placeholder_code')}
+          required
+          autoComplete="one-time-code"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand text-lg tracking-[0.4em]"
+        />
+      </div>
+      {error && (
+        <p className="text-red-600 text-sm bg-red-50 rounded-xl px-3 py-2">{error}</p>
+      )}
+      <button
+        type="submit"
+        disabled={loading || code.length !== 6}
+        className="w-full bg-brand text-white font-semibold py-3 rounded-full hover:bg-brand-hover transition-colors disabled:opacity-50 text-base min-h-[48px]"
+      >
+        {loading ? t('btn_signing_in') : t('btn_continue')}
+      </button>
+      <div className="flex items-center justify-between text-sm">
+        <button type="button" onClick={onChangeEmail} className="text-gray-500 active:text-gray-700">
+          {t('otp_btn_change_email')}
+        </button>
+        <button
+          type="button"
+          onClick={onResend as unknown as () => void}
+          disabled={loading}
+          className="text-brand font-medium active:text-brand-hover disabled:opacity-50"
+        >
+          {t('otp_btn_resend')}
+        </button>
+      </div>
     </form>
   )
 }

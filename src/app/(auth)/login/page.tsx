@@ -191,30 +191,111 @@ function OwnerLoginForm({
   onSuccess: (email: string) => void
 }) {
   const { t } = useTranslation()
-  const [password, setPassword] = useState('')
+  const [phase, setPhase] = useState<'enter-email' | 'enter-code'>('enter-email')
+  const [code, setCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSendCode(e: React.FormEvent) {
     e.preventDefault()
     setError('')
     setLoading(true)
-
     const supabase = createClient()
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
-
-    if (authError) {
-      setError(t('error_login'))
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: false },
+    })
+    if (otpError) {
+      setError(otpError.message.toLowerCase().includes('not found')
+        ? t('otp_error_no_account')
+        : t('otp_error_send_failed'))
       setLoading(false)
       return
     }
+    setCode('')
+    setPhase('enter-code')
+    setLoading(false)
+  }
 
+  async function handleVerifyCode(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    const supabase = createClient()
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email,
+      token: code,
+      type: 'email',
+    })
+    if (verifyError) {
+      setError(t('otp_error_wrong_code'))
+      setLoading(false)
+      return
+    }
     onSuccess(email)
   }
 
+  if (phase === 'enter-code') {
+    return (
+      <form onSubmit={handleVerifyCode} className="space-y-4" autoComplete="off">
+        {loading && <FullScreenSpinner label={t('btn_signing_in')} />}
+        <p className="text-sm text-gray-600">{t('otp_hint_check_email', { email })}</p>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('otp_label_code')}</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={6}
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            placeholder={t('otp_placeholder_code')}
+            required
+            autoComplete="one-time-code"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand text-lg tracking-[0.4em]"
+          />
+        </div>
+
+        {error && (
+          <p className="text-red-600 text-sm bg-red-50 rounded-xl px-3 py-2">{error}</p>
+        )}
+
+        <button
+          type="submit"
+          disabled={loading || code.length !== 6}
+          className="w-full bg-brand text-white font-semibold py-3 rounded-full hover:bg-brand-hover active:bg-brand-hover transition-colors disabled:opacity-50 text-base min-h-[48px]"
+        >
+          {loading ? t('btn_signing_in') : t('btn_sign_in')}
+        </button>
+
+        <div className="flex items-center justify-between text-sm">
+          <button
+            type="button"
+            onClick={() => {
+              setPhase('enter-email')
+              setCode('')
+              setError('')
+            }}
+            className="text-gray-500 active:text-gray-700"
+          >
+            {t('otp_btn_change_email')}
+          </button>
+          <button
+            type="button"
+            onClick={handleSendCode as unknown as () => void}
+            disabled={loading}
+            className="text-brand font-medium active:text-brand-hover disabled:opacity-50"
+          >
+            {t('otp_btn_resend')}
+          </button>
+        </div>
+      </form>
+    )
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {loading && <FullScreenSpinner label={t('btn_signing_in')} />}
+    <form onSubmit={handleSendCode} className="space-y-4" autoComplete="off">
+      {loading && <FullScreenSpinner label={t('otp_btn_sending_code')} />}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_email')}</label>
         <input
@@ -227,19 +308,7 @@ function OwnerLoginForm({
           autoComplete="email"
           className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base"
         />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_password')}</label>
-        <input
-          type="password"
-          name="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder={t('placeholder_password')}
-          required
-          autoComplete="current-password"
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand text-base"
-        />
+        <p className="text-xs text-gray-400 mt-1">{t('otp_hint_send_code')}</p>
       </div>
 
       {error && (
@@ -251,7 +320,7 @@ function OwnerLoginForm({
         disabled={loading}
         className="w-full bg-brand text-white font-semibold py-3 rounded-full hover:bg-brand-hover active:bg-brand-hover transition-colors disabled:opacity-50 text-base min-h-[48px]"
       >
-        {loading ? t('btn_signing_in') : t('btn_sign_in')}
+        {loading ? t('otp_btn_sending_code') : t('otp_btn_send_code')}
       </button>
 
       <p className="text-center text-sm">

@@ -7,9 +7,16 @@ const languageEnum = z.enum(SUPPORTED_LOCALES as [string, ...string[]])
 // Auth
 // ============================================================
 
+// Owner sign-in is email + 6-digit OTP — no password. The OTP is verified
+// directly against Supabase Auth client-side via `verifyOtp`, so this
+// schema is only used for the initial "send code" step on the client.
 export const ownerLoginSchema = z.object({
   email: z.string().email('Enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+})
+
+export const ownerOtpVerifySchema = z.object({
+  email: z.string().email('Enter a valid email address'),
+  token: z.string().regex(/^\d{6}$/, 'Enter the 6-digit code from your email'),
 })
 
 export const tellerLoginSchema = z.object({
