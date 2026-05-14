@@ -275,10 +275,12 @@ function SignupForm({
         <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_email')}</label>
         <input
           type="email"
+          name="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder={t('placeholder_email')}
           required
+          autoComplete="email"
           className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base"
         />
       </div>
@@ -286,11 +288,13 @@ function SignupForm({
         <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_choose_password')}</label>
         <input
           type="password"
+          name="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder={t('placeholder_password_hint')}
           required
           minLength={6}
+          autoComplete="new-password"
           className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand text-base"
         />
       </div>

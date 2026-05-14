@@ -100,7 +100,12 @@ export const stockTakeSchema = z.object({
 
 export const createTellerSchema = z.object({
   name: z.string().min(1, 'Enter the teller\'s name').max(100),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  // 6-digit PIN. Stored as the Supabase Auth password for the synthetic
+  // teller user — Supabase requires ≥6 chars, which 6 digits satisfies.
+  // Using a numeric PIN (instead of type=password) bypasses Chrome's
+  // Password Reuse Protection, which fires the "deceptive site" warning
+  // when an owner accidentally types a password they use elsewhere.
+  password: z.string().regex(/^\d{6}$/, 'PIN must be exactly 6 digits'),
 })
 
 // ============================================================

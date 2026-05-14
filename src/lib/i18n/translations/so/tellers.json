@@ -11,12 +11,12 @@
   "confirm_remove": "Ka saar {name} shaqaalahaaga?",
 
   "add_title": "Ku dar Shaqaale",
-  "add_desc": "Sii shaqaaluhu magaciisa iyo furaha sirta. Waxay ku gali karaan taleefankooda adoo isticmaalaya koodhka dukaanka, magacooda, iyo furaha sirtan.",
+  "add_desc": "Sii shaqaaluhu magaciisa iyo PIN 6-god ah. Waxay ku gali karaan taleefankooda adoo isticmaalaya koodhka dukaanka, magacooda, iyo PIN-kan.",
   "label_name": "Magaca shaqaalaha",
   "placeholder_name": "tusaale Maria",
-  "label_password": "Furaha sirta",
-  "placeholder_password": "Ugu yaraan 6 xaraf",
-  "hint_password": "La wadaag furaha sirta shaqaalaha. Waxay ku isticmaali doonaan galitaanka.",
+  "label_pin": "PIN 6-god ah",
+  "placeholder_pin": "······",
+  "hint_pin": "La wadaag PIN-ka shaqaalaha. Waxay ku isticmaali doonaan galitaanka.",
   "btn_create": "Ku dar Shaqaale",
   "btn_creating": "Abuuraya…",
 

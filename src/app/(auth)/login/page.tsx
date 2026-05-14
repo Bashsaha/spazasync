@@ -219,10 +219,12 @@ function OwnerLoginForm({
         <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_email')}</label>
         <input
           type="email"
+          name="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder={t('placeholder_email')}
           required
+          autoComplete="email"
           className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base"
         />
       </div>
@@ -230,10 +232,12 @@ function OwnerLoginForm({
         <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_password')}</label>
         <input
           type="password"
+          name="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder={t('placeholder_password')}
           required
+          autoComplete="current-password"
           className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand text-base"
         />
       </div>
@@ -308,7 +312,7 @@ function TellerLoginForm({
       })
 
       if (authError) {
-        setError(t('teller_error_wrong_password'))
+        setError(t('teller_error_wrong_pin'))
         setLoading(false)
         return
       }
@@ -348,16 +352,20 @@ function TellerLoginForm({
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{t('teller_label_password')}</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('teller_label_pin')}</label>
         <input
-          type="password"
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          maxLength={6}
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder={t('placeholder_password')}
+          onChange={(e) => setPassword(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          placeholder={t('teller_placeholder_pin')}
           required
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand text-base"
+          autoComplete="off"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand text-lg tracking-[0.4em]"
         />
-        <p className="text-xs text-gray-400 mt-1">{t('teller_hint_password')}</p>
+        <p className="text-xs text-gray-400 mt-1">{t('teller_hint_pin')}</p>
       </div>
 
       {error && (

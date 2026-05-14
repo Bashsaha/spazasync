@@ -70,18 +70,23 @@ export default function NewTellerPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_password')}</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_pin')}</label>
           <input
-            type="password"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={6}
             value={form.password}
-            onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-            placeholder={t('placeholder_password')}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, password: e.target.value.replace(/\D/g, '').slice(0, 6) }))
+            }
+            placeholder={t('placeholder_pin')}
             required
-            autoComplete="new-password"
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+            autoComplete="off"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-lg tracking-[0.4em] focus:outline-none focus:ring-2 focus:ring-brand"
           />
           <p className="text-xs text-gray-400 mt-1">
-            {t('hint_password')}
+            {t('hint_pin')}
           </p>
         </div>
 

@@ -11,12 +11,12 @@
   "confirm_remove": "Remove {name} from your tellers?",
 
   "add_title": "Add Teller",
-  "add_desc": "Give the teller their name and a password. They can log in on their own phone using your shop code, their name, and this password.",
+  "add_desc": "Give the teller their name and a 6-digit PIN. They can log in on their own phone using your shop code, their name, and this PIN.",
   "label_name": "Teller name",
   "placeholder_name": "e.g. Maria",
-  "label_password": "Password",
-  "placeholder_password": "At least 6 characters",
-  "hint_password": "Share this password with the teller. They will use it to log in.",
+  "label_pin": "6-digit PIN",
+  "placeholder_pin": "······",
+  "hint_pin": "Share this PIN with the teller. They will use it to log in.",
   "btn_create": "Add Teller",
   "btn_creating": "Creating\u2026",
 

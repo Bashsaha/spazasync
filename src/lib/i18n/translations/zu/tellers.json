@@ -11,12 +11,12 @@
   "confirm_remove": "Susa u-{name} kubathengisi bakho?",
 
   "add_title": "Engeza Umthengisi",
-  "add_desc": "Nika umthengisi igama lakhe nephasiwedi. Bangakwazi ukungena ocingweni lwabo besebenzisa ikhodi yesitolo sakho, igama labo, nalephasiwedi.",
+  "add_desc": "Nika umthengisi igama lakhe ne-PIN yezinombolo ezi-6. Bangakwazi ukungena ocingweni lwabo besebenzisa ikhodi yesitolo sakho, igama labo, nale PIN.",
   "label_name": "Igama lomthengisi",
   "placeholder_name": "isb. Maria",
-  "label_password": "Iphasiwedi",
-  "placeholder_password": "Okungenani izinhlamvu ezi-6",
-  "hint_password": "Yabelana ngephasiwedi nomthengisi. Uzoyisebenzisa ukungena.",
+  "label_pin": "I-PIN yezinombolo ezi-6",
+  "placeholder_pin": "······",
+  "hint_pin": "Yabelana nge-PIN nomthengisi. Uzoyisebenzisa ukungena.",
   "btn_create": "Engeza Umthengisi",
   "btn_creating": "Kuyadalwa…",
 
