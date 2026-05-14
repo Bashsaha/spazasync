@@ -10,7 +10,7 @@
  *  - navigation           → network-first, fall back to cache, then /offline.html
  */
 
-const CACHE = 'movestock-v15'
+const CACHE = 'movestock-v16'
 
 // Resources that MUST always be fetched fresh from the network so Chrome's
 // installability checker (and the platform's home-screen icon installer) sees

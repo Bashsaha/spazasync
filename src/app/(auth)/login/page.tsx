@@ -182,153 +182,67 @@ function RecentUsersRow({
 // ── Owner login ──────────────────────────────────────────────
 
 function OwnerLoginForm({
-  email,
-  setEmail,
-  onSuccess,
+  onSuccess: _onSuccess,
 }: {
   email: string
   setEmail: (v: string) => void
   onSuccess: (email: string) => void
 }) {
   const { t } = useTranslation()
-  const [phase, setPhase] = useState<'enter-email' | 'enter-code'>('enter-email')
-  const [code, setCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  async function handleSendCode(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleGoogleSignIn() {
     setError('')
     setLoading(true)
     const supabase = createClient()
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: false },
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
-    if (otpError) {
-      setError(otpError.message.toLowerCase().includes('not found')
-        ? t('otp_error_no_account')
-        : t('otp_error_send_failed'))
+    if (oauthError) {
+      setError(t('google_signin_error'))
       setLoading(false)
-      return
     }
-    setCode('')
-    setPhase('enter-code')
-    setLoading(false)
-  }
-
-  async function handleVerifyCode(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    const supabase = createClient()
-    const { error: verifyError } = await supabase.auth.verifyOtp({
-      email,
-      token: code,
-      type: 'email',
-    })
-    if (verifyError) {
-      setError(t('otp_error_wrong_code'))
-      setLoading(false)
-      return
-    }
-    onSuccess(email)
-  }
-
-  if (phase === 'enter-code') {
-    return (
-      <form onSubmit={handleVerifyCode} className="space-y-4" autoComplete="off">
-        {loading && <FullScreenSpinner label={t('btn_signing_in')} />}
-        <p className="text-sm text-gray-600">{t('otp_hint_check_email', { email })}</p>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t('otp_label_code')}</label>
-          <input
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            maxLength={6}
-            value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            placeholder={t('otp_placeholder_code')}
-            required
-            autoComplete="one-time-code"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand text-lg tracking-[0.4em]"
-          />
-        </div>
-
-        {error && (
-          <p className="text-red-600 text-sm bg-red-50 rounded-xl px-3 py-2">{error}</p>
-        )}
-
-        <button
-          type="submit"
-          disabled={loading || code.length !== 6}
-          className="w-full bg-brand text-white font-semibold py-3 rounded-full hover:bg-brand-hover active:bg-brand-hover transition-colors disabled:opacity-50 text-base min-h-[48px]"
-        >
-          {loading ? t('btn_signing_in') : t('btn_sign_in')}
-        </button>
-
-        <div className="flex items-center justify-between text-sm">
-          <button
-            type="button"
-            onClick={() => {
-              setPhase('enter-email')
-              setCode('')
-              setError('')
-            }}
-            className="text-gray-500 active:text-gray-700"
-          >
-            {t('otp_btn_change_email')}
-          </button>
-          <button
-            type="button"
-            onClick={handleSendCode as unknown as () => void}
-            disabled={loading}
-            className="text-brand font-medium active:text-brand-hover disabled:opacity-50"
-          >
-            {t('otp_btn_resend')}
-          </button>
-        </div>
-      </form>
-    )
+    // On success the browser redirects to Google and never returns here.
   }
 
   return (
-    <form onSubmit={handleSendCode} className="space-y-4" autoComplete="off">
-      {loading && <FullScreenSpinner label={t('otp_btn_sending_code')} />}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_email')}</label>
-        <input
-          type="email"
-          name="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder={t('placeholder_email')}
-          required
-          autoComplete="email"
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base"
-        />
-        <p className="text-xs text-gray-400 mt-1">{t('otp_hint_send_code')}</p>
-      </div>
+    <div className="space-y-4">
+      {loading && <FullScreenSpinner label={t('btn_signing_in')} />}
+      <p className="text-sm text-gray-600">{t('google_signin_subtitle')}</p>
+
+      <button
+        type="button"
+        onClick={handleGoogleSignIn}
+        disabled={loading}
+        className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-800 font-semibold py-3 rounded-full hover:bg-gray-50 active:bg-gray-100 transition-colors disabled:opacity-50 text-base min-h-[48px]"
+      >
+        <GoogleGlyph />
+        {t('btn_continue_with_google')}
+      </button>
 
       {error && (
         <p className="text-red-600 text-sm bg-red-50 rounded-xl px-3 py-2">{error}</p>
       )}
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-brand text-white font-semibold py-3 rounded-full hover:bg-brand-hover active:bg-brand-hover transition-colors disabled:opacity-50 text-base min-h-[48px]"
-      >
-        {loading ? t('otp_btn_sending_code') : t('otp_btn_send_code')}
-      </button>
 
       <p className="text-center text-sm">
         <a href="/onboarding" className="text-brand font-medium">
           {t('link_create_shop')}
         </a>
       </p>
-    </form>
+    </div>
+  )
+}
+
+function GoogleGlyph() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
+      <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
+      <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
+      <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571.001-.001.002-.001.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
+    </svg>
   )
 }
 

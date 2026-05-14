@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import {
-  ownerLoginSchema,
   tellerLoginSchema,
   onboardingSchema,
   createProductSchema,
@@ -12,33 +11,8 @@ import {
   updateShopSettingsSchema,
 } from '@/lib/validation/schemas'
 
-// ---------------------------------------------------------------------------
-// ownerLoginSchema
-// ---------------------------------------------------------------------------
-
-describe('ownerLoginSchema', () => {
-  it('accepts valid email and password', () => {
-    const result = ownerLoginSchema.safeParse({ email: 'owner@example.com', password: 'secret1' })
-    expect(result.success).toBe(true)
-  })
-
-  it('rejects invalid email', () => {
-    const result = ownerLoginSchema.safeParse({ email: 'not-an-email', password: 'secret1' })
-    expect(result.success).toBe(false)
-    expect(result.error?.issues[0].message).toBe('Enter a valid email address')
-  })
-
-  it('rejects password shorter than 6 characters', () => {
-    const result = ownerLoginSchema.safeParse({ email: 'a@b.com', password: '12345' })
-    expect(result.success).toBe(false)
-    expect(result.error?.issues[0].message).toBe('Password must be at least 6 characters')
-  })
-
-  it('rejects missing fields', () => {
-    const result = ownerLoginSchema.safeParse({})
-    expect(result.success).toBe(false)
-  })
-})
+// Owner login schema removed: owner auth is now Google OAuth — no fields to
+// validate on our side. Supabase handles the OAuth handshake end-to-end.
 
 // ---------------------------------------------------------------------------
 // tellerLoginSchema
@@ -289,20 +263,26 @@ describe('stockTakeSchema', () => {
 // ---------------------------------------------------------------------------
 
 describe('createTellerSchema', () => {
-  it('accepts valid name and password', () => {
-    const result = createTellerSchema.safeParse({ name: 'Sipho', password: 'teller1' })
+  it('accepts valid name and 6-digit PIN', () => {
+    const result = createTellerSchema.safeParse({ name: 'Sipho', password: '123456' })
     expect(result.success).toBe(true)
   })
 
   it('rejects empty name', () => {
-    const result = createTellerSchema.safeParse({ name: '', password: 'teller1' })
+    const result = createTellerSchema.safeParse({ name: '', password: '123456' })
     expect(result.success).toBe(false)
   })
 
-  it('rejects password shorter than 6 characters', () => {
+  it('rejects PIN with letters', () => {
+    const result = createTellerSchema.safeParse({ name: 'Sipho', password: 'abc123' })
+    expect(result.success).toBe(false)
+    expect(result.error?.issues[0].message).toBe('PIN must be exactly 6 digits')
+  })
+
+  it('rejects PIN shorter than 6 digits', () => {
     const result = createTellerSchema.safeParse({ name: 'Sipho', password: '12345' })
     expect(result.success).toBe(false)
-    expect(result.error?.issues[0].message).toBe('Password must be at least 6 characters')
+    expect(result.error?.issues[0].message).toBe('PIN must be exactly 6 digits')
   })
 })
 
