@@ -74,7 +74,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen bg-surface">
       <LanguageProvider
         initialLocale={initialLocale}
-        namespaces={['common', 'sale', 'sales', 'dashboard', 'stock', 'summary', 'products', 'tellers', 'expiry', 'settings', 'suppliers', 'checklist', 'documents', 'waste-pest', 'inspection', 'inventory', 'manage', 'compliance-onboarding', 'compliance-journey', 'compliance-fund', 'compliance-reminders']}
+        namespaces={['common', 'sale', 'sales', 'dashboard', 'stock', 'stock-loss', 'summary', 'products', 'tellers', 'expiry', 'settings', 'suppliers', 'checklist', 'documents', 'waste-pest', 'inspection', 'inventory', 'manage', 'compliance-onboarding', 'compliance-journey', 'compliance-fund', 'compliance-reminders']}
       >
         <ToastProvider>
           <TopAppBar
