@@ -65,22 +65,20 @@ export default async function ProductsPage({
 
   return (
     <main className="px-4 pt-10 pb-36 max-w-lg mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Link href="/inventory" className="text-gray-400 active:text-gray-600 text-sm">
-            {t('back')}
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <CatalogImportSheet />
-          <Link
-            href="/products/new"
-            className="bg-brand text-white text-sm font-semibold px-4 py-2 rounded-full active:bg-brand-hover"
-          >
-            {t('btn_add')}
-          </Link>
-        </div>
+      <div className="flex items-center gap-3 mb-4">
+        <Link href="/inventory" className="text-gray-400 active:text-gray-600 text-sm">
+          {t('back')}
+        </Link>
+        <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+      </div>
+      <div className="grid grid-cols-2 gap-2 mb-6">
+        <CatalogImportSheet />
+        <Link
+          href="/products/new"
+          className="flex items-center justify-center bg-brand text-white text-sm font-semibold px-4 py-2.5 rounded-full active:bg-brand-hover"
+        >
+          {t('btn_add')}
+        </Link>
       </div>
 
       {/* Missing-cost card — clickable, filters list */}
@@ -89,14 +87,9 @@ export default async function ProductsPage({
           href="/products?missing_cost=1"
           className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4 active:bg-amber-100"
         >
-          <div className="min-w-0 pr-3">
-            <p className="text-sm font-semibold text-amber-900">
-              {t('missing_cost_banner', { count: missingCostCount })}
-            </p>
-            <p className="text-xs text-amber-700 font-semibold mt-1">
-              {t('missing_cost_filter_btn')}
-            </p>
-          </div>
+          <p className="text-sm font-semibold text-amber-900 min-w-0 pr-3">
+            {t('missing_cost_banner', { count: missingCostCount })}
+          </p>
           <span className="text-amber-400 text-xl shrink-0">&rsaquo;</span>
         </Link>
       )}
@@ -141,16 +134,11 @@ export default async function ProductsPage({
           href="/suppliers/assign"
           className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-4 active:bg-gray-100"
         >
-          <div className="min-w-0 pr-3">
-            <p className="text-sm font-semibold text-gray-800">
-              {missingSupplierOnly
-                ? t('missing_supplier_filter_active', { count: missingSupplierCount })
-                : t('missing_supplier_banner', { count: missingSupplierCount })}
-            </p>
-            <p className="text-xs text-brand font-semibold mt-1">
-              {t('missing_supplier_assign_btn')}
-            </p>
-          </div>
+          <p className="text-sm font-semibold text-gray-800 min-w-0 pr-3">
+            {missingSupplierOnly
+              ? t('missing_supplier_filter_active', { count: missingSupplierCount })
+              : t('missing_supplier_banner', { count: missingSupplierCount })}
+          </p>
           <span className="text-gray-400 text-xl shrink-0">&rsaquo;</span>
         </Link>
       ) : missingSupplierOnly ? (
