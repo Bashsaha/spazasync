@@ -190,6 +190,22 @@ export default function StockTakePage() {
           </Link>
         ) : null}
 
+        {/* Stock loss report entry — see what disappeared without being sold */}
+        {!isLoading && products.length > 0 && (
+          <Link
+            href="/stock-take/loss"
+            className="block bg-white border border-gray-100 rounded-2xl p-4 mb-4 active:bg-gray-50"
+          >
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 pr-3">
+                <p className="text-sm font-semibold text-gray-900">{t('loss_card_title')}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{t('loss_card_desc')}</p>
+              </div>
+              <span className="text-gray-300 text-lg shrink-0">›</span>
+            </div>
+          </Link>
+        )}
+
         {/* error banner */}
         {(errorKey || errorRaw) && (
           <div className="bg-red-50 text-red-600 text-sm rounded-xl px-4 py-3 mb-4">

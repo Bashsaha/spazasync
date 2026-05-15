@@ -127,5 +127,8 @@
   "missing_supplier_tip_other": "{count} walxood weli ma laha iibiye la xidhiidha. Xidhiidhinta iibiyayaasha way fudaynaysaa dib-u-buuxinta.",
   "missing_supplier_btn": "Ku dar iibiyayaal walxaha →",
   "add_first_supplier_tip": "Weli iibiyayaal ma aad ku darin.",
-  "add_first_supplier_btn": "Ku dar iibiyahaaga koowaad →"
+  "add_first_supplier_btn": "Ku dar iibiyahaaga koowaad →",
+
+  "loss_card_title": "Warbixinta khasaaraha bakhaarka",
+  "loss_card_desc": "Eeg waxa la saaray iyada oo aan la iibin, iyo lacagta lumay."
 }

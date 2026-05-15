@@ -127,5 +127,8 @@
   "missing_supplier_tip_other": "{count} እቃዎች ገና አቅራቢ የላቸውም። አቅራቢዎችን ማገናኘት ድጋሚ መሙላትን ቀላል ያደርጋል።",
   "missing_supplier_btn": "ለእቃዎች አቅራቢ ያክሉ →",
   "add_first_supplier_tip": "ገና አቅራቢ አልጨመሩም።",
-  "add_first_supplier_btn": "የመጀመሪያ አቅራቢዎን ያክሉ →"
+  "add_first_supplier_btn": "የመጀመሪያ አቅራቢዎን ያክሉ →",
+
+  "loss_card_title": "የክምችት ብክነት ሪፖርት",
+  "loss_card_desc": "ሳይሸጥ የተወገደውን እና የጠፋውን ገንዘብ ይመልከቱ።"
 }

@@ -127,5 +127,8 @@
   "missing_supplier_tip_other": "{count} products don't have a supplier linked yet. Linking suppliers makes restocking faster.",
   "missing_supplier_btn": "Add suppliers to products \u2192",
   "add_first_supplier_tip": "You haven't added any suppliers yet.",
-  "add_first_supplier_btn": "Add your first supplier \u2192"
+  "add_first_supplier_btn": "Add your first supplier \u2192",
+
+  "loss_card_title": "Stock loss report",
+  "loss_card_desc": "See what was removed without being sold, and the money lost."
 }

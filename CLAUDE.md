@@ -210,9 +210,10 @@ The file tree below is ground truth. After every phase: Glob scan, diff against 
 
 ## Living Scope
 
-Phases 1–36c + 37a–37g + 38 + 39 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+Phases 1–36c + 37a–37g + 38 + 39 + 40 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
 
 Most recent:
+- 40 Stock Loss Report (2026-05-15) — new owner-only `/stock-take/loss` page surfaces stock that left the shop **without being sold** (manual stock_adjustments with `delta < 0` + stock_take_entries where `qty_after < qty_before`). Sales never write to either audit table — `decrement_stock_fefo` writes directly to `products.stock_qty` — so the report cannot accidentally count a sold item as "lost". Date-range picker (Last 7 / 30 / 90 days + Custom, mirrors the `/sales/history` pattern), two summary tiles (items removed, value lost at **cost price**), per-row preview list with source badge + reason, and a Download PDF button. **Cost-price valuation** (per user spec): `qty_removed × cost_price`. Products with no `cost_price` set show R0.00 and are counted under `totals.rows_missing_cost`; an amber nudge links to `/products?missing_cost=1` when present. Pure shaping function `shapeStockLoss()` in [src/lib/db/stock-loss.ts](src/lib/db/stock-loss.ts) is split from the DB wrapper for testability — 9 unit tests cover positive/zero delta filtering, no-loss stock-take filtering, null cost handling, 2dp rounding, descending sort, and product-join null fallback. New files: `lib/db/stock-loss.ts`, `app/(app)/stock-take/loss/page.tsx`, `app/api/stock-loss/route.ts`, `app/api/reports/stock-loss-pdf/route.ts`. The PDF endpoint reuses `lib/pdf/shared.ts` helpers; columns: Date · Product · Qty · Cost each · Value lost · Source · Reason; brand-teal table header; footer "Excludes stock removed through completed sales". Stock-take page gets an entry card linking to the new page (`loss_card_title` / `loss_card_desc` keys added to the existing `stock` namespace × 5 locales). New `stock-loss` i18n namespace × 5 locales (~25 keys; non-EN: native attempts for so/zu, simple native for am/ur; parity test green). No DB migration — `stock_adjustments` and `stock_take_entries` already carry everything needed. i18n namespace count bumped from 22 → 23 (`types.ts` TranslationNamespace union + the test assertion). SW cache v18 → v19. 647/647 tests pass; `tsc --noEmit` clean.
 - Products: missing-cost card + filtered-edit return flow (2026-05-15) — small UX iteration on the Products page following BUG-030→031. The "products without cost" banner was a flat amber card with an underlined link inside; visually weaker than the "products without supplier" card (which is a proper tap-target with chevron → `/suppliers/assign`). Rebuilt the missing-cost surface as a matching clickable card: `flex items-center justify-between` + amber-50 bg + amber chevron, tapping it pushes `?missing_cost=1`. When the filter is active, the card switches to a status card showing "Showing N products that still need a cost price" with a "← Show all products" exit link. Wired up the filtered-edit return flow: the product row link now appends `?return=missing_cost` (or `?return=missing_supplier`) when a filter is active; `/products/[id]/page.tsx` reads it via `useSearchParams()` and `router.push()`s back to the filtered URL after Save. Net effect: tap card → see filtered list → tap product → edit → Save → just-edited product disappears from the list (its cost is set now), you're still on the filtered view ready to do the next one. No new i18n keys (all reused). No DB migration, no API changes. SW cache v16 → v17.
 - BUG-034: kill the last `type="password"` field — owner login becomes email + 6-digit OTP (2026-05-14c) — after BUG-033 converted teller credentials to PINs, the Chrome "Check your passwords / you just entered your password on a deceptive site" warning was STILL firing. Root-cause diagnosis: the teller-name field is plain `type=text` and can't trigger Password Reuse Protection — the warning was actually being triggered by the **owner login / signup** flow (which still had `<input type="password">`) and then persisting across navigations on the same domain. Compounded by the deploy being on a `*.vercel.app` preview URL (near-zero Safe Browsing reputation, so Chrome's reuse detector fires far more aggressively). Proper fix: **remove every remaining `type="password"` field from the app.** Owner login + signup are now **email + 6-digit OTP** via `supabase.auth.signInWithOtp({ email })` → `supabase.auth.verifyOtp({ email, token, type: 'email' })`. No password field anywhere on the client → Chrome's Password Reuse Protection has nothing to bind to. `ownerLoginSchema` dropped the password field; new `ownerOtpVerifySchema` validates the verify step. Both `/login` (owner tab) and `/onboarding` (step 1) are two-phase: enter email → enter 6-digit code, with Resend / "Use a different email" controls. The pre-existing `email-sent` confirmation screen on `/onboarding` was removed (OTP verifies inline). Existing owner accounts in Supabase still work — OTP is keyed off email, no migration needed. The only remaining `signInWithPassword` call is the teller-login server route, which receives the synthetic email + 6-digit PIN — but the **client field** is `type=text inputMode=numeric`, so Chrome never sees a password field. i18n × 5 locales: removed `label_password`, `label_choose_password`, `placeholder_password*`, `email_sent_*`, `btn_create_account*` keys; added 11-key `otp_*` namespace; parity test green. SW cache v14 → v15. **Recommendation flagged to user:** point a custom domain at Vercel — even with the code change, a registered domain accumulates reputation and protects against future Chrome heuristic shifts. **BUG-034 entry added to `tasks/bugs.md`** with the cross-page Password Reuse Protection diagnosis. **Prevention rule:** never use `<input type="password">` on a Vercel preview URL or any low-reputation domain. Chrome's Password Reuse Protection fingerprints saved passwords at the keystroke level on any `type="password"` field, regardless of `autocomplete` attributes — the only fix is to remove the field type entirely (email OTP, magic link, or numeric PIN depending on security tier).
 - BUG-033 proper fix: teller credentials → 6-digit PIN (2026-05-14b) — initial `autoComplete="new-password"` fix did NOT suppress the warning. Diagnosed deeper: the warning is **Chrome Password Reuse Protection** (a.k.a. Password Alert), which fingerprints every saved password on the user's Sync profile and fires at the keystroke level whenever any of those passwords is typed into `<input type="password">` on a domain Chrome doesn't recognise as that password's home. `autoComplete` only affects autofill UI, not the reuse-detection layer. Proper fix: **eliminate `type="password"` from the teller flow entirely**. Tellers now use 6-digit numeric PINs entered via `<input type="text" inputMode="numeric" pattern="[0-9]*" maxLength={6} autoComplete="off">` — Chrome never inspects non-password fields for reuse, so the warning can't fire. Side benefits: better UX for non-technical spaza staff (a 6-digit PIN is easier to remember and share than a password), matches the till-style mental model of the rest of the app. `createTellerSchema` tightened to `/^\d{6}$/` (server-side validation); both `/tellers/new` (create) and `/login` (teller tab) forms get the new PIN input with `tracking-[0.4em]` spacing and a 6-dot placeholder. i18n keys `label_password`/`placeholder_password`/`hint_password` in `tellers` namespace and `teller_label_password`/`teller_hint_password`/`teller_error_wrong_password` in `auth` namespace renamed to `_pin` variants across all 5 locales (parity test green). The linter also strengthened owner signup/login: added `name="email"` + `autoComplete="email"` and `name="new-password"` + `autoComplete="new-password"` to `/onboarding`'s signup form. **Migration note for existing tellers:** old tellers were created with arbitrary (often alphanumeric) passwords. The new login form strips non-digits, so they cannot type their old password — owners must deactivate + re-add affected tellers with a new 6-digit PIN. SW cache v13 → v14. **BUG-033 entry in `tasks/bugs.md` rewritten** with the correct root cause (Password Reuse Protection, not Safe Browsing heuristics) and the proper prevention rule: never use `type="password"` for an "owner-sets-credential-for-someone-else" flow — use a numeric PIN instead. Reserve `type="password"` for fields where the person typing IS the credential owner.
@@ -240,7 +241,7 @@ When starting a new phase, append it here and update the file tree.
 
 ## Current File Tree
 
-_Last updated: Products missing-cost card + filtered-edit return flow (2026-05-15)_
+_Last updated: Phase 40 — Stock Loss Report (2026-05-15)_
 
 ```
 spaza shop/
@@ -273,7 +274,7 @@ spaza shop/
 │   │   │   ├── subscribe/page.tsx
 │   │   │   ├── sale/{page.tsx, complete/page.tsx}
 │   │   │   ├── expiry/{page.tsx, loading.tsx}
-│   │   │   ├── stock-take/page.tsx
+│   │   │   ├── stock-take/{page.tsx, loss/page.tsx}    # Phase 40 — loss = stock removed without sale
 │   │   │   ├── stock/{page.tsx, loading.tsx, [id]/page.tsx}
 │   │   │   ├── products/{page.tsx, new/page.tsx, [id]/page.tsx}
 │   │   │   ├── tellers/{page.tsx, loading.tsx, new/page.tsx}
@@ -305,6 +306,7 @@ spaza shop/
 │   │       ├── batches/{route.ts, [id]/route.ts}
 │   │       ├── stock/{route.ts, expiry/route.ts}
 │   │       ├── stock-take/route.ts
+│   │       ├── stock-loss/route.ts                          # Phase 40
 │   │       ├── subscribe/{checkout/route.ts, notify/route.ts, status/route.ts}
 │   │       ├── cron/expire-subscriptions/route.ts
 │   │       ├── summary/daily/route.ts
@@ -321,7 +323,8 @@ spaza shop/
 │       │   ├── landlord-affidavit/route.ts                # 37d
 │       │   ├── goods-declaration/route.ts                 # 37d
 │       │   ├── food-safety-pack/route.ts                  # 37d
-│       │   └── fund-application-pack/route.ts             # 37d (SA + fund_interest gated)
+│       │   ├── fund-application-pack/route.ts             # 37d (SA + fund_interest gated)
+│       │   └── stock-loss-pdf/route.ts                    # Phase 40
 │   │       ├── settings/route.ts
 │   │       ├── tellers/{route.ts, me/route.ts, [id]/route.ts}
 │   │       ├── suppliers/{route.ts, [id]/route.ts}
@@ -392,7 +395,7 @@ spaza shop/
 │   │   ├── payfast/index.ts
 │   │   ├── db/
 │   │   │   ├── products.ts, sales.ts, sales-history.ts, monthly-sales-report.ts
-│   │   │   ├── stock-take.ts, stock.ts, reports.ts, admin.ts, catalog.ts, batches.ts
+│   │   │   ├── stock-take.ts, stock.ts, stock-loss.ts, reports.ts, admin.ts, catalog.ts, batches.ts
 │   │   │   ├── suppliers.ts, goods-received.ts
 │   │   │   ├── daily-checklist.ts, business-documents.ts, pest-control.ts, waste-management.ts
 │   │   │   ├── compliance-report.ts, compliance-score.ts
@@ -414,11 +417,11 @@ spaza shop/
 │   │   │                # fund.ts (37e), reminders.ts (37g — pure evaluator + bucket-key engine)
 │   │   ├── i18n/
 │   │   │   ├── types.ts, interpolate.ts, loader.ts, server.ts
-│   │   │   └── translations/{en,so,am,zu,ur}/  (22 namespaces each)
-│   │   │       # common, auth, sale, sales, dashboard, settings, stock, products, tellers,
-│   │   │       # expiry, summary, suppliers, checklist, documents, waste-pest, inspection,
-│   │   │       # inventory, manage, compliance-onboarding, compliance-journey, compliance-fund,
-│   │   │       # compliance-reminders
+│   │   │   └── translations/{en,so,am,zu,ur}/  (23 namespaces each)
+│   │   │       # common, auth, sale, sales, dashboard, settings, stock, stock-loss, products,
+│   │   │       # tellers, expiry, summary, suppliers, checklist, documents, waste-pest,
+│   │   │       # inspection, inventory, manage, compliance-onboarding, compliance-journey,
+│   │   │       # compliance-fund, compliance-reminders
 │   │   ├── events.ts                       # In-tab mutation event bus
 │   │   ├── validation/schemas.ts           # All Zod schemas
 │   │   └── utils/{api.ts, currency.ts, date.ts, rateLimit.ts, statusBadge.ts}
@@ -457,5 +460,6 @@ spaza shop/
     ├── pdf-reports.test.ts
     ├── fund-readiness.test.ts
     ├── reminders.test.ts
+    ├── stock-loss.test.ts
     └── barcode-scanner.test.ts
 ```

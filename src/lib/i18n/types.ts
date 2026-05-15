@@ -45,5 +45,6 @@ export type TranslationNamespace =
   | 'compliance-journey'
   | 'compliance-fund'
   | 'compliance-reminders'
+  | 'stock-loss'
 
 export type Translations = Record<string, string>
