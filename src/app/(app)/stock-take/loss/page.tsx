@@ -101,54 +101,69 @@ export default function StockLossPage() {
       </div>
       <p className="text-gray-500 text-sm mb-5 ml-11">{t('subtitle')}</p>
 
-      {/* Preset chips */}
-      <div className="flex gap-2 mb-3 overflow-x-auto -mx-1 px-1">
-        {(['7d', '30d', '90d', 'custom'] as Preset[]).map((p) => (
-          <button
-            key={p}
-            type="button"
-            onClick={() => applyPreset(p)}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border ${
-              preset === p
-                ? 'bg-brand text-white border-brand'
-                : 'bg-white text-gray-700 border-gray-200 active:bg-gray-50'
-            }`}
-          >
-            {t(`preset_${p}`)}
-          </button>
-        ))}
-      </div>
-
-      {/* Date inputs */}
+      {/* Date range card — presets (2×2 grid) + stacked date inputs */}
       <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
-        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
           {t('pick_range')}
-        </label>
-        <div className="flex items-center gap-2">
-          <input
-            type="date"
-            value={from}
-            max={to}
-            onChange={(e) => {
-              setFrom(e.target.value)
-              setPreset('custom')
-            }}
-            className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
-            aria-label={t('from_label')}
-          />
-          <span className="text-gray-400 text-sm">{t('to_word')}</span>
-          <input
-            type="date"
-            value={to}
-            min={from}
-            max={today}
-            onChange={(e) => {
-              setTo(e.target.value)
-              setPreset('custom')
-            }}
-            className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
-            aria-label={t('to_label')}
-          />
+        </p>
+
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          {(['7d', '30d', '90d', 'custom'] as Preset[]).map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => applyPreset(p)}
+              className={`py-3 rounded-xl text-sm font-semibold border transition-colors ${
+                preset === p
+                  ? 'bg-brand text-white border-brand'
+                  : 'bg-white text-gray-700 border-gray-200 active:bg-gray-50'
+              }`}
+            >
+              {t(`preset_${p}`)}
+            </button>
+          ))}
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <label
+              htmlFor="loss-from"
+              className="block text-xs font-medium text-gray-500 mb-1"
+            >
+              {t('from_label')}
+            </label>
+            <input
+              id="loss-from"
+              type="date"
+              value={from}
+              max={to}
+              onChange={(e) => {
+                setFrom(e.target.value)
+                setPreset('custom')
+              }}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="loss-to"
+              className="block text-xs font-medium text-gray-500 mb-1"
+            >
+              {t('to_label')}
+            </label>
+            <input
+              id="loss-to"
+              type="date"
+              value={to}
+              min={from}
+              max={today}
+              onChange={(e) => {
+                setTo(e.target.value)
+                setPreset('custom')
+              }}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+            />
+          </div>
         </div>
       </div>
 

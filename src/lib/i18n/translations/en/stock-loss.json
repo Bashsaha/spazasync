@@ -9,7 +9,6 @@
   "pick_range": "Pick a date range",
   "from_label": "From date",
   "to_label": "To date",
-  "to_word": "to",
   "total_items": "Items removed",
   "total_value": "Value lost (at cost)",
   "missing_cost_note_one": "{count} of {total} entries has no cost price set — it shows R0.00 here.",

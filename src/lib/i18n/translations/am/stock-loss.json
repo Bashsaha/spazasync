@@ -9,7 +9,6 @@
   "pick_range": "የቀን ክልል ይምረጡ",
   "from_label": "ከ ቀን",
   "to_label": "እስከ ቀን",
-  "to_word": "እስከ",
   "total_items": "የተወገዱ ዕቃዎች",
   "total_value": "የጠፋ ዋጋ (በወጪ)",
   "missing_cost_note_one": "ከ{total} መግቢያዎች መካከል {count} የወጪ ዋጋ የለውም — እዚህ R0.00 ሆኖ ይታያል።",
