@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import type { Product, Supplier } from '@/types'
 import { NewSupplierModal } from '@/components/NewSupplierModal'
 import { useTranslation } from '@/components/LanguageProvider'
@@ -10,6 +10,14 @@ import { emitDataChanged } from '@/lib/events'
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const returnTo = searchParams.get('return')
+  const returnUrl =
+    returnTo === 'missing_cost'
+      ? '/products?missing_cost=1'
+      : returnTo === 'missing_supplier'
+        ? '/products?missing_supplier=1'
+        : '/products'
   const { t } = useTranslation('products')
   const [productId, setProductId] = useState<string>('')
   const [product, setProduct] = useState<Product | null>(null)
@@ -74,7 +82,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       }
       emitDataChanged()
       router.refresh()
-      router.push('/products')
+      router.push(returnUrl)
     } catch {
       setErrorKey('error_network')
     } finally {

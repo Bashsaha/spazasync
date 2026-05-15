@@ -83,31 +83,35 @@ export default async function ProductsPage({
         </div>
       </div>
 
-      {/* Missing-cost banner + filter toggle */}
-      {profitTracking && missingCostCount > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4">
-          <p className="text-sm font-semibold text-amber-800">
-            {missingCostOnly
-              ? t('missing_cost_filter_active', { count: missingCostCount })
-              : t('missing_cost_banner', { count: missingCostCount })}
-          </p>
-          <div className="mt-2">
-            {missingCostOnly ? (
-              <Link
-                href="/products"
-                className="text-xs font-semibold text-amber-700 underline active:text-amber-900"
-              >
-                {t('missing_cost_show_all')}
-              </Link>
-            ) : (
-              <Link
-                href="/products?missing_cost=1"
-                className="text-xs font-semibold text-amber-700 underline active:text-amber-900"
-              >
-                {t('missing_cost_filter_btn')}
-              </Link>
-            )}
+      {/* Missing-cost card — clickable, filters list */}
+      {profitTracking && missingCostCount > 0 && !missingCostOnly && (
+        <Link
+          href="/products?missing_cost=1"
+          className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4 active:bg-amber-100"
+        >
+          <div className="min-w-0 pr-3">
+            <p className="text-sm font-semibold text-amber-900">
+              {t('missing_cost_banner', { count: missingCostCount })}
+            </p>
+            <p className="text-xs text-amber-700 font-semibold mt-1">
+              {t('missing_cost_filter_btn')}
+            </p>
           </div>
+          <span className="text-amber-400 text-xl shrink-0">&rsaquo;</span>
+        </Link>
+      )}
+
+      {profitTracking && missingCostCount > 0 && missingCostOnly && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4">
+          <p className="text-sm font-semibold text-amber-900">
+            {t('missing_cost_filter_active', { count: missingCostCount })}
+          </p>
+          <Link
+            href="/products"
+            className="text-xs font-semibold text-amber-700 underline active:text-amber-900 mt-2 inline-block"
+          >
+            {t('missing_cost_show_all')}
+          </Link>
         </div>
       )}
 
@@ -186,10 +190,15 @@ export default async function ProductsPage({
         <ul className="space-y-2">
           {products.map((p) => {
             const missingCost = profitTracking && p.cost_price == null
+            const returnTo = missingCostOnly
+              ? '?return=missing_cost'
+              : missingSupplierOnly
+                ? '?return=missing_supplier'
+                : ''
             return (
               <li key={p.id}>
                 <Link
-                  href={`/products/${p.id}`}
+                  href={`/products/${p.id}${returnTo}`}
                   className="flex items-center justify-between bg-white rounded-2xl p-4 border border-gray-100 active:bg-gray-50"
                 >
                   <div className="min-w-0">
