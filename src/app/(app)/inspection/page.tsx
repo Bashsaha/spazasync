@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { FileText } from 'lucide-react'
 import { getShopAuth } from '@/lib/auth/shop-auth'
@@ -6,6 +5,7 @@ import { getComplianceScore } from '@/lib/db/compliance-score'
 import { listBusinessDocuments } from '@/lib/db/business-documents'
 import { getInspectionReadiness } from '@/lib/db/inspection-readiness'
 import { InspectionReadinessPanel } from '@/components/compliance/InspectionReadinessPanel'
+import { BackButton } from '@/components/BackButton'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 import type { ComplianceScoreCategory } from '@/types'
 
@@ -65,10 +65,8 @@ export default async function InspectionPage() {
 
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
-      <div className="flex items-center gap-3 mb-2">
-        <Link href="/manage" className="text-gray-400 active:text-gray-600 text-sm">
-          {t('back')}
-        </Link>
+      <div className="flex items-center gap-2 mb-2">
+        <BackButton fallbackHref="/manage" />
         <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
       </div>
       <p className="text-sm text-gray-500 mb-6">{t('subtitle')}</p>

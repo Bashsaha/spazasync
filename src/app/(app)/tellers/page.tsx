@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { Teller, AccessRequestWithTeller } from '@/types'
 import { Skeleton } from '@/components/Skeleton'
 import { ConfirmModal } from '@/components/ConfirmModal'
+import { BackButton } from '@/components/BackButton'
 import { useTranslation } from '@/components/LanguageProvider'
 import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
 import { emitDataChanged } from '@/lib/events'
@@ -102,10 +103,8 @@ export default function TellersPage() {
   return (
     <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Link href="/manage" className="text-gray-400 active:text-gray-600 text-sm">
-            {t('back')}
-          </Link>
+        <div className="flex items-center gap-2">
+          <BackButton fallbackHref="/manage" />
           <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
         </div>
         <Link

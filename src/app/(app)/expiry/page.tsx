@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { ExpiryProductDetail, BatchDetail } from '@/types'
+import { BackButton } from '@/components/BackButton'
 import { useTranslation } from '@/components/LanguageProvider'
 import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
 
@@ -220,10 +221,8 @@ export default function ExpiryPage() {
   return (
     <main className="px-4 pt-10 pb-36 max-w-lg mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/inventory" className="flex items-center gap-1 text-gray-500 active:text-gray-700 font-medium py-1 pr-2">
-          {t('back')}
-        </Link>
+      <div className="flex items-center gap-2 mb-6">
+        <BackButton fallbackHref="/inventory" />
         <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
       </div>
 

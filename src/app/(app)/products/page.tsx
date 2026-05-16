@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { listProducts } from '@/lib/db/products'
 import { formatZAR } from '@/lib/utils/currency'
 import { CatalogImportSheet } from '@/components/products/CatalogImportSheet'
+import { BackButton } from '@/components/BackButton'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 
 export default async function ProductsPage({
@@ -65,10 +66,8 @@ export default async function ProductsPage({
 
   return (
     <main className="px-4 pt-10 pb-36 max-w-lg mx-auto">
-      <div className="flex items-center gap-3 mb-4">
-        <Link href="/inventory" className="text-gray-400 active:text-gray-600 text-sm">
-          {t('back')}
-        </Link>
+      <div className="flex items-center gap-2 mb-4">
+        <BackButton fallbackHref="/inventory" />
         <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
       </div>
       <div className="grid grid-cols-2 gap-2 mb-6">
@@ -99,24 +98,12 @@ export default async function ProductsPage({
           <p className="text-sm font-semibold text-amber-900">
             {t('missing_cost_filter_active', { count: missingCostCount })}
           </p>
-          <Link
-            href="/products"
-            className="text-xs font-semibold text-amber-700 underline active:text-amber-900 mt-2 inline-block"
-          >
-            {t('missing_cost_show_all')}
-          </Link>
         </div>
       )}
 
       {profitTracking && missingCostCount === 0 && missingCostOnly && (
         <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-4">
           <p className="text-sm font-semibold text-green-800">{t('missing_cost_all_done')}</p>
-          <Link
-            href="/products"
-            className="text-xs font-semibold text-green-700 underline active:text-green-900 mt-2 inline-block"
-          >
-            {t('missing_cost_show_all')}
-          </Link>
         </div>
       )}
 
@@ -144,12 +131,6 @@ export default async function ProductsPage({
       ) : missingSupplierOnly ? (
         <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-4">
           <p className="text-sm font-semibold text-green-800">{t('missing_supplier_all_done')}</p>
-          <Link
-            href="/products"
-            className="text-xs font-semibold text-green-700 underline active:text-green-900 mt-2 inline-block"
-          >
-            {t('missing_supplier_show_all')}
-          </Link>
         </div>
       ) : null}
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { Product, Supplier } from '@/types'
 import { NewSupplierModal } from '@/components/NewSupplierModal'
+import { BackButton } from '@/components/BackButton'
 import { useTranslation } from '@/components/LanguageProvider'
 import { Spinner, FullScreenSpinner } from '@/components/Spinner'
 import { emitDataChanged } from '@/lib/events'
@@ -109,12 +110,10 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const errorMessage = errorRaw || (errorKey ? t(errorKey) : '')
 
   return (
-    <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
       {loading && <FullScreenSpinner label={t('btn_saving')} />}
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.back()} className="text-gray-400 active:text-gray-600 text-sm">
-          {t('back')}
-        </button>
+      <div className="flex items-center gap-2 mb-6">
+        <BackButton fallbackHref={returnUrl} />
         <h1 className="text-2xl font-bold text-gray-900">{t('edit_title')}</h1>
       </div>
 

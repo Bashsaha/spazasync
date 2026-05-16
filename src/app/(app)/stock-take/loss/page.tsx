@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Download } from 'lucide-react'
 import { formatZAR } from '@/lib/utils/currency'
 import { formatSAST } from '@/lib/utils/date'
+import { BackButton } from '@/components/BackButton'
 import { useTranslation } from '@/components/LanguageProvider'
 
 interface StockLossRow {
@@ -93,13 +94,11 @@ export default function StockLossPage() {
   return (
     <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-1">
-        <Link href="/stock-take" className="text-gray-400 text-sm active:text-gray-600">
-          {t('back')}
-        </Link>
+      <div className="flex items-center gap-2 mb-1">
+        <BackButton fallbackHref="/stock-take" />
         <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
       </div>
-      <p className="text-gray-500 text-sm mb-5 ml-11">{t('subtitle')}</p>
+      <p className="text-gray-500 text-sm mb-5 ml-12">{t('subtitle')}</p>
 
       {/* Date range card — presets (2×2 grid) + stacked date inputs */}
       <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">

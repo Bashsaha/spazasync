@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/components/LanguageProvider'
+import { BackButton } from '@/components/BackButton'
 import { useToast } from '@/components/Toast'
 import { Spinner, FullScreenSpinner } from '@/components/Spinner'
 import { emitDataChanged } from '@/lib/events'
@@ -68,10 +68,8 @@ export default function NewPestControlVisitPage() {
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
       {saving && <FullScreenSpinner label={t('btn_saving')} />}
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/waste-pest/pest" className="text-gray-400 active:text-gray-600 text-sm">
-          {t('back')}
-        </Link>
+      <div className="flex items-center gap-2 mb-6">
+        <BackButton fallbackHref="/waste-pest/pest" />
         <h1 className="text-2xl font-bold text-gray-900">{t('pest_new_title')}</h1>
       </div>
 

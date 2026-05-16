@@ -1,22 +1,18 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 
 interface Props {
   /** Fallback path used when there is no entry in browser history (direct
    *  load, deep-link from a notification, etc.). */
   fallbackHref: string
-  /** Optional className override (defaults to the muted-grey style used by
-   *  the existing back arrows across the app). */
+  /** Optional className override. Defaults to the WhatsApp-style icon button. */
   className?: string
 }
 
-/** Browser-history back arrow. Used on pages that are reached from multiple
- *  parents (e.g. /compliance/journey from both /profile and /manage) so the
- *  back arrow goes wherever the user actually came from instead of a single
- *  hardcoded ancestor.
- */
+/** WhatsApp-style back arrow — icon-only, generous tap target. */
 export function BackButton({ fallbackHref, className }: Props) {
   const router = useRouter()
   const { t } = useTranslation('common')
@@ -33,9 +29,13 @@ export function BackButton({ fallbackHref, className }: Props) {
     <button
       type="button"
       onClick={handleBack}
-      className={className ?? 'text-gray-400 active:text-gray-600 text-sm'}
+      aria-label={t('back')}
+      className={
+        className ??
+        '-ml-2 inline-flex items-center justify-center w-10 h-10 rounded-full text-gray-700 active:bg-gray-100'
+      }
     >
-      ‹ {t('back')}
+      <ArrowLeft className="w-6 h-6" strokeWidth={2.25} />
     </button>
   )
 }

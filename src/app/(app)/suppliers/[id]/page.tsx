@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import type { Supplier } from '@/types'
 import { ConfirmModal } from '@/components/ConfirmModal'
+import { BackButton } from '@/components/BackButton'
 import { useTranslation } from '@/components/LanguageProvider'
 import { Spinner, FullScreenSpinner } from '@/components/Spinner'
 import { emitDataChanged } from '@/lib/events'
@@ -108,12 +109,10 @@ export default function EditSupplierPage() {
   }
 
   return (
-    <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
       {saving && <FullScreenSpinner label={t('btn_saving')} />}
-      <div className="flex items-center gap-3 mb-8">
-        <button onClick={() => router.back()} className="text-gray-400 active:text-gray-600 text-sm">
-          {t('back')}
-        </button>
+      <div className="flex items-center gap-2 mb-8">
+        <BackButton fallbackHref="/suppliers" />
         <h1 className="text-2xl font-bold text-gray-900">{t('edit_title')}</h1>
       </div>
 

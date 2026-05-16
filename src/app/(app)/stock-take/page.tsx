@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Check } from 'lucide-react'
 import type { Product } from '@/types'
 import { useTranslation } from '@/components/LanguageProvider'
+import { BackButton } from '@/components/BackButton'
 import { FullScreenSpinner } from '@/components/Spinner'
 import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
 import { emitDataChanged } from '@/lib/events'
@@ -144,13 +145,11 @@ export default function StockTakePage() {
       {isSubmitting && <FullScreenSpinner label={t('stock_take_btn_saving')} />}
       <main className="px-4 pt-8 pb-44 max-w-lg mx-auto">
         {/* header */}
-        <div className="flex items-center gap-3 mb-1">
-          <Link href="/inventory" className="text-gray-400 text-sm active:text-gray-600">
-            {t('back')}
-          </Link>
+        <div className="flex items-center gap-2 mb-1">
+          <BackButton fallbackHref="/inventory" />
           <h1 className="text-2xl font-bold text-gray-900">{t('stock_take_title')}</h1>
         </div>
-        <p className="text-gray-500 text-sm mb-6 ml-11">
+        <p className="text-gray-500 text-sm mb-6 ml-12">
           {t('stock_take_subtitle')}
         </p>
 

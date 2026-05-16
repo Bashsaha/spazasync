@@ -1,12 +1,12 @@
 'use client'
 
 import { Suspense, useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { SaleWithDetails, DailySalesTotals } from '@/types'
 import { formatZAR } from '@/lib/utils/currency'
 import { formatSAST } from '@/lib/utils/date'
 import { useTranslation } from '@/components/LanguageProvider'
+import { BackButton } from '@/components/BackButton'
 import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
 
 interface ByDateResponse {
@@ -111,10 +111,8 @@ function SalesHistoryContent() {
   return (
     <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <Link href="/sales" className="text-gray-400 active:text-gray-600 text-sm">
-          {t('back')}
-        </Link>
+      <div className="flex items-center gap-2 mb-4">
+        <BackButton fallbackHref="/sales" />
         <h1 className="text-2xl font-bold text-gray-900">{t('history_title')}</h1>
       </div>
 

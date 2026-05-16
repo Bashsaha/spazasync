@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ClipboardList, Shield, Wallet } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
+import { BackButton } from '@/components/BackButton'
 import { Spinner, FullScreenSpinner } from '@/components/Spinner'
 import type { SupportedLocale } from '@/lib/i18n/types'
 
@@ -277,9 +278,9 @@ export default function SettingsPage() {
   return (
     <main className="px-4 pt-10 pb-40 max-w-lg mx-auto">
       {saving && <FullScreenSpinner label={t('btn_saving')} />}
-      <a href="/profile" className="text-sm text-brand mb-6 inline-block">
-        ‹ {t('back')}
-      </a>
+      <div className="mb-6">
+        <BackButton fallbackHref="/profile" />
+      </div>
 
       <h1 className="text-2xl font-bold text-gray-900 mb-1">{t('title')}</h1>
       <p className="text-sm text-gray-400 mb-6">{t('subtitle')}</p>

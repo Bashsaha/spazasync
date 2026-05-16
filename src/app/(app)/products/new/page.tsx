@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { ExpiryEntryList } from '@/components/ExpiryEntryList'
 import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
 import { NewSupplierModal } from '@/components/NewSupplierModal'
+import { BackButton } from '@/components/BackButton'
 import { useTranslation } from '@/components/LanguageProvider'
 import { Spinner, FullScreenSpinner } from '@/components/Spinner'
 import type { Supplier } from '@/types'
@@ -139,12 +140,10 @@ function NewProductContent() {
   const errorMessage = errorRaw || (errorKey ? t(errorKey) : '')
 
   return (
-    <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
       {loading && <FullScreenSpinner label={t('btn_saving')} />}
-      <div className="flex items-center gap-3 mb-8">
-        <button onClick={() => router.back()} className="text-gray-400 active:text-gray-600 text-sm">
-          {t('back')}
-        </button>
+      <div className="flex items-center gap-2 mb-8">
+        <BackButton fallbackHref="/products" />
         <h1 className="text-2xl font-bold text-gray-900">{t('add_title')}</h1>
       </div>
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/components/LanguageProvider'
+import { BackButton } from '@/components/BackButton'
 import { useToast } from '@/components/Toast'
 import { Spinner, FullScreenSpinner } from '@/components/Spinner'
 import type { DailyChecklist, ExpiredItemsAction } from '@/types'
@@ -170,9 +171,9 @@ export default function ChecklistPage() {
   if (errorKey && !data) {
     return (
       <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
-        <a href="/manage" className="text-sm text-brand mb-6 inline-block">
-          {t('back')}
-        </a>
+        <div className="mb-6">
+          <BackButton fallbackHref="/manage" />
+        </div>
         <p className="text-red-600">{t(errorKey)}</p>
       </main>
     )
@@ -192,9 +193,9 @@ export default function ChecklistPage() {
   return (
     <main className="px-4 pt-10 pb-40 max-w-lg mx-auto">
       {saving && <FullScreenSpinner label={t('btn_saving')} />}
-      <a href="/manage" className="text-sm text-brand mb-2 inline-block">
-        {t('back')}
-      </a>
+      <div className="mb-2">
+        <BackButton fallbackHref="/manage" />
+      </div>
       <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
       <p className="text-sm text-gray-500 mb-1">{t('subtitle')}</p>
       <p className="text-xs text-gray-400 mb-6">{t('date_today', { date: dateLabel })}</p>

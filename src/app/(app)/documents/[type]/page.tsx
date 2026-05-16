@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useTranslation } from '@/components/LanguageProvider'
+import { BackButton } from '@/components/BackButton'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { Spinner, FullScreenSpinner } from '@/components/Spinner'
 import type { BusinessDocument, DocumentStatus, DocumentType } from '@/types'
@@ -213,10 +214,8 @@ export default function EditDocumentPage() {
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
       {saving && <FullScreenSpinner label={t('btn_saving')} />}
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.back()} className="text-gray-400 active:text-gray-600 text-sm">
-          {t('back')}
-        </button>
+      <div className="flex items-center gap-2 mb-6">
+        <BackButton fallbackHref="/documents" />
         <h1 className="text-2xl font-bold text-gray-900">{t(`doc_${docType}`)}</h1>
       </div>
 

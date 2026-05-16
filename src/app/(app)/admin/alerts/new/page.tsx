@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { BackButton } from '@/components/BackButton'
 import type { AdminAlertAudience, AdminAlertPriority } from '@/types'
 
 export default function NewAdminAlertPage() {
@@ -49,13 +50,8 @@ export default function NewAdminAlertPage() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <button
-          onClick={() => router.back()}
-          className="text-sm text-gray-500 hover:text-gray-900"
-        >
-          ← Back
-        </button>
+      <div className="flex items-center gap-2 mb-6">
+        <BackButton fallbackHref="/admin/alerts" />
         <h1 className="text-2xl font-bold text-gray-900">New broadcast alert</h1>
       </div>
 

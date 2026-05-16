@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useTranslation } from '@/components/LanguageProvider'
+import { BackButton } from '@/components/BackButton'
 import { useToast } from '@/components/Toast'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { Skeleton } from '@/components/Skeleton'
@@ -66,10 +67,8 @@ export default function PestControlListPage() {
 
   return (
     <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/waste-pest" className="text-gray-400 active:text-gray-600 text-sm">
-          {t('back')}
-        </Link>
+      <div className="flex items-center gap-2 mb-6">
+        <BackButton fallbackHref="/waste-pest" />
         <h1 className="text-2xl font-bold text-gray-900">{t('pest_title')}</h1>
       </div>
 

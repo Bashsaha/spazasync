@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { ProductWithStock } from '@/lib/db/stock'
 import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
+import { BackButton } from '@/components/BackButton'
 import { useToast } from '@/components/Toast'
 import { useTranslation } from '@/components/LanguageProvider'
 import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
@@ -110,15 +111,13 @@ export default function StockPage() {
     <main className="px-4 pt-10 pb-36 max-w-lg mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Link href="/inventory" className="flex items-center gap-1 text-gray-500 active:text-gray-700 font-medium py-1 pr-2">
-            {t('back')}
-          </Link>
+        <div className="flex items-center gap-2">
+          <BackButton fallbackHref="/inventory" />
           <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
         </div>
         <button
           onClick={() => setScanning(true)}
-          className="flex items-center gap-1.5 text-sm font-semibold text-brand border border-brand-light px-3 py-2 rounded-full active:bg-brand-light"
+          className="flex items-center gap-1.5 text-sm font-semibold text-white bg-brand px-4 py-2 rounded-full active:bg-brand-hover"
         >
           {t('btn_scan')}
         </button>
