@@ -26,6 +26,7 @@ export default function StockPage() {
   const router = useRouter()
   const { addToast } = useToast()
   const { t, tPlural } = useTranslation('stock')
+  const { t: tp } = useTranslation('products')
   const [products, setProducts] = useState<ProductWithStock[]>([])
   const [threshold, setThreshold] = useState(5)
   const [tab, setTab] = useState<Tab>('all')
@@ -37,6 +38,8 @@ export default function StockPage() {
   // Profit tracking
   const [profitTrackingEnabled, setProfitTrackingEnabled] = useState(false)
   const [productsMissingCost, setProductsMissingCost] = useState(0)
+  const [productsMissingSupplier, setProductsMissingSupplier] = useState(0)
+  const [suppliersCount, setSuppliersCount] = useState(0)
 
   // Expiry data (loaded lazily when tab selected)
   const [expiringProducts, setExpiringProducts] = useState<ExpiringProduct[]>([])
@@ -46,12 +49,14 @@ export default function StockPage() {
   const loadStock = useCallback(() => {
     fetch('/api/stock', { cache: 'no-store' })
       .then((r) => r.json())
-      .then((data: { products: ProductWithStock[]; threshold: number; expiring_count?: number; profit_tracking_enabled?: boolean; products_missing_cost?: number }) => {
+      .then((data: { products: ProductWithStock[]; threshold: number; expiring_count?: number; profit_tracking_enabled?: boolean; products_missing_cost?: number; products_missing_supplier?: number; suppliers_count?: number }) => {
         setProducts(data.products ?? [])
         setThreshold(data.threshold ?? 5)
         setExpiryCount(data.expiring_count ?? 0)
         setProfitTrackingEnabled(Boolean(data.profit_tracking_enabled))
         setProductsMissingCost(data.products_missing_cost ?? 0)
+        setProductsMissingSupplier(data.products_missing_supplier ?? 0)
+        setSuppliersCount(data.suppliers_count ?? 0)
         setExpiryLoaded(false)
         setLoading(false)
       })
@@ -123,18 +128,39 @@ export default function StockPage() {
         </button>
       </div>
 
-      {/* Missing cost price alert */}
+      {/* Missing cost — mirror /products card */}
       {!loading && profitTrackingEnabled && productsMissingCost > 0 && (
         <Link
           href="/products/missing-cost"
-          className="block bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4"
+          className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4 active:bg-amber-100"
         >
-          <p className="text-sm font-semibold text-amber-800">
-            {tPlural('missing_cost_alert', productsMissingCost, { count: productsMissingCost })}
+          <p className="text-sm font-semibold text-amber-900 min-w-0 pr-3">
+            {tp('missing_cost_banner', { count: productsMissingCost })}
           </p>
-          <p className="text-xs text-amber-600 mt-1">{t('missing_cost_btn')}</p>
+          <span className="text-amber-400 text-xl shrink-0">&rsaquo;</span>
         </Link>
       )}
+
+      {/* Missing supplier — mirror /products card. Suppressed when shop has 0 suppliers (show "add first supplier" instead). */}
+      {!loading && suppliersCount === 0 ? (
+        <Link
+          href="/suppliers/new"
+          className="block bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-4 active:bg-gray-100"
+        >
+          <p className="text-sm font-semibold text-gray-800">{tp('add_first_supplier_tip')}</p>
+          <p className="text-xs text-gray-600 mt-1">{tp('add_first_supplier_btn')}</p>
+        </Link>
+      ) : !loading && productsMissingSupplier > 0 ? (
+        <Link
+          href="/products/missing-supplier"
+          className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-4 active:bg-gray-100"
+        >
+          <p className="text-sm font-semibold text-gray-800 min-w-0 pr-3">
+            {tp('missing_supplier_banner', { count: productsMissingSupplier })}
+          </p>
+          <span className="text-gray-400 text-xl shrink-0">&rsaquo;</span>
+        </Link>
+      ) : null}
 
       {/* Summary strip */}
       {!loading && !errorKey && (

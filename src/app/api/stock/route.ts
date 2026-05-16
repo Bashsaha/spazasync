@@ -47,11 +47,25 @@ export async function GET(request: Request) {
       productsMissingCost = count ?? 0
     }
 
+    const [missingSupplierRes, suppliersRes] = await Promise.all([
+      auth.supabase
+        .from('products')
+        .select('id', { count: 'exact', head: true })
+        .eq('shop_id', shopId)
+        .is('supplier_id', null),
+      auth.supabase
+        .from('suppliers')
+        .select('id', { count: 'exact', head: true })
+        .eq('shop_id', shopId),
+    ])
+
     return NextResponse.json({
       ...result,
       expiring_count: stats.expiringProducts + stats.expiredProducts,
       profit_tracking_enabled: Boolean(shop?.profit_tracking_enabled),
       products_missing_cost: productsMissingCost,
+      products_missing_supplier: missingSupplierRes.count ?? 0,
+      suppliers_count: suppliersRes.count ?? 0,
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'

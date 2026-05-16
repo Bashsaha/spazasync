@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import type { SaleWithDetails, DailySalesTotals } from '@/types'
 import { formatZAR } from '@/lib/utils/currency'
 import { formatSAST } from '@/lib/utils/date'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import { BackButton } from '@/components/BackButton'
 import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
@@ -109,44 +110,47 @@ function SalesHistoryContent() {
   const sales = data?.sales ?? []
 
   return (
-    <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-44 max-w-lg mx-auto">
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         <BackButton fallbackHref="/sales" />
         <h1 className="text-2xl font-bold text-gray-900">{t('history_title')}</h1>
       </div>
 
-      {/* Date picker row */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4 ">
-        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-          {t('pick_date')}
-        </label>
-        <div className="flex items-center gap-2">
+      {/* Date picker — chevron buttons flank a prominent date label; native picker sits below as a relative-tap-target */}
+      <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
+        <div className="flex items-center justify-between gap-2">
           <button
             type="button"
             onClick={() => navigateToDate(shiftDate(date, -1))}
-            className="text-sm font-semibold text-brand active:text-brand-hover px-2 py-2 shrink-0"
+            aria-label={t('prev_day')}
+            className="inline-flex items-center justify-center w-10 h-10 rounded-full text-brand active:bg-brand-light shrink-0"
           >
-            {t('prev_day')}
+            <ChevronLeft className="w-6 h-6" strokeWidth={2.25} />
           </button>
+          <p className="text-base font-bold text-gray-900 text-center flex-1 min-w-0 truncate">
+            {dateLabel}
+          </p>
+          <button
+            type="button"
+            onClick={() => navigateToDate(shiftDate(date, 1))}
+            disabled={date === today}
+            aria-label={t('next_day')}
+            className="inline-flex items-center justify-center w-10 h-10 rounded-full text-brand active:bg-brand-light shrink-0 disabled:text-gray-300 disabled:active:bg-transparent"
+          >
+            <ChevronRight className="w-6 h-6" strokeWidth={2.25} />
+          </button>
+        </div>
+        <label className="relative block mt-3">
           <input
             type="date"
             value={date}
             max={today}
             onChange={(e) => navigateToDate(e.target.value)}
-            className="flex-1 border border-gray-200 rounded-2xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
             aria-label={t('pick_date')}
           />
-          <button
-            type="button"
-            onClick={() => navigateToDate(shiftDate(date, 1))}
-            disabled={date === today}
-            className="text-sm font-semibold text-brand active:text-brand-hover px-2 py-2 shrink-0 disabled:text-gray-300 disabled:cursor-not-allowed"
-          >
-            {t('next_day')}
-          </button>
-        </div>
-        <p className="text-sm text-gray-600 mt-3 font-semibold">{dateLabel}</p>
+        </label>
       </div>
 
       {/* Totals strip */}
