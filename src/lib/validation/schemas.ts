@@ -510,6 +510,9 @@ export const complianceOnboardingSchema = z
     // through so the client can submit a single payload shape regardless.
     visa_type: z.enum(VISA_TYPES).nullable().optional(),
     visa_expiry_date: dateString.nullable().optional(),
+    // Phase 41a — foreign-born owners naturalised before 1994 qualify for the
+    // Spaza Shop Support Fund. API force-nulls for SA citizens.
+    naturalised_pre_1994: z.boolean().nullable().optional(),
   })
   .refine(
     (v) =>

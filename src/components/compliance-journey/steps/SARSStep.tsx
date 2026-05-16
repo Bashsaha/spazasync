@@ -58,6 +58,9 @@ export function SARSStep({ step, data, t }: Props) {
             <p className="text-sm">{t('sars_above_threshold_body')}</p>
           </div>
         )}
+        <p className="text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 mt-3">
+          💰 {t('sars_tax_free_band_note')}
+        </p>
       </section>
 
       <section>

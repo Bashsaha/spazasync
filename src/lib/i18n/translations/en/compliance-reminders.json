@@ -24,7 +24,7 @@
   "permit_expiry_expired_body": "Your trading permit has expired. Renew immediately to keep trading legally.",
 
   "cipc_annual_title": "CIPC annual return due",
-  "cipc_annual_body": "Your CIPC annual return for {year} is due. File at bizportal.gov.za to keep your registration active. Cost: R30.",
+  "cipc_annual_body": "Your CIPC annual return for {year} is due. File at bizportal.gov.za to keep your registration active. Cost: R100 (Pty under R1m turnover) or R450 (over R1m).",
 
   "visa_90d_title": "{visa_type} expires in {days} days",
   "visa_90d_body": "Your visa expires on {date}. Start your renewal now — your trading permit is linked to your visa.",

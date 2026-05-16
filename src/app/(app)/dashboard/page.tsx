@@ -68,6 +68,7 @@ export default async function DashboardPage({
   let existingVisa:
     | { type: import('@/types').VisaType | null; expiryDate: string | null }
     | null = null
+  let existingNaturalisedPre1994: boolean | null = null
 
   if (role === 'owner' && shop?.id) {
     // Run the three owner-only queries in parallel — none depend on each other.
@@ -85,7 +86,7 @@ export default async function DashboardPage({
         .in('document_type', ['municipal_registration', 'coa', 'cipc', 'sars_tax', 'uif']),
       supabase
         .from('owner_profiles')
-        .select('nationality_type, food_safety_training_completed, food_safety_training_date, food_safety_training_provider, visa_type, visa_expiry_date')
+        .select('nationality_type, food_safety_training_completed, food_safety_training_date, food_safety_training_provider, visa_type, visa_expiry_date, naturalised_pre_1994')
         .eq('user_id', user.id)
         .maybeSingle(),
     ])
@@ -107,6 +108,8 @@ export default async function DashboardPage({
         type: (profile.visa_type as import('@/types').VisaType | null) ?? null,
         expiryDate: (profile.visa_expiry_date as string | null) ?? null,
       }
+      existingNaturalisedPre1994 =
+        (profile.naturalised_pre_1994 as boolean | null) ?? null
     }
   }
 
@@ -171,6 +174,7 @@ export default async function DashboardPage({
           existingNationality={existingNationality}
           existingFoodSafety={existingFoodSafety}
           existingVisa={existingVisa}
+          existingNaturalisedPre1994={existingNaturalisedPre1994}
           forceOpen={forceComplianceModal}
         />
       )}

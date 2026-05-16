@@ -40,6 +40,9 @@ export function SMMESAStep({ step, t }: Props) {
         >
           {t('smmesa_open_portal')} →
         </a>
+        <p className="text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 mt-3">
+          🏛 {t('smmesa_apply_via_fund_portal')}
+        </p>
       </section>
 
       <MarkAsDoneButtons step={step} variant="standard" />

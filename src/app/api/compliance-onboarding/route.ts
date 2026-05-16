@@ -15,6 +15,14 @@ import type {
   ComplianceOnboardingPayload,
 } from '@/types'
 
+/** Phase 41a — six-month SARS grace window per SEFA fund guideline.
+ *  Returns YYYY-MM-DD so it round-trips cleanly through the DATE column. */
+function computeSarsGraceDate(): string {
+  const d = new Date()
+  d.setMonth(d.getMonth() + 6)
+  return d.toISOString().slice(0, 10)
+}
+
 /**
  * POST /api/compliance-onboarding
  *
@@ -35,14 +43,23 @@ export async function POST(request: Request) {
   if (parsed instanceof NextResponse) return parsed
   const payload = parsed as ComplianceOnboardingPayload
 
-  // Server-side defence in depth — only SA citizens have fund_interest;
-  // only foreign nationals carry visa fields. Force the opposite to null/false
-  // here so a misbehaving client can't poison the row.
-  const fundInterest =
-    payload.nationality_type === 'sa_citizen' ? payload.fund_interest : false
+  // Server-side defence in depth — Phase 41a expanded "SA citizen" to include
+  // foreign-born owners naturalised before 1994, since they qualify for the
+  // Spaza Shop Support Fund per the SEFA guideline. fund_interest is computed
+  // below from `saCitizenForFund` once nationality + naturalised flags are
+  // resolved. Visa fields stay foreign-national-only.
   const isForeign = payload.nationality_type === 'foreign_national'
   const visaType = isForeign ? payload.visa_type ?? null : null
   const visaExpiryDate = isForeign ? payload.visa_expiry_date ?? null : null
+  // Phase 41a — pre-1994 naturalisation only applies to foreign-born owners.
+  const naturalisedPre1994 = isForeign
+    ? payload.naturalised_pre_1994 ?? null
+    : null
+  // A foreign-born owner who naturalised before 1994 qualifies for the fund
+  // (per the SEFA guideline). Promote fund_interest if they opted in.
+  const saCitizenForFund =
+    payload.nationality_type === 'sa_citizen' || naturalisedPre1994 === true
+  const effectiveFundInterest = saCitizenForFund ? payload.fund_interest : false
 
   // Resolve area-text into a municipality_id when possible.
   let municipalityId: string | null = payload.municipality_id ?? null
@@ -82,6 +99,7 @@ export async function POST(request: Request) {
     food_safety_training_provider: payload.food_safety_training_provider,
     visa_type: visaType,
     visa_expiry_date: visaExpiryDate,
+    naturalised_pre_1994: naturalisedPre1994,
   })
 
   // 2. shops update — store municipality choice + employee/fund flags + completion.
@@ -91,8 +109,12 @@ export async function POST(request: Request) {
       municipality_id: municipalityId,
       municipality_area_text: municipalityAreaText,
       has_employees: payload.has_employees,
-      fund_interest: fundInterest,
+      fund_interest: effectiveFundInterest,
       onboarding_compliance_completed: true,
+      // Phase 41a — start the official 6-month SARS grace window from the day
+      // the owner completes (or re-completes) compliance onboarding. Re-doing
+      // onboarding deliberately resets the clock — it signals a fresh start.
+      sars_grace_period_until: computeSarsGraceDate(),
     })
     .eq('id', auth.shopId)
   if (shopError) {

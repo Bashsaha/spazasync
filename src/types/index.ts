@@ -38,6 +38,9 @@ export interface Shop {
   // Phase 37e — Fund Readiness Checker
   fund_township_rural: boolean | null
   fund_owner_managed: boolean | null
+  // Phase 41a — SARS six-month transitional period for fund eligibility.
+  // After this date, sars_tax must be valid/on_file for fund readiness.
+  sars_grace_period_until: string | null  // YYYY-MM-DD
   created_at: string
 }
 
@@ -742,6 +745,10 @@ export interface OwnerProfile {
   food_safety_training_provider: string | null
   // Phase 37e — Fund Readiness Checker (priority status)
   has_disability: boolean
+  // Phase 41a — sub-question shown to foreign-born owners only. TRUE means
+  // they were naturalised SA citizens before 1994 (so they qualify for the
+  // Spaza Shop Support Fund per the SEFA guideline). NULL = not asked.
+  naturalised_pre_1994: boolean | null
   // Phase 37f — Foreign National Path. Both null for SA citizens.
   visa_type: VisaType | null
   visa_expiry_date: string | null              // YYYY-MM-DD; null when "doesn't expire / don't know"
@@ -777,6 +784,9 @@ export interface ComplianceOnboardingPayload {
   // Server forces both to null for SA citizens (defence in depth).
   visa_type?: VisaType | null
   visa_expiry_date?: string | null               // YYYY-MM-DD; null when owner picked "I don't know / doesn't expire"
+  // Phase 41a — only set when nationality_type === 'foreign_national'.
+  // Server forces null for SA citizens.
+  naturalised_pre_1994?: boolean | null
 }
 
 /** Status badge shown on Screen 8 — Your Journey summary. */

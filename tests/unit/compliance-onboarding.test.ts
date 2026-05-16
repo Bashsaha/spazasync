@@ -43,6 +43,7 @@ const SHOP_DEFAULTS: Shop = {
   onboarding_compliance_dismiss_count: 0,
   fund_township_rural: null,
   fund_owner_managed: null,
+  sars_grace_period_until: null,
   created_at: new Date().toISOString(),
 }
 

@@ -11,6 +11,10 @@
   "step_label": "Step {n}",
   "step_locked_reason": "Complete {steps} first",
   "step_locked_body": "This step opens up once you finish the steps it depends on.",
+  "step_locked_plan_ahead_title": "Plan ahead",
+  "step_locked_plan_ahead_body": "You can read what to bring, where to go, and how this step works right now. Finish {steps} first to take action.",
+  "action_locked_hint": "Finish the steps this one depends on before marking it done.",
+  "btn_generate_locked": "Unlocks after prereqs",
 
   "next_step_label": "Your next step",
   "next_step_cta": "Go to this step",
@@ -63,6 +67,8 @@
   "coa_where_to_go": "Where to go",
   "coa_evidence_header": "Bring this with you to the inspection",
   "coa_no_fixed_expiry_note": "Your Health Certificate doesn't have a fixed expiry date. You must re-apply if your shop address, ownership, or person-in-charge changes. Your municipality may also do routine annual re-inspections.",
+  "coa_processing_time_note": "Processing typically takes 28 days to 2 months from the date you submit your application — plan around the inspector's site visit.",
+  "coa_display_requirement_note": "Once issued, keep your Certificate of Acceptability visible to the public at the shop at all times (R638 requirement).",
   "coa_capacity_owner": "Owner",
   "coa_premises_type": "Type of premises",
   "coa_premises_spaza": "Spaza shop",
@@ -190,6 +196,7 @@
   "sars_no_data_yet": "Most spaza shops qualify for Turnover Tax — a simpler system for businesses earning under R2.3 million per year.",
   "sars_qualify_turnover_title": "You qualify for Turnover Tax",
   "sars_qualify_turnover_body": "A simpler system for small businesses. One payment per year based on your total sales. Much easier than standard income tax.",
+  "sars_tax_free_band_note": "The first R600,000 of turnover is tax-free under Turnover Tax — most spaza shops pay nothing. Above R600,000 the rate steps up to a maximum of 3% (cap: R39,500 per year at R2.3m turnover).",
   "sars_above_threshold_title": "You may need full SARS registration",
   "sars_above_threshold_body": "Your sales may be above the R2.3 million Turnover Tax threshold. Speak to a tax practitioner or SARS branch to register correctly.",
   "sars_how_header": "How to register",
@@ -238,12 +245,13 @@
   "food_staff_header": "Your staff",
 
   "smmesa_what_header": "What is SMMESA?",
-  "smmesa_what_body": "It's the government's small business registry. You need to be registered here before applying for the R500m Spaza Shop Support Fund (up to R300,000 per shop).",
+  "smmesa_what_body": "It's the government's small business registry, now run by SEDFA (the merged agency of SEDA, SEFA, and the Co-operative Banks Development Agency). You need to be registered here before applying for the R500m Spaza Shop Support Fund (up to R300,000 per shop).",
   "smmesa_how_header": "How to register",
   "smmesa_how_step_1": "Go to smmesa.gov.za",
   "smmesa_how_step_2": "Create an account with your details",
   "smmesa_how_step_3": "Register your business and save the reference number",
   "smmesa_open_portal": "Open SMMESA (smmesa.gov.za)",
+  "smmesa_apply_via_fund_portal": "Once registered, apply for the fund itself at spazashopfund.co.za, or call the NEF call centre on 011 305 8080.",
 
   "popia_title": "Also worth knowing: POPIA",
   "popia_body": "If you keep any customer information — phone numbers, a credit list, or WhatsApp order records — you are covered by the Protection of Personal Information Act (POPIA). As the owner you are automatically the Information Officer. You must keep customer data secure and only use it for the purpose you collected it for. Visit inforegulator.org.za to register (it's free)."

@@ -8,7 +8,11 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { getComplianceScore } from '@/lib/db/compliance-score'
-import { computeFundReadiness, type FundReadinessResult } from '@/lib/compliance/fund'
+import {
+  computeFundReadiness,
+  qualifiesAsSaCitizenForFund,
+  type FundReadinessResult,
+} from '@/lib/compliance/fund'
 import type {
   BusinessDocument,
   ComplianceScoreInputs,
@@ -56,20 +60,28 @@ export async function getFundReadinessData(
   const ownerProfile = ownerProfileResult.data as OwnerProfile | null
   if (!ownerProfile) return null
 
-  // Eligibility gates (Design Rule 3): SA citizens with fund_interest only.
-  if (ownerProfile.nationality_type !== 'sa_citizen') return null
+  // Eligibility gates (Design Rule 3): SA citizens (incl. pre-1994 naturalised
+  // foreign-born owners — Phase 41a) with fund_interest only.
+  if (!qualifiesAsSaCitizenForFund(ownerProfile)) return null
   if (!shop.fund_interest) return null
 
   const documents = (documentsResult.data as BusinessDocument[] | null) ?? []
   const ownerEmail = userResult.data.user?.email ?? null
 
+  const sarsGraceActive = Boolean(
+    shop.sars_grace_period_until &&
+      new Date(shop.sars_grace_period_until) > new Date(),
+  )
+
   const fundReadiness = computeFundReadiness({
     nationality_type: ownerProfile.nationality_type,
+    naturalised_pre_1994: ownerProfile.naturalised_pre_1994,
     fund_interest: shop.fund_interest,
     fund_township_rural: shop.fund_township_rural,
     fund_owner_managed: shop.fund_owner_managed,
     documents,
     complianceScore: scoreResult.result.overall,
+    sarsGraceActive,
   })
 
   return {

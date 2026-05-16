@@ -18,8 +18,9 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
-import { Check, ArrowRight } from 'lucide-react'
+import { Check, ArrowRight, Lock } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
+import { useJourneyLocked } from './JourneyStep'
 import type { ComplianceJourneyStep, JourneyStepAction } from '@/types'
 
 type T = (key: string, params?: Record<string, string | number>) => string
@@ -38,6 +39,19 @@ export function MarkAsDoneButtons({
   const { t } = useTranslation('compliance-journey')
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  // Phase 41a — when the step is locked, plan-ahead content is still visible
+  // but action buttons must be disabled so we can't move the engine into an
+  // inconsistent state (e.g. marking Trading Permit done before CIPC).
+  const isLocked = useJourneyLocked()
+
+  if (isLocked) {
+    return (
+      <div className="rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 flex items-center gap-2 text-xs text-gray-500">
+        <Lock className="w-4 h-4 shrink-0" strokeWidth={2} aria-hidden="true" />
+        <span>{t('action_locked_hint')}</span>
+      </div>
+    )
+  }
   const [openForm, setOpenForm] = useState<JourneyStepAction | null>(null)
   const [refNumber, setRefNumber] = useState('')
   const [dateIssued, setDateIssued] = useState('')

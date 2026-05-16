@@ -2,6 +2,11 @@
 
 /**
  * Phase 37c — generic collapsible step card.
+ * Phase 41a — when locked, plan-ahead content (what to bring, where to go,
+ *   how-to checklist, form summary) STAYS VISIBLE so owners can prepare in
+ *   advance. Only action buttons (Mark as done, Generate PDF) are gated.
+ *   Lock state is broadcast via JourneyLockContext so child action components
+ *   can disable themselves without each step having to thread the prop.
  *
  * Client component because it owns the expand/collapse state. The step-specific
  * body content is passed via `children` and is server-rendered by the page —
@@ -12,14 +17,10 @@
  *   in_progress  → 🟡
  *   complete     → 🟢
  *   locked       → 🔒  (header explains which step is blocking)
- *
- * Auto-expansion: the page passes `defaultExpanded` for whichever step is the
- * "current" step (first non-complete). Owners can collapse it to focus
- * elsewhere; locked steps default closed.
  */
 
-import { useState, type ReactNode } from 'react'
-import { Landmark, Stethoscope, Building2, Wallet, Users, GraduationCap, ClipboardList, ChevronDown, type LucideIcon } from 'lucide-react'
+import { createContext, useContext, useState, type ReactNode } from 'react'
+import { Landmark, Stethoscope, Building2, Wallet, Users, GraduationCap, ClipboardList, ChevronDown, Lock, type LucideIcon } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import type {
   ComplianceJourneyStep,
@@ -54,6 +55,19 @@ const STATUS_BADGE: Record<
     ring: 'border-gray-200',
     pill: 'bg-gray-50 text-gray-500 border-gray-200',
   },
+}
+
+/**
+ * Phase 41a — broadcasts the step's lock state to action components nested
+ * inside `children`. MarkAsDoneButtons + GenerateDocButton read this and
+ * disable themselves when locked, instead of being hidden entirely. The
+ * plan-ahead content (what to bring, where to go, how-to checklist) stays
+ * visible regardless of lock state.
+ */
+const JourneyLockContext = createContext<boolean>(false)
+
+export function useJourneyLocked(): boolean {
+  return useContext(JourneyLockContext)
 }
 
 interface Props {
@@ -126,14 +140,26 @@ export function JourneyStep({ step, defaultExpanded, children, id }: Props) {
           <ChevronDown className={`w-5 h-5 shrink-0 text-gray-400 ${expanded ? 'rotate-180' : ''} transition-transform`} strokeWidth={1.75} />
         </div>
       </button>
-      {expanded && !isLocked && (
+      {expanded && (
         <div className="px-4 pb-4 border-t border-gray-100 pt-4 space-y-4">
-          {children}
-        </div>
-      )}
-      {expanded && isLocked && (
-        <div className="px-4 pb-4 border-t border-gray-100 pt-4">
-          <p className="text-sm text-gray-500">{t('step_locked_body')}</p>
+          {isLocked && (
+            <div className="rounded-xl bg-amber-50 border border-amber-200 px-3 py-2.5 flex items-start gap-2">
+              <Lock className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" strokeWidth={2} aria-hidden="true" />
+              <div className="text-xs text-amber-800">
+                <p className="font-semibold mb-0.5">
+                  {t('step_locked_plan_ahead_title')}
+                </p>
+                <p>
+                  {t('step_locked_plan_ahead_body', {
+                    steps: step.blockedBy.map((k) => t(`step_${k}_short`)).join(', '),
+                  })}
+                </p>
+              </div>
+            </div>
+          )}
+          <JourneyLockContext.Provider value={isLocked}>
+            {children}
+          </JourneyLockContext.Provider>
         </div>
       )}
     </section>

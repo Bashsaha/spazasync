@@ -31,6 +31,7 @@ function makeOwner(over: Partial<OwnerProfile> = {}): OwnerProfile {
     has_disability: false,
     visa_type: null,
     visa_expiry_date: null,
+    naturalised_pre_1994: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     ...over,

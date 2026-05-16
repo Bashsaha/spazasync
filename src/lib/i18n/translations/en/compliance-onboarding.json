@@ -20,6 +20,10 @@
   "nationality_subtitle": "This helps us show you the right requirements and any funding you might qualify for.",
   "nationality_yes": "Yes, SA citizen",
   "nationality_no": "No, foreign national",
+  "naturalised_title": "Were you naturalised before 1994?",
+  "naturalised_subtitle": "The Spaza Shop Support Fund accepts foreign-born owners who became SA citizens before 1994.",
+  "naturalised_yes": "Yes — naturalised before 1994",
+  "naturalised_no": "No",
 
   "visa_title": "Tell us about your visa or permit",
   "visa_subtitle": "Your trading permit is linked to your visa. Knowing the type and expiry helps us remind you to renew on time.",

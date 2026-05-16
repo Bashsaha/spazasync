@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import {
   computeFundReadiness,
+  FUND_CIPC_UNLOCK_AMOUNT_ZAR,
   FUND_REQUIRED_DOC_TYPES,
+  qualifiesAsSaCitizenForFund,
   type FundReadinessInput,
 } from '@/lib/compliance/fund'
 import type { BusinessDocument, DocumentType, DocumentStatus } from '@/types'
@@ -151,5 +153,95 @@ describe('computeFundReadiness — CIPC tier gating', () => {
       baseInput({ documents: allValidExceptCipc, complianceScore: 75 }),
     )
     expect(result.status).toBe('amber')
+  })
+})
+
+// ── Phase 41a additions ─────────────────────────────────────────────────────
+
+describe('Phase 41a — CIPC unlock threshold (per SEFA / SAnews guideline)', () => {
+  it('unlock threshold constant matches the official R80,000 cap', () => {
+    // Source: https://www.sanews.gov.za/south-africa/guideline-apply-r500-million-spaza-support-fund
+    expect(FUND_CIPC_UNLOCK_AMOUNT_ZAR).toBe(80_000)
+  })
+})
+
+describe('Phase 41a — SARS six-month grace period', () => {
+  it('treats sars_tax as ok when grace is active and SARS is not_registered', () => {
+    const docs = FUND_REQUIRED_DOC_TYPES.filter((t) => t !== 'cipc' && t !== 'sars_tax').map(
+      (t) => doc(t, 'valid'),
+    )
+    docs.push(doc('sars_tax', 'not_registered'))
+    const result = computeFundReadiness(baseInput({ documents: docs, sarsGraceActive: true }))
+    expect(result.missingDocCount).toBe(0)
+    expect(result.sarsInGracePeriod).toBe(true)
+    // amber because GREEN requires real SARS registration (not just grace)
+    expect(result.status).toBe('amber')
+  })
+
+  it('does NOT count SARS as ok when grace is inactive', () => {
+    const docs = FUND_REQUIRED_DOC_TYPES.filter((t) => t !== 'cipc' && t !== 'sars_tax').map(
+      (t) => doc(t, 'valid'),
+    )
+    docs.push(doc('sars_tax', 'not_registered'))
+    const result = computeFundReadiness(
+      baseInput({ documents: docs, sarsGraceActive: false }),
+    )
+    expect(result.missingDocCount).toBe(1)
+    expect(result.sarsInGracePeriod).toBe(false)
+  })
+
+  it('GREEN requires real SARS registration even with grace active', () => {
+    const docs = FUND_REQUIRED_DOC_TYPES.filter((t) => t !== 'sars_tax').map((t) =>
+      doc(t, 'valid'),
+    )
+    docs.push(doc('sars_tax', 'not_registered'))
+    const result = computeFundReadiness(
+      baseInput({ documents: docs, sarsGraceActive: true, complianceScore: 95 }),
+    )
+    expect(result.status).toBe('amber')
+  })
+
+  it('grace does not affect non-SARS document counting', () => {
+    const docs = FUND_REQUIRED_DOC_TYPES.filter((t) => t !== 'cipc' && t !== 'coa').map(
+      (t) => doc(t, 'valid'),
+    )
+    docs.push(doc('coa', 'expired'))
+    const result = computeFundReadiness(baseInput({ documents: docs, sarsGraceActive: true }))
+    expect(result.missingDocCount).toBe(1)
+  })
+})
+
+describe('Phase 41a — qualifiesAsSaCitizenForFund (naturalised pre-1994)', () => {
+  it('returns true for SA citizens regardless of pre-1994 flag', () => {
+    expect(
+      qualifiesAsSaCitizenForFund({ nationality_type: 'sa_citizen', naturalised_pre_1994: null }),
+    ).toBe(true)
+    expect(
+      qualifiesAsSaCitizenForFund({ nationality_type: 'sa_citizen', naturalised_pre_1994: false }),
+    ).toBe(true)
+  })
+
+  it('returns true for foreign nationals naturalised before 1994', () => {
+    expect(
+      qualifiesAsSaCitizenForFund({
+        nationality_type: 'foreign_national',
+        naturalised_pre_1994: true,
+      }),
+    ).toBe(true)
+  })
+
+  it('returns false for foreign nationals not naturalised before 1994', () => {
+    expect(
+      qualifiesAsSaCitizenForFund({
+        nationality_type: 'foreign_national',
+        naturalised_pre_1994: false,
+      }),
+    ).toBe(false)
+    expect(
+      qualifiesAsSaCitizenForFund({
+        nationality_type: 'foreign_national',
+        naturalised_pre_1994: null,
+      }),
+    ).toBe(false)
   })
 })

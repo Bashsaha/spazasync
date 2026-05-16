@@ -1,15 +1,18 @@
+'use client'
+
 /**
  * Phase 37c — "Generate PDF" button.
- *
- * Per the plan, real PDF generation for affidavits + evidence packs is Phase
- * 37e. In 37c we render the buttons disabled with a "Coming in next update"
- * label so the journey UI is feature-complete on day one. The Compliance
- * Report PDF (existing /api/reports/compliance-pdf endpoint) is the one
- * exception — it ships enabled.
+ * Phase 37d enabled real PDF endpoints for trading permit summary, landlord
+ * affidavit, goods declaration, food-safety pack, and the fund application
+ * pack. Unset `href` still falls back to the "Coming in next update" pill.
+ * Phase 41a — when the parent JourneyStep is locked the link is replaced by
+ * a disabled pill: plan-ahead content stays visible but you can't generate
+ * pre-filled paperwork until prerequisite steps are complete.
  */
 
 import Link from 'next/link'
-import { FileText } from 'lucide-react'
+import { FileText, Lock } from 'lucide-react'
+import { useJourneyLocked } from './JourneyStep'
 
 type T = (key: string, params?: Record<string, string | number>) => string
 
@@ -28,7 +31,8 @@ interface Props {
 }
 
 export function GenerateDocButton({ titleKey, descriptionKey, href, t }: Props) {
-  const isEnabled = !!href
+  const isLocked = useJourneyLocked()
+  const isEnabled = !!href && !isLocked
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-4">
@@ -37,11 +41,20 @@ export function GenerateDocButton({ titleKey, descriptionKey, href, t }: Props) 
       <p className="text-sm text-gray-500 mt-1">{t(descriptionKey)}</p>
       {isEnabled ? (
         <Link
-          href={href}
+          href={href!}
           className="inline-flex items-center mt-3 px-4 py-2 bg-brand text-white text-sm font-semibold rounded-full active:bg-brand-hover"
         >
           {t('btn_generate_pdf')}
         </Link>
+      ) : isLocked ? (
+        <button
+          type="button"
+          disabled
+          className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-gray-100 text-gray-400 text-sm font-semibold rounded-full cursor-not-allowed"
+        >
+          <Lock className="w-3.5 h-3.5" strokeWidth={2} aria-hidden="true" />
+          {t('btn_generate_locked')}
+        </button>
       ) : (
         <button
           type="button"

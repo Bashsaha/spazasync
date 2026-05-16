@@ -120,6 +120,12 @@ export function HealthCertificateStep({ step, data, t, tInsp }: Props) {
       <p className="text-xs text-blue-800 bg-blue-50 border border-blue-200 rounded-xl px-3 py-2">
         ℹ️ {t('coa_no_fixed_expiry_note')}
       </p>
+      <p className="text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+        ⏱ {t('coa_processing_time_note')}
+      </p>
+      <p className="text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+        📋 {t('coa_display_requirement_note')}
+      </p>
 
       <MarkAsDoneButtons step={step} variant="standard" hasExpiry={true} />
     </>

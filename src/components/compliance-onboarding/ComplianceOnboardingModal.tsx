@@ -37,6 +37,8 @@ interface ComplianceOnboardingModalProps {
   initialNationality?: NationalityType | null
   initialFoodSafety?: { completed: boolean; date: string | null; provider: string | null }
   initialVisa?: { type: VisaType | null; expiryDate: string | null }
+  /** Phase 41a — pre-fill from owner_profiles.naturalised_pre_1994. */
+  initialNaturalisedPre1994?: boolean | null
 }
 
 type ScreenKey =
@@ -59,10 +61,12 @@ export function ComplianceOnboardingModal({
   initialNationality = null,
   initialFoodSafety,
   initialVisa,
+  initialNaturalisedPre1994 = null,
 }: ComplianceOnboardingModalProps) {
   const { t } = useTranslation('compliance-onboarding')
   const [screen, setScreen] = useState<ScreenKey>('welcome')
   const [nationality, setNationality] = useState<NationalityType | null>(initialNationality)
+  const [naturalisedPre1994, setNaturalisedPre1994] = useState<boolean | null>(initialNaturalisedPre1994)
   const [visa, setVisa] = useState<VisaScreenValue>({
     type: initialVisa?.type ?? null,
     expiryDate: initialVisa?.expiryDate ?? null,
@@ -99,14 +103,22 @@ export function ComplianceOnboardingModal({
     }
   }, [open])
 
+  // Phase 41a — foreign-born owners naturalised before 1994 are treated as
+  // SA citizens for fund purposes AND skip the visa screen (they're SA
+  // citizens by law, no visa needed).
+  const treatAsSaCitizen =
+    nationality === 'sa_citizen' || naturalisedPre1994 === true
+
   const orderedScreens = useMemo<ScreenKey[]>(() => {
     const base: ScreenKey[] = ['nationality']
-    if (nationality === 'foreign_national') base.push('visa')
+    if (nationality === 'foreign_national' && naturalisedPre1994 !== true) {
+      base.push('visa')
+    }
     base.push('municipality', 'employees', 'documents', 'food_safety')
-    if (nationality !== 'foreign_national') base.push('fund')
+    if (treatAsSaCitizen) base.push('fund')
     base.push('summary')
     return base
-  }, [nationality])
+  }, [nationality, naturalisedPre1994, treatAsSaCitizen])
 
   const currentIndex = screen === 'welcome' ? -1 : orderedScreens.indexOf(screen)
 
@@ -138,7 +150,10 @@ export function ComplianceOnboardingModal({
       case 'welcome':
         return true
       case 'nationality':
-        return nationality !== null
+        if (nationality === null) return false
+        // Phase 41a — foreign-born owners must also answer the pre-1994 sub-question
+        if (nationality === 'foreign_national' && naturalisedPre1994 === null) return false
+        return true
       case 'visa':
         // Type is required; date is required unless "dontKnow" is checked.
         if (visa.type === null) return false
@@ -161,13 +176,16 @@ export function ComplianceOnboardingModal({
       default:
         return false
     }
-  }, [screen, nationality, area, hasEmployees, foodSafety, fundInterest, visa])
+  }, [screen, nationality, naturalisedPre1994, area, hasEmployees, foodSafety, fundInterest, visa])
 
   async function handleFinish() {
     if (!nationality || hasEmployees === null) return
     setSaving(true)
     setError(null)
     const isForeign = nationality === 'foreign_national'
+    // Phase 41a — pre-1994 naturalised owners are SA citizens for visa/fund
+    // purposes. Visa fields stay null for them; fund_interest is honoured.
+    const isNaturalised = isForeign && naturalisedPre1994 === true
     const payload: ComplianceOnboardingPayload = {
       nationality_type: nationality,
       municipality_id: area.municipality_id ?? null,
@@ -177,9 +195,10 @@ export function ComplianceOnboardingModal({
       food_safety_training_completed: foodSafety.completed === true,
       food_safety_training_date: foodSafety.completed ? foodSafety.date : null,
       food_safety_training_provider: foodSafety.completed ? foodSafety.provider : null,
-      fund_interest: nationality === 'sa_citizen' ? fundInterest === true : false,
-      visa_type: isForeign ? visa.type : null,
-      visa_expiry_date: isForeign && !visa.dontKnow ? visa.expiryDate : null,
+      fund_interest: treatAsSaCitizen ? fundInterest === true : false,
+      visa_type: isForeign && !isNaturalised ? visa.type : null,
+      visa_expiry_date: isForeign && !isNaturalised && !visa.dontKnow ? visa.expiryDate : null,
+      naturalised_pre_1994: isForeign ? naturalisedPre1994 : null,
     }
     try {
       const res = await fetch('/api/compliance-onboarding', {
@@ -254,7 +273,17 @@ export function ComplianceOnboardingModal({
         <div className="flex-1 pb-4">
           {screen === 'welcome' && <WelcomeScreen onContinue={next} />}
           {screen === 'nationality' && (
-            <NationalityScreen value={nationality} onPick={setNationality} />
+            <NationalityScreen
+              value={nationality}
+              onPick={(v) => {
+                setNationality(v)
+                // Reset the sub-question when nationality flips back to SA so
+                // it doesn't carry stale state into the fund-interest flow.
+                if (v === 'sa_citizen') setNaturalisedPre1994(null)
+              }}
+              naturalisedPre1994={naturalisedPre1994}
+              onPickNaturalised={setNaturalisedPre1994}
+            />
           )}
           {screen === 'visa' && (
             <VisaScreen value={visa} onChange={setVisa} />

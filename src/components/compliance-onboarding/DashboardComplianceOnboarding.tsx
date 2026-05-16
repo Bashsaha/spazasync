@@ -34,6 +34,9 @@ interface Props {
   existingNationality: NationalityType | null
   existingFoodSafety: { completed: boolean; date: string | null; provider: string | null } | null
   existingVisa?: { type: VisaType | null; expiryDate: string | null } | null
+  /** Phase 41a — pre-fill the foreign-born owner sub-question on the
+   *  NationalityScreen so the "Redo compliance check" flow doesn't lose it. */
+  existingNaturalisedPre1994?: boolean | null
   /** When set, force-open the modal on mount (e.g. from "Redo compliance check"). */
   forceOpen?: boolean
 }
@@ -45,6 +48,7 @@ export function DashboardComplianceOnboarding({
   existingNationality,
   existingFoodSafety,
   existingVisa,
+  existingNaturalisedPre1994 = null,
   forceOpen = false,
 }: Props) {
   const router = useRouter()
@@ -94,6 +98,7 @@ export function DashboardComplianceOnboarding({
         initialNationality={existingNationality}
         initialFoodSafety={existingFoodSafety ?? undefined}
         initialVisa={existingVisa ?? undefined}
+        initialNaturalisedPre1994={existingNaturalisedPre1994}
       />
     </>
   )
