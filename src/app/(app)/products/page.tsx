@@ -10,7 +10,7 @@ import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string; missing_cost?: string; missing_supplier?: string }>
+  searchParams: Promise<{ search?: string }>
 }) {
   const supabase = await createClient()
   const {
@@ -18,18 +18,13 @@ export default async function ProductsPage({
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { search = '', missing_cost, missing_supplier } = await searchParams
-  const missingCostOnly = missing_cost === '1'
-  const missingSupplierOnly = missing_supplier === '1'
+  const { search = '' } = await searchParams
 
   const shopId = user.app_metadata?.shop_id as string
 
   const locale = await getServerLocale()
   const [products, { t }, shopRow] = await Promise.all([
-    listProducts(search || undefined, {
-      missingCost: missingCostOnly,
-      missingSupplier: missingSupplierOnly,
-    }),
+    listProducts(search || undefined),
     getServerTranslations(locale, ['products']),
     supabase
       .from('shops')
@@ -40,8 +35,7 @@ export default async function ProductsPage({
 
   const profitTracking = Boolean(shopRow.data?.profit_tracking_enabled)
 
-  // Banner counts run independently of the current filter so they stay
-  // accurate when the user toggles between filtered + unfiltered views.
+  // Banner counts for the gateway cards into the dedicated filtered routes.
   const [missingCostRes, missingSupplierRes, suppliersRes] = await Promise.all([
     profitTracking
       ? supabase
@@ -80,10 +74,10 @@ export default async function ProductsPage({
         </Link>
       </div>
 
-      {/* Missing-cost card — clickable, filters list */}
-      {profitTracking && missingCostCount > 0 && !missingCostOnly && (
+      {/* Missing-cost gateway card — opens dedicated filtered page */}
+      {profitTracking && missingCostCount > 0 && (
         <Link
-          href="/products?missing_cost=1"
+          href="/products/missing-cost"
           className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4 active:bg-amber-100"
         >
           <p className="text-sm font-semibold text-amber-900 min-w-0 pr-3">
@@ -91,20 +85,6 @@ export default async function ProductsPage({
           </p>
           <span className="text-amber-400 text-xl shrink-0">&rsaquo;</span>
         </Link>
-      )}
-
-      {profitTracking && missingCostCount > 0 && missingCostOnly && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4">
-          <p className="text-sm font-semibold text-amber-900">
-            {t('missing_cost_filter_active', { count: missingCostCount })}
-          </p>
-        </div>
-      )}
-
-      {profitTracking && missingCostCount === 0 && missingCostOnly && (
-        <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-4">
-          <p className="text-sm font-semibold text-green-800">{t('missing_cost_all_done')}</p>
-        </div>
       )}
 
       {/* Missing-supplier tip (soft gray — supplier gaps are operational, not a data integrity issue) */}
@@ -118,20 +98,14 @@ export default async function ProductsPage({
         </Link>
       ) : missingSupplierCount > 0 ? (
         <Link
-          href="/suppliers/assign"
+          href="/products/missing-supplier"
           className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-4 active:bg-gray-100"
         >
           <p className="text-sm font-semibold text-gray-800 min-w-0 pr-3">
-            {missingSupplierOnly
-              ? t('missing_supplier_filter_active', { count: missingSupplierCount })
-              : t('missing_supplier_banner', { count: missingSupplierCount })}
+            {t('missing_supplier_banner', { count: missingSupplierCount })}
           </p>
           <span className="text-gray-400 text-xl shrink-0">&rsaquo;</span>
         </Link>
-      ) : missingSupplierOnly ? (
-        <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-4">
-          <p className="text-sm font-semibold text-green-800">{t('missing_supplier_all_done')}</p>
-        </div>
       ) : null}
 
       <form method="GET" className="mb-4">
@@ -141,33 +115,20 @@ export default async function ProductsPage({
           placeholder={t('search_placeholder')}
           className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
         />
-        {missingCostOnly && <input type="hidden" name="missing_cost" value="1" />}
-        {missingSupplierOnly && <input type="hidden" name="missing_supplier" value="1" />}
       </form>
 
       {products.length === 0 ? (
         <p className="text-center text-gray-400 text-sm mt-12">
-          {missingCostOnly
-            ? t('missing_cost_all_done')
-            : missingSupplierOnly
-              ? t('missing_supplier_all_done')
-              : search
-                ? t('empty_search')
-                : t('empty_no_search')}
+          {search ? t('empty_search') : t('empty_no_search')}
         </p>
       ) : (
         <ul className="space-y-2">
           {products.map((p) => {
             const missingCost = profitTracking && p.cost_price == null
-            const returnTo = missingCostOnly
-              ? '?return=missing_cost'
-              : missingSupplierOnly
-                ? '?return=missing_supplier'
-                : ''
             return (
               <li key={p.id}>
                 <Link
-                  href={`/products/${p.id}${returnTo}`}
+                  href={`/products/${p.id}`}
                   className="flex items-center justify-between bg-white rounded-2xl p-4 border border-gray-100 active:bg-gray-50"
                 >
                   <div className="min-w-0">

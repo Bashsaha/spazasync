@@ -15,9 +15,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const returnTo = searchParams.get('return')
   const returnUrl =
     returnTo === 'missing_cost'
-      ? '/products?missing_cost=1'
+      ? '/products/missing-cost'
       : returnTo === 'missing_supplier'
-        ? '/products?missing_supplier=1'
+        ? '/products/missing-supplier'
         : '/products'
   const { t } = useTranslation('products')
   const [productId, setProductId] = useState<string>('')

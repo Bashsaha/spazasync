@@ -183,7 +183,7 @@ export default function StockLossPage() {
       {/* Missing-cost nudge */}
       {!loading && totals && totals.rows_missing_cost > 0 && (
         <Link
-          href="/products?missing_cost=1"
+          href="/products/missing-cost"
           className="block bg-amber-50 border border-amber-200 rounded-2xl p-3 mb-4 active:bg-amber-100"
         >
           <p className="text-xs font-semibold text-amber-800">

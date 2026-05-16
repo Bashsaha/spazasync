@@ -363,7 +363,7 @@ export default function SettingsPage() {
         </div>
         {profitTracking && (settings?.products_missing_cost ?? 0) > 0 && (
           <a
-            href="/products?missing_cost=1"
+            href="/products/missing-cost"
             className="mt-3 block bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5 text-sm text-amber-800"
           >
             {tPlural('profit_tracking_hint_missing', settings!.products_missing_cost, {

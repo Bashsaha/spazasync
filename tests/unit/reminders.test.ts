@@ -471,7 +471,7 @@ describe('products_missing_cost reminder', () => {
     expect(r).toBeDefined()
     expect(r?.priority).toBe('normal')
     expect(r?.params?.count).toBe(3)
-    expect(r?.ctaHref).toBe('/products?missing_cost=1')
+    expect(r?.ctaHref).toBe('/products/missing-cost')
     expect(r?.key.startsWith('products_missing_cost_')).toBe(true)
   })
   it('does not fire when count = 0', () => {

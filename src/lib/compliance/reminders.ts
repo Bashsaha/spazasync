@@ -380,7 +380,7 @@ function productsMissingCostCandidates(
       bodyKey: 'products_missing_cost_body',
       params: { count: inputs.productsMissingCost },
       ctaKey: 'cta_set_cost_prices',
-      ctaHref: '/products?missing_cost=1',
+      ctaHref: '/products/missing-cost',
     },
   ]
 }

@@ -126,7 +126,7 @@ export default function StockPage() {
       {/* Missing cost price alert */}
       {!loading && profitTrackingEnabled && productsMissingCost > 0 && (
         <Link
-          href="/products?missing_cost=1"
+          href="/products/missing-cost"
           className="block bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4"
         >
           <p className="text-sm font-semibold text-amber-800">

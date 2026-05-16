@@ -224,7 +224,7 @@ export default function DailySummaryAlert() {
             {/* Missing cost price alert */}
             {profitTrackingEnabled && productsMissingCost > 0 && (
               <a
-                href="/products?missing_cost=1"
+                href="/products/missing-cost"
                 className="block bg-amber-50 rounded-xl p-4"
               >
                 <p className="text-amber-800 font-semibold text-sm">
