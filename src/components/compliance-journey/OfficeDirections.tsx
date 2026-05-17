@@ -68,30 +68,9 @@ export function OfficeDirections({ offices, areaText, t, headerKey }: Props) {
             <span>{primary.hours}</span>
           </p>
         )}
-        {primary.online_form_url && (
-          <p className="mt-3">
-            <a
-              href={primary.online_form_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-brand active:text-brand-hover underline"
-            >
-              {t('office_download_form')} →
-            </a>
-          </p>
-        )}
-        {primary.online_portal_url && (
-          <p className="mt-1">
-            <a
-              href={primary.online_portal_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-brand active:text-brand-hover underline"
-            >
-              {t('office_apply_online')} →
-            </a>
-          </p>
-        )}
+        {/* Phase 41c — duplicate form/portal links removed; the new
+            <OfficialFormCallout> at the top of Trading Permit + CoA steps owns
+            the form/portal CTA so we don't render the same URL twice on screen. */}
       </div>
 
       {rest.length > 0 && (

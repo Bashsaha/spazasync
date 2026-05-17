@@ -115,16 +115,19 @@ export function TradingPermitStep({ step, data, t, isForeignNational = false }: 
         headerKey="permit_where_to_go"
       />
 
+      {/* Phase 41c — Trading Permit only requires the two affidavits, both of
+          which need a Commissioner of Oaths stamp at the police station (so a
+          downloadable template genuinely saves the owner work). The previous
+          "Trading Permit Summary" cheat-sheet PDF was redundant with the
+          on-page FormSummaryCard above + the official metro form linked via
+          OfficialFormCallout. The Compliance Report belonged on the CoA step
+          (where it's evidence for the inspector), not here — Joburg's permit
+          attachment list does not request it. */}
       <section>
         <h4 className="text-sm font-semibold text-gray-800 mb-2">
           {t('permit_docs_we_prepare')}
         </h4>
         <div className="space-y-2">
-          <GenerateDocButton
-            titleKey="doc_trading_permit_summary_title"
-            descriptionKey="doc_trading_permit_summary_desc"
-            href="/api/reports/trading-permit-summary"
-          />
           <GenerateDocButton
             titleKey="doc_landlord_affidavit_title"
             descriptionKey="doc_landlord_affidavit_desc"
@@ -134,11 +137,6 @@ export function TradingPermitStep({ step, data, t, isForeignNational = false }: 
             titleKey="doc_goods_affidavit_title"
             descriptionKey="doc_goods_affidavit_desc"
             href="/api/reports/goods-declaration"
-          />
-          <GenerateDocButton
-            titleKey="doc_compliance_report_title"
-            descriptionKey="doc_compliance_report_desc"
-            href="/api/reports/compliance-pdf"
           />
         </div>
       </section>
