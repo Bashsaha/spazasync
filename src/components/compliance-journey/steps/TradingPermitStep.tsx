@@ -118,25 +118,21 @@ export function TradingPermitStep({ step, data, t, isForeignNational = false }: 
             titleKey="doc_trading_permit_summary_title"
             descriptionKey="doc_trading_permit_summary_desc"
             href="/api/reports/trading-permit-summary"
-            t={t}
           />
           <GenerateDocButton
             titleKey="doc_landlord_affidavit_title"
             descriptionKey="doc_landlord_affidavit_desc"
             href="/api/reports/landlord-affidavit"
-            t={t}
           />
           <GenerateDocButton
             titleKey="doc_goods_affidavit_title"
             descriptionKey="doc_goods_affidavit_desc"
             href="/api/reports/goods-declaration"
-            t={t}
           />
           <GenerateDocButton
             titleKey="doc_compliance_report_title"
             descriptionKey="doc_compliance_report_desc"
             href="/api/reports/compliance-pdf"
-            t={t}
           />
         </div>
       </section>

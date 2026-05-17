@@ -7,14 +7,16 @@
  * pack. Unset `href` still falls back to the "Coming in next update" pill.
  * Phase 41a — when the parent JourneyStep is locked the link is replaced by
  * a disabled pill: plan-ahead content stays visible but you can't generate
- * pre-filled paperwork until prerequisite steps are complete.
+ * pre-filled paperwork until prerequisite steps are complete. Because this
+ * needs context (useJourneyLocked), the component is `'use client'` —
+ * function props from server components can't cross the boundary, so we
+ * resolve `t` via useTranslation here instead of receiving it as a prop.
  */
 
 import Link from 'next/link'
 import { FileText, Lock } from 'lucide-react'
+import { useTranslation } from '@/components/LanguageProvider'
 import { useJourneyLocked } from './JourneyStep'
-
-type T = (key: string, params?: Record<string, string | number>) => string
 
 interface Props {
   /** i18n key for the document title (e.g. 'doc_landlord_affidavit'). */
@@ -27,10 +29,10 @@ interface Props {
    * disabled with the "Coming in next update" hint.
    */
   href?: string
-  t: T
 }
 
-export function GenerateDocButton({ titleKey, descriptionKey, href, t }: Props) {
+export function GenerateDocButton({ titleKey, descriptionKey, href }: Props) {
+  const { t } = useTranslation('compliance-journey')
   const isLocked = useJourneyLocked()
   const isEnabled = !!href && !isLocked
 

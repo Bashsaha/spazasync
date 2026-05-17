@@ -106,13 +106,11 @@ export function HealthCertificateStep({ step, data, t, tInsp }: Props) {
             titleKey="doc_evidence_pack_title"
             descriptionKey="doc_evidence_pack_desc"
             href="/api/reports/food-safety-pack"
-            t={t}
           />
           <GenerateDocButton
             titleKey="doc_compliance_report_title"
             descriptionKey="doc_compliance_report_desc"
             href="/api/reports/compliance-pdf"
-            t={t}
           />
         </div>
       </section>

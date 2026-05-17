@@ -97,7 +97,6 @@ export function FoodSafetyStep({ step, data, t }: Props) {
           <GenerateDocButton
             titleKey="food_upload_cert_title"
             descriptionKey="food_upload_cert_desc"
-            t={t}
           />
         </div>
       </section>
