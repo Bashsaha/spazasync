@@ -13,12 +13,15 @@ interface Props {
   t: T
 }
 
-const SEFA_PORTAL_URL = 'https://systemsnew.sefa.org.za/SMMEPortal/'
+// Phase 41b — point to the OFFICIAL fund portal (spazashopfund.co.za, run by
+// NEF on behalf of SEDFA). The old systemsnew.sefa.org.za URL is the generic
+// SEFA SMME portal, not the spaza-fund-specific application page. SAnews has
+// explicitly warned about fake assistants — only these government channels.
+const FUND_PORTAL_URL = 'https://www.spazashopfund.co.za'
 const FUND_CALL_CENTRE = '011 305 8080'
 const NEF_PHONE = '0861 843 633'
 const SEDFA_PHONE = '012 748 9600'
 const FUND_EMAIL = 'spazafund@nefcorp.co.za'
-const SEFA_EMAIL = 'spaza@sefa.org.za'
 
 export function ApplySection({ t }: Props) {
   return (
@@ -31,13 +34,14 @@ export function ApplySection({ t }: Props) {
         <div>
           <p className="flex items-center gap-1.5 font-semibold text-gray-900"><Monitor className="w-4 h-4" strokeWidth={1.75} />{t('apply_online_title')}</p>
           <a
-            href={SEFA_PORTAL_URL}
+            href={FUND_PORTAL_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="text-brand text-xs font-semibold active:text-brand-hover"
           >
             {t('apply_open_sefa_portal')} →
           </a>
+          <p className="text-[11px] text-gray-500 mt-1">{t('apply_portal_url_hint')}</p>
         </div>
 
         <div>
@@ -48,11 +52,18 @@ export function ApplySection({ t }: Props) {
         <div>
           <p className="flex items-center gap-1.5 font-semibold text-gray-900"><Mail className="w-4 h-4" strokeWidth={1.75} />{t('apply_email_title')}</p>
           <a
-            href={`mailto:${SEFA_EMAIL}`}
+            href={`mailto:${FUND_EMAIL}`}
             className="text-brand text-xs font-semibold active:text-brand-hover"
           >
-            {SEFA_EMAIL}
+            {FUND_EMAIL}
           </a>
+          <p className="text-[11px] text-gray-500 mt-1">{t('apply_email_hint')}</p>
+        </div>
+
+        {/* Phase 41b — explicit SAnews-flagged scam warning. */}
+        <div className="rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-800">
+          <p className="font-bold mb-0.5">⚠ {t('apply_scam_warning_title')}</p>
+          <p>{t('apply_scam_warning_body')}</p>
         </div>
 
         <div className="pt-3 border-t border-gray-100">

@@ -11,6 +11,7 @@ import { InspectionReadinessPanel } from '@/components/compliance/InspectionRead
 import { DocumentChecklist } from '../DocumentChecklist'
 import { FormSummaryCard, type FormSummaryRow } from '../FormSummaryCard'
 import { OfficeDirections } from '../OfficeDirections'
+import { OfficialFormCallout } from '../OfficialFormCallout'
 import { GenerateDocButton } from '../GenerateDocButton'
 import { MarkAsDoneButtons } from '../MarkAsDoneButtons'
 import { generateGoodsDescription } from '@/lib/compliance/goods-description'
@@ -51,6 +52,11 @@ export function HealthCertificateStep({ step, data, t, tInsp }: Props) {
 
   return (
     <>
+      {/* Phase 41b — official R638 CoA form/portal callout. Seeded for metros
+          that publish a downloadable PDF (Joburg, Durban after 41b migration)
+          or an online portal (Cape Town, Tshwane). */}
+      <OfficialFormCallout offices={data.healthOffices} t={t} />
+
       {/* Numbered how-to */}
       <section>
         <h4 className="text-sm font-semibold text-gray-800 mb-2">{t('coa_how_header')}</h4>

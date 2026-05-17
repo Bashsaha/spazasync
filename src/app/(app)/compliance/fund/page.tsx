@@ -16,6 +16,8 @@ import { EligibilitySection } from '@/components/compliance-fund/EligibilitySect
 import { DocumentReadiness } from '@/components/compliance-fund/DocumentReadiness'
 import { ComplianceReadiness } from '@/components/compliance-fund/ComplianceReadiness'
 import { FundBreakdown } from '@/components/compliance-fund/FundBreakdown'
+import { FundTierLadder } from '@/components/compliance-fund/FundTierLadder'
+import { PrioritySelfDeclaration } from '@/components/compliance-fund/PrioritySelfDeclaration'
 import { GenerateApplicationPackButton } from '@/components/compliance-fund/GenerateApplicationPackButton'
 import { ApplySection } from '@/components/compliance-fund/ApplySection'
 
@@ -64,7 +66,17 @@ export default async function FundReadinessPage() {
 
       <ComplianceReadiness result={data.complianceScoreResult} t={t} />
 
+      {/* Phase 41b — new visual tier ladder makes the R80k CIPC threshold
+          unmissable. Keep FundBreakdown below it for the detailed line-item
+          breakdown of each tier's components. */}
+      <FundTierLadder cipcRegistered={data.fundReadiness.cipcRegistered} t={t} />
+
       <FundBreakdown cipcRegistered={data.fundReadiness.cipcRegistered} t={t} />
+
+      {/* Phase 41b — youth + women-owned self-declaration. UI-only per
+          Design Rule 6; surfaces a reminder to flag priority on the
+          SEDFA application. */}
+      <PrioritySelfDeclaration />
 
       <GenerateApplicationPackButton missingDocCount={data.fundReadiness.missingDocCount} />
 

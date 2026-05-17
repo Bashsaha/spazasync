@@ -88,5 +88,22 @@
   "apply_email_hint": "Spazafund@nefcorp.co.za",
   "apply_help_title": "Need help?",
   "apply_help_call_centre": "Fund call centre: 011 305 8080",
-  "apply_help_hours": "Mon–Fri 9am–10pm, Sat 9am–3pm."
+  "apply_help_hours": "Mon–Fri 9am–10pm, Sat 9am–3pm.",
+
+  "apply_scam_warning_title": "Beware fake fund forms and helpers",
+  "apply_scam_warning_body": "SAnews has warned about fake assistants selling 'application forms' or offering to submit on your behalf. The fund application is FREE and ONLY available through spazashopfund.co.za, NEF, and SEDFA. Never pay anyone to apply for you.",
+
+  "tier_ladder_header": "Funding tiers — the R80,000 threshold",
+  "tier_ladder_below_label": "Up to R80,000",
+  "tier_ladder_below_hint": "No CIPC registration required",
+  "tier_ladder_above_label": "R80,001 to R300,000",
+  "tier_ladder_above_hint": "CIPC registration required (you have 6 months after approval to register)",
+  "tier_ladder_cap_label": "Above R300,000",
+  "tier_ladder_cap_hint": "Not available — R300,000 is the per-shop cap",
+
+  "priority_self_declaration_header": "Are you in a priority group?",
+  "priority_self_declaration_body": "Youth (18–35) and women-owned shops get priority during fund review. Movestock doesn't store this — toggle below to see a reminder on what to flag in your SEDFA application.",
+  "priority_youth_label": "I'm 18–35 years old",
+  "priority_woman_owned_label": "This shop is woman-owned",
+  "priority_declared_hint": "When you apply at spazashopfund.co.za, tick the matching priority groups so SEDFA flags your application."
 }

@@ -114,7 +114,7 @@ export async function GET() {
     y = drawSectionHeading(doc, y, 'Owner information')
     const ownerRows: FormRow[] = [
       { label: 'Full name', value: data.ownerName, hint: data.ownerName ? null : 'Add in Settings' },
-      { label: 'SA ID number', value: null, blank: true, hint: '(fill in on the SEFA application form)' },
+      { label: 'SA ID number', value: null, blank: true, hint: '(fill in on the spazashopfund.co.za / SEDFA application)' },
       { label: 'Phone', value: data.shop.whatsapp_number, hint: data.shop.whatsapp_number ? null : 'Add in Settings' },
       { label: 'Email', value: data.ownerEmail },
       { label: 'Address', value: data.shop.location, hint: data.shop.location ? null : 'Add in Settings' },
@@ -188,11 +188,18 @@ export async function GET() {
     y = drawSectionHeading(doc, y, 'Where to submit')
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
+    // Phase 41b — corrected channels per SEDFA / SAnews guideline.
+    // The old systemsnew.sefa.org.za URL was the generic SEFA SMME portal —
+    // the spaza-fund-specific portal is spazashopfund.co.za, run by NEF.
     const submitLines = [
       'Submit this pack along with your original ID and certified copies at:',
-      '   • Online: systemsnew.sefa.org.za/SMMEPortal/',
-      '   • Email: spaza@sefa.org.za',
-      '   • Phone: 011 305 8080',
+      '   • Online (official portal): spazashopfund.co.za',
+      '   • Email: Spazafund@nefcorp.co.za',
+      '   • Phone: 011 305 8080  (NEF call centre)',
+      '',
+      'WARNING: SAnews has warned about fake application assistants.',
+      'Only use the official channels above (spazashopfund.co.za, NEF,',
+      'SEDFA). Never pay anyone offering to submit on your behalf.',
     ]
     for (const line of submitLines) {
       doc.text(line, 14, y)

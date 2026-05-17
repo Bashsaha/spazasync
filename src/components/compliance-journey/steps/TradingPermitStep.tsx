@@ -14,6 +14,7 @@ import { AlertTriangle } from 'lucide-react'
 import { DocumentChecklist } from '../DocumentChecklist'
 import { FormSummaryCard, type FormSummaryRow } from '../FormSummaryCard'
 import { OfficeDirections } from '../OfficeDirections'
+import { OfficialFormCallout } from '../OfficialFormCallout'
 import { GenerateDocButton } from '../GenerateDocButton'
 import { MarkAsDoneButtons } from '../MarkAsDoneButtons'
 import { generateGoodsDescription } from '@/lib/compliance/goods-description'
@@ -69,6 +70,11 @@ export function TradingPermitStep({ step, data, t, isForeignNational = false }: 
 
   return (
     <>
+      {/* Phase 41b — surface the official metro form/portal at the top so owners
+          know up front where the actual government form lives. Movestock's
+          pre-filled summary further down is a cheat-sheet, not the form itself. */}
+      <OfficialFormCallout offices={data.permitOffices} t={t} />
+
       {/* Numbered how-to */}
       <section>
         <h4 className="text-sm font-semibold text-gray-800 mb-2">{t('permit_how_header')}</h4>

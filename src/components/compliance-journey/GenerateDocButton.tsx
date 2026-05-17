@@ -5,18 +5,19 @@
  * Phase 37d enabled real PDF endpoints for trading permit summary, landlord
  * affidavit, goods declaration, food-safety pack, and the fund application
  * pack. Unset `href` still falls back to the "Coming in next update" pill.
- * Phase 41a — when the parent JourneyStep is locked the link is replaced by
- * a disabled pill: plan-ahead content stays visible but you can't generate
- * pre-filled paperwork until prerequisite steps are complete. Because this
- * needs context (useJourneyLocked), the component is `'use client'` —
- * function props from server components can't cross the boundary, so we
- * resolve `t` via useTranslation here instead of receiving it as a prop.
+ *
+ * Phase 41b — DROPPED the BUG-035 lock entirely. Every Movestock-generated PDF
+ * is a "plan-ahead" artefact (cheat-sheet to copy onto an official form, or a
+ * personalised evidence pack of records captured outside the step). None of
+ * them depend on the step actually being unlocked, so gating their download
+ * was over-correction. Lock gating now lives only on MarkAsDoneButtons —
+ * where it genuinely matters (would push the journey engine into inconsistent
+ * state). Owners can prepare all paperwork in advance.
  */
 
 import Link from 'next/link'
-import { FileText, Lock } from 'lucide-react'
+import { FileText } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
-import { useJourneyLocked } from './JourneyStep'
 
 interface Props {
   /** i18n key for the document title (e.g. 'doc_landlord_affidavit'). */
@@ -24,17 +25,15 @@ interface Props {
   /** i18n key for the explainer copy. */
   descriptionKey: string
   /**
-   * When set, the button is enabled and links to this href (used for the
-   * existing compliance PDF endpoint). When omitted, the button renders
-   * disabled with the "Coming in next update" hint.
+   * When set, the button is enabled and links to this href. When omitted, the
+   * button renders disabled with the "Coming in next update" hint.
    */
   href?: string
 }
 
 export function GenerateDocButton({ titleKey, descriptionKey, href }: Props) {
   const { t } = useTranslation('compliance-journey')
-  const isLocked = useJourneyLocked()
-  const isEnabled = !!href && !isLocked
+  const isEnabled = !!href
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-4">
@@ -48,15 +47,6 @@ export function GenerateDocButton({ titleKey, descriptionKey, href }: Props) {
         >
           {t('btn_generate_pdf')}
         </Link>
-      ) : isLocked ? (
-        <button
-          type="button"
-          disabled
-          className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-gray-100 text-gray-400 text-sm font-semibold rounded-full cursor-not-allowed"
-        >
-          <Lock className="w-3.5 h-3.5" strokeWidth={2} aria-hidden="true" />
-          {t('btn_generate_locked')}
-        </button>
       ) : (
         <button
           type="button"

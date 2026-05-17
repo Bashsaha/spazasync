@@ -245,6 +245,19 @@ const MUNICIPALITIES: SeedMunicipality[] = [
         phone: '031 322 1803',
         hours: STD_HOURS,
       },
+      // Phase 41b — Environmental Health office surfaces the official R638
+      // CoA application PDF via online_form_url so OfficialFormCallout +
+      // OfficeDirections can render a direct download link.
+      {
+        office_type: 'environmental_health',
+        name: 'eThekwini Environmental Health (CoA applications)',
+        address: '7th Floor, Embassy Building, 199 Anton Lembede Street, Durban CBD',
+        area: 'Durban CBD',
+        phone: '031 311 4535',
+        email: 'businesslicensing@ethekwini.gov.za',
+        hours: STD_HOURS,
+        online_form_url: 'https://www.durban.gov.za/uploads/0000/6/2025/09/21/certificate-of-acceptability-for-food-premises.pdf',
+      },
     ],
     requirements: [
       {
