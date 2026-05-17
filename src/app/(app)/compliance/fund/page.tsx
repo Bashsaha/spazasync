@@ -18,6 +18,7 @@ import { ComplianceReadiness } from '@/components/compliance-fund/ComplianceRead
 import { FundBreakdown } from '@/components/compliance-fund/FundBreakdown'
 import { FundTierLadder } from '@/components/compliance-fund/FundTierLadder'
 import { PrioritySelfDeclaration } from '@/components/compliance-fund/PrioritySelfDeclaration'
+import { SarsGraceCountdown } from '@/components/compliance-fund/SarsGraceCountdown'
 import { GenerateApplicationPackButton } from '@/components/compliance-fund/GenerateApplicationPackButton'
 import { ApplySection } from '@/components/compliance-fund/ApplySection'
 
@@ -49,6 +50,15 @@ export default async function FundReadinessPage() {
       <FundHeroStatus
         status={data.fundReadiness.status}
         missingCount={data.fundReadiness.missingDocCount}
+        t={t}
+      />
+
+      {/* Phase 41d — visualises the SARS 6-month grace window (Phase 41a
+          stored the date but never surfaced it to the owner). Renders only
+          when SARS is currently being treated as ok via the grace branch. */}
+      <SarsGraceCountdown
+        sarsGracePeriodUntil={data.shop.sars_grace_period_until}
+        sarsInGracePeriod={data.fundReadiness.sarsInGracePeriod}
         t={t}
       />
 

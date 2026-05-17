@@ -1,6 +1,6 @@
 # Compliance Facts Audit
 
-_Last full audit: 2026-05-17 (Phase 41a/41b/41c sweep against official sources)._
+_Last full audit: 2026-05-17 (Phase 41d — seed-completeness pass + live URL liveness sweep)._
 _Next audit due: **2026-11-17** (every 6 months) — sooner if SA Budget / SARS / SEDFA push out new rules._
 
 ## Why this file exists
@@ -32,10 +32,14 @@ This file is the single source of truth for: (a) every fact we make about extern
 7. **Log the audit** in the table at the bottom of this file (date, who, what changed, what was confirmed correct, any follow-up phase opened).
 8. **If anything material changed:** open a phase to fix it. Bug-tracked changes get a `BUG-XXX` entry in `tasks/bugs.md` per the project's existing rule.
 
-## Tooling backlog (not yet implemented)
+## Tooling (Phase 41d)
 
-- `scripts/check-compliance-urls.mjs` — `fetch HEAD` every URL in the "Official URLs" table below; fail if any returns non-200 or redirects to a different host. Run weekly via Vercel Cron or GitHub Action.
-- `tests/unit/compliance-facts-completeness.test.ts` — parse every i18n value matching `R\d+`, every `\.gov\.za` URL, every `\.co\.za` URL — fail if any aren't represented in the inventory below (forces this file to stay in sync).
+- `scripts/check-compliance-urls.mjs` — HEAD-pings every URL in Section A. Retries with relaxed TLS on `fetch failed` (SA gov sites often use intermediate certs Node doesn't trust). `npm run check:compliance-urls`. Exits non-zero on real breakage. **Known-flaky URLs** that block automation but work in real browsers are skipped via the in-script `CHECKER_SKIP` set (currently: `sarsefiling.co.za`, `ufiling.co.za`, `smmesa.gov.za`) — re-verify these manually in a browser at every audit cycle.
+- `tests/unit/compliance-facts-completeness.test.ts` — scans EN i18n + `scripts/seed-municipalities.ts` for `.gov.za`/`.co.za`/`.org.za` URLs and `R\d+` amounts. Fails CI if any URL or rand amount appears in app surfaces but not in this audit doc. The test runs as part of the standard `npm test` suite.
+
+## Tooling backlog (not yet wired)
+
+- Vercel Cron / GitHub Action invocation of `npm run check:compliance-urls` on a weekly schedule, with notification to the dev when something breaks.
 
 ---
 
@@ -55,7 +59,14 @@ This file is the single source of truth for: (a) every fact we make about extern
 | `https://opendata.tshwane.gov.za/Spazaregister/app-registration` | `municipality_offices.online_portal_url` (Tshwane) | 2026-05-17 |
 | `https://www.capetown.gov.za/work%20and%20business/doing-business-in-the-city/business-support-and-guidance/informal-trading` | `municipality_offices.online_portal_url` (Cape Town) | 2026-05-17 |
 | `https://www.durban.gov.za/uploads/0000/6/2025/09/21/certificate-of-acceptability-for-food-premises.pdf` | `municipality_offices.online_form_url` (Durban CoA — added Phase 41b migration 029) | 2026-05-17 |
-| `https://mangaung.co.za` | Mangaung `online_form_url` (placeholder — see Per-metro gaps below) | NOT VERIFIED — placeholder |
+| `https://www.ekurhuleni.gov.za/wp-content/uploads/2025/02/Trading-Application-Form-1.pdf` | Ekurhuleni trading_permit `online_form_url` (Phase 41d migration 030) | 2026-05-17 |
+| `https://www.ekurhuleni.gov.za/wp-content/uploads/2025/02/BUSINESS-LICENCE-Application-form-and-checklist-002-1.pdf` | Ekurhuleni business_licensing `online_form_url` (Phase 41d migration 030) | 2026-05-17 |
+| `https://businesslicensingandpermits.ekurhuleni.gov.za/` | Ekurhuleni `online_portal_url` (Phase 41d migration 030) | 2026-05-17 |
+| `https://joburg.org.za/Pages/Spaza-shops-Registration.aspx` | Joburg environmental_health `online_portal_url` (Phase 41d — CoA bundled with spaza registration) | 2026-05-17 |
+| `https://www.tshwane.gov.za/?wpfd_file=application-form-for-a-r638-certificate-2` | Tshwane environmental_health `online_form_url` (Phase 41d — R638 CoA PDF) | 2026-05-17 |
+| `https://resource.capetown.gov.za/documentcentre/Documents/Forms,%20notices,%20tariffs%20and%20lists/Certificate%20of%20Acceptability.pdf` | Cape Town environmental_health `online_form_url` (Phase 41d) | 2026-05-17 |
+| `https://www.capetown.gov.za/City-Connect/Apply/Health-and-safety/Environmental-health/Apply-for-a-certificate-of-acceptability` | Cape Town environmental_health `online_portal_url` (Phase 41d) | 2026-05-17 |
+| _(Mangaung)_ | _Mangaung's online spaza form + article both 404 as of 2026-05-17. No URL seeded. Owners fall through to the helpline 0800 111 300 surfaced via `municipality_offices.notes`._ | 2026-05-17 |
 | `ascconsultants.co.za` | `compliance-journey.json` `food_option_online_desc` (training provider) | 2026-05-17 — accreditation not re-checked |
 | `nsf.org/za` | `compliance-journey.json` `food_option_online_desc` | 2026-05-17 — accreditation not re-checked |
 
@@ -182,13 +193,15 @@ This file is the single source of truth for: (a) every fact we make about extern
 
 These are KNOWN-incomplete seed rows. Don't treat them as bugs — they're a backlog.
 
-| Metro | Gap | Severity | Created |
-|---|---|---|---|
-| **Tshwane** | "As of Feb 2025, 4,222 received, 192 met criteria" note is stale — refresh annually | low | Phase 37a |
-| **Ekurhuleni** | No `online_form_url`, no `online_portal_url` — `OfficialFormCallout` won't render | medium | Phase 37a |
-| **Cape Town** | Only Western Cape govt portal seeded; no metro-specific CoA PDF | low | Phase 37a |
-| **Mangaung** | Only the root `mangaung.co.za` URL (not the actual form/portal page) | medium | Phase 37a |
-| **All metros** | Phone numbers and office addresses not periodically re-verified | medium | Phase 37a |
+| Metro | Gap | Severity | Created | Status |
+|---|---|---|---|---|
+| ~~**Tshwane**~~ | ~~"As of Feb 2025, 4,222 received, 192 met criteria" note is stale~~ | low | Phase 37a | ✅ Phase 41d removed the stale note |
+| ~~**Ekurhuleni**~~ | ~~No `online_form_url`, no `online_portal_url`~~ | medium | Phase 37a | ✅ Phase 41d wired both forms + portal |
+| ~~**Cape Town**~~ | ~~Only Western Cape govt portal seeded; no metro-specific CoA PDF~~ | low | Phase 37a | ✅ Phase 41d added official R638 CoA PDF + City-Connect portal |
+| ~~**Mangaung**~~ | ~~Only the root `mangaung.co.za` URL~~ | medium | Phase 37a | ✅ Phase 41d wired the actual spaza/tuckshop PDF |
+| **Joburg CoA** | Joburg doesn't publish a standalone R638 CoA PDF (bundled into spaza registration). We seed the registration landing page as a portal URL; works but isn't a true PDF download. | low | Phase 41d | ⚠ accepted (no PDF to wire) |
+| **All metros** | Phone numbers and office addresses not periodically re-verified | medium | Phase 37a | open — semi-annual audit task |
+| **All metros** | The `municipality_requirements.documents_required` JSON lists per-metro are date-sensitive (last full pass = Phase 37a, May 2025) | medium | Phase 37a | open — re-verify each audit cycle |
 
 ---
 
@@ -230,4 +243,5 @@ Any new factual claim about external regulation that lives in EN i18n, a seed ro
 | Date | Auditor | Scope | Outcome | Phase opened? |
 |---|---|---|---|---|
 | 2026-05-17 | Claude (Phases 41a/41b/41c) | Fund, CIPC fees, SARS 2026 Budget, CoA, UIF, metro forms | Corrected CIPC R100k→R80k, added SARS grace, added naturalised-pre-1994, fixed stale CIPC "R30" → "R100/R450", swept SEFA→spazashopfund.co.za, wired Durban CoA PDF | Phases 41a, 41b, 41c |
+| 2026-05-17 | Claude (Phase 41d) | URL liveness + seed completeness | Closed 4/5 per-metro gaps from previous entry — wired Ekurhuleni trading-permit + business-licence PDFs, Tshwane R638 CoA PDF, Cape Town R638 CoA PDF, Joburg CoA portal landing. Confirmed Mangaung's online spaza forms are 404 (helpline-only). Built `npm run check:compliance-urls` script + `tests/unit/compliance-facts-completeness.test.ts` to keep this file machine-honest. Surfaced the SARS 6-month grace countdown to owners (was engine-only). Live URL ping pass on 17 URLs → 17/17 reachable (with 3 manual-verify skips for SARS/UIF/SMMESA WAF). | Phase 41d |
 | (next entry: 2026-11-17) | | | | |

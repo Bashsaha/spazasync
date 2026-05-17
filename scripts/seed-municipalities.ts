@@ -113,6 +113,19 @@ const MUNICIPALITIES: SeedMunicipality[] = [
         area: 'Braamfontein',
         hours: STD_HOURS,
       },
+      // Phase 41d — Joburg's CoA application is bundled into the spaza
+      // registration flow (the Form 13 application is circulated to
+      // Environmental Health for comment, which doubles as the CoA step).
+      // No standalone CoA PDF is published. Link to the Spaza Shop
+      // Registration landing page so OfficialFormCallout can surface it.
+      {
+        office_type: 'environmental_health',
+        name: 'Environmental Health (via Spaza Shop Registration)',
+        address: 'Application bundled with Form 13 — submitted to Town Planning Help Desk; circulated to Environmental Health for comment',
+        area: 'Braamfontein',
+        hours: STD_HOURS,
+        online_portal_url: 'https://joburg.org.za/Pages/Spaza-shops-Registration.aspx',
+      },
     ],
     requirements: [
       {
@@ -153,7 +166,18 @@ const MUNICIPALITIES: SeedMunicipality[] = [
         area: 'Pretoria CBD',
         hours: STD_HOURS,
         online_portal_url: 'https://opendata.tshwane.gov.za/Spazaregister/app-registration',
-        notes: 'Online registration available. As of Feb 2025, 4,222 applications received, only 192 met criteria.',
+        notes: 'Online registration available via Spazaregister.',
+      },
+      // Phase 41d — Tshwane publishes a downloadable R638 CoA application
+      // form ( https://www.tshwane.gov.za/?wpfd_file=application-form-for-a-r638-certificate-2 )
+      // so OfficialFormCallout can surface it directly on HealthCertificateStep.
+      {
+        office_type: 'environmental_health',
+        name: 'City of Tshwane Environmental Health (R638 CoA)',
+        address: 'Application via nearest Customer Care Centre',
+        area: 'Pretoria CBD',
+        hours: STD_HOURS,
+        online_form_url: 'https://www.tshwane.gov.za/?wpfd_file=application-form-for-a-r638-certificate-2',
       },
     ],
     requirements: [
@@ -179,12 +203,32 @@ const MUNICIPALITIES: SeedMunicipality[] = [
       'Vosloorus', 'Daveyton', 'KwaThema', 'Tsakane', 'Duduza',
     ],
     offices: [
+      // Phase 41d — Ekurhuleni now has direct PDFs hosted at ekurhuleni.gov.za
+      // for both the Trading Permit Application and the (combined) Business
+      // Licence form used by spaza shops. Plus a dedicated Business Licensing
+      // & Permits hub.
+      {
+        office_type: 'trading_permit',
+        name: 'Economic Development — Trading Permits',
+        address: 'Nearest Customer Care Centre across 5 regions',
+        hours: STD_HOURS,
+        online_form_url: 'https://www.ekurhuleni.gov.za/wp-content/uploads/2025/02/Trading-Application-Form-1.pdf',
+        online_portal_url: 'https://businesslicensingandpermits.ekurhuleni.gov.za/',
+      },
+      {
+        office_type: 'business_licensing',
+        name: 'Business Licensing (spaza / tuck shop)',
+        address: 'Nearest Customer Care Centre across 5 regions',
+        hours: STD_HOURS,
+        online_form_url: 'https://www.ekurhuleni.gov.za/wp-content/uploads/2025/02/BUSINESS-LICENCE-Application-form-and-checklist-002-1.pdf',
+        online_portal_url: 'https://businesslicensingandpermits.ekurhuleni.gov.za/',
+        notes: 'Business Licence Application form applies to spaza / tuck shops.',
+      },
       {
         office_type: 'customer_care',
         name: 'Nearest Customer Care Centre',
-        address: 'Various locations across the city',
+        address: 'Various locations across 5 regions',
         hours: STD_HOURS,
-        notes: 'Registration at nearest customer care centre. Digitised application process available. As of Dec 2024, 85 registration centres established across all 5 regions.',
       },
     ],
     requirements: [
@@ -292,13 +336,19 @@ const MUNICIPALITIES: SeedMunicipality[] = [
       'Bellville', 'Kraaifontein',
     ],
     offices: [
+      // Phase 41d — Cape Town publishes BOTH a downloadable R638 CoA PDF
+      // AND a City-Connect online portal. Wire the PDF as online_form_url
+      // (OfficialFormCallout will render the "Download form" CTA) and the
+      // City-Connect URL as online_portal_url (renders as "Open online
+      // portal" CTA).
       {
         office_type: 'environmental_health',
-        name: 'Environmental Health offices',
-        address: 'Various — locate nearest at westerncape.gov.za',
+        name: 'City of Cape Town Environmental Health (R638 CoA)',
+        address: 'Various — apply online or at City Health office',
         hours: STD_HOURS,
-        online_portal_url: 'https://www.capetown.gov.za/work%20and%20business/doing-business-in-the-city/business-support-and-guidance/informal-trading',
-        notes: 'Online CoA application system operational (piloted July 2024). Paper submissions also accepted. 4,000+ CoA applications received by Dec 2024 deadline.',
+        online_form_url: 'https://resource.capetown.gov.za/documentcentre/Documents/Forms,%20notices,%20tariffs%20and%20lists/Certificate%20of%20Acceptability.pdf',
+        online_portal_url: 'https://www.capetown.gov.za/City-Connect/Apply/Health-and-safety/Environmental-health/Apply-for-a-certificate-of-acceptability',
+        notes: 'Online CoA application system operational. Paper submissions also accepted.',
       },
     ],
     requirements: [
@@ -322,14 +372,24 @@ const MUNICIPALITIES: SeedMunicipality[] = [
     short_name: 'Mangaung',
     areas: ['Bloemfontein', 'Botshabelo', 'Thaba Nchu', 'Mangaung'],
     offices: [
+      // Phase 41d — Mangaung publishes a downloadable spaza / tuck shop /
+      // general dealer application form. Previously seeded with the bare
+      // domain mangaung.co.za which is useless to the owner.
       {
         office_type: 'trading_permit',
-        name: 'Municipal office',
-        address: 'Contact via helpline',
+        name: 'SMME Unit, Bram Fischer Building',
+        address: '9th Floor, Bram Fischer Building, Bloemfontein',
+        area: 'Bloemfontein',
         phone: '0800 111 300',
         hours: STD_HOURS,
-        online_form_url: 'https://mangaung.co.za',
-        notes: 'Application form available online. Call 0800 111 300 for queries.',
+        // Phase 41d: Mangaung removed BOTH the 2020 PDF and the 2020 article
+        // that originally linked to it (both 404 as of 2026-05-17). The
+        // municipality's root site is live but they expect owners to walk in
+        // or call the SMME helpline. Surface the helpline prominently via
+        // notes; OfficialFormCallout will hide its CTA (no form/portal URL
+        // seeded) so the owner falls through to the standard "Where to go"
+        // contact card.
+        notes: 'No online form currently available — call 0800 111 300 or visit the SMME Unit at Bram Fischer Building (9th floor) for the current spaza / tuck shop / general dealer application form.',
       },
     ],
     requirements: [],
