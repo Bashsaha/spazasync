@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getOverviewStats } from '@/lib/db/admin'
+import { ComplianceVerificationWidget } from '@/components/admin/ComplianceVerificationWidget'
 
 const statCards = [
   { key: 'totalShops', label: 'Total Shops', color: 'bg-gray-50 border-gray-200 text-gray-900' },
@@ -30,7 +31,7 @@ export default async function AdminOverviewPage() {
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Admin Dashboard</h1>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
         {statCards.map((card) => (
           <div
             key={card.key}
@@ -40,6 +41,13 @@ export default async function AdminOverviewPage() {
             <p className="text-sm mt-1 opacity-75">{card.label}</p>
           </div>
         ))}
+      </div>
+
+      {/* Phase 41e — compliance verification cadence (every 30 days). Audit
+          work itself happens via Claude in the codebase; this widget tracks
+          when it was last done + alerts when overdue. */}
+      <div className="mb-8">
+        <ComplianceVerificationWidget />
       </div>
 
       <Link

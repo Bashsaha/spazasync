@@ -15,11 +15,13 @@ This file is the single source of truth for: (a) every fact we make about extern
 
 | When | Action |
 |---|---|
-| Every 6 months from "Last full audit" above | Full re-verification pass (steps below) |
+| **Every 30 days** from "Last full audit" above | Full re-verification pass (steps below) — run via Claude in the codebase, not via automation. The admin dashboard alerts when the 30-day window expires. |
 | Within 30 days of a SA national Budget speech | Re-check SARS thresholds + any tax-related copy |
 | Within 14 days of news that a metro changed its trading-permit fee or portal URL | Targeted re-check of that metro's seed row |
 | When adding a new compliance step / fund step / metro | Append to the inventory below + log in "Audit log" |
 | When deleting / replacing a regulated fact | Strike-through here + log in "Audit log" |
+
+**Why manual not automated?** A regex / link checker can confirm a URL still returns 200 and that no Rand amount is missing from this doc, but it cannot tell you whether the URL now points to a different form, whether the fee printed on the page has changed, whether a regulation has been amended, or whether SAnews has issued a new advisory. The `check:compliance-urls` script + `compliance-facts-completeness.test.ts` are cheap backstops — they will catch the most mechanical drift — but the real audit is a human reading the official sources and comparing them to our copy. Claude is the right tool for that work.
 
 ## Process (do these in order)
 
@@ -186,6 +188,58 @@ This file is the single source of truth for: (a) every fact we make about extern
 | Checklist streak break: 3 missed days | same, `CHECKLIST_STREAK_BREAK_DAYS=3` | App rule |
 | Doc expiry buckets: 2m / 1m / expired | same | App rule |
 | Visa expiry buckets: 90d / 60d / 30d / expired | same | App rule |
+
+---
+
+## Municipality coverage
+
+South Africa has 8 metros + ~44 district + ~205 local municipalities. Spaza shops can operate in any of them, but the bulk of the addressable user base sits in metros + secondary cities. **Coverage status:**
+
+### ✅ Seeded (6 of 8 metros)
+
+| Metro | Province | Seed source | Last verified |
+|---|---|---|---|
+| City of Johannesburg | Gauteng | `scripts/seed-municipalities.ts` (Phase 37a) — Form 13 PDF (trading) + Spaza Reg landing (CoA) since Phase 41d | 2026-05-17 |
+| City of Tshwane | Gauteng | `scripts/seed-municipalities.ts` (Phase 37a) — R638 CoA PDF added Phase 41d | 2026-05-17 |
+| City of Ekurhuleni | Gauteng | `scripts/seed-municipalities.ts` (Phase 37a) — trading + business-licence PDFs + portal added Phase 41d | 2026-05-17 |
+| eThekwini Municipality (Durban) | KZN | `scripts/seed-municipalities.ts` (Phase 37a) — R638 CoA PDF added Phase 41b migration 029 | 2026-05-17 |
+| City of Cape Town | Western Cape | `scripts/seed-municipalities.ts` (Phase 37a) — R638 CoA PDF + City-Connect portal added Phase 41d | 2026-05-17 |
+| Mangaung Metropolitan Municipality | Free State | `scripts/seed-municipalities.ts` (Phase 37a) — online URLs stripped Phase 41d (helpline-only) | 2026-05-17 |
+
+### ⏳ Metros NOT yet seeded (2 of 8)
+
+| Metro | Province | Approx population | Why prioritised |
+|---|---|---|---|
+| Nelson Mandela Bay Municipality (Gqeberha / Port Elizabeth) | Eastern Cape | ~1.3m | One of the 8 metros — owners in the Eastern Cape currently see only the generic fallback in `OfficeDirections` |
+| Buffalo City Metropolitan Municipality (East London) | Eastern Cape | ~880k | Second EC metro — same coverage gap as Nelson Mandela Bay |
+
+### 📋 Next-priority secondary cities (no metro status, high spaza density)
+
+Order by approximate population. Add when one of the metros above is fully verified and we have bandwidth.
+
+| Municipality | Province | Approx population |
+|---|---|---|
+| Polokwane Local Municipality | Limpopo | ~810k |
+| Rustenburg Local Municipality | North West | ~625k |
+| Emfuleni Local Municipality (Vereeniging / Sebokeng) | Gauteng | ~720k |
+| Steve Tshwete Local Municipality (Middelburg) | Mpumalanga | ~280k |
+| Sol Plaatje Local Municipality (Kimberley) | Northern Cape | ~250k |
+| Stellenbosch Local Municipality | Western Cape | ~190k — has a published spaza business-licence form |
+| KSD Local Municipality (Mthatha) | Eastern Cape | ~490k |
+| Govan Mbeki Local Municipality (Secunda) | Mpumalanga | ~340k |
+
+### 🏘️ Long tail
+
+For every other district / local municipality, owners hit the generic fallback rendered by `OfficeDirections` ("We don't have office details for {area} yet. Search 'environmental health [your area]' or call your municipality's customer care."). That's an acceptable degradation — the journey + fund engines work fine on a `municipality_area_text` free-text input — but each seeded municipality is a real UX improvement for owners in that area.
+
+### How to add a new municipality
+
+1. Web-research the official sources (use the URL liveness script's domain conventions — `.gov.za` / `.co.za` only; reject law-firm summaries and news articles unless they directly quote the gazette)
+2. Add a new `SeedMunicipality` entry in `scripts/seed-municipalities.ts` with offices + requirements + an `online_form_url` or `online_portal_url` per office where one exists
+3. Write a new migration (`NNN_<name>_seed.sql`) with idempotent `INSERT ... WHERE NOT EXISTS` for the municipality + each office + each requirement
+4. Add every new URL to **Section A** above with last-verified date = today
+5. Move the metro from "Not yet seeded" to "Seeded" + log in "Audit log"
+6. Run `npm run check:compliance-urls` and `npm test` — both must pass
 
 ---
 
