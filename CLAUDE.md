@@ -114,6 +114,13 @@ Locales: `en`, `so`, `am`, `zu`, `ur`. Any user-facing string added/changed/remo
 - After fixing any bug: add an entry to `tasks/bugs.md` (symptom, root cause, fix, prevention rule). Mandatory.
 - Before touching auth/routing/middleware/API routes: read `tasks/bugs.md` and apply prevention rules.
 
+### Compliance Facts Audit (CRITICAL)
+- Every factual claim Movestock makes about SA compliance / R500M Spaza Shop Support Fund / municipal regulation (fees, deadlines, thresholds, regulation references, .gov.za URLs, contact numbers) is inventoried in `tasks/compliance-facts-audit.md` with a source-of-truth URL and a last-verified date.
+- **Re-verification is scheduled every 6 months** (next due date is at the top of that file) — sooner if SA Budget speech or major regulatory change.
+- **When adding ANY new compliance step, fund step, regulation reference, metro seed row, or hardcoded constant about external regulation**: append the new fact(s) to the inventory in the SAME commit, with last-verified date = today. The audit doc's "When a new compliance step is added" 20-item extension checklist is the authoritative checklist for new-step work.
+- Before touching compliance copy, the fund engine (`lib/compliance/fund.ts`), the journey engine (`lib/compliance/journey.ts`), or metro seed data (`scripts/seed-municipalities.ts`): read `tasks/compliance-facts-audit.md` so you understand what's currently asserted and where it lives.
+- After any fact-correction phase (like 41a/41b/41c): append to the audit log at the bottom of `tasks/compliance-facts-audit.md`.
+
 ### Service Worker Cache Bump (CRITICAL)
 **Every deploy that ships code changes MUST bump the `CACHE` constant in `public/sw.js`** (e.g. `movestock-v7` → `movestock-v8`). Movestock is a PWA — the service worker pre-caches the app shell and serves cached pages on repeat visits. Without a version bump, returning users keep loading the previous build from the SW cache even after a successful Vercel deploy, and bug fixes silently fail to reach production. Bump the version in the same commit as the code change (or as the final commit of a series before push). The version is a monotonically increasing integer suffix; never reuse an old value. Skip only for deploys that change zero user-facing code (docs-only, CI-only, infra-only).
 
