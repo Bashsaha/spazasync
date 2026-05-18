@@ -13,7 +13,7 @@
  *                            navigations always hit the network.
  */
 
-const CACHE = 'movestock-v32'
+const CACHE = 'movestock-v33'
 
 // Resources that MUST always be fetched fresh from the network so Chrome's
 // installability checker (and the platform's home-screen icon installer) sees

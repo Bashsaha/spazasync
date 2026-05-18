@@ -32,8 +32,16 @@ export default async function DashboardPage({
   // Previously: shop_users query (blocks) → 3 parallel queries = 2 sequential RTTs.
   // Now: shop + docs + profile in one parallel batch = 1 RTT (then optional
   // municipality lookup if the shop has one set).
+  //
+  // `isOwnerUI` deliberately treats dual-role admins (admins promoted from
+  // owners via scripts/set-admin.ts) the same as regular owners: they keep
+  // shop_id + their shop_users row with role='owner', so they expect the full
+  // owner dashboard (BUG-029 / BUG-039 follow-up). The previous code derived
+  // role from shop_users.role, which papered over the distinction; the JWT
+  // role we use now does not, so we have to gate on shopId + !teller instead.
   const role = user.app_metadata?.role as 'owner' | 'teller' | 'admin' | undefined
   const shopIdMeta = user.app_metadata?.shop_id as string | undefined
+  const isOwnerUI = !!shopIdMeta && role !== 'teller'
 
   type Shop = {
     id: string
@@ -63,8 +71,6 @@ export default async function DashboardPage({
   let preFilledMunicipality: { id: string; name: string } | null = null
 
   if (shopIdMeta) {
-    const isOwner = role === 'owner'
-
     const [shopRes, docsRes, profileRes] = await Promise.all([
       supabase
         .from('shops')
@@ -73,13 +79,13 @@ export default async function DashboardPage({
         )
         .eq('id', shopIdMeta)
         .single(),
-      isOwner
+      isOwnerUI
         ? supabase
             .from('business_documents')
             .select('document_type, status')
             .in('document_type', ['municipal_registration', 'coa', 'cipc', 'sars_tax', 'uif'])
         : Promise.resolve({ data: null }),
-      isOwner
+      isOwnerUI
         ? supabase
             .from('owner_profiles')
             .select(
@@ -92,7 +98,7 @@ export default async function DashboardPage({
 
     shop = (shopRes.data as Shop | null) ?? null
 
-    if (isOwner) {
+    if (isOwnerUI) {
       existingDocs = (docsRes.data ?? []) as typeof existingDocs
 
       const profile = profileRes.data as
@@ -183,7 +189,7 @@ export default async function DashboardPage({
       {/* Compliance onboarding banner + modal (owners only, Phase 37b). */}
       {/* Phase 37g smart reminders moved to the notification bell — see
           NotificationBell.tsx for the full list rendered there. */}
-      {role === 'owner' && shop?.id && (
+      {isOwnerUI && shop?.id && (
         <DashboardComplianceOnboarding
           shop={{
             onboarding_compliance_completed: shop.onboarding_compliance_completed,
@@ -209,7 +215,7 @@ export default async function DashboardPage({
 
       {/* Phase 37c — Journey progress card. Owners only; the JourneyProgressCard returns
           null for non-owners and for shops without journey state. */}
-      {role === 'owner' && shop?.id && (
+      {isOwnerUI && shop?.id && (
         <Suspense fallback={<Skeleton className="h-24 rounded-2xl mb-4" />}>
           <JourneyProgressCard shopId={shop.id} userId={user.id} locale={locale} />
         </Suspense>
