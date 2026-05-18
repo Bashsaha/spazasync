@@ -15,9 +15,9 @@
  * state). Owners can prepare all paperwork in advance.
  */
 
-import Link from 'next/link'
 import { FileText } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
+import { PdfDownloadButton } from '@/components/PdfDownloadButton'
 
 interface Props {
   /** i18n key for the document title (e.g. 'doc_landlord_affidavit'). */
@@ -41,12 +41,12 @@ export function GenerateDocButton({ titleKey, descriptionKey, href }: Props) {
       <p className="font-semibold text-gray-900">{t(titleKey)}</p>
       <p className="text-sm text-gray-500 mt-1">{t(descriptionKey)}</p>
       {isEnabled ? (
-        <Link
+        <PdfDownloadButton
           href={href!}
-          className="inline-flex items-center mt-3 px-4 py-2 bg-brand text-white text-sm font-semibold rounded-full active:bg-brand-hover"
+          className="inline-flex items-center mt-3 px-4 py-2 bg-brand text-white text-sm font-semibold rounded-full active:bg-brand-hover disabled:opacity-70 disabled:cursor-wait"
         >
           {t('btn_generate_pdf')}
-        </Link>
+        </PdfDownloadButton>
       ) : (
         <button
           type="button"

@@ -12,6 +12,7 @@
 import Link from 'next/link'
 import { AlertTriangle } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
+import { PdfDownloadButton } from '@/components/PdfDownloadButton'
 
 interface Props {
   /** Number of NON-conditional required docs that are not ok. */
@@ -50,14 +51,13 @@ export function GenerateApplicationPackButton({ missingDocCount }: Props) {
           </Link>
         </>
       ) : (
-        <a
+        <PdfDownloadButton
           href="/api/reports/fund-application-pack"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block text-center w-full py-3 rounded-full text-sm font-semibold text-white bg-brand active:bg-brand-hover"
+          fallbackFilename="fund-application-pack.pdf"
+          className="block w-full py-3 rounded-full text-sm font-semibold text-white bg-brand active:bg-brand-hover disabled:opacity-70 disabled:cursor-wait"
         >
           {t('pack_button')}
-        </a>
+        </PdfDownloadButton>
       )}
     </section>
   )

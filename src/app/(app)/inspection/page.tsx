@@ -6,6 +6,7 @@ import { getComplianceScore } from '@/lib/db/compliance-score'
 import { listBusinessDocuments } from '@/lib/db/business-documents'
 import { getInspectionReadiness } from '@/lib/db/inspection-readiness'
 import { InspectionReadinessPanel } from '@/components/compliance/InspectionReadinessPanel'
+import { PdfDownloadButton } from '@/components/PdfDownloadButton'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 import type { ComplianceScoreCategory } from '@/types'
 
@@ -122,16 +123,17 @@ export default async function InspectionPage() {
       </section>
 
       {/* Inspection Pack download */}
-      <a
+      <PdfDownloadButton
         href="/api/reports/inspection-pack"
-        className="flex items-center justify-between bg-brand text-white rounded-full p-5 active:bg-brand-hover mb-4"
+        fallbackFilename="inspection-pack.pdf"
+        className="flex items-center justify-between text-left w-full bg-brand text-white rounded-full p-5 active:bg-brand-hover mb-4 disabled:opacity-70 disabled:cursor-wait"
       >
         <div>
           <p className="font-bold text-lg">{t('download_inspection_pack')}</p>
           <p className="text-brand-light text-sm">{t('download_inspection_pack_hint')}</p>
         </div>
         <FileText className="w-7 h-7" strokeWidth={1.75} />
-      </a>
+      </PdfDownloadButton>
 
       {/* Pre-check list (extracted to reusable panel — Phase 37c) */}
       <div className="mb-4">

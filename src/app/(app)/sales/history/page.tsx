@@ -8,6 +8,7 @@ import { formatSAST } from '@/lib/utils/date'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import { BackButton } from '@/components/BackButton'
+import { PdfDownloadButton } from '@/components/PdfDownloadButton'
 import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
 
 interface ByDateResponse {
@@ -196,18 +197,20 @@ function SalesHistoryContent() {
         <p className="text-sm font-semibold text-gray-900">{t('download_pdf_title')}</p>
         <p className="text-xs text-gray-500 mt-0.5">{t('download_pdf_desc')}</p>
         <div className="flex flex-col sm:flex-row gap-2 mt-3">
-          <a
+          <PdfDownloadButton
             href={pdfUrl(viewedYear, viewedMonth)}
-            className="flex-1 text-center bg-brand text-white text-sm font-semibold py-2.5 rounded-full active:bg-brand-hover"
+            fallbackFilename={`monthly-sales-${viewedYear}-${String(viewedMonth).padStart(2, '0')}.pdf`}
+            className="flex-1 text-center bg-brand text-white text-sm font-semibold py-2.5 rounded-full active:bg-brand-hover disabled:opacity-70 disabled:cursor-wait"
           >
             {t('download_pdf_this_month')}
-          </a>
-          <a
+          </PdfDownloadButton>
+          <PdfDownloadButton
             href={pdfUrl(prevYear, prevMonth)}
-            className="flex-1 text-center bg-white border border-gray-200 text-gray-700 text-sm font-semibold py-2.5 rounded-2xl active:bg-gray-50"
+            fallbackFilename={`monthly-sales-${prevYear}-${String(prevMonth).padStart(2, '0')}.pdf`}
+            className="flex-1 text-center bg-white border border-gray-200 text-gray-700 text-sm font-semibold py-2.5 rounded-2xl active:bg-gray-50 disabled:opacity-70 disabled:cursor-wait"
           >
             {t('download_pdf_prev_month')}
-          </a>
+          </PdfDownloadButton>
         </div>
       </div>
 

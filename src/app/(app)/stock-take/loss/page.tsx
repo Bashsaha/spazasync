@@ -7,6 +7,7 @@ import { formatZAR } from '@/lib/utils/currency'
 import { formatSAST } from '@/lib/utils/date'
 import { BackButton } from '@/components/BackButton'
 import { useTranslation } from '@/components/LanguageProvider'
+import { PdfDownloadButton } from '@/components/PdfDownloadButton'
 
 interface StockLossRow {
   occurred_at: string
@@ -197,13 +198,11 @@ export default function StockLossPage() {
       )}
 
       {/* Download PDF — disabled when no rows */}
-      <a
+      <PdfDownloadButton
         href={pdfUrl}
-        aria-disabled={rows.length === 0}
-        onClick={(e) => {
-          if (rows.length === 0) e.preventDefault()
-        }}
-        className={`flex items-center justify-center gap-2 w-full py-3 rounded-full text-sm font-semibold mb-5 ${
+        fallbackFilename={`stock-loss-${from}-to-${to}.pdf`}
+        disabled={rows.length === 0}
+        className={`flex items-center justify-center gap-2 w-full py-3 rounded-full text-sm font-semibold mb-5 disabled:opacity-70 disabled:cursor-wait ${
           rows.length === 0
             ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
             : 'bg-brand text-white active:bg-brand-hover'
@@ -211,7 +210,7 @@ export default function StockLossPage() {
       >
         <Download className="w-4 h-4" />
         {t('download_pdf')}
-      </a>
+      </PdfDownloadButton>
 
       {/* Loading */}
       {loading && <p className="text-center text-gray-400 text-sm mt-6">{t('loading')}</p>}
