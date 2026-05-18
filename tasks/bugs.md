@@ -319,3 +319,21 @@ Also added `/auth/callback` to `PUBLIC_ROUTES` in middleware so the route is rea
 
 ## Audit doc: /inspection added to 30-day verification scope
 **Not a bug**, but logged here so the next maintainer sees the link to BUG-038: `/inspection` is now in the audit doc's Step 6 "spot-check the in-app rendering" list alongside `/compliance/journey` and `/compliance/fund`. Reason: the page surfaces the live compliance score, the readiness panel (which mirrors journey-step statuses), and the Inspection Pack PDF — all of which an actual inspector would see. Drift here is the most user-visible kind.
+
+---
+
+## BUG-039: Whole app slow — even the loading screen took 1–2 s to appear
+**Symptom:** "The app is extremely slow, it even takes long to show the loading screen, its almost unusable." On SA mobile networks (300–500 ms RTT), the dashboard regularly took 3–5 s before any visible chrome appeared, and `loading.tsx` itself was delayed.
+**Root cause (compounded — 5 issues):**
+1. **`(app)/layout.tsx` did 3 sequential Supabase queries** (shop → tellers → daily_checklists) before any HTML streamed. In App Router, `loading.tsx` only renders after the surrounding layout's awaits resolve — so even the loading spinner was blocked by ~3 RTTs (~1–1.5 s on slow mobile).
+2. **`dashboard/page.tsx` then did its own `shop_users → shops` join (waterfall #1) before firing the 3 owner-profile queries (waterfall #2)** — another 2 sequential RTTs on top.
+3. **Service worker used `network-first` for HTML navigation** ([public/sw.js](public/sw.js)) — every repeat visit waited for the network even when a perfectly good cached page existed. Worse, it also cached RSC payload requests (`?_rsc=…`) as navigation HTML, producing content-type mismatches on client-side router pushes.
+4. **3 Google Fonts preloaded on every page** (Plus Jakarta + Noto Sans Ethiopic + Noto Nastaliq Urdu) — `next/font/google` injects a `<link rel="preload" as="font">` for every declared font. Nastaliq Urdu alone is ~500 KB. Latin users downloaded ~650 KB of script-glyphs they would never render.
+5. **23 i18n namespaces eagerly loaded** via dynamic `import()` after hydration — 23 separate JS chunk requests on every first paint, leaving `useTranslation()` returning raw keys until the chunks landed.
+**Fix:**
+1. Collapsed the 3 layout queries into one `Promise.all` — 3 RTTs → 1.
+2. Dashboard now reads `role` + `shopId` from `user.app_metadata` (already validated by middleware), drops the `shop_users` join, and fires `shops` + `business_documents` + `owner_profiles` in one parallel batch — 2 waterfalls → 1.
+3. SW navigation strategy switched to `stale-while-revalidate`. Document-only check (`request.destination === 'document'` and not an `_rsc=` payload) prevents caching RSC chunks. Cache bump v31 → v32.
+4. Added `preload: false` to the two non-Latin fonts. CSS rules stay (so `:lang(am)` / `:lang(ur)` still pick them up if the user is on those locales), but the `<link rel="preload">` is gone for everyone else.
+5. `(app)/layout.tsx` now pre-loads the full app-shell namespace map server-side via `loadNamespacedTranslations()` and passes it to `<LanguageProvider initialNsMap={…}>`. New `initialNsMap` prop seeds React state directly, so the client-side `useEffect` fetch is skipped on first paint and only fires when the user actually changes locale at runtime. 23 chunk requests → 0.
+**Prevention rule:** Three rules in one — (a) every `await` in a layout / page that does N independent queries MUST use `Promise.all` instead of sequential awaits, because each one delays `loading.tsx` from appearing; (b) `next/font/google` declarations for scripts only some users need MUST set `preload: false` — the CSS rule keeps the font available, only the eager preload is dropped; (c) when a server component pre-computes data a client provider would otherwise fetch, pass it as an `initial*` prop and skip the client fetch — the RSC payload is gzipped HTML, which is cheaper than N separate HTTP/2 requests on mobile.

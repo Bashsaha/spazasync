@@ -27,21 +27,15 @@ export default async function DashboardPage({
   const sp = (await searchParams) ?? {}
   const forceComplianceModal = sp.redo_compliance === '1'
 
-  const { data: shopUser } = await supabase
-    .from('shop_users')
-    .select(`
-      role,
-      shops(
-        id, name, code, low_stock_threshold, subscription_status, trial_ends_at,
-        subscription_ends_at, profit_tracking_enabled,
-        municipality_id, onboarding_compliance_completed,
-        onboarding_compliance_dismissed_at, onboarding_compliance_dismiss_count
-      )
-    `)
-    .eq('user_id', user.id)
-    .single()
+  // Trust the role + shop_id baked into the JWT by the middleware — saves a
+  // shop_users round trip. Then fire shop + owner-profile data in parallel.
+  // Previously: shop_users query (blocks) → 3 parallel queries = 2 sequential RTTs.
+  // Now: shop + docs + profile in one parallel batch = 1 RTT (then optional
+  // municipality lookup if the shop has one set).
+  const role = user.app_metadata?.role as 'owner' | 'teller' | 'admin' | undefined
+  const shopIdMeta = user.app_metadata?.shop_id as string | undefined
 
-  const shop = shopUser?.shops as unknown as {
+  type Shop = {
     id: string
     name: string
     code: string
@@ -54,12 +48,9 @@ export default async function DashboardPage({
     onboarding_compliance_completed: boolean
     onboarding_compliance_dismissed_at: string | null
     onboarding_compliance_dismiss_count: number
-  } | null
+  }
 
-  const role = shopUser?.role as 'owner' | 'teller' | 'admin' | undefined
-
-  // Owner-only: pull the bits the compliance onboarding modal pre-populates from.
-  let preFilledMunicipality: { id: string; name: string } | null = null
+  let shop: Shop | null = null
   let existingDocs: { document_type: OnboardingDocumentType; status: DocumentStatus }[] = []
   let existingNationality: NationalityType | null = null
   let existingFoodSafety:
@@ -69,47 +60,77 @@ export default async function DashboardPage({
     | { type: import('@/types').VisaType | null; expiryDate: string | null }
     | null = null
   let existingNaturalisedPre1994: boolean | null = null
+  let preFilledMunicipality: { id: string; name: string } | null = null
 
-  if (role === 'owner' && shop?.id) {
-    // Run the three owner-only queries in parallel — none depend on each other.
-    const [municipalityRes, docsRes, profileRes] = await Promise.all([
-      shop.municipality_id
+  if (shopIdMeta) {
+    const isOwner = role === 'owner'
+
+    const [shopRes, docsRes, profileRes] = await Promise.all([
+      supabase
+        .from('shops')
+        .select(
+          'id, name, code, low_stock_threshold, subscription_status, trial_ends_at, subscription_ends_at, profit_tracking_enabled, municipality_id, onboarding_compliance_completed, onboarding_compliance_dismissed_at, onboarding_compliance_dismiss_count',
+        )
+        .eq('id', shopIdMeta)
+        .single(),
+      isOwner
         ? supabase
-            .from('municipalities')
-            .select('id, name')
-            .eq('id', shop.municipality_id)
+            .from('business_documents')
+            .select('document_type, status')
+            .in('document_type', ['municipal_registration', 'coa', 'cipc', 'sars_tax', 'uif'])
+        : Promise.resolve({ data: null }),
+      isOwner
+        ? supabase
+            .from('owner_profiles')
+            .select(
+              'nationality_type, food_safety_training_completed, food_safety_training_date, food_safety_training_provider, visa_type, visa_expiry_date, naturalised_pre_1994',
+            )
+            .eq('user_id', user.id)
             .maybeSingle()
         : Promise.resolve({ data: null }),
-      supabase
-        .from('business_documents')
-        .select('document_type, status')
-        .in('document_type', ['municipal_registration', 'coa', 'cipc', 'sars_tax', 'uif']),
-      supabase
-        .from('owner_profiles')
-        .select('nationality_type, food_safety_training_completed, food_safety_training_date, food_safety_training_provider, visa_type, visa_expiry_date, naturalised_pre_1994')
-        .eq('user_id', user.id)
-        .maybeSingle(),
     ])
 
-    const m = municipalityRes.data
-    if (m) preFilledMunicipality = { id: m.id as string, name: m.name as string }
+    shop = (shopRes.data as Shop | null) ?? null
 
-    existingDocs = (docsRes.data ?? []) as typeof existingDocs
+    if (isOwner) {
+      existingDocs = (docsRes.data ?? []) as typeof existingDocs
 
-    const profile = profileRes.data
-    if (profile) {
-      existingNationality = (profile.nationality_type as NationalityType | null) ?? null
-      existingFoodSafety = {
-        completed: Boolean(profile.food_safety_training_completed),
-        date: profile.food_safety_training_date as string | null,
-        provider: profile.food_safety_training_provider as string | null,
+      const profile = profileRes.data as
+        | {
+            nationality_type: NationalityType | null
+            food_safety_training_completed: boolean | null
+            food_safety_training_date: string | null
+            food_safety_training_provider: string | null
+            visa_type: import('@/types').VisaType | null
+            visa_expiry_date: string | null
+            naturalised_pre_1994: boolean | null
+          }
+        | null
+      if (profile) {
+        existingNationality = profile.nationality_type ?? null
+        existingFoodSafety = {
+          completed: Boolean(profile.food_safety_training_completed),
+          date: profile.food_safety_training_date,
+          provider: profile.food_safety_training_provider,
+        }
+        existingVisa = {
+          type: profile.visa_type ?? null,
+          expiryDate: profile.visa_expiry_date ?? null,
+        }
+        existingNaturalisedPre1994 = profile.naturalised_pre_1994 ?? null
       }
-      existingVisa = {
-        type: (profile.visa_type as import('@/types').VisaType | null) ?? null,
-        expiryDate: (profile.visa_expiry_date as string | null) ?? null,
+
+      // Only the municipality name depends on shop.municipality_id, so we
+      // wait until after the parallel batch resolves to fire it (and skip
+      // entirely if no municipality is set).
+      if (shop?.municipality_id) {
+        const { data: m } = await supabase
+          .from('municipalities')
+          .select('id, name')
+          .eq('id', shop.municipality_id)
+          .maybeSingle()
+        if (m) preFilledMunicipality = { id: m.id as string, name: m.name as string }
       }
-      existingNaturalisedPre1994 =
-        (profile.naturalised_pre_1994 as boolean | null) ?? null
     }
   }
 

@@ -10,11 +10,17 @@ const plusJakarta = Plus_Jakarta_Sans({
   display: 'swap',
 })
 
+// Ethiopic + Nastaliq are only used via `:lang(am)` / `:lang(ur)` in globals.css.
+// `preload: false` stops Next.js emitting a `<link rel="preload" as="font">` for
+// every page load — without it, every user downloads ~500KB of Urdu Nastaliq +
+// ~150KB of Ge'ez glyphs they will never render. The fonts still load on demand
+// when a page renders text in those scripts.
 const notoEthiopic = Noto_Sans_Ethiopic({
   subsets: ['ethiopic'],
   weight: ['400', '500', '600', '700'],
   variable: '--font-ethiopic',
   display: 'swap',
+  preload: false,
 })
 
 const notoNastaliqUrdu = Noto_Nastaliq_Urdu({
@@ -22,6 +28,7 @@ const notoNastaliqUrdu = Noto_Nastaliq_Urdu({
   weight: ['400', '500', '600', '700'],
   variable: '--font-nastaliq',
   display: 'swap',
+  preload: false,
 })
 
 export const metadata: Metadata = {

@@ -99,18 +99,34 @@ interface LanguageProviderProps {
   initialLocale?: SupportedLocale
   /** Which translation namespaces to load. Defaults to ['common']. */
   namespaces?: TranslationNamespace[]
+  /**
+   * Pre-loaded server-side translations keyed by namespace. When supplied
+   * (typical for the (app) layout) the provider skips the client-side fetch
+   * entirely — saving 23+ chunk round trips on first paint. The client-side
+   * fetch still runs if the locale changes at runtime.
+   */
+  initialNsMap?: Record<string, Translations>
 }
 
 export function LanguageProvider({
   children,
   initialLocale,
   namespaces = ['common'],
+  initialNsMap,
 }: LanguageProviderProps) {
   const [locale, setLocaleState] = useState<SupportedLocale>(
     () => initialLocale ?? getStoredLocale(),
   )
-  const [nsMap, setNsMap] = useState<Record<string, Translations>>({})
-  const [isLoading, setIsLoading] = useState(true)
+  // Seed nsMap from server-rendered translations when available so first paint
+  // doesn't have to wait on dynamic JSON imports. Tracks the locale we
+  // hydrated with so a runtime locale change still triggers a client fetch.
+  const [nsMap, setNsMap] = useState<Record<string, Translations>>(
+    () => initialNsMap ?? {},
+  )
+  const [hydratedLocale, setHydratedLocale] = useState<SupportedLocale | null>(
+    () => (initialNsMap ? initialLocale ?? null : null),
+  )
+  const [isLoading, setIsLoading] = useState(() => !initialNsMap)
 
   // Derive flat translations from nsMap
   const translations = useMemo(
@@ -118,14 +134,18 @@ export function LanguageProvider({
     [nsMap],
   )
 
-  // Load translations when locale or namespaces change
+  // Load translations when locale or namespaces change — but skip the very
+  // first render when the server already hydrated us with the right locale.
   useEffect(() => {
+    if (hydratedLocale === locale) return
+
     let cancelled = false
     setIsLoading(true)
 
     loadNamespacedTranslations(locale, namespaces).then((map) => {
       if (!cancelled) {
         setNsMap(map)
+        setHydratedLocale(locale)
         setIsLoading(false)
       }
     })

@@ -7,10 +7,13 @@
  *  - SWR_GET_PATHS        → stale-while-revalidate for stable read endpoints
  *                            (offline support + instant repeat-load)
  *  - /api/* (other)       → network-only (auth-sensitive mutations)
- *  - navigation           → network-first, fall back to cache, then /offline.html
+ *  - navigation HTML      → stale-while-revalidate (instant repeat-paint,
+ *                            background refresh, offline fallback). RSC
+ *                            payload requests are skipped so client-side
+ *                            navigations always hit the network.
  */
 
-const CACHE = 'movestock-v31'
+const CACHE = 'movestock-v32'
 
 // Resources that MUST always be fetched fresh from the network so Chrome's
 // installability checker (and the platform's home-screen icon installer) sees
@@ -136,19 +139,41 @@ self.addEventListener('fetch', (event) => {
   // All other API routes — network only (never cache auth/mutation endpoints)
   if (url.pathname.startsWith('/api/')) return
 
-  // Page navigation — network-first, fall back to cached version, then offline page
+  // Only treat top-level document loads as "navigation". Next.js client-side
+  // navigations issue RSC payload fetches (request.destination !== 'document',
+  // and usually carry an RSC header or _rsc= query param) — caching those as
+  // navigation HTML produced content-type mismatches and stale-payload bugs.
+  // Anything that isn't a document load is left to the browser's default
+  // handling so RSC payloads always reach the network fresh.
+  const isDocument =
+    request.mode === 'navigate' ||
+    request.destination === 'document'
+  const isRscPayload =
+    url.searchParams.has('_rsc') ||
+    request.headers.get('RSC') === '1' ||
+    request.headers.get('Next-Router-Prefetch') === '1'
+  if (!isDocument || isRscPayload) return
+
+  // Page navigation — stale-while-revalidate. Repeat visits paint the cached
+  // shell instantly while a background fetch refreshes it for next time.
+  // Falls back to /offline.html only when both cache and network are empty.
   event.respondWith(
-    fetch(request)
-      .then((res) => {
-        if (res.ok) {
-          caches.open(CACHE).then((c) => c.put(request, res.clone()))
-        }
-        return res
-      })
-      .catch(() =>
-        caches.match(request).then((cached) =>
-          cached ?? caches.match('/offline.html'),
-        ),
-      ),
+    caches.open(CACHE).then(async (cache) => {
+      const cached = await cache.match(request)
+
+      const networkPromise = fetch(request)
+        .then((res) => {
+          if (res.ok) cache.put(request, res.clone())
+          return res
+        })
+        .catch(() => null)
+
+      if (cached) {
+        networkPromise // fire-and-forget background refresh
+        return cached
+      }
+
+      return (await networkPromise) ?? (await cache.match('/offline.html'))
+    }),
   )
 })
