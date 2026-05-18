@@ -30,7 +30,7 @@ This file is the single source of truth for: (a) every fact we make about extern
 3. **Re-check the Trading Permit per-metro fees + processing times** against each metro's site. These change most often.
 4. **Re-pull the SAnews "Beware fake assistants" advisory** — if superseded or removed, update the copy in `compliance-fund.json` + `fund-application-pack/route.ts`.
 5. **Check `scripts/seed-municipalities.ts`** for any `"As of <date>"` notes that are now older than 12 months — refresh the figure or delete the timestamped clause.
-6. **Spot-check the in-app rendering** of `/compliance/journey` (each of the 7 steps) and `/compliance/fund` against the audit findings.
+6. **Spot-check the in-app rendering** of `/compliance/journey` (each of the 7 steps), `/compliance/fund`, AND `/inspection` (+ download the Inspection Pack PDF from `/api/reports/inspection-pack` and skim it) against the audit findings. `/inspection` is the destination of every "Action needed" alert on the dashboard `ComplianceCard`, so its score breakdown (Section K), inspection-readiness panel (mirrors journey-step statuses), and the Inspection Pack PDF must be re-walked end-to-end every cycle — a stale fact here is what an inspector will actually see.
 7. **Log the audit** in the table at the bottom of this file (date, who, what changed, what was confirmed correct, any follow-up phase opened).
 8. **If anything material changed:** open a phase to fix it. Bug-tracked changes get a `BUG-XXX` entry in `tasks/bugs.md` per the project's existing rule.
 
