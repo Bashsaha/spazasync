@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { PartyPopper, Check, Copy } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from '@/components/LanguageProvider'
@@ -225,9 +226,9 @@ export default function OnboardingPage() {
         {step !== 'language' && step !== 'done' && (
           <p className="text-center text-sm text-gray-500 mt-4">
             {t('link_already_have_account')}{' '}
-            <a href="/login" className="text-brand font-medium">
+            <Link href="/login" className="text-brand font-medium">
               {t('link_sign_in_instead')}
-            </a>
+            </Link>
           </p>
         )}
       </div>

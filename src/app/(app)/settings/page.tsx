@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { ClipboardList, Shield, Wallet } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
@@ -416,9 +417,9 @@ export default function SettingsPage() {
           </button>
         </div>
 
-        <a href="/checklist/history" className="block text-sm text-brand mt-4">
+        <Link href="/checklist/history" className="block text-sm text-brand mt-4">
           {tChk('history_link')} →
-        </a>
+        </Link>
       </div>
 
       {/* Phase 37e — Government fund eligibility (SA citizens only) */}

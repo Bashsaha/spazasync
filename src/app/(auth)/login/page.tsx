@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from '@/components/LanguageProvider'
@@ -227,9 +228,9 @@ function OwnerLoginForm({
       )}
 
       <p className="text-center text-sm">
-        <a href="/onboarding" className="text-brand font-medium">
+        <Link href="/onboarding" className="text-brand font-medium">
           {t('link_create_shop')}
-        </a>
+        </Link>
       </p>
     </div>
   )
