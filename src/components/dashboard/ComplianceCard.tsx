@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getComplianceScore } from '@/lib/db/compliance-score'
 import { getTodayChecklist, todaySAST } from '@/lib/db/daily-checklist'
@@ -109,7 +110,7 @@ export async function ComplianceCard({
     const overflow = Math.max(0, alerts.length - MAX_VISIBLE_ALERTS)
 
     return (
-      <a
+      <Link
         href="/inspection"
         className={`flex items-start gap-3 rounded-2xl px-4 py-3 mb-4 ${tone.wrap}`}
       >
@@ -174,7 +175,7 @@ export async function ComplianceCard({
         </div>
 
         <span className={`${tone.arrow} text-lg shrink-0 self-center`}>&rsaquo;</span>
-      </a>
+      </Link>
     )
   } catch {
     return null
