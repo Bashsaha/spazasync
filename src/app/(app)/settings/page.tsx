@@ -7,7 +7,8 @@ import { ClipboardList, Shield, Wallet } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
 import { BackButton } from '@/components/BackButton'
-import { Spinner, FullScreenSpinner } from '@/components/Spinner'
+import { FullScreenSpinner } from '@/components/Spinner'
+import { Button, Card, FormField, Input, Callout, Badge, PageHeader } from '@/components/ui'
 import type { SupportedLocale } from '@/lib/i18n/types'
 
 interface ShopSettings {
@@ -283,60 +284,48 @@ export default function SettingsPage() {
         <BackButton fallbackHref="/profile" />
       </div>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">{t('title')}</h1>
-      <p className="text-sm text-gray-400 mb-6">{t('subtitle')}</p>
+      <PageHeader title={t('title')} subtitle={t('subtitle')} />
 
       {/* Compliance report */}
-      <div id="compliance" className="bg-brand-light border border-brand-light rounded-2xl px-4 py-4 mb-6">
-        <div className="flex items-start gap-3 mb-3">
-          <ClipboardList className="w-6 h-6 text-brand-hover shrink-0" strokeWidth={1.75} />
-          <div>
-            <p className="font-bold text-brand-hover">{t('compliance_title')}</p>
-            <p className="text-sm text-brand-hover mt-0.5">
-              {t('compliance_desc')}
-            </p>
-          </div>
-        </div>
-        <button
-          type="button"
+      <div id="compliance" />
+      <Callout tone="brand" icon={ClipboardList} title={t('compliance_title')} className="mb-6">
+        <p>{t('compliance_desc')}</p>
+        <Button
+          variant="primary"
+          size="md"
+          fullWidth
+          loading={downloading}
           onClick={handleDownloadReport}
-          disabled={downloading}
-          className="w-full bg-brand text-white font-semibold rounded-full py-3 text-sm active:bg-brand-hover disabled:opacity-50"
+          className="mt-3"
         >
           {downloading ? t('btn_generating_report') : t('btn_download_report')}
-        </button>
-      </div>
+        </Button>
+      </Callout>
 
       {/* Compliance check (Phase 37b) — re-open the onboarding flow */}
-      <div className="bg-brand-light border border-brand-light rounded-2xl px-4 py-4 mb-6">
-        <div className="flex items-start gap-3 mb-3">
-          <Shield className="w-6 h-6 text-brand-hover shrink-0" strokeWidth={1.75} />
-          <div>
-            <p className="font-bold text-brand-hover">{tCo('settings_section_title')}</p>
-            <p className="text-sm text-brand-hover mt-0.5">
-              {tCo('settings_section_subtitle')}
-            </p>
-          </div>
-        </div>
-        <button
-          type="button"
+      <Callout tone="brand" icon={Shield} title={tCo('settings_section_title')} className="mb-6">
+        <p>{tCo('settings_section_subtitle')}</p>
+        <Button
+          variant="primary"
+          size="md"
+          fullWidth
+          loading={redoLoading}
           onClick={handleRedoCompliance}
-          disabled={redoLoading}
-          className="w-full bg-brand text-white font-semibold rounded-full py-3 text-sm active:bg-brand-hover disabled:opacity-50"
+          className="mt-3"
         >
           {tCo('settings_redo_btn')}
-        </button>
-        <p className="text-xs text-brand-hover/70 mt-2">{tCo('settings_redo_hint')}</p>
-      </div>
+        </Button>
+        <p className="text-xs text-brand-dark/70 mt-2">{tCo('settings_redo_hint')}</p>
+      </Callout>
 
       {/* Language */}
-      <div className="bg-white border border-gray-100 rounded-2xl px-4 py-4 mb-6">
+      <Card padding="md" className="mb-6">
         <p className="text-sm font-medium text-gray-700 mb-3">{t('language_title')}</p>
         <LanguagePicker value={language} onChange={handleLanguageChange} variant="compact" />
-      </div>
+      </Card>
 
       {/* Profit tracking toggle */}
-      <div className="bg-white border border-gray-100 rounded-2xl px-4 py-4 mb-6">
+      <Card padding="md" className="mb-6">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
@@ -363,19 +352,19 @@ export default function SettingsPage() {
           </button>
         </div>
         {profitTracking && (settings?.products_missing_cost ?? 0) > 0 && (
-          <a
+          <Link
             href="/products/missing-cost"
             className="mt-3 block bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5 text-sm text-amber-800"
           >
             {tPlural('profit_tracking_hint_missing', settings!.products_missing_cost, {
               count: settings!.products_missing_cost,
             })}
-          </a>
+          </Link>
         )}
-      </div>
+      </Card>
 
       {/* Shop equipment (fridge / freezer toggles) */}
-      <div className="bg-white border border-gray-100 rounded-2xl px-4 py-4 mb-6">
+      <Card padding="md" className="mb-6">
         <p className="font-semibold text-gray-900 mb-1">{tChk('settings_section')}</p>
         <p className="text-xs text-gray-500 mb-4">{tChk('settings_section_desc')}</p>
 
@@ -420,11 +409,11 @@ export default function SettingsPage() {
         <Link href="/checklist/history" className="block text-sm text-brand mt-4">
           {tChk('history_link')} →
         </Link>
-      </div>
+      </Card>
 
       {/* Phase 37e — Government fund eligibility (SA citizens only) */}
       {settings?.nationality_type === 'sa_citizen' && (
-        <div className="bg-white border border-gray-100 rounded-2xl px-4 py-4 mb-6">
+        <Card padding="md" className="mb-6">
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
@@ -450,19 +439,19 @@ export default function SettingsPage() {
             </button>
           </div>
           {fundInterest && (
-            <a
+            <Link
               href="/compliance/fund"
               className="mt-3 inline-block text-sm text-brand font-semibold active:text-brand-hover"
             >
               {t('fund_interest_open')} →
-            </a>
+            </Link>
           )}
-        </div>
+        </Card>
       )}
 
       {/* Subscription status */}
       {settings?.subscription_status && (
-        <a
+        <Link
           href="/subscribe"
           className="block bg-white border border-gray-100 rounded-2xl px-4 py-3 mb-4"
         >
@@ -470,19 +459,16 @@ export default function SettingsPage() {
             <div>
               <p className="text-xs text-gray-400 mb-1">{t('subscription_label')}</p>
               <div className="flex items-center gap-2">
-                <span
-                  className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    settings.subscription_status === 'active'
-                      ? 'bg-green-100 text-green-700'
-                      : settings.subscription_status === 'trialing'
-                        ? 'bg-brand-light text-brand-hover'
-                        : settings.subscription_status === 'cancelled'
-                          ? 'bg-amber-100 text-amber-700'
-                          : 'bg-red-100 text-red-700'
-                  }`}
+                <Badge
+                  tone={
+                    settings.subscription_status === 'active' ? 'green'
+                      : settings.subscription_status === 'trialing' ? 'brand'
+                      : settings.subscription_status === 'cancelled' ? 'amber'
+                      : 'red'
+                  }
                 >
                   {statusLabel(settings.subscription_status)}
-                </span>
+                </Badge>
                 {(() => {
                   const endDate =
                     settings.subscription_status === 'trialing'
@@ -508,7 +494,7 @@ export default function SettingsPage() {
             </div>
             <span className="text-gray-300 text-lg">›</span>
           </div>
-        </a>
+        </Link>
       )}
 
       {/* Shop code */}
@@ -523,98 +509,74 @@ export default function SettingsPage() {
       </div>
 
       <form onSubmit={handleSave} className="space-y-5">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {t('label_shop_name')}
-          </label>
-          <input
+        <FormField label={t('label_shop_name')}>
+          <Input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
             maxLength={100}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand"
             placeholder={t('placeholder_shop_name')}
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {t('label_reg_number')} <span className="text-gray-400 font-normal">{t('label_optional')}</span>
-          </label>
-          <input
+        <FormField
+          label={
+            <>
+              {t('label_reg_number')}{' '}
+              <span className="text-gray-400 font-normal">{t('label_optional')}</span>
+            </>
+          }
+          hint={t('hint_reg_number')}
+        >
+          <Input
             type="text"
             value={regNumber}
             onChange={(e) => setRegNumber(e.target.value)}
             maxLength={100}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand"
             placeholder={t('placeholder_reg_number')}
           />
-          <p className="text-xs text-gray-400 mt-1">
-            {t('hint_reg_number')}
-          </p>
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {t('label_location')} <span className="text-gray-400 font-normal">{t('label_optional')}</span>
-          </label>
-          <input
+        <FormField
+          label={
+            <>
+              {t('label_location')}{' '}
+              <span className="text-gray-400 font-normal">{t('label_optional')}</span>
+            </>
+          }
+          hint={t('hint_location')}
+        >
+          <Input
             type="text"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             maxLength={200}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand"
             placeholder={t('placeholder_location')}
           />
-          <p className="text-xs text-gray-400 mt-1">
-            {t('hint_location')}
-          </p>
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {t('label_threshold')}
-          </label>
+        <FormField label={t('label_threshold')}>
           <div className="flex items-center gap-3">
-            <input
+            <Input
               type="number"
               value={threshold}
               onChange={(e) => setThreshold(Math.max(1, parseInt(e.target.value) || 1))}
               min={1}
               max={9999}
-              className="w-24 border border-gray-200 rounded-xl px-4 py-3 text-sm text-center focus:outline-none focus:border-brand"
+              className="w-24 text-center"
             />
             <span className="text-sm text-gray-500">{t('threshold_suffix')}</span>
           </div>
-        </div>
+        </FormField>
 
         {messageText && (
-          <p
-            className={`text-sm rounded-xl px-4 py-3 ${
-              message?.type === 'ok'
-                ? 'bg-green-50 text-green-700'
-                : 'bg-red-50 text-red-700'
-            }`}
-          >
-            {messageText}
-          </p>
+          <Callout tone={message?.type === 'ok' ? 'success' : 'error'}>{messageText}</Callout>
         )}
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-brand text-white font-semibold rounded-full py-4 text-base active:bg-brand-hover disabled:opacity-50"
-        >
-          {saving ? (
-            <span className="inline-flex items-center justify-center gap-2">
-              <Spinner size="sm" />
-              {t('btn_saving')}
-            </span>
-          ) : (
-            t('btn_save')
-          )}
-        </button>
+        <Button type="submit" variant="primary" size="lg" fullWidth loading={saving}>
+          {saving ? t('btn_saving') : t('btn_save')}
+        </Button>
       </form>
 
       <p className="text-center text-xs text-gray-400 mt-8 mb-4">

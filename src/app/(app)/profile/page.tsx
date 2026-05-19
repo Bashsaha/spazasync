@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { Store, Shield, Truck, Sparkles, Wallet, ClipboardList, ChevronRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
+import { Card, PageHeader } from '@/components/ui'
 import { LogoutButton } from './LogoutButton'
 import { SwitchUserButton } from './SwitchUserButton'
 
@@ -117,10 +118,10 @@ export default async function ProfilePage() {
 
   return (
     <main className="px-4 pt-6 pb-40 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-5">{t('profile_title')}</h1>
+      <PageHeader title={t('profile_title')} />
 
       {/* Hero — avatar + name + role + shop code */}
-      <section className="bg-white rounded-2xl border border-gray-100 p-6 text-center mb-4">
+      <Card padding="lg" className="text-center mb-4">
         <div className="w-20 h-20 rounded-full bg-brand text-white text-3xl font-bold flex items-center justify-center mx-auto mb-3">
           {initial}
         </div>
@@ -130,10 +131,10 @@ export default async function ProfilePage() {
           {shopCode && role !== 'teller' ? ` · ${t('profile_shop_code', { code: shopCode })}` : ''}
         </p>
         <SwitchUserButton label={t('switch_user')} loadingLabel={t('signing_out')} />
-      </section>
+      </Card>
 
       {/* Section rows */}
-      <section className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-4 divide-y divide-gray-100">
+      <Card padding="none" className="overflow-hidden mb-4 divide-y divide-gray-100">
         {sections
           .filter((s) => s.visible !== false)
           .map((row) => {
@@ -153,12 +154,12 @@ export default async function ProfilePage() {
               </Link>
             )
           })}
-      </section>
+      </Card>
 
       {/* Log out */}
-      <section className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-6">
+      <Card padding="none" className="overflow-hidden mb-6">
         <LogoutButton label={t('profile_logout')} loadingLabel={t('profile_logging_out')} />
-      </section>
+      </Card>
 
       <p className="text-center text-xs text-gray-400">{t('profile_footer')}</p>
     </main>
