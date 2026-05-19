@@ -81,7 +81,7 @@
   "apply_email_hint": "Spazafund@nefcorp.co.za",
   "apply_help_title": "Need help?",
   "apply_help_call_centre": "Fund call centre:",
-  "apply_help_hours": "Mon–Fri 9am–10pm, Sat 9am–3pm.",
+  "apply_help_hours": "Mon–Fri 08:00–16:00.",
   "sars_grace_countdown_title": "SARS grace period: {days} days left",
   "sars_grace_countdown_body": "You can apply for the fund without SARS registration until {date}. Register before then — once the window closes, your fund readiness will drop to amber until SARS is on file.",
   "apply_scam_warning_title": "Beware fake fund forms and helpers",

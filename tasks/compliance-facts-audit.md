@@ -1,7 +1,7 @@
 # Compliance Facts Audit
 
 _Last full audit: 2026-05-17 (Phase 41d — seed-completeness pass + live URL liveness sweep)._
-_Next audit due: **2026-11-17** (every 6 months) — sooner if SA Budget / SARS / SEDFA push out new rules._
+_Next audit due: **2026-06-16** (every 30 days — Phase 41e cadence) — sooner if SA Budget / SARS / SEDFA push out new rules._
 
 ## Why this file exists
 
