@@ -6,7 +6,8 @@ import type { Product, Supplier } from '@/types'
 import { NewSupplierModal } from '@/components/NewSupplierModal'
 import { BackButton } from '@/components/BackButton'
 import { useTranslation } from '@/components/LanguageProvider'
-import { Spinner, FullScreenSpinner } from '@/components/Spinner'
+import { FullScreenSpinner } from '@/components/Spinner'
+import { Button, FormField, Input, Select, Callout } from '@/components/ui'
 import { emitDataChanged } from '@/lib/events'
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
@@ -122,23 +123,20 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       </p>
 
       <form onSubmit={handleSave} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_name')}</label>
-          <input
+        <FormField label={t('label_name')}>
+          <Input
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             required
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_price')}</label>
+        <FormField label={t('label_price')}>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 pointer-events-none">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 pointer-events-none z-10">
               R
             </span>
-            <input
+            <Input
               type="number"
               inputMode="decimal"
               step="0.01"
@@ -146,21 +144,18 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
               value={form.price}
               onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
               required
-              className="w-full border border-gray-200 rounded-xl pl-8 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+              className="pl-8"
             />
           </div>
-        </div>
+        </FormField>
 
         {profitTracking && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('label_cost_price')}
-            </label>
+          <FormField label={t('label_cost_price')} hint={t('hint_cost_price')}>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 pointer-events-none">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 pointer-events-none z-10">
                 R
               </span>
-              <input
+              <Input
                 type="number"
                 inputMode="decimal"
                 step="0.01"
@@ -169,17 +164,20 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 onChange={(e) => setForm((f) => ({ ...f, cost_price: e.target.value }))}
                 placeholder={t('placeholder_cost_price')}
                 required
-                className="w-full border border-gray-200 rounded-xl pl-8 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                className="pl-8"
               />
             </div>
-            <p className="text-xs text-gray-400 mt-1">{t('hint_cost_price')}</p>
-          </div>
+          </FormField>
         )}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {t('label_supplier')} <span className="text-gray-400 font-normal">{t('label_optional')}</span>
-          </label>
+        <FormField
+          label={
+            <>
+              {t('label_supplier')}{' '}
+              <span className="text-gray-400 font-normal">{t('label_optional')}</span>
+            </>
+          }
+        >
           {suppliers.length === 0 ? (
             <button
               type="button"
@@ -190,59 +188,43 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
               <span className="text-lg leading-none">+</span>
             </button>
           ) : (
-            <>
-              <select
-                value={form.supplier_id}
-                onChange={(e) => {
-                  if (e.target.value === '__new__') {
-                    setShowNewSupplier(true)
-                    return
-                  }
-                  setForm((f) => ({ ...f, supplier_id: e.target.value }))
-                }}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
-              >
-                <option value="">{t('placeholder_supplier_none')}</option>
-                {suppliers.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-                <option value="__new__">+ {t('btn_add_supplier')}</option>
-              </select>
-            </>
+            <Select
+              value={form.supplier_id}
+              onChange={(e) => {
+                if (e.target.value === '__new__') {
+                  setShowNewSupplier(true)
+                  return
+                }
+                setForm((f) => ({ ...f, supplier_id: e.target.value }))
+              }}
+            >
+              <option value="">{t('placeholder_supplier_none')}</option>
+              {suppliers.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+              <option value="__new__">+ {t('btn_add_supplier')}</option>
+            </Select>
           )}
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_stock_qty')}</label>
-          <input
+        <FormField label={t('label_stock_qty')}>
+          <Input
             type="number"
             inputMode="numeric"
             min="0"
             value={form.stock_qty}
             onChange={(e) => setForm((f) => ({ ...f, stock_qty: e.target.value }))}
             required
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
-        </div>
+        </FormField>
 
-        {errorMessage && <p className="text-red-600 text-sm">{errorMessage}</p>}
+        {errorMessage && <Callout tone="error">{errorMessage}</Callout>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-brand text-white font-bold py-4 rounded-full active:bg-brand-hover disabled:opacity-50 min-h-[48px]"
-        >
-          {loading ? (
-            <span className="inline-flex items-center justify-center gap-2">
-              <Spinner size="sm" />
-              {t('btn_saving')}
-            </span>
-          ) : (
-            t('btn_save_changes')
-          )}
-        </button>
+        <Button type="submit" variant="primary" size="lg" fullWidth loading={loading}>
+          {loading ? t('btn_saving') : t('btn_save_changes')}
+        </Button>
       </form>
 
       {showNewSupplier && (

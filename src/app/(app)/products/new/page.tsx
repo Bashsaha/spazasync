@@ -8,7 +8,8 @@ import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
 import { NewSupplierModal } from '@/components/NewSupplierModal'
 import { BackButton } from '@/components/BackButton'
 import { useTranslation } from '@/components/LanguageProvider'
-import { Spinner, FullScreenSpinner } from '@/components/Spinner'
+import { FullScreenSpinner } from '@/components/Spinner'
+import { Button, FormField, Input, Select, Callout } from '@/components/ui'
 import type { Supplier } from '@/types'
 import { emitDataChanged } from '@/lib/events'
 
@@ -148,42 +149,45 @@ function NewProductContent() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {t('label_barcode')} <span className="text-gray-400 font-normal">{t('label_optional')}</span>
-          </label>
+        <FormField
+          label={
+            <>
+              {t('label_barcode')}{' '}
+              <span className="text-gray-400 font-normal">{t('label_optional')}</span>
+            </>
+          }
+        >
           <div className="flex gap-2">
-            <input
+            <Input
               value={form.barcode}
               onChange={(e) => setForm((f) => ({ ...f, barcode: e.target.value }))}
               placeholder={t('placeholder_barcode')}
-              className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+              className="flex-1"
             />
-            <button
+            <Button
               type="button"
+              variant="primary"
+              size="md"
               onClick={() => setScanning(true)}
-              className="shrink-0 bg-brand text-white px-4 py-3 rounded-full active:bg-brand-hover text-sm font-semibold"
               aria-label={t('btn_scan_aria')}
+              className="shrink-0"
             >
               {t('btn_scan')}
-            </button>
+            </Button>
           </div>
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_name')}</label>
-          <input
+        <FormField label={t('label_name')}>
+          <Input
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             placeholder={t('placeholder_name')}
             required
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_price')}</label>
-          <input
+        <FormField label={t('label_price')}>
+          <Input
             type="number"
             inputMode="decimal"
             step="0.01"
@@ -192,16 +196,12 @@ function NewProductContent() {
             onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
             placeholder={t('placeholder_price')}
             required
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
-        </div>
+        </FormField>
 
         {profitTracking && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('label_cost_price')}
-            </label>
-            <input
+          <FormField label={t('label_cost_price')} hint={t('hint_cost_price')}>
+            <Input
               type="number"
               inputMode="decimal"
               step="0.01"
@@ -210,20 +210,21 @@ function NewProductContent() {
               onChange={(e) => setForm((f) => ({ ...f, cost_price: e.target.value }))}
               placeholder={t('placeholder_cost_price')}
               required
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
-            <p className="text-xs text-gray-400 mt-1">{t('hint_cost_price')}</p>
-          </div>
+          </FormField>
         )}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {t('label_supplier')} <span className="text-gray-400 font-normal">{t('label_optional')}</span>
-          </label>
-          <select
+        <FormField
+          label={
+            <>
+              {t('label_supplier')}{' '}
+              <span className="text-gray-400 font-normal">{t('label_optional')}</span>
+            </>
+          }
+        >
+          <Select
             value={form.supplier_id}
             onChange={(e) => setForm((f) => ({ ...f, supplier_id: e.target.value }))}
-            className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
           >
             <option value="">{t('placeholder_supplier_none')}</option>
             {suppliers.map((s) => (
@@ -231,7 +232,7 @@ function NewProductContent() {
                 {s.name}
               </option>
             ))}
-          </select>
+          </Select>
           <div className="flex items-center justify-between mt-1">
             {suppliers.length === 0 && (
               <span className="text-xs text-gray-400">{t('no_suppliers_hint')}</span>
@@ -252,19 +253,17 @@ function NewProductContent() {
               </Link>
             </div>
           </div>
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_opening_stock')}</label>
-          <input
+        <FormField label={t('label_opening_stock')}>
+          <Input
             type="number"
             inputMode="numeric"
             min="0"
             value={form.stock_qty}
             onChange={(e) => setForm((f) => ({ ...f, stock_qty: e.target.value }))}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
-        </div>
+        </FormField>
 
         {stockQty > 0 && (
           <div className="space-y-3">
@@ -293,22 +292,11 @@ function NewProductContent() {
           </div>
         )}
 
-        {errorMessage && <p className="text-red-600 text-sm">{errorMessage}</p>}
+        {errorMessage && <Callout tone="error">{errorMessage}</Callout>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-brand text-white font-bold py-4 rounded-full active:bg-brand-hover disabled:opacity-50 min-h-[48px]"
-        >
-          {loading ? (
-            <span className="inline-flex items-center justify-center gap-2">
-              <Spinner size="sm" />
-              {t('btn_saving')}
-            </span>
-          ) : (
-            t('btn_save_product')
-          )}
-        </button>
+        <Button type="submit" variant="primary" size="lg" fullWidth loading={loading}>
+          {loading ? t('btn_saving') : t('btn_save_product')}
+        </Button>
       </form>
 
       {scanning && (

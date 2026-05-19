@@ -16,6 +16,7 @@ import { NewProductModal } from '@/components/sale/NewProductModal'
 import { ProductPicker } from '@/components/sale/ProductPicker'
 import { PaymentMethodSheet } from '@/components/sale/PaymentMethodSheet'
 import { Spinner, FullScreenSpinner } from '@/components/Spinner'
+import { Button, Callout, PageHeader, EmptyState } from '@/components/ui'
 import { enqueueSale, getCachedProductByBarcode, getCachedSettings, cacheSettings } from '@/lib/offline/db'
 import { createClient } from '@/lib/supabase/client'
 import { emitDataChanged } from '@/lib/events'
@@ -233,8 +234,7 @@ export default function SalePage() {
   if ((role === 'owner' || role === 'admin') && !activeTeller && isOnline) {
     return (
       <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">{t('start_sale')}</h1>
-        <p className="text-gray-500 text-sm mb-8">{t('select_teller')}</p>
+        <PageHeader title={t('start_sale')} subtitle={t('select_teller')} />
         <TellerSelector onSelect={setActiveTeller} selectedId={null} />
       </main>
     )
@@ -280,18 +280,16 @@ export default function SalePage() {
         )}
 
         {/* error banner */}
-        {submitError && (
-          <div className="bg-red-50 text-red-600 text-sm rounded-xl px-4 py-3 mb-4">
-            {submitError}
-          </div>
-        )}
+        {submitError && <Callout tone="error" className="mb-4">{submitError}</Callout>}
 
         {/* action buttons */}
         <div className="flex gap-3 mb-6">
-          <button
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
             onClick={() => setIsScannerOpen(true)}
             disabled={isScanLoading}
-            className="flex-1 flex items-center justify-center gap-2 bg-brand text-white font-semibold py-4 rounded-full active:bg-brand-hover text-base disabled:opacity-60"
           >
             {isScanLoading ? (
               <>
@@ -304,22 +302,22 @@ export default function SalePage() {
                 {t('btn_scan')}
               </>
             )}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            fullWidth
             onClick={() => setIsPickerOpen(true)}
-            className="flex-1 flex items-center justify-center gap-2 border-2 border-brand text-brand font-semibold py-4 rounded-full active:bg-brand-light text-base"
+            className="border-2 border-brand text-brand active:bg-brand-light"
           >
             <ClipboardList className="w-5 h-5" strokeWidth={2} />
             {t('btn_add_manually')}
-          </button>
+          </Button>
         </div>
 
         {/* cart */}
         {items.length === 0 ? (
-          <div className="text-center mt-16">
-            <ShoppingCart className="w-12 h-12 mx-auto mb-3 text-gray-300" strokeWidth={1.5} />
-            <p className="text-gray-400 text-sm">{t('cart_empty')}</p>
-          </div>
+          <EmptyState icon={ShoppingCart} title={t('cart_empty')} className="mt-16 border-0 bg-transparent" />
         ) : (
           <div className="bg-white rounded-2xl px-4">
             {items.map((item) => (

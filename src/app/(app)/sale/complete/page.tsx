@@ -5,6 +5,7 @@ import { Suspense } from 'react'
 import { Check, WifiOff } from 'lucide-react'
 import { formatZAR } from '@/lib/utils/currency'
 import { useTranslation } from '@/components/LanguageProvider'
+import { Button } from '@/components/ui'
 
 function SaleCompleteContent() {
   const searchParams = useSearchParams()
@@ -44,12 +45,15 @@ function SaleCompleteContent() {
 
       <p className="text-4xl font-bold text-gray-900 mb-10">{formatZAR(total)}</p>
 
-      <button
+      <Button
+        variant="primary"
+        size="lg"
+        fullWidth
         onClick={() => router.push('/sale')}
-        className="w-full max-w-xs bg-brand text-white font-semibold py-4 rounded-full active:bg-brand-hover text-base"
+        className="max-w-xs"
       >
         {t('btn_new_sale')}
-      </button>
+      </Button>
 
       <button
         onClick={() => router.push('/dashboard')}

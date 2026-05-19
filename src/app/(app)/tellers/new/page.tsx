@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/components/LanguageProvider'
 import { BackButton } from '@/components/BackButton'
-import { Spinner, FullScreenSpinner } from '@/components/Spinner'
+import { FullScreenSpinner } from '@/components/Spinner'
+import { Button, FormField, Input, Callout } from '@/components/ui'
 import { emitDataChanged } from '@/lib/events'
 
 export default function NewTellerPage() {
@@ -51,26 +52,21 @@ export default function NewTellerPage() {
         <h1 className="text-2xl font-bold text-gray-900">{t('add_title')}</h1>
       </div>
 
-      <p className="text-sm text-gray-500 mb-6">
-        {t('add_desc')}
-      </p>
+      <p className="text-sm text-gray-500 mb-6">{t('add_desc')}</p>
 
       <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_name')}</label>
-          <input
+        <FormField label={t('label_name')}>
+          <Input
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             placeholder={t('placeholder_name')}
             required
             autoComplete="off"
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_pin')}</label>
-          <input
+        <FormField label={t('label_pin')} hint={t('hint_pin')}>
+          <Input
             type="text"
             inputMode="numeric"
             pattern="[0-9]*"
@@ -82,29 +78,15 @@ export default function NewTellerPage() {
             placeholder={t('placeholder_pin')}
             required
             autoComplete="off"
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-lg tracking-[0.4em] focus:outline-none focus:ring-2 focus:ring-brand"
+            className="text-lg tracking-[0.4em]"
           />
-          <p className="text-xs text-gray-400 mt-1">
-            {t('hint_pin')}
-          </p>
-        </div>
+        </FormField>
 
-        {errorMessage && <p className="text-red-600 text-sm">{errorMessage}</p>}
+        {errorMessage && <Callout tone="error">{errorMessage}</Callout>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-brand text-white font-bold py-4 rounded-full active:bg-brand-hover disabled:opacity-50 min-h-[48px]"
-        >
-          {loading ? (
-            <span className="inline-flex items-center justify-center gap-2">
-              <Spinner size="sm" />
-              {t('btn_creating')}
-            </span>
-          ) : (
-            t('btn_create')
-          )}
-        </button>
+        <Button type="submit" variant="primary" size="lg" fullWidth loading={loading}>
+          {loading ? t('btn_creating') : t('btn_create')}
+        </Button>
       </form>
     </main>
   )

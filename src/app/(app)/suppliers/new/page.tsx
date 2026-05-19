@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/components/LanguageProvider'
 import { BackButton } from '@/components/BackButton'
-import { Spinner, FullScreenSpinner } from '@/components/Spinner'
+import { FullScreenSpinner } from '@/components/Spinner'
+import { Button, FormField, Input, Select, Callout } from '@/components/ui'
 import { emitDataChanged } from '@/lib/events'
 
 export default function NewSupplierPage() {
@@ -51,6 +52,7 @@ export default function NewSupplierPage() {
   }
 
   const errorMessage = errorRaw || (errorKey ? t(errorKey) : '')
+  const optionalLabel = `(${t('type_none').toLowerCase()})`
 
   return (
     <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
@@ -63,78 +65,50 @@ export default function NewSupplierPage() {
       <p className="text-sm text-gray-500 mb-6">{t('add_desc')}</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_name')}</label>
-          <input
+        <FormField label={t('label_name')}>
+          <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={t('placeholder_name')}
             required
             maxLength={200}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {t('label_contact')} <span className="text-gray-400 font-normal">({t('type_none').toLowerCase()})</span>
-          </label>
-          <input
+        <FormField label={<>{t('label_contact')} <span className="text-gray-400 font-normal">{optionalLabel}</span></>}>
+          <Input
             type="tel"
             value={contactNumber}
             onChange={(e) => setContactNumber(e.target.value)}
             placeholder={t('placeholder_contact')}
             maxLength={50}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {t('label_type')} <span className="text-gray-400 font-normal">({t('type_none').toLowerCase()})</span>
-          </label>
-          <select
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-            className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
-          >
+        <FormField label={<>{t('label_type')} <span className="text-gray-400 font-normal">{optionalLabel}</span></>}>
+          <Select value={type} onChange={(e) => setType(e.target.value)}>
             <option value="">{t('type_none')}</option>
             <option value="wholesaler">{t('type_wholesaler')}</option>
             <option value="distributor">{t('type_distributor')}</option>
             <option value="farmer">{t('type_farmer')}</option>
             <option value="other">{t('type_other')}</option>
-          </select>
-        </div>
+          </Select>
+        </FormField>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {t('label_location')} <span className="text-gray-400 font-normal">({t('type_none').toLowerCase()})</span>
-          </label>
-          <input
+        <FormField label={<>{t('label_location')} <span className="text-gray-400 font-normal">{optionalLabel}</span></>}>
+          <Input
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             placeholder={t('placeholder_location')}
             maxLength={200}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
-        </div>
+        </FormField>
 
-        {errorMessage && <p className="text-red-600 text-sm">{errorMessage}</p>}
+        {errorMessage && <Callout tone="error">{errorMessage}</Callout>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-brand text-white font-bold py-4 rounded-full active:bg-brand-hover disabled:opacity-50 min-h-[48px]"
-        >
-          {loading ? (
-            <span className="inline-flex items-center justify-center gap-2">
-              <Spinner size="sm" />
-              {t('btn_creating')}
-            </span>
-          ) : (
-            t('btn_create')
-          )}
-        </button>
+        <Button type="submit" variant="primary" size="lg" fullWidth loading={loading}>
+          {loading ? t('btn_creating') : t('btn_create')}
+        </Button>
       </form>
     </main>
   )
