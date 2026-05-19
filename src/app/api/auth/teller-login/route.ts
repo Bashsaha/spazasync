@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { buildTellerEmail } from '@/lib/auth/teller'
 import { checkRateLimit } from '@/lib/utils/rateLimit'
+import { LOCALE_COOKIE, localeCookieOptions, parseLocale } from '@/lib/i18n/locale-cookie'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
   // Look up the shop by code
   const { data: shop, error: shopError } = await admin
     .from('shops')
-    .select('id')
+    .select('id, language')
     .eq('code', shopCode)
     .single()
 
@@ -83,5 +84,13 @@ export async function POST(request: Request) {
   // Return the synthetic email — client will use this to call signInWithPassword
   const syntheticEmail = buildTellerEmail(teller.name, shopCode)
 
-  return NextResponse.json({ syntheticEmail })
+  // Also pre-set the locale cookie to the shop's language so the layout's
+  // first render after teller sign-in already has the right translations
+  // hydrated server-side.
+  const res = NextResponse.json({ syntheticEmail })
+  const cookieLocale = parseLocale(shop.language as string | undefined)
+  if (cookieLocale) {
+    res.cookies.set(LOCALE_COOKIE, cookieLocale, localeCookieOptions())
+  }
+  return res
 }

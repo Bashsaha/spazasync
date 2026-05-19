@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { OfflineSyncProvider } from '@/components/OfflineSyncProvider'
 import { ToastProvider } from '@/components/Toast'
@@ -12,6 +13,7 @@ import { getTodayChecklist, todaySAST } from '@/lib/db/daily-checklist'
 import type { SupportedLocale, TranslationNamespace } from '@/lib/i18n/types'
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '@/lib/i18n/types'
 import { loadNamespacedTranslations } from '@/lib/i18n/loader'
+import { LOCALE_COOKIE, parseLocale } from '@/lib/i18n/locale-cookie'
 
 const APP_SHELL_NAMESPACES: TranslationNamespace[] = [
   'common', 'sale', 'sales', 'dashboard', 'stock', 'stock-loss', 'summary',
@@ -23,20 +25,31 @@ const APP_SHELL_NAMESPACES: TranslationNamespace[] = [
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
 
+  // Resolve locale BEFORE any awaits: cookie is synchronous, so we can fire
+  // i18n in parallel with the auth + shop queries below. Falls back to the
+  // shop's stored language after the parallel batch lands if the cookie is
+  // missing (one extra cheap reconcile load for users who haven't picked a
+  // language yet — the LanguageProvider then writes the cookie client-side
+  // so subsequent loads stay on the fast path).
+  const cookieStore = await cookies()
+  const cookieLocale = parseLocale(cookieStore.get(LOCALE_COOKIE)?.value)
+  const speculativeLocale: SupportedLocale = cookieLocale ?? DEFAULT_LOCALE
+
+  // Fire EVERYTHING in parallel from the start. auth.getUser is cheap (one
+  // RTT) but doesn't gate the i18n load — translations only depend on locale.
+  const [userRes, initialNsMap] = await Promise.all([
+    supabase.auth.getUser(),
+    loadNamespacedTranslations(speculativeLocale, APP_SHELL_NAMESPACES),
+  ])
+
+  const user = userRes.data.user
   if (!user) redirect('/login')
 
   const role = (user.app_metadata?.role as string) ?? 'owner'
   const shopId = user.app_metadata?.shop_id as string | undefined
 
-  // Parallelise the 3 shop-scoped queries — none depend on each other.
-  // Previously this was 3 sequential round trips (~600–1200ms on SA mobile)
-  // which delayed even loading.tsx from rendering, since loading boundaries
-  // only show after the surrounding layout's awaits resolve.
-  let initialLocale: SupportedLocale = DEFAULT_LOCALE
+  let initialLocale: SupportedLocale = speculativeLocale
   let shopName = 'Movestock'
   let personName: string | null = null
   let showChecklistReminder = false
@@ -56,32 +69,43 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         : Promise.resolve(null),
     ])
 
-    const lang = shopRes.data?.language as string | undefined
-    if (lang && SUPPORTED_LOCALES.includes(lang as SupportedLocale)) {
-      initialLocale = lang as SupportedLocale
-    }
     if (shopRes.data?.name) shopName = shopRes.data.name as string
     personName = (tellerRes.data?.name as string | undefined) ?? null
     if (needsChecklist) showChecklistReminder = checklistRes === null
+
+    // Reconcile speculative locale against the shop's stored language. If the
+    // cookie was missing or didn't match, do a second fast i18n load for the
+    // real locale. For users with the cookie set (the steady state), this is
+    // a no-op — speculativeLocale already equals shop.language.
+    const shopLang = shopRes.data?.language as string | undefined
+    const resolvedShopLocale = parseLocale(shopLang)
+    if (resolvedShopLocale && resolvedShopLocale !== speculativeLocale) {
+      initialLocale = resolvedShopLocale
+    }
   }
 
-  // Pre-load all app-shell namespaces server-side and ship them inline with
-  // the RSC payload. Saves 22 dynamic-import chunk round trips on first paint
-  // (previously every page-load fired one import() per namespace after
-  // hydration, which left every useTranslation call returning raw keys until
-  // the chunks arrived). loadNamespacedTranslations is cached per (locale,ns)
-  // so this is effectively free after the first request per locale.
-  const initialNsMap = await loadNamespacedTranslations(initialLocale, APP_SHELL_NAMESPACES)
+  // Second-pass i18n load ONLY if the speculative locale was wrong. The
+  // loader's per-(locale,ns) memoisation makes this cheap on subsequent
+  // requests after the first cold start.
+  const finalNsMap =
+    initialLocale === speculativeLocale
+      ? initialNsMap
+      : await loadNamespacedTranslations(initialLocale, APP_SHELL_NAMESPACES)
 
   const initialChar = (personName ?? shopName).trim().charAt(0).toUpperCase()
   const initial = initialChar || 'M'
 
+  // Sanity check: only emit a supported locale to the client.
+  const safeLocale: SupportedLocale = SUPPORTED_LOCALES.includes(initialLocale)
+    ? initialLocale
+    : DEFAULT_LOCALE
+
   return (
     <div className="min-h-screen bg-surface">
       <LanguageProvider
-        initialLocale={initialLocale}
+        initialLocale={safeLocale}
         namespaces={APP_SHELL_NAMESPACES}
-        initialNsMap={initialNsMap}
+        initialNsMap={finalNsMap}
       >
         <ToastProvider>
           <TopAppBar

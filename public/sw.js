@@ -2,18 +2,28 @@
  * Movestock Service Worker
  *
  * Strategy:
- *  - install              → precache app shell + offline fallback
+ *  - install              → precache /offline.html ONLY. Authenticated routes
+ *                            are deliberately NOT precached — their HTML
+ *                            contains per-user data (shop name, today's
+ *                            checklist state, locale-specific strings) and
+ *                            references build-specific chunk hashes that
+ *                            become stale on every deploy. (BUG-040)
  *  - /_next/static/       → cache-first (content-hashed, safe to cache forever)
  *  - SWR_GET_PATHS        → stale-while-revalidate for stable read endpoints
- *                            (offline support + instant repeat-load)
+ *                            (offline support + instant repeat-load). These
+ *                            are user-scoped via auth cookie and explicitly
+ *                            read-only.
  *  - /api/* (other)       → network-only (auth-sensitive mutations)
- *  - navigation HTML      → stale-while-revalidate (instant repeat-paint,
- *                            background refresh, offline fallback). RSC
- *                            payload requests are skipped so client-side
- *                            navigations always hit the network.
+ *  - navigation HTML      → network-first with /offline.html fallback. NEVER
+ *                            cache the HTML response: a previous BUG-039 SWR
+ *                            strategy caused cross-day stale renders (the
+ *                            checklist FAB went missing) and post-deploy
+ *                            chunk-404 stalls ("pages refuse to load").
+ *                            RSC payloads are the fast path for client-side
+ *                            navigations; cached HTML never was.
  */
 
-const CACHE = 'movestock-v34'
+const CACHE = 'movestock-v35'
 
 // Resources that MUST always be fetched fresh from the network so Chrome's
 // installability checker (and the platform's home-screen icon installer) sees
@@ -39,14 +49,10 @@ const SWR_GET_PATHS = [
   '/api/daily-checklist',
 ]
 
-/** Critical routes precached on install so the app works offline from first install. */
-const PRECACHE_URLS = [
-  '/offline.html',
-  '/sale',
-  '/login',
-  '/dashboard',
-  '/settings',
-]
+/** Only /offline.html is safe to precache — it has no per-user data and no
+ *  build-specific chunk references. Authenticated routes are NEVER precached
+ *  (BUG-040). */
+const PRECACHE_URLS = ['/offline.html']
 
 // ── Lifecycle ──────────────────────────────────────────────────────────────
 
@@ -141,10 +147,8 @@ self.addEventListener('fetch', (event) => {
 
   // Only treat top-level document loads as "navigation". Next.js client-side
   // navigations issue RSC payload fetches (request.destination !== 'document',
-  // and usually carry an RSC header or _rsc= query param) — caching those as
-  // navigation HTML produced content-type mismatches and stale-payload bugs.
-  // Anything that isn't a document load is left to the browser's default
-  // handling so RSC payloads always reach the network fresh.
+  // and usually carry an RSC header or _rsc= query param) — those must always
+  // hit the network so the user sees the current server-rendered state.
   const isDocument =
     request.mode === 'navigate' ||
     request.destination === 'document'
@@ -154,26 +158,14 @@ self.addEventListener('fetch', (event) => {
     request.headers.get('Next-Router-Prefetch') === '1'
   if (!isDocument || isRscPayload) return
 
-  // Page navigation — stale-while-revalidate. Repeat visits paint the cached
-  // shell instantly while a background fetch refreshes it for next time.
-  // Falls back to /offline.html only when both cache and network are empty.
+  // Page navigation — network-first, /offline.html fallback. We deliberately
+  // do NOT cache navigation HTML: it contains per-user data and references
+  // build-specific chunk hashes that 404 after the next deploy. The fast path
+  // for repeat visits is the in-flight Next.js router prefetch + cached RSC
+  // payload, not a stale HTML snapshot. (BUG-040)
   event.respondWith(
-    caches.open(CACHE).then(async (cache) => {
-      const cached = await cache.match(request)
-
-      const networkPromise = fetch(request)
-        .then((res) => {
-          if (res.ok) cache.put(request, res.clone())
-          return res
-        })
-        .catch(() => null)
-
-      if (cached) {
-        networkPromise // fire-and-forget background refresh
-        return cached
-      }
-
-      return (await networkPromise) ?? (await cache.match('/offline.html'))
-    }),
+    fetch(request).catch(() =>
+      caches.open(CACHE).then((cache) => cache.match('/offline.html')),
+    ),
   )
 })

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ClipboardCheck } from 'lucide-react'
@@ -12,9 +12,12 @@ import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
  *  Renders a small circular floating button in the bottom-LEFT corner.
  *  Pulses (expanding ring) until the owner taps it or completes the checklist.
  *
- *  `initialVisible` comes from the server-side layout render. After any
- *  DATA_CHANGED event (e.g. checklist saved) the component re-checks the
- *  status API so it dismisses itself without waiting for router.refresh().
+ *  `initialVisible` is the server-side hint — fastest path for first paint
+ *  when the server-rendered HTML is current. We additionally run a status
+ *  fetch on mount + every visibility event, and apply the result in BOTH
+ *  directions (show + hide). This self-heals from stale-HTML scenarios like
+ *  day-rollover where the cached render said "completed" but a new day means
+ *  the checklist is now pending again. (BUG-040)
  *
  *  Hidden on /sale and /checklist.
  */
@@ -28,12 +31,19 @@ export function ChecklistReminderFab({ initialVisible }: { initialVisible: boole
       const res = await fetch('/api/daily-checklist/status', { cache: 'no-store' })
       if (res.ok) {
         const { completed } = await res.json() as { completed: boolean }
-        if (completed) setVisible(false)
+        setVisible(!completed)
       }
     } catch {
-      // silently ignore — FAB stays visible until next check
+      // silently ignore — keep current visibility until next check succeeds
     }
   }, [])
+
+  // One-shot reconcile on mount so a stale `initialVisible` (e.g. from a
+  // bfcache restore on a new day) corrects itself without waiting for a
+  // visibility / focus event that may not fire on cold opens.
+  useEffect(() => {
+    recheck()
+  }, [recheck])
 
   useRefetchOnVisible(recheck)
 

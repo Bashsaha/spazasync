@@ -5,6 +5,7 @@ import { setOwnerMetadata } from '@/lib/auth/teller'
 import { onboardingSchema } from '@/lib/validation/schemas'
 import { findMunicipalityByArea } from '@/lib/db/municipalities'
 import { checkRateLimit } from '@/lib/utils/rateLimit'
+import { LOCALE_COOKIE, localeCookieOptions, parseLocale } from '@/lib/i18n/locale-cookie'
 
 /**
  * Auto-generate a short, unique shop code from the shop name.
@@ -177,5 +178,10 @@ export async function POST(request: Request) {
     // Not fatal — they can still use the app; proxy falls back to DB check
   }
 
-  return NextResponse.json({ shopId: shop.id, shopCode })
+  // Set the locale cookie so the first load after onboarding lands on the
+  // fast path in (app)/layout.tsx (no shop.language reconcile needed).
+  const res = NextResponse.json({ shopId: shop.id, shopCode })
+  const cookieLocale = parseLocale(language) ?? 'en'
+  res.cookies.set(LOCALE_COOKIE, cookieLocale, localeCookieOptions())
+  return res
 }

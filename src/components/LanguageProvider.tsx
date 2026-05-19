@@ -13,10 +13,26 @@ import type { SupportedLocale, TranslationNamespace, Translations } from '@/lib/
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES, LOCALE_META } from '@/lib/i18n/types'
 import { loadNamespacedTranslations, clearTranslationCache } from '@/lib/i18n/loader'
 import { t as tFn, tPlural as tPluralFn } from '@/lib/i18n/interpolate'
+import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE } from '@/lib/i18n/locale-cookie'
 
 // Intentionally not renamed during Phase 34b rebrand — changing this key would
 // silently reset every user's language preference to the default on next load.
 const STORAGE_KEY = 'spazasync_lang'
+
+/** Write the locale cookie so the next server-rendered layout reads it on the
+ *  fast path (no shop.language reconcile required). Locale is not a security
+ *  boundary, so a non-httpOnly client-set cookie is correct here. */
+function writeLocaleCookie(locale: SupportedLocale): void {
+  if (typeof document === 'undefined') return
+  const attrs = [
+    `${LOCALE_COOKIE}=${locale}`,
+    'Path=/',
+    `Max-Age=${LOCALE_COOKIE_MAX_AGE}`,
+    'SameSite=Lax',
+  ]
+  if (window.location.protocol === 'https:') attrs.push('Secure')
+  document.cookie = attrs.join('; ')
+}
 
 interface LanguageContextValue {
   locale: SupportedLocale
@@ -169,7 +185,19 @@ export function LanguageProvider({
     } catch {
       // localStorage not available
     }
+    writeLocaleCookie(newLocale)
   }, [])
+
+  // Self-heal: if the server hydrated us with a locale but the cookie isn't
+  // set (e.g. existing user before this deploy, or cookies cleared), write
+  // it now so the next page load lands on the fast path in the layout.
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    const hasCookie = document.cookie
+      .split(';')
+      .some((c) => c.trim().startsWith(`${LOCALE_COOKIE}=`))
+    if (!hasCookie) writeLocaleCookie(locale)
+  }, [locale])
 
   const t = useCallback(
     (key: string, params?: Record<string, string | number>) =>
