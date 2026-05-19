@@ -9,6 +9,7 @@ import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
 import { AreaPicker, type AreaPickerValue } from '@/components/compliance-onboarding/AreaPicker'
 import { recordRecentUser } from '@/lib/auth/recent-users'
+import { Button, Card, FormField, Input, Callout } from '@/components/ui'
 import type { SupportedLocale } from '@/lib/i18n/types'
 
 export default function OnboardingPage() {
@@ -141,7 +142,7 @@ export default function OnboardingPage() {
           <p className="text-gray-500 mt-1 text-sm">{subtitle}</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+        <Card padding="lg">
           {step === 'language' ? (
             <div className="space-y-5">
               <h2 className="text-lg font-bold text-gray-900 text-center">
@@ -152,12 +153,9 @@ export default function OnboardingPage() {
                 onChange={setSelectedLanguage}
                 variant="full"
               />
-              <button
-                onClick={handleLanguageContinue}
-                className="w-full bg-brand text-white font-semibold py-3 rounded-full hover:bg-brand-hover transition-colors text-base min-h-[48px]"
-              >
+              <Button variant="primary" size="lg" fullWidth onClick={handleLanguageContinue}>
                 {t('btn_continue')}
-              </button>
+              </Button>
             </div>
           ) : step === 'done' ? (
             <div className="text-center space-y-4 py-2">
@@ -166,37 +164,22 @@ export default function OnboardingPage() {
               <div className="bg-brand-light border border-brand-light rounded-xl p-4">
                 <p className="text-sm text-gray-600 mb-1">{t('shop_created_text')}</p>
                 <p className="text-3xl font-bold text-brand tracking-wider">{generatedCode}</p>
-                <button
-                  type="button"
+                <Button
+                  variant={codeCopied ? 'secondary' : 'outline'}
+                  size="sm"
                   onClick={handleCopyCode}
-                  className={`mt-3 inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full transition-colors ${
-                    codeCopied
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-white border border-brand-light text-brand-hover active:bg-brand-light'
-                  }`}
+                  className={codeCopied ? 'bg-green-100 text-green-700 border-transparent' : ''}
+                  icon={codeCopied ? Check : Copy}
                 >
-                  {codeCopied ? (
-                    <>
-                      <Check className="w-4 h-4" strokeWidth={2.25} />
-                      {t('shop_created_copied')}
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4" strokeWidth={1.75} />
-                      {t('shop_created_copy')}
-                    </>
-                  )}
-                </button>
+                  {codeCopied ? t('shop_created_copied') : t('shop_created_copy')}
+                </Button>
                 <p className="text-xs text-gray-500 mt-3">
                   {t('shop_created_subtext')}
                 </p>
               </div>
-              <button
-                onClick={handleContinueToDashboard}
-                className="w-full bg-brand text-white font-semibold py-3 rounded-full hover:bg-brand-hover transition-colors text-base min-h-[48px]"
-              >
+              <Button variant="primary" size="lg" fullWidth onClick={handleContinueToDashboard}>
                 {t('btn_go_to_dashboard')}
-              </button>
+              </Button>
             </div>
           ) : step === 'continue-with-google' ? (
             <GoogleSignInStep
@@ -221,7 +204,7 @@ export default function OnboardingPage() {
               onSubmit={handleSetup}
             />
           )}
-        </div>
+        </Card>
 
         {step !== 'language' && step !== 'done' && (
           <p className="text-center text-sm text-gray-500 mt-4">
@@ -251,19 +234,12 @@ function GoogleSignInStep({
     <div className="space-y-4">
       <p className="text-sm text-gray-600">{t('google_signin_subtitle')}</p>
 
-      <button
-        type="button"
-        onClick={onSignIn}
-        disabled={loading}
-        className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-800 font-semibold py-3 rounded-full hover:bg-gray-50 active:bg-gray-100 transition-colors disabled:opacity-50 text-base min-h-[48px]"
-      >
+      <Button variant="outline" size="lg" fullWidth onClick={onSignIn} disabled={loading}>
         <GoogleGlyph />
         {t('btn_continue_with_google')}
-      </button>
+      </Button>
 
-      {error && (
-        <p className="text-red-600 text-sm bg-red-50 rounded-xl px-3 py-2">{error}</p>
-      )}
+      {error && <Callout tone="error">{error}</Callout>}
     </div>
   )
 }
@@ -303,72 +279,72 @@ function ShopSetupForm({
       <p className="text-sm text-gray-600">
         {t('onboarding_step2_subtitle')} — {t('onboarding_step2_description')}
       </p>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_shop_name')}</label>
-        <input
+
+      <FormField label={t('label_shop_name')}>
+        <Input
           type="text"
           value={shopName}
           onChange={(e) => setShopName(e.target.value)}
           placeholder={t('placeholder_shop_name')}
           required
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base"
+          className="text-base"
         />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{t('label_your_name')}</label>
-        <input
+      </FormField>
+
+      <FormField label={t('label_your_name')} hint={t('hint_owner_name')}>
+        <Input
           type="text"
           value={ownerName}
           onChange={(e) => setOwnerName(e.target.value)}
           placeholder={t('placeholder_your_name')}
           required
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base"
+          className="text-base"
         />
-        <p className="text-xs text-gray-400 mt-1">
-          {t('hint_owner_name')}
-        </p>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          {t('label_registration_number')} <span className="text-gray-400 font-normal">{t('label_optional')}</span>
-        </label>
-        <input
+      </FormField>
+
+      <FormField
+        label={
+          <>
+            {t('label_registration_number')}{' '}
+            <span className="text-gray-400 font-normal">{t('label_optional')}</span>
+          </>
+        }
+        hint={t('hint_add_later')}
+      >
+        <Input
           type="text"
           value={registrationNumber}
           onChange={(e) => setRegistrationNumber(e.target.value)}
           placeholder={t('placeholder_registration_number')}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base"
+          className="text-base"
         />
-        <p className="text-xs text-gray-400 mt-1">
-          {t('hint_add_later')}
-        </p>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          {t('label_location')} <span className="text-gray-400 font-normal">{t('label_optional')}</span>
-        </label>
-        <input
+      </FormField>
+
+      <FormField
+        label={
+          <>
+            {t('label_location')}{' '}
+            <span className="text-gray-400 font-normal">{t('label_optional')}</span>
+          </>
+        }
+        hint={t('hint_add_later')}
+      >
+        <Input
           type="text"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
           placeholder={t('placeholder_location')}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base"
+          className="text-base"
         />
-        <p className="text-xs text-gray-400 mt-1">
-          {t('hint_add_later')}
-        </p>
-      </div>
+      </FormField>
+
       <AreaPicker value={area} onChange={setArea} copyNamespace="auth" />
-      {error && (
-        <p className="text-red-600 text-sm bg-red-50 rounded-xl px-3 py-2">{error}</p>
-      )}
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-brand text-white font-semibold py-3 rounded-full hover:bg-brand-hover transition-colors disabled:opacity-50 text-base min-h-[48px]"
-      >
+
+      {error && <Callout tone="error">{error}</Callout>}
+
+      <Button type="submit" variant="primary" size="lg" fullWidth loading={loading}>
         {loading ? t('btn_creating_shop') : t('btn_create_shop')}
-      </button>
+      </Button>
     </form>
   )
 }

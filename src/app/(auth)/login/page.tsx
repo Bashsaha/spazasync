@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
 import { FullScreenSpinner } from '@/components/Spinner'
+import { Button, Card, FormField, Input, Callout } from '@/components/ui'
 import {
   getRecentUsers,
   recordRecentUser,
@@ -101,7 +102,7 @@ export default function LoginPage() {
         </div>
 
         {/* Form card */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+        <Card padding="lg">
           {tab === 'owner' ? (
             <OwnerLoginForm
               email={ownerEmail}
@@ -117,7 +118,7 @@ export default function LoginPage() {
               onSuccess={handleTellerSuccess}
             />
           )}
-        </div>
+        </Card>
 
         {/* Language switcher */}
         <div className="mt-6">
@@ -213,19 +214,18 @@ function OwnerLoginForm({
       {loading && <FullScreenSpinner label={t('btn_signing_in')} />}
       <p className="text-sm text-gray-600">{t('google_signin_subtitle')}</p>
 
-      <button
-        type="button"
+      <Button
+        variant="outline"
+        size="lg"
+        fullWidth
         onClick={handleGoogleSignIn}
         disabled={loading}
-        className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-800 font-semibold py-3 rounded-full hover:bg-gray-50 active:bg-gray-100 transition-colors disabled:opacity-50 text-base min-h-[48px]"
       >
         <GoogleGlyph />
         {t('btn_continue_with_google')}
-      </button>
+      </Button>
 
-      {error && (
-        <p className="text-red-600 text-sm bg-red-50 rounded-xl px-3 py-2">{error}</p>
-      )}
+      {error && <Callout tone="error">{error}</Callout>}
 
       <p className="text-center text-sm">
         <Link href="/onboarding" className="text-brand font-medium">
@@ -311,33 +311,32 @@ function TellerLoginForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {loading && <FullScreenSpinner label={t('btn_signing_in')} />}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{t('teller_label_shop_code')}</label>
-        <input
+
+      <FormField label={t('teller_label_shop_code')} hint={t('teller_hint_shop_code')}>
+        <Input
           type="text"
           value={shopCode}
           onChange={(e) => setShopCode(e.target.value.toUpperCase())}
           placeholder={t('teller_placeholder_shop_code')}
           required
           maxLength={10}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base uppercase tracking-wider"
+          className="uppercase tracking-wider text-base"
         />
-        <p className="text-xs text-gray-400 mt-1">{t('teller_hint_shop_code')}</p>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{t('teller_label_name')}</label>
-        <input
+      </FormField>
+
+      <FormField label={t('teller_label_name')}>
+        <Input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder={t('teller_placeholder_name')}
           required
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-base"
+          className="text-base"
         />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{t('teller_label_pin')}</label>
-        <input
+      </FormField>
+
+      <FormField label={t('teller_label_pin')} hint={t('teller_hint_pin')}>
+        <Input
           type="text"
           inputMode="numeric"
           pattern="[0-9]*"
@@ -347,22 +346,15 @@ function TellerLoginForm({
           placeholder={t('teller_placeholder_pin')}
           required
           autoComplete="off"
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand text-lg tracking-[0.4em]"
+          className="text-lg tracking-[0.4em]"
         />
-        <p className="text-xs text-gray-400 mt-1">{t('teller_hint_pin')}</p>
-      </div>
+      </FormField>
 
-      {error && (
-        <p className="text-red-600 text-sm bg-red-50 rounded-xl px-3 py-2">{error}</p>
-      )}
+      {error && <Callout tone="error">{error}</Callout>}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-brand text-white font-semibold py-3 rounded-full hover:bg-brand-hover active:bg-brand-hover transition-colors disabled:opacity-50 text-base min-h-[48px]"
-      >
+      <Button type="submit" variant="primary" size="lg" fullWidth loading={loading}>
         {loading ? t('btn_signing_in') : t('btn_sign_in')}
-      </button>
+      </Button>
     </form>
   )
 }
