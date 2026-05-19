@@ -23,7 +23,7 @@
  *                            navigations; cached HTML never was.
  */
 
-const CACHE = 'movestock-v35'
+const CACHE = 'movestock-v36'
 
 // Resources that MUST always be fetched fresh from the network so Chrome's
 // installability checker (and the platform's home-screen icon installer) sees
@@ -86,8 +86,34 @@ self.addEventListener('fetch', (event) => {
   const { request } = event
   const url = new URL(request.url)
 
-  // Only intercept same-origin GET requests
-  if (request.method !== 'GET' || url.origin !== self.location.origin) return
+  // Only intercept same-origin requests
+  if (url.origin !== self.location.origin) return
+
+  // Mutations to a SWR-cached resource (or any sub-path of it) invalidate the
+  // cached GET response so the next read hits network. Without this, e.g. a
+  // POST /api/tellers (add) or PATCH /api/tellers/:id (remove) succeeds but
+  // the immediately-following GET /api/tellers still serves the stale pre-
+  // mutation snapshot from the SW SWR cache — the new teller doesn't appear
+  // and the removed one keeps showing until the next visibility-triggered
+  // refetch happens to land after the background revalidation completes.
+  if (request.method !== 'GET') {
+    const swrPath = SWR_GET_PATHS.find(
+      (p) => url.pathname === p || url.pathname.startsWith(p + '/'),
+    )
+    if (swrPath) {
+      event.waitUntil(
+        caches.open(CACHE).then(async (cache) => {
+          const keys = await cache.keys()
+          await Promise.all(
+            keys
+              .filter((req) => new URL(req.url).pathname === swrPath)
+              .map((req) => cache.delete(req)),
+          )
+        }),
+      )
+    }
+    return // Mutation passes through to network
+  }
 
   // Never intercept the manifest or icons — Chrome's install pipeline reads
   // these directly to decide whether the site qualifies as a standalone PWA.
