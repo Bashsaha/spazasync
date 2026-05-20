@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ShoppingCart, Calendar } from 'lucide-react'
+import { ShoppingCart, Calendar, BarChart3 } from 'lucide-react'
 import { getShopAuth } from '@/lib/auth/shop-auth'
 import { Skeleton } from '@/components/Skeleton'
 import { TodaySummary } from '@/components/dashboard/TodaySummary'
@@ -71,13 +71,25 @@ export default async function SalesHubPage() {
       {/* View by date — drill-down link */}
       <Link
         href="/sales/history"
-        className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
+        className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50 mb-3"
       >
         <div>
           <p className="font-bold text-gray-900">{t('hub_view_history')}</p>
           <p className="text-gray-400 text-sm">{t('hub_view_history_desc')}</p>
         </div>
         <Calendar className="w-7 h-7 text-brand" strokeWidth={1.75} />
+      </Link>
+
+      {/* Sales statistics — period analytics drill-down */}
+      <Link
+        href="/sales/statistics"
+        className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
+      >
+        <div>
+          <p className="font-bold text-gray-900">{t('hub_statistics')}</p>
+          <p className="text-gray-400 text-sm">{t('hub_statistics_desc')}</p>
+        </div>
+        <BarChart3 className="w-7 h-7 text-brand" strokeWidth={1.75} />
       </Link>
     </main>
   )

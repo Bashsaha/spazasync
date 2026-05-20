@@ -233,9 +233,10 @@ The file tree below is ground truth. After every phase: Glob scan, diff against 
 
 ## Living Scope
 
-Phases 1–36c + 37a–37g + 38 + 39 + 40 + 41a + 41b + 41c + 41d + 41e complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+Phases 1–36c + 37a–37g + 38 + 39 + 40 + 41a + 41b + 41c + 41d + 41e + 42 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
 
 Most recent:
+- 42 Sales Statistics (2026-05-20) — new owner-only analytics page at `/sales/statistics`, linked from the `/sales` hub ("Graphs, top sellers, profit and non-movers"). Pick a date range (7d / 30d / 90d / custom — same picker as `/stock-take/loss`) and see: **summary tiles** (sales, items sold, revenue, average sale, + profit when `profit_tracking_enabled`), a **revenue trend graph** (reuses `WeeklySalesChart`; daily bars when the range is ≤ 31 days, auto-switching to weekly buckets beyond that so it stays readable on a phone), **top sellers** (top 10 by units sold), **lowest sellers** (bottom 10 among products that sold ≥1 unit), **most profitable** (top 10 by total profit — only rendered when profit tracking is on; products with no cost price are excluded and surfaced via a `/products/missing-cost` nudge), and **non-movers** (products with `stock_qty > 0` that sold nothing in the period, excluding products created after the range end). Plus a **Download report (PDF)** with all four tables. **Pure, testable core**: `lib/db/sales-statistics.ts` exports `shapeSalesStatistics()` (no DB/clock) + `getSalesStatistics()` fetcher (admin client scoped by shopId, mirrors `lib/db/reports.ts`). Two owner/admin-guarded routes: `GET /api/sales/statistics` (JSON) and `GET /api/reports/sales-statistics-pdf` (reuses `lib/pdf/shared.ts` + jspdf-autotable, mirrors `stock-loss-pdf`). New `sales-statistics` i18n namespace (~40 keys) × 5 locales — **non-EN currently mirrors EN** per the existing precedent (key + placeholder parity green; native translation is a tracked follow-up); 2 new native `hub_statistics*` keys added to the existing `sales` namespace × 5 locales. i18n namespace count 23 → 24 (`types.ts` union, `APP_SHELL_NAMESPACES` in `(app)/layout.tsx`, both assertions in `tests/unit/i18n.test.ts`). 12 new unit tests in `tests/unit/sales-statistics.test.ts` cover units/profit ranking, non-mover detection (incl. zero-stock + after-range exclusions), daily↔weekly bucket boundary at 31 days, profit-off behaviour, and 2dp rounding. **No DB migration** — reads existing `sales`, `sale_items`, `products`. SW cache v38 → v39. 679/679 tests pass; `tsc --noEmit` clean; `next build` clean.
 - BUG-041 — tellers list (and other SWR-cached lists) didn't refresh after add/remove (2026-05-19) — small focused SW fix. User reported "when adding tellers and removing it doesn't immediately show the added or remove the removed ones". Root cause: `/api/tellers` is in [public/sw.js](public/sw.js)'s `SWR_GET_PATHS`, so the SW served the pre-mutation cached response on the very first GET that followed a POST/PATCH — the background revalidation updated the cache only AFTER the UI had already rendered stale data. The client's `cache: 'no-store'` only bypasses the browser HTTP cache, not the service worker. Fix: added a cache-invalidation branch to the SW's `fetch` handler that deletes every cached entry for a matching SWR base path whenever a non-GET request hits that path or any sub-path (so `POST /api/tellers` and `PATCH /api/tellers/:id` both invalidate `/api/tellers`). Mutation still passes through to network. Fix is path-generic, so it also clears the same latent bug on `/api/products`, `/api/suppliers`, `/api/settings`, `/api/business-documents`, `/api/compliance-score`, `/api/daily-checklist` — every endpoint in `SWR_GET_PATHS`. Cache bumped v35 → v36. **Also clarified for the user** that R300,000 (per-shop fund maximum) and R80,000 (CIPC registration threshold corrected in Phase 41a from R100k) are TWO separate facts, not a single number that needs updating — both are accurate and shown side-by-side in [src/components/compliance-fund/FundTierLadder.tsx](src/components/compliance-fund/FundTierLadder.tsx). No DB migration, no API changes, no i18n changes. Single file edited: `public/sw.js`. BUG-041 logged in `tasks/bugs.md` with prevention rule: when a SW serves a GET with SWR, every same-origin mutation on the same base path (incl. sub-paths) MUST invalidate the SW cache entry — otherwise the SPA's "POST → navigate → GET" flow renders the pre-mutation snapshot.
 - Design-system primitives + initial sweep (2026-05-19) — kicks off the long-overdue consolidation pass on visual primitives. User flagged inconsistency: "why is it not standard across the site, shouldn't it have shared files". Survey data confirmed the hotspots: primary brand button (100 occurrences across 70 files), white card (91 / 50), form input (97 / 38), form label (142 / 50), page header (63 / 52), amber callout (56 / 44), red callout (56 / 38), disabled button (45 / 33). Every pattern past the "three similar lines beats premature abstraction" threshold. **New surface in `src/components/ui/`:** Button + LinkButton (5 variants, 3 sizes, loading, icon slots), Card + LinkCard, PageHeader, FormField + Input + Textarea + Select, Callout (info/warning/error/success/brand), Badge (6 tones), EmptyState, SectionHeader, `cx()` joiner. No new deps — `clsx`/`tailwind-merge` deliberately avoided. **Initial sweep** covers 9 pages: `(auth)/login`, `(auth)/onboarding`, `(app)/settings`, `(app)/profile`, `(app)/sale`, `(app)/sale/complete`, `(app)/products/new`, `(app)/products/[id]`, `(app)/suppliers/new`, `(app)/tellers/new` — chosen as the highest-traffic / highest-form-density pages. **Visual output is unchanged** — primitives match the existing Tailwind tokens 1:1; this is consolidation, not redesign. Toggle switches, modals (NewProductModal, PaymentMethodSheet), and one-off custom widgets stay as-is for this phase (specialty patterns, not in the "repeated 20+ times" group). **Convention added to CLAUDE.md** above (UI Primitives Convention, CRITICAL): new code MUST assemble from primitives; new visual patterns land in `src/components/ui/` FIRST; remaining pages migrate organically as touched. This is the single rule that stops post-launch drift. 659/659 tests pass; `tsc --noEmit` clean. No DB migration, no API changes. **Honest scope:** ~30 pages + components still hand-write Tailwind primitives — they're not broken, they just haven't been swept yet. Each future commit that touches one of those files is expected to migrate it in passing.
 - BUG-040 — undoing the BUG-039 bits that hurt more than they helped (2026-05-19) — three regressions reported by user: "takes ages to load when opening", "checklist buzzer doesn't show until you click something on the dashboard", "sometimes pages refuse to load". All three traced to BUG-039's SW + FAB changes plus a sequential i18n await remaining in the layout. **(1)** [public/sw.js](public/sw.js) navigation reverted from stale-while-revalidate to **network-first with `/offline.html` fallback**. `PRECACHE_URLS` stripped to `['/offline.html']` only — authenticated routes are NEVER precached now. The previous list (`/sale /login /dashboard /settings`) either failed install on logged-out devices (via the 307→/login redirect) or captured one user's snapshot and served it to everyone on that device, plus referenced build-specific chunk hashes that 404'd after every deploy = "pages refuse to load". Cache bump v34 → v35. **(2)** [ChecklistReminderFab.tsx](src/components/ChecklistReminderFab.tsx) — recheck now does `setVisible(!completed)` (bidirectional, not the previous one-way hide), and runs once on mount via `useEffect` so it self-heals without waiting for a pageshow/focus event that may never fire on cold open. **(3)** Locale moved to a server-readable cookie (`mvs_locale`, `Path=/; SameSite=Lax; Secure (prod); Max-Age=1y; NOT httpOnly` — locale isn't a security boundary). New `lib/i18n/locale-cookie.ts` helper. `(app)/layout.tsx` reads the cookie synchronously and now fires `auth.getUser()` + `loadNamespacedTranslations()` in one `Promise.all` (previously sequential because i18n depended on shop.language). Shop record remains the durable source of truth — if the cookie is missing, the layout speculatively loads EN, reconciles against `shop.language` after the supabase batch, and the LanguageProvider writes the cookie client-side on mount so subsequent loads stay on the fast path. `(auth)/layout.tsx` reads the cookie too so /login + /onboarding land in the user's chosen language without a flash. Cookie write paths: LanguageProvider.setLocale (on language change), `/api/onboarding` (Set-Cookie on shop creation), `/api/auth/teller-login` (Set-Cookie based on shop.language). **Kept the BUG-039 wins:** parallel supabase batch in layout, dashboard waterfall collapse via JWT metadata, font `preload: false` for non-Latin scripts, `initialNsMap` ship inline with RSC, SW SWR for the explicit safe API list (`SWR_GET_PATHS`). **Security:** `proxy.ts` and Supabase RLS unchanged — auth still enforced server-side on every request regardless of what the SW shows. Cookie isn't a security boundary; tampering only swaps which translation file renders. 659/659 tests pass; `tsc --noEmit` clean. No DB migration, no API contract changes (just two endpoints now Set-Cookie). **BUG-040 logged** in `tasks/bugs.md` with three prevention rules: never precache auth-protected routes; never SWR navigation HTML in an authenticated PWA; client state hints from the server must be reconcilable in both directions on mount.
@@ -274,7 +275,7 @@ When starting a new phase, append it here and update the file tree.
 
 ## Current File Tree
 
-_Last updated: Design-system primitives + initial sweep (2026-05-19)_
+_Last updated: Phase 42 — Sales Statistics (2026-05-20)_
 
 ```
 spaza shop/
@@ -316,7 +317,7 @@ spaza shop/
 │   │   │   ├── documents/{page.tsx, loading.tsx, [type]/page.tsx}
 │   │   │   ├── waste-pest/{page.tsx, pest/{page.tsx, new/page.tsx}, waste/page.tsx}
 │   │   │   ├── inspection/{page.tsx, loading.tsx}
-│   │   │   ├── sales/{page.tsx, history/page.tsx}    # Hub + drill-down
+│   │   │   ├── sales/{page.tsx, history/page.tsx, statistics/page.tsx}    # Hub + drill-downs (Phase 42 = statistics)
 │   │   │   ├── inventory/{page.tsx, loading.tsx}     # Hub
 │   │   │   ├── manage/page.tsx                       # Hub: Staff + Compliance + Journey
 │   │   │   ├── compliance/                           # Phase 37c + 37e
@@ -335,7 +336,7 @@ spaza shop/
 │   │       ├── onboarding/route.ts
 │   │       ├── catalog/importable/route.ts
 │   │       ├── products/{route.ts, [id]/route.ts, popular/route.ts, bulk-import/route.ts, bulk-supplier/route.ts}
-│   │       ├── sales/{route.ts, by-date/route.ts}
+│   │       ├── sales/{route.ts, by-date/route.ts, statistics/route.ts}    # statistics = Phase 42
 │   │       ├── batches/{route.ts, [id]/route.ts}
 │   │       ├── stock/{route.ts, expiry/route.ts}
 │   │       ├── stock-take/route.ts
@@ -356,7 +357,8 @@ spaza shop/
 │       │   ├── goods-declaration/route.ts                 # 37d
 │       │   ├── food-safety-pack/route.ts                  # 37d
 │       │   ├── fund-application-pack/route.ts             # 37d (SA + fund_interest gated)
-│       │   └── stock-loss-pdf/route.ts                    # Phase 40
+│       │   ├── stock-loss-pdf/route.ts                    # Phase 40
+│       │   └── sales-statistics-pdf/route.ts              # Phase 42
 │   │       ├── settings/route.ts
 │   │       ├── tellers/{route.ts, me/route.ts, [id]/route.ts}
 │   │       ├── suppliers/{route.ts, [id]/route.ts}
@@ -431,7 +433,7 @@ spaza shop/
 │   │   ├── payfast/index.ts
 │   │   ├── db/
 │   │   │   ├── products.ts, sales.ts, sales-history.ts, monthly-sales-report.ts
-│   │   │   ├── stock-take.ts, stock.ts, stock-loss.ts, reports.ts, admin.ts, catalog.ts, batches.ts
+│   │   │   ├── stock-take.ts, stock.ts, stock-loss.ts, sales-statistics.ts, reports.ts, admin.ts, catalog.ts, batches.ts
 │   │   │   ├── suppliers.ts, goods-received.ts
 │   │   │   ├── daily-checklist.ts, business-documents.ts, pest-control.ts, waste-management.ts
 │   │   │   ├── compliance-report.ts, compliance-score.ts
@@ -453,11 +455,11 @@ spaza shop/
 │   │   │                # fund.ts (37e), reminders.ts (37g — pure evaluator + bucket-key engine)
 │   │   ├── i18n/
 │   │   │   ├── types.ts, interpolate.ts, loader.ts, server.ts
-│   │   │   └── translations/{en,so,am,zu,ur}/  (23 namespaces each)
-│   │   │       # common, auth, sale, sales, dashboard, settings, stock, stock-loss, products,
-│   │   │       # tellers, expiry, summary, suppliers, checklist, documents, waste-pest,
-│   │   │       # inspection, inventory, manage, compliance-onboarding, compliance-journey,
-│   │   │       # compliance-fund, compliance-reminders
+│   │   │   └── translations/{en,so,am,zu,ur}/  (24 namespaces each)
+│   │   │       # common, auth, sale, sales, sales-statistics, dashboard, settings, stock,
+│   │   │       # stock-loss, products, tellers, expiry, summary, suppliers, checklist, documents,
+│   │   │       # waste-pest, inspection, inventory, manage, compliance-onboarding,
+│   │   │       # compliance-journey, compliance-fund, compliance-reminders
 │   │   ├── events.ts                       # In-tab mutation event bus
 │   │   ├── validation/schemas.ts           # All Zod schemas
 │   │   └── utils/{api.ts, currency.ts, date.ts, rateLimit.ts, statusBadge.ts}
@@ -501,5 +503,6 @@ spaza shop/
     ├── fund-readiness.test.ts
     ├── reminders.test.ts
     ├── stock-loss.test.ts
+    ├── sales-statistics.test.ts
     └── barcode-scanner.test.ts
 ```

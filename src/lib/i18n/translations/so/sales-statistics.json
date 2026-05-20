@@ -1,0 +1,51 @@
+{
+  "title": "Sales statistics",
+  "subtitle": "See what's selling, what's not, and what makes you money",
+  "pick_range": "Choose a period",
+  "preset_7d": "7 days",
+  "preset_30d": "30 days",
+  "preset_90d": "90 days",
+  "preset_custom": "Custom",
+  "from_label": "From",
+  "to_label": "To",
+  "loading": "Loading…",
+  "error_load": "Could not load statistics. Try again.",
+
+  "summary_sales": "Sales",
+  "summary_units": "Items sold",
+  "summary_revenue": "Revenue",
+  "summary_avg": "Average sale",
+  "summary_profit": "Profit",
+
+  "trend_title": "Revenue over time",
+  "trend_daily": "Daily",
+  "trend_weekly": "Weekly",
+  "trend_no_data": "No sales in this period",
+  "trend_sale_one": "sale",
+  "trend_sale_other": "sales",
+
+  "top_title": "Top sellers",
+  "top_subtitle": "Most units sold",
+  "lowest_title": "Lowest sellers",
+  "lowest_subtitle": "Fewest sold (sold at least once)",
+  "profit_title": "Most profitable",
+  "profit_subtitle": "Most profit earned",
+  "nonmovers_title": "Non-movers",
+  "nonmovers_subtitle": "In stock but sold nothing this period",
+
+  "units_sold_one": "{count} unit",
+  "units_sold_other": "{count} units",
+  "in_stock_one": "{count} in stock",
+  "in_stock_other": "{count} in stock",
+
+  "list_empty_sales": "No sales in this period.",
+  "nonmovers_empty": "Everything with stock sold at least once.",
+  "profit_empty": "Set cost prices on your products to see profit.",
+
+  "profit_missing_cost_one": "{count} sold product has no cost price — profit ranking is partial.",
+  "profit_missing_cost_other": "{count} sold products have no cost price — profit ranking is partial.",
+  "profit_missing_cost_link": "Add cost prices →",
+
+  "download_pdf": "Download report (PDF)",
+  "footer_note": "Non-movers exclude products added after this period."
+}

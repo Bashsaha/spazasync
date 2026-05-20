@@ -20,7 +20,7 @@ const APP_SHELL_NAMESPACES: TranslationNamespace[] = [
   'products', 'tellers', 'expiry', 'settings', 'suppliers', 'checklist',
   'documents', 'waste-pest', 'inspection', 'inventory', 'manage',
   'compliance-onboarding', 'compliance-journey', 'compliance-fund',
-  'compliance-reminders',
+  'compliance-reminders', 'sales-statistics',
 ]
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {

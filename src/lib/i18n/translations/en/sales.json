@@ -7,6 +7,8 @@
   "hub_start_sale_desc": "Scan products and record a sale",
   "hub_view_history": "View by date",
   "hub_view_history_desc": "See every sale on any chosen day",
+  "hub_statistics": "Sales statistics",
+  "hub_statistics_desc": "Graphs, top sellers, profit and non-movers",
 
   "weekly_title": "This week",
   "weekly_revenue": "Revenue",
