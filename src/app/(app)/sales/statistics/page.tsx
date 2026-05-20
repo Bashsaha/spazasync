@@ -23,26 +23,16 @@ function shiftDate(ymd: string, deltaDays: number): string {
   return dt.toISOString().slice(0, 10)
 }
 
-type Preset = '7d' | '30d' | '90d' | 'custom'
-
 export default function SalesStatisticsPage() {
   const { t, tPlural } = useTranslation('sales-statistics')
 
   const today = todaySAST()
-  const [preset, setPreset] = useState<Preset>('30d')
+  // Default range: last 30 days (inclusive of today).
   const [from, setFrom] = useState<string>(shiftDate(today, -29))
   const [to, setTo] = useState<string>(today)
   const [data, setData] = useState<SalesStatistics | null>(null)
   const [loading, setLoading] = useState(true)
   const [errorKey, setErrorKey] = useState<string | null>(null)
-
-  function applyPreset(p: Preset) {
-    setPreset(p)
-    if (p === 'custom') return
-    const days = p === '7d' ? 7 : p === '30d' ? 30 : 90
-    setFrom(shiftDate(today, -(days - 1)))
-    setTo(today)
-  }
 
   const loadStats = useCallback(() => {
     setLoading(true)
@@ -88,23 +78,7 @@ export default function SalesStatisticsPage() {
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
           {t('pick_range')}
         </p>
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          {(['7d', '30d', '90d', 'custom'] as Preset[]).map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => applyPreset(p)}
-              className={`py-3 rounded-xl text-sm font-semibold border transition-colors ${
-                preset === p
-                  ? 'bg-brand text-white border-brand'
-                  : 'bg-white text-gray-700 border-gray-200 active:bg-gray-50'
-              }`}
-            >
-              {t(`preset_${p}`)}
-            </button>
-          ))}
-        </div>
-        <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
           <div>
             <label htmlFor="stats-from" className="block text-xs font-medium text-gray-500 mb-1">
               {t('from_label')}
@@ -114,7 +88,7 @@ export default function SalesStatisticsPage() {
               type="date"
               value={from}
               max={to}
-              onChange={(e) => { setFrom(e.target.value); setPreset('custom') }}
+              onChange={(e) => setFrom(e.target.value)}
               className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
@@ -128,7 +102,7 @@ export default function SalesStatisticsPage() {
               value={to}
               min={from}
               max={today}
-              onChange={(e) => { setTo(e.target.value); setPreset('custom') }}
+              onChange={(e) => setTo(e.target.value)}
               className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
