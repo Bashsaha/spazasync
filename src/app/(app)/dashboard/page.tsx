@@ -6,6 +6,7 @@ import { TodaySummary } from '@/components/dashboard/TodaySummary'
 import { LowStockAlert } from '@/components/dashboard/LowStockAlert'
 import { ExpiringAlert } from '@/components/dashboard/ExpiringAlert'
 import { LatestSales } from '@/components/dashboard/LatestSales'
+import { DashboardAutoRefresh } from '@/components/dashboard/DashboardAutoRefresh'
 import { ComplianceCard } from '@/components/dashboard/ComplianceCard'
 import { JourneyProgressCard } from '@/components/dashboard/JourneyProgressCard'
 import { DashboardComplianceOnboarding } from '@/components/compliance-onboarding/DashboardComplianceOnboarding'
@@ -148,6 +149,9 @@ export default async function DashboardPage({
 
   return (
     <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
+      {/* Re-pulls server data after a sale (or any mutation) without a reload */}
+      <DashboardAutoRefresh />
+
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">{shopName}</h1>
         <p className="text-sm text-gray-400 mt-0.5">

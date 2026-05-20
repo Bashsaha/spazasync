@@ -124,8 +124,8 @@ export function ProductPicker({ onSelect, onClose, recentIds = [] }: ProductPick
     : products
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-end">
-      <div className="bg-white w-full rounded-t-2xl px-4 pt-5 pb-8 max-h-[80vh] flex flex-col">
+    <div className="fixed inset-0 z-50 bg-white flex flex-col">
+      <div className="w-full px-4 pt-5 pb-4 flex-1 flex flex-col min-h-0">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-gray-900">{t('picker_title')}</h2>
           <button onClick={onClose} className="text-gray-400 text-sm font-medium active:text-gray-600">
@@ -139,7 +139,22 @@ export function ProductPicker({ onSelect, onClose, recentIds = [] }: ProductPick
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t('picker_search_placeholder')}
             autoFocus
-            className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand"
+            // type=search + non-credential name + autofill opt-outs stop the
+            // mobile keyboard's password/payment accessory bar from appearing
+            // on a plain product search (BUG-042). The native ✕ cancel button is
+            // hidden — we render our own clear button below.
+            type="search"
+            name="product-search"
+            inputMode="search"
+            enterKeyHint="search"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="none"
+            spellCheck={false}
+            data-1p-ignore
+            data-lpignore="true"
+            data-form-type="other"
+            className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand [&::-webkit-search-cancel-button]:appearance-none"
           />
           {search && (
             <button
@@ -160,7 +175,10 @@ export function ProductPicker({ onSelect, onClose, recentIds = [] }: ProductPick
         )}
 
         <div className="overflow-y-auto flex-1 -mx-4 px-4">
-          {loading ? (
+          {/* Only show the full-area loading placeholder on the very first load
+              (empty list). On subsequent keystrokes we keep the previous results
+              visible so the list doesn't blink away while re-fetching (BUG-042). */}
+          {loading && products.length === 0 ? (
             <p className="text-gray-400 text-sm text-center py-8">{t('picker_loading')}</p>
           ) : products.length === 0 ? (
             <p className="text-gray-400 text-sm text-center py-8">{t('picker_no_products')}</p>
