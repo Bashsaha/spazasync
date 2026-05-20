@@ -9,6 +9,7 @@ import { TopAppBar } from '@/components/TopAppBar'
 import DailySummaryAlert from '@/components/DailySummaryAlert'
 import { InstallPwaButton } from '@/components/InstallPwaButton'
 import { ChecklistReminderFab } from '@/components/ChecklistReminderFab'
+import { SaleDataWarmup } from '@/components/SaleDataWarmup'
 import { getTodayChecklist, todaySAST } from '@/lib/db/daily-checklist'
 import type { SupportedLocale, TranslationNamespace } from '@/lib/i18n/types'
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '@/lib/i18n/types'
@@ -123,6 +124,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           {(role === 'owner' || role === 'admin') && shopId && (
             <ChecklistReminderFab initialVisible={showChecklistReminder} />
           )}
+          {shopId && <SaleDataWarmup />}
         </ToastProvider>
       </LanguageProvider>
     </div>

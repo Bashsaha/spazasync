@@ -49,6 +49,21 @@ export function ProductPicker({ onSelect, onClose, recentIds = [] }: ProductPick
   const [usingStaleCache, setUsingStaleCache] = useState(false)
   const [popularIds, setPopularIds] = useState<string[]>([])
 
+  // Paint the cached product list instantly on open (offline-first), before the
+  // network fetch below resolves — the picker should never show a blank "loading"
+  // screen when we already have products in IndexedDB. The network result (when
+  // it lands) overwrites this; the guard stops a slow cache read from clobbering
+  // a fast network response that arrived first.
+  useEffect(() => {
+    let cancelled = false
+    getCachedProducts().then((cached) => {
+      if (cancelled || cached.length === 0) return
+      setProducts((prev) => (prev.length === 0 ? cached : prev))
+      setLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [])
+
   // Fetch popular product IDs once on mount (best-effort — fails silently)
   useEffect(() => {
     fetch('/api/products/popular')
@@ -59,6 +74,9 @@ export function ProductPicker({ onSelect, onClose, recentIds = [] }: ProductPick
 
   useEffect(() => {
     const controller = new AbortController()
+    // No debounce on the initial / cleared-search load — fire immediately so the
+    // list appears at once. Debounce only typed search keystrokes.
+    const delay = search.trim() ? 200 : 0
     const timeout = setTimeout(async () => {
       setLoading(true)
       try {
@@ -97,7 +115,7 @@ export function ProductPicker({ onSelect, onClose, recentIds = [] }: ProductPick
       } finally {
         setLoading(false)
       }
-    }, 200)
+    }, delay)
     return () => {
       clearTimeout(timeout)
       controller.abort()
