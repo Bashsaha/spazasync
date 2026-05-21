@@ -110,6 +110,7 @@
   "stock_take_success_one": "{count} እቃ ተዘምኗል።",
   "stock_take_success_other": "{count} እቃዎች ተዘምነዋል።",
   "stock_take_btn_dashboard": "ወደ ዳሽቦርድ ተመለስ",
+  "stock_take_btn_inventory": "ወደ ዕቃ ዝርዝር ተመለስ",
   "stock_take_btn_again": "ሌላ የክምችት ቆጠራ አካሂድ",
   "stock_take_error_no_counts": "ከማስቀመጥዎ በፊት ቢያንስ አንድ ቆጠራ ያስገቡ።",
   "stock_take_error_load": "እቃዎችን መጫን አልተቻለም። እባክዎ ያድሱ።",
@@ -130,5 +131,14 @@
   "add_first_supplier_btn": "የመጀመሪያ አቅራቢዎን ያክሉ →",
 
   "loss_card_title": "የክምችት ብክነት ሪፖርት",
-  "loss_card_desc": "ሳይሸጥ የተወገደውን እና የጠፋውን ገንዘብ ይመልከቱ።"
+  "loss_card_desc": "ሳይሸጥ የተወገደውን እና የጠፋውን ገንዘብ ይመልከቱ።",
+
+  "history_card_title": "ዕቃውን ማን ቆጠረ",
+  "history_card_desc": "እያንዳንዱን ቆጠራ ማን እንዳደረገ እና ምን እንደተቀየረ ይመልከቱ።",
+  "history_title": "የዕቃ ቆጠራ ታሪክ",
+  "history_subtitle": "ዕቃውን ማን ቆጠረ፣ እና ምን ተቀየረ።",
+  "history_empty": "እስካሁን ምንም ቆጠራ የለም።",
+  "history_unknown_person": "ያልታወቀ",
+  "history_items_changed_one": "{count} ዕቃ ተቀይሯል",
+  "history_items_changed_other": "{count} ዕቃዎች ተቀይረዋል"
 }

@@ -110,6 +110,7 @@
   "stock_take_success_one": "{count} product updated.",
   "stock_take_success_other": "{count} products updated.",
   "stock_take_btn_dashboard": "Back to Dashboard",
+  "stock_take_btn_inventory": "Back to Inventory",
   "stock_take_btn_again": "Do another stock take",
   "stock_take_error_no_counts": "Enter at least one count before saving.",
   "stock_take_error_load": "Could not load products. Please refresh.",
@@ -130,5 +131,14 @@
   "add_first_supplier_btn": "Add your first supplier \u2192",
 
   "loss_card_title": "Stock loss report",
-  "loss_card_desc": "See what was removed without being sold, and the money lost."
+  "loss_card_desc": "See what was removed without being sold, and the money lost.",
+
+  "history_card_title": "Who counted stock",
+  "history_card_desc": "See who did each stock count and what changed.",
+  "history_title": "Stock count history",
+  "history_subtitle": "Who counted stock, and what changed.",
+  "history_empty": "No stock counts yet.",
+  "history_unknown_person": "Unknown",
+  "history_items_changed_one": "{count} item changed",
+  "history_items_changed_other": "{count} items changed"
 }

@@ -42,6 +42,14 @@
   "btn_save": "Keydi dejinta",
   "btn_saving": "Keydiya…",
 
+  "danger_title": "Tirtir akoonka",
+  "danger_desc": "Si joogto ah u tirtir dukaankaaga iyo wax kasta oo ku jira — alaabta, iibka, shaqaalaha iyo warbixinnada. Tan dib looma celin karo.",
+  "danger_btn": "Tirtir akoonkayga",
+  "danger_deleting": "Waa la tirtirayaa…",
+  "danger_confirm": "Tan si joogto ah ayey u tirtiraysaa dukaankaaga iyo wax kasta oo ku jira. Mar dambe ayaad ku diiwaangelin kartaa isla xogta gelitaanka. Ma hubtaa?",
+  "danger_confirm_btn": "Haa, dhammaan tirtir",
+  "danger_error": "Akoonkaaga lama tirtiri karin. Fadlan isku day mar kale.",
+
   "language_title": "Luuqadda",
   "language_change": "Bedel luuqadda",
 

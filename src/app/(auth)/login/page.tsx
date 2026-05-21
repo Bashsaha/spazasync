@@ -56,7 +56,11 @@ export default function LoginPage() {
 
   function handleTellerSuccess(shopCode: string, name: string) {
     recordRecentUser({ kind: 'teller', shop_code: shopCode.toUpperCase(), display_name: name })
-    router.push('/sale')
+    // Hard navigation (not router.push) so the server re-renders with the
+    // freshly-set session cookie. A soft RSC navigation right after a client-
+    // side signInWithPassword raced the cookie propagation and left the page
+    // spinning until a manual reload. A full load is instant here and reliable.
+    window.location.assign('/sale')
   }
 
   return (

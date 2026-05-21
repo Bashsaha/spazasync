@@ -110,6 +110,7 @@
   "stock_take_success_one": "{count} پروڈکٹ اپ ڈیٹ ہوئی۔",
   "stock_take_success_other": "{count} پروڈکٹس اپ ڈیٹ ہوئیں۔",
   "stock_take_btn_dashboard": "ڈیش بورڈ پر واپس جائیں",
+  "stock_take_btn_inventory": "انوینٹری پر واپس جائیں",
   "stock_take_btn_again": "ایک اور اسٹاک گنتی کریں",
   "stock_take_error_no_counts": "محفوظ کرنے سے پہلے کم از کم ایک گنتی درج کریں۔",
   "stock_take_error_load": "پروڈکٹس لوڈ نہیں ہو سکیں۔ براہ کرم ریفریش کریں۔",
@@ -130,5 +131,14 @@
   "add_first_supplier_btn": "اپنا پہلا سپلائر شامل کریں →",
 
   "loss_card_title": "اسٹاک نقصان رپورٹ",
-  "loss_card_desc": "دیکھیں کہ کیا فروخت ہوئے بغیر ہٹایا گیا، اور کتنا پیسہ ضائع ہوا۔"
+  "loss_card_desc": "دیکھیں کہ کیا فروخت ہوئے بغیر ہٹایا گیا، اور کتنا پیسہ ضائع ہوا۔",
+
+  "history_card_title": "اسٹاک کس نے گنا",
+  "history_card_desc": "دیکھیں کہ ہر گنتی کس نے کی اور کیا تبدیل ہوا۔",
+  "history_title": "اسٹاک گنتی کی تاریخ",
+  "history_subtitle": "اسٹاک کس نے گنا، اور کیا تبدیل ہوا۔",
+  "history_empty": "ابھی تک کوئی اسٹاک گنتی نہیں ہوئی۔",
+  "history_unknown_person": "نامعلوم",
+  "history_items_changed_one": "{count} چیز تبدیل ہوئی",
+  "history_items_changed_other": "{count} چیزیں تبدیل ہوئیں"
 }

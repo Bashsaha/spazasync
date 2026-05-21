@@ -9,11 +9,14 @@ import { useTranslation } from '@/components/LanguageProvider'
 import { BackButton } from '@/components/BackButton'
 import { FullScreenSpinner } from '@/components/Spinner'
 import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
+import { useUserRole } from '@/hooks/useUserRole'
 import { emitDataChanged } from '@/lib/events'
 
 export default function StockTakePage() {
   const router = useRouter()
   const { t, tPlural } = useTranslation('stock')
+  const role = useUserRole()
+  const isTeller = role === 'teller'
   const [products, setProducts] = useState<Product[]>([])
   const [counts, setCounts] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(true)
@@ -120,10 +123,10 @@ export default function StockTakePage() {
           {tPlural('stock_take_success', savedCount, { count: savedCount })}
         </p>
         <button
-          onClick={() => router.push('/dashboard')}
+          onClick={() => router.push(isTeller ? '/inventory' : '/dashboard')}
           className="w-full max-w-xs bg-brand text-white font-semibold py-4 rounded-full active:bg-brand-hover"
         >
-          {t('stock_take_btn_dashboard')}
+          {isTeller ? t('stock_take_btn_inventory') : t('stock_take_btn_dashboard')}
         </button>
         <button
           onClick={() => {
@@ -153,8 +156,9 @@ export default function StockTakePage() {
           {t('stock_take_subtitle')}
         </p>
 
-        {/* Missing cost price alert (amber — gates profit dashboard) */}
-        {!isLoading && profitTrackingEnabled && productsMissingCost > 0 && (
+        {/* Missing cost price alert (amber — gates profit dashboard). Owner-only:
+            tellers can't reach /products and these are owner data-quality nudges. */}
+        {!isTeller && !isLoading && profitTrackingEnabled && productsMissingCost > 0 && (
           <Link
             href="/products/missing-cost"
             className="block bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4"
@@ -166,8 +170,9 @@ export default function StockTakePage() {
           </Link>
         )}
 
-        {/* Missing supplier tip (soft gray — operational, not a hard gap) */}
-        {!isLoading && suppliersCount === 0 ? (
+        {/* Missing supplier tip (soft gray — operational, not a hard gap).
+            Owner-only — tellers don't manage suppliers. */}
+        {!isTeller && !isLoading && suppliersCount === 0 ? (
           <Link
             href="/suppliers/new"
             className="block bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-4 active:bg-gray-100"
@@ -189,20 +194,35 @@ export default function StockTakePage() {
           </Link>
         ) : null}
 
-        {/* Stock loss report entry — see what disappeared without being sold */}
-        {!isLoading && products.length > 0 && (
-          <Link
-            href="/stock-take/loss"
-            className="block bg-white border border-gray-100 rounded-2xl p-4 mb-4 active:bg-gray-50"
-          >
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 pr-3">
-                <p className="text-sm font-semibold text-gray-900">{t('loss_card_title')}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{t('loss_card_desc')}</p>
+        {/* Owner-only reports: stock loss + who-counted-what history. Tellers
+            only do the count itself. */}
+        {!isTeller && !isLoading && products.length > 0 && (
+          <>
+            <Link
+              href="/stock-take/loss"
+              className="block bg-white border border-gray-100 rounded-2xl p-4 mb-4 active:bg-gray-50"
+            >
+              <div className="flex items-center justify-between">
+                <div className="min-w-0 pr-3">
+                  <p className="text-sm font-semibold text-gray-900">{t('loss_card_title')}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{t('loss_card_desc')}</p>
+                </div>
+                <span className="text-gray-300 text-lg shrink-0">›</span>
               </div>
-              <span className="text-gray-300 text-lg shrink-0">›</span>
-            </div>
-          </Link>
+            </Link>
+            <Link
+              href="/stock-take/history"
+              className="block bg-white border border-gray-100 rounded-2xl p-4 mb-4 active:bg-gray-50"
+            >
+              <div className="flex items-center justify-between">
+                <div className="min-w-0 pr-3">
+                  <p className="text-sm font-semibold text-gray-900">{t('history_card_title')}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{t('history_card_desc')}</p>
+                </div>
+                <span className="text-gray-300 text-lg shrink-0">›</span>
+              </div>
+            </Link>
+          </>
         )}
 
         {/* error banner */}

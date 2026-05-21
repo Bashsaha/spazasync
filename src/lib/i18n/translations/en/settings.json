@@ -42,6 +42,14 @@
   "btn_save": "Save settings",
   "btn_saving": "Saving\u2026",
 
+  "danger_title": "Delete account",
+  "danger_desc": "Permanently delete your shop and everything in it \u2014 products, sales, staff and reports. This cannot be undone.",
+  "danger_btn": "Delete my account",
+  "danger_deleting": "Deleting\u2026",
+  "danger_confirm": "This permanently deletes your shop and everything in it. You can sign up again later with the same login. Are you sure?",
+  "danger_confirm_btn": "Yes, delete everything",
+  "danger_error": "Could not delete your account. Please try again.",
+
   "language_title": "Language",
   "language_change": "Change language",
 

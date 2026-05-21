@@ -84,63 +84,79 @@ export default async function InventoryHubPage() {
         </div>
       </div>
 
-      {/* Tile grid */}
-      <div className="space-y-3">
-        <Link
-          href="/stock"
-          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
-        >
-          <div>
-            <p className="font-bold text-gray-900">{t('card_stock')}</p>
-            <p className="text-gray-400 text-sm">{t('card_stock_desc')}</p>
-          </div>
-          <Package className="w-7 h-7 text-brand" strokeWidth={1.75} />
-        </Link>
+      {/* Tile grid. Granted tellers get a single tile — count stock. Owners /
+          admins get the full hub. */}
+      {role === 'teller' ? (
+        <div className="space-y-3">
+          <Link
+            href="/stock-take"
+            className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
+          >
+            <div>
+              <p className="font-bold text-gray-900">{t('card_count')}</p>
+              <p className="text-gray-400 text-sm">{t('card_count_desc')}</p>
+            </div>
+            <ClipboardList className="w-7 h-7 text-brand" strokeWidth={1.75} />
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <Link
+            href="/stock"
+            className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
+          >
+            <div>
+              <p className="font-bold text-gray-900">{t('card_stock')}</p>
+              <p className="text-gray-400 text-sm">{t('card_stock_desc')}</p>
+            </div>
+            <Package className="w-7 h-7 text-brand" strokeWidth={1.75} />
+          </Link>
 
-        <Link
-          href="/products"
-          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
-        >
-          <div>
-            <p className="font-bold text-gray-900">{t('card_products')}</p>
-            <p className="text-gray-400 text-sm">{t('card_products_desc')}</p>
-          </div>
-          <Tag className="w-7 h-7 text-brand" strokeWidth={1.75} />
-        </Link>
+          <Link
+            href="/products"
+            className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
+          >
+            <div>
+              <p className="font-bold text-gray-900">{t('card_products')}</p>
+              <p className="text-gray-400 text-sm">{t('card_products_desc')}</p>
+            </div>
+            <Tag className="w-7 h-7 text-brand" strokeWidth={1.75} />
+          </Link>
 
-        <Link
-          href="/stock-take"
-          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
-        >
-          <div>
-            <p className="font-bold text-gray-900">{t('card_count')}</p>
-            <p className="text-gray-400 text-sm">{t('card_count_desc')}</p>
-          </div>
-          <ClipboardList className="w-7 h-7 text-brand" strokeWidth={1.75} />
-        </Link>
+          <Link
+            href="/stock-take"
+            className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
+          >
+            <div>
+              <p className="font-bold text-gray-900">{t('card_count')}</p>
+              <p className="text-gray-400 text-sm">{t('card_count_desc')}</p>
+            </div>
+            <ClipboardList className="w-7 h-7 text-brand" strokeWidth={1.75} />
+          </Link>
 
-        <Link
-          href="/expiry"
-          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
-        >
-          <div>
-            <p className="font-bold text-gray-900">{t('card_expiry')}</p>
-            <p className="text-gray-400 text-sm">{t('card_expiry_desc')}</p>
-          </div>
-          <Clock className="w-7 h-7 text-brand" strokeWidth={1.75} />
-        </Link>
+          <Link
+            href="/expiry"
+            className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
+          >
+            <div>
+              <p className="font-bold text-gray-900">{t('card_expiry')}</p>
+              <p className="text-gray-400 text-sm">{t('card_expiry_desc')}</p>
+            </div>
+            <Clock className="w-7 h-7 text-brand" strokeWidth={1.75} />
+          </Link>
 
-        <Link
-          href="/suppliers"
-          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
-        >
-          <div>
-            <p className="font-bold text-gray-900">{t('card_suppliers')}</p>
-            <p className="text-gray-400 text-sm">{t('card_suppliers_desc')}</p>
-          </div>
-          <Truck className="w-7 h-7 text-brand" strokeWidth={1.75} />
-        </Link>
-      </div>
+          <Link
+            href="/suppliers"
+            className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
+          >
+            <div>
+              <p className="font-bold text-gray-900">{t('card_suppliers')}</p>
+              <p className="text-gray-400 text-sm">{t('card_suppliers_desc')}</p>
+            </div>
+            <Truck className="w-7 h-7 text-brand" strokeWidth={1.75} />
+          </Link>
+        </div>
+      )}
     </main>
   )
 }

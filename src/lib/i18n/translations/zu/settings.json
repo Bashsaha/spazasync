@@ -42,6 +42,14 @@
   "btn_save": "Londoloza izilungiselelo",
   "btn_saving": "Iyalondoloza…",
 
+  "danger_title": "Susa i-akhawunti",
+  "danger_desc": "Susa unomphela isitolo sakho nakho konke okukuso — imikhiqizo, ukuthengisa, abasebenzi nemibiko. Lokhu akunakubuyiselwa.",
+  "danger_btn": "Susa i-akhawunti yami",
+  "danger_deleting": "Iyasusa…",
+  "danger_confirm": "Lokhu kususa unomphela isitolo sakho nakho konke okukuso. Ungabhalisa futhi kamuva ngolwazi lokungena olufanayo. Uqinisekile?",
+  "danger_confirm_btn": "Yebo, susa konke",
+  "danger_error": "Ayikwazanga ukususa i-akhawunti yakho. Sicela uzame futhi.",
+
   "language_title": "Ulimi",
   "language_change": "Shintsha ulimi",
 

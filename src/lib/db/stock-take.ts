@@ -22,6 +22,19 @@ export async function saveStockTake(
   const shopId = user.app_metadata?.shop_id as string | undefined
   if (!shopId) throw new Error('No shop associated with this account')
 
+  // Stamp WHO did this count from the authenticated user — never trust a
+  // client-supplied teller_id. Both owners and tellers have a `tellers` row
+  // (the owner's is created at onboarding), so this attributes every count to a
+  // real person the owner can see in the stock-count history. Falls back to
+  // null only when no teller row exists for this user (edge case).
+  const { data: actingTeller } = await supabase
+    .from('tellers')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('shop_id', shopId)
+    .maybeSingle()
+  const actingTellerId = (actingTeller?.id as string | undefined) ?? null
+
   const productIds = entries.map((e) => e.product_id)
 
   // 1. Fetch current stock_qty for all involved products
@@ -42,7 +55,7 @@ export async function saveStockTake(
     product_id: entry.product_id,
     qty_before: qtyBefore.get(entry.product_id) ?? 0,
     qty_after: entry.qty_after,
-    teller_id: entry.teller_id ?? null,
+    teller_id: actingTellerId,
   }))
 
   const { error: insertError } = await supabase

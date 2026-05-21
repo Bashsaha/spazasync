@@ -5,12 +5,14 @@ import { Suspense } from 'react'
 import { Check, WifiOff } from 'lucide-react'
 import { formatZAR } from '@/lib/utils/currency'
 import { useTranslation } from '@/components/LanguageProvider'
+import { useUserRole } from '@/hooks/useUserRole'
 import { Button } from '@/components/ui'
 
 function SaleCompleteContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { t } = useTranslation('sale')
+  const role = useUserRole()
 
   const totalRaw = searchParams.get('total')
   const total = totalRaw ? parseFloat(totalRaw) : 0
@@ -55,12 +57,16 @@ function SaleCompleteContent() {
         {t('btn_new_sale')}
       </Button>
 
-      <button
-        onClick={() => router.push('/dashboard')}
-        className="mt-4 text-sm text-gray-500 active:text-gray-700"
-      >
-        {t('btn_go_dashboard')}
-      </button>
+      {/* Tellers have no dashboard — their only home is the sale flow, so the
+          "Go to dashboard" link is owner/admin-only. */}
+      {role !== 'teller' && (
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="mt-4 text-sm text-gray-500 active:text-gray-700"
+        >
+          {t('btn_go_dashboard')}
+        </button>
+      )}
     </main>
   )
 }

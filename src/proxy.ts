@@ -21,22 +21,20 @@ const TELLER_ALWAYS_ALLOWED = [
   '/api/summary',
 ]
 
-// Routes a teller can only reach with an active inventory grant.
+// Routes a teller can only reach with an active inventory grant. Scope is
+// deliberately limited to the stock count: a granted teller can count stock and
+// update the numbers, nothing more. Products, stock adjustments, expiry and
+// suppliers stay owner-only. /api/products is read-only and already in
+// TELLER_ALWAYS_ALLOWED (the sale flow + the count list both need it).
+// NOTE: /stock-take must come before any '/stock' prefix check would shadow it;
+// it's matched on its own here so '/stock' (adjustments) is NOT granted.
 const TELLER_GRANTED_ONLY = [
-  '/stock',
   '/stock-take',
-  '/products',
-  '/expiry',
-  '/suppliers',
-  '/api/stock',
   '/api/stock-take',
-  '/api/batches',
-  '/api/suppliers',
-  '/api/goods-received',
 ]
 
 // Routes accessible even when subscription is expired
-const SUBSCRIPTION_EXEMPT = ['/subscribe', '/api/subscribe', '/settings', '/api/settings']
+const SUBSCRIPTION_EXEMPT = ['/subscribe', '/api/subscribe', '/settings', '/api/settings', '/api/account']
 
 // Admin-only routes
 const ADMIN_ROUTES = ['/admin', '/api/admin']

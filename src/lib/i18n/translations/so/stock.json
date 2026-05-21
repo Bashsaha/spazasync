@@ -110,6 +110,7 @@
   "stock_take_success_one": "{count} walax ayaa la cusboonaysiiyay.",
   "stock_take_success_other": "{count} walxood ayaa la cusboonaysiiyay.",
   "stock_take_btn_dashboard": "Dib ugu laabo Lawhada",
+  "stock_take_btn_inventory": "Dib ugu laabo Alaabta",
   "stock_take_btn_again": "Samee tirin kale",
   "stock_take_error_no_counts": "Geli ugu yaraan hal tirin intaadan keydin.",
   "stock_take_error_load": "Ma awoodin in la soo raro walxaha. Fadlan cusboonaysii.",
@@ -130,5 +131,14 @@
   "add_first_supplier_btn": "Ku dar iibiyahaaga koowaad →",
 
   "loss_card_title": "Warbixinta khasaaraha bakhaarka",
-  "loss_card_desc": "Eeg waxa la saaray iyada oo aan la iibin, iyo lacagta lumay."
+  "loss_card_desc": "Eeg waxa la saaray iyada oo aan la iibin, iyo lacagta lumay.",
+
+  "history_card_title": "Yaa tiriyay alaabta",
+  "history_card_desc": "Eeg cidda samaysay tirin kasta iyo waxa isbeddelay.",
+  "history_title": "Taariikhda tirinta alaabta",
+  "history_subtitle": "Cidda tiriyay alaabta, iyo waxa isbeddelay.",
+  "history_empty": "Weli ma jiraan tirinno alaab.",
+  "history_unknown_person": "Lama yaqaan",
+  "history_items_changed_one": "{count} shay ayaa isbeddelay",
+  "history_items_changed_other": "{count} shay ayaa isbeddelay"
 }

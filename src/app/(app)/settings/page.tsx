@@ -8,7 +8,10 @@ import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
 import { BackButton } from '@/components/BackButton'
 import { FullScreenSpinner } from '@/components/Spinner'
+import { ConfirmModal } from '@/components/ConfirmModal'
 import { Button, Card, FormField, Input, Callout, Badge, PageHeader } from '@/components/ui'
+import { useUserRole } from '@/hooks/useUserRole'
+import { createClient } from '@/lib/supabase/client'
 import type { SupportedLocale } from '@/lib/i18n/types'
 
 interface ShopSettings {
@@ -51,6 +54,9 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [downloading, setDownloading] = useState(false)
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; key?: string; raw?: string } | null>(null)
+  const role = useUserRole()
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     fetch('/api/settings')
@@ -229,6 +235,31 @@ export default function SettingsPage() {
       router.push('/dashboard?redo_compliance=1')
     } finally {
       setRedoLoading(false)
+    }
+  }
+
+  async function handleDeleteAccount() {
+    setShowDeleteConfirm(false)
+    setDeleting(true)
+    setMessage(null)
+    try {
+      const res = await fetch('/api/account', { method: 'DELETE' })
+      if (!res.ok) {
+        setDeleting(false)
+        setMessage({ type: 'err', key: 'danger_error' })
+        return
+      }
+      // Account is gone — sign out locally (best-effort) and hard-redirect to
+      // login. Use a full navigation so no stale authenticated state lingers.
+      try {
+        await createClient().auth.signOut()
+      } catch {
+        // user already deleted server-side — ignore
+      }
+      window.location.assign('/login')
+    } catch {
+      setDeleting(false)
+      setMessage({ type: 'err', key: 'danger_error' })
     }
   }
 
@@ -579,9 +610,36 @@ export default function SettingsPage() {
         </Button>
       </form>
 
+      {/* Danger zone — permanent account deletion (owners only) */}
+      {role === 'owner' && (
+        <Card padding="md" className="mt-8 border-red-200">
+          <p className="font-semibold text-red-600 mb-1">{t('danger_title')}</p>
+          <p className="text-sm text-gray-500 mb-4">{t('danger_desc')}</p>
+          <Button
+            variant="destructive"
+            size="md"
+            fullWidth
+            loading={deleting}
+            onClick={() => setShowDeleteConfirm(true)}
+          >
+            {deleting ? t('danger_deleting') : t('danger_btn')}
+          </Button>
+        </Card>
+      )}
+
       <p className="text-center text-xs text-gray-400 mt-8 mb-4">
         Movestock — a product of Veyon
       </p>
+
+      {showDeleteConfirm && (
+        <ConfirmModal
+          message={t('danger_confirm')}
+          confirmLabel={t('danger_confirm_btn')}
+          onConfirm={handleDeleteAccount}
+          onCancel={() => setShowDeleteConfirm(false)}
+          isDestructive
+        />
+      )}
     </main>
   )
 }

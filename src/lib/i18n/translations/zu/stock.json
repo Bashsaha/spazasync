@@ -110,6 +110,7 @@
   "stock_take_success_one": "{count} umkhiqizo ubuyekeziwe.",
   "stock_take_success_other": "{count} imikhiqizo ibuyekeziwe.",
   "stock_take_btn_dashboard": "Buyela ku-Dashboard",
+  "stock_take_btn_inventory": "Buyela ku-Inventory",
   "stock_take_btn_again": "Yenza olunye ukubala isitoki",
   "stock_take_error_no_counts": "Faka okungenani ukubala okukodwa ngaphambi kokuba ulondoloze.",
   "stock_take_error_load": "Akukwazanga ukulayisha imikhiqizo. Sicela uvuselele.",
@@ -130,5 +131,14 @@
   "add_first_supplier_btn": "Faka umthumeli wakho wokuqala →",
 
   "loss_card_title": "Umbiko wokulahleka kwesitoko",
-  "loss_card_desc": "Bona ukuthi yini ekhishiwe ngaphandle kokuthengiswa, kanye nemali elahlekile."
+  "loss_card_desc": "Bona ukuthi yini ekhishiwe ngaphandle kokuthengiswa, kanye nemali elahlekile.",
+
+  "history_card_title": "Ubani obale isitoko",
+  "history_card_desc": "Bona ukuthi ubani owenze ukubala ngakunye nokuthi yini eshintshile.",
+  "history_title": "Umlando wokubala isitoko",
+  "history_subtitle": "Ubani obale isitoko, nokuthi yini eshintshile.",
+  "history_empty": "Akukho ukubala isitoko okwenziwe okwamanje.",
+  "history_unknown_person": "Akwaziwa",
+  "history_items_changed_one": "into engu-{count} ishintshile",
+  "history_items_changed_other": "izinto ezingu-{count} zishintshile"
 }
