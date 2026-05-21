@@ -258,7 +258,7 @@ export default function SalePage() {
       {(isScanLoading || isSubmitting) && (
         <FullScreenSpinner label={isSubmitting ? t('btn_processing') : t('btn_scanning')} />
       )}
-      <main className={`px-4 pt-8 max-w-lg mx-auto ${role !== 'teller' ? 'pb-52' : 'pb-36'}`}>
+      <main className="px-4 pt-8 max-w-lg mx-auto pb-52">
         {/* header */}
         <div className="flex items-center justify-between mb-1">
           <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
@@ -339,7 +339,10 @@ export default function SalePage() {
         itemCount={items.length}
         onCompleteSale={handleCompleteSale}
         isSubmitting={isSubmitting}
-        aboveNav={role !== 'teller'}
+        // Every role that reaches /sale has the BottomNav (owner, teller, and
+        // dual-role admin all have a shop), so the cart bar must always sit
+        // above it — otherwise it covers the tabs. (Tellers used to have no nav.)
+        aboveNav
         hasOversellWarning={hasOversellWarning}
       />
 
