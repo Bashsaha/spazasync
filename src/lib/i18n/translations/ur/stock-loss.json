@@ -21,6 +21,10 @@
   "empty_hint": "فروخت کے علاوہ ہٹائی گئی ہر چیز یہاں ظاہر ہوگی۔",
   "source_adjustment": "ایڈجسٹمنٹ",
   "source_stock_take": "اسٹاک کاؤنٹ",
+  "reason_unsure": "یقین نہیں",
+  "reason_damaged_expired": "خراب یا میعاد ختم",
+  "reason_miscount": "گنتی کی درستی",
+  "reason_other": "دیگر",
   "no_cost": "لاگت سیٹ نہیں",
   "footer_note": "اس رپورٹ میں مکمل فروخت کے ذریعے ہٹایا گیا اسٹاک شامل نہیں ہے۔"
 }

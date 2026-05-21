@@ -149,8 +149,9 @@ export default async function DashboardPage({
 
   return (
     <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
-      {/* Re-pulls server data after a sale (or any mutation) without a reload */}
-      <DashboardAutoRefresh />
+      {/* Re-pulls server data after a sale (or any mutation) without a reload;
+          also live-refreshes when a sale is recorded on another device. */}
+      <DashboardAutoRefresh shopId={shopIdMeta} />
 
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">{shopName}</h1>

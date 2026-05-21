@@ -21,6 +21,10 @@
   "empty_hint": "Anything removed outside of sales will show up here.",
   "source_adjustment": "Adjustment",
   "source_stock_take": "Stock-take",
+  "reason_unsure": "Unsure",
+  "reason_damaged_expired": "Damaged or expired",
+  "reason_miscount": "Miscount fix",
+  "reason_other": "Other",
   "no_cost": "No cost set",
   "footer_note": "This report excludes stock that was removed through completed sales."
 }

@@ -124,4 +124,27 @@ describe('shapeStockLoss', () => {
     expect(r.rows[0].product_name).toBe('—')
     expect(r.rows[0].cost_price).toBe(null)
   })
+
+  it('passes a coded stock-take reason through to the row', () => {
+    const r = shapeStockLoss(
+      [],
+      [take({ qty_before: 10, qty_after: 6, reason: 'unsure' })],
+    )
+    expect(r.rows).toHaveLength(1)
+    expect(r.rows[0].reason).toBe('unsure')
+  })
+
+  it('excludes miscount corrections from the loss report entirely', () => {
+    const r = shapeStockLoss(
+      [],
+      [
+        take({ product_id: 'a', qty_before: 10, qty_after: 6, reason: 'miscount' }), // not loss
+        take({ product_id: 'b', qty_before: 10, qty_after: 8, reason: 'unsure', products: { name: 'B', cost_price: 5 } }),
+      ],
+    )
+    expect(r.rows).toHaveLength(1)
+    expect(r.rows[0].product_id).toBe('b')
+    expect(r.totals.total_items).toBe(2)
+    expect(r.totals.total_value).toBe(10)
+  })
 })

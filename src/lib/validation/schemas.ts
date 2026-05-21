@@ -82,10 +82,17 @@ export const completeSaleSchema = z.object({
 // Stock take
 // ============================================================
 
+/** Reasons a counted quantity can come in lower than current stock. */
+export const STOCK_TAKE_LOSS_REASONS = ['unsure', 'damaged_expired', 'miscount', 'other'] as const
+export type StockTakeLossReason = (typeof STOCK_TAKE_LOSS_REASONS)[number]
+
 export const stockTakeItemSchema = z.object({
   product_id: z.string().uuid(),
   qty_after: z.number().int().min(0),
   teller_id: z.string().uuid().nullable().optional(),
+  // Why the count is lower than current stock. Only meaningful (and required by
+  // the UI) when qty_after < qty_before; ignored otherwise.
+  reason: z.enum(STOCK_TAKE_LOSS_REASONS).optional(),
 })
 
 export const stockTakeSchema = z.object({

@@ -21,6 +21,10 @@
   "empty_hint": "Noma yini ekhishwe ngaphandle kokuthengiswa izovela lapha.",
   "source_adjustment": "Ukulungiswa",
   "source_stock_take": "Ukubala isitoko",
+  "reason_unsure": "Angiqinisekile",
+  "reason_damaged_expired": "Konakele noma kuphelelwe yisikhathi",
+  "reason_miscount": "Ukulungisa ukubala",
+  "reason_other": "Okunye",
   "no_cost": "Azinazindleko",
   "footer_note": "Lo mbiko awufaki isitoko esikhishwe ngokuthengiswa okuqedile."
 }

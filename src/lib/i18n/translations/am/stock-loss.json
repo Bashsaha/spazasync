@@ -21,6 +21,10 @@
   "empty_hint": "ከሽያጭ ውጭ የተወገደ ማንኛውም ነገር እዚህ ይታያል።",
   "source_adjustment": "ማስተካከያ",
   "source_stock_take": "ክምችት ቆጠራ",
+  "reason_unsure": "እርግጠኛ አይደለሁም",
+  "reason_damaged_expired": "ተበላሽቷል ወይም ጊዜው አልፎበታል",
+  "reason_miscount": "የቆጠራ እርማት",
+  "reason_other": "ሌላ",
   "no_cost": "ወጪ አልተዋቀረም",
   "footer_note": "ይህ ሪፖርት የተጠናቀቁ ሽያጮች ያስወገዱትን ክምችት አያካትትም።"
 }

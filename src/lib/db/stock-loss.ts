@@ -57,6 +57,7 @@ interface RawStockTake {
   product_id: string
   qty_before: number
   qty_after: number
+  reason?: string | null
   products: { name: string; cost_price: number | null } | null
 }
 
@@ -95,6 +96,9 @@ export function shapeStockLoss(
 
   for (const row of stockTakes) {
     if (row.qty_after >= row.qty_before) continue
+    // A "miscount" correction isn't real loss — the previous number was just
+    // wrong. Record it on the entry, but never count it as shrinkage here.
+    if (row.reason === 'miscount') continue
     const qtyRemoved = row.qty_before - row.qty_after
     const costPrice = row.products?.cost_price ?? null
     rows.push({
@@ -105,7 +109,7 @@ export function shapeStockLoss(
       cost_price: costPrice,
       value_lost: round2(qtyRemoved * (costPrice ?? 0)),
       source: 'stock_take',
-      reason: null,
+      reason: row.reason ?? null,
     })
   }
 
@@ -141,7 +145,7 @@ export async function getStockLoss(
       .lte('adjusted_at', toIso),
     supabase
       .from('stock_take_entries')
-      .select('taken_at, product_id, qty_before, qty_after, products(name, cost_price)')
+      .select('taken_at, product_id, qty_before, qty_after, reason, products(name, cost_price)')
       .eq('shop_id', shopId)
       .gte('taken_at', fromIso)
       .lte('taken_at', toIso),
@@ -165,6 +169,7 @@ export async function getStockLoss(
     product_id: r.product_id as string,
     qty_before: r.qty_before as number,
     qty_after: r.qty_after as number,
+    reason: (r.reason as string | null) ?? null,
     products: normaliseProduct(r.products),
   }))
 

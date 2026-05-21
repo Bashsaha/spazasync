@@ -172,6 +172,8 @@ export interface StockTakeInput {
   product_id: string
   qty_after: number
   teller_id?: string | null
+  /** Why the count is lower than current stock (unsure | damaged_expired | miscount | other). */
+  reason?: string | null
 }
 
 export interface CreateTellerInput {

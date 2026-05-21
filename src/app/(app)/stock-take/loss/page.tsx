@@ -32,6 +32,11 @@ interface StockLossResponse {
   }
 }
 
+// Coded stock-take reasons (mirrors STOCK_TAKE_LOSS_REASONS minus 'miscount',
+// which is excluded from the loss report entirely). Used to decide whether to
+// translate a reason or show it as free text.
+const KNOWN_REASONS = new Set(['unsure', 'damaged_expired', 'miscount', 'other'])
+
 function todaySAST(): string {
   const sast = new Date(Date.now() + 2 * 60 * 60 * 1000)
   return sast.toISOString().slice(0, 10)
@@ -245,7 +250,14 @@ export default function StockLossPage() {
                     {t(r.source === 'adjustment' ? 'source_adjustment' : 'source_stock_take')}
                   </p>
                   {r.reason && (
-                    <p className="text-xs text-gray-600 mt-1 italic">{r.reason}</p>
+                    <p className="text-xs text-gray-600 mt-1 italic">
+                      {/* Stock-take reasons are coded (unsure/damaged_expired/
+                          other) — translate them. Adjustment reasons are free
+                          text — show as-is. */}
+                      {r.source === 'stock_take' && KNOWN_REASONS.has(r.reason)
+                        ? t(`reason_${r.reason}`)
+                        : r.reason}
+                    </p>
                   )}
                 </div>
                 <div className="text-right shrink-0">

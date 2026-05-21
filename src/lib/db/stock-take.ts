@@ -49,14 +49,19 @@ export async function saveStockTake(
     (products ?? []).map((p) => [p.id as string, p.stock_qty as number]),
   )
 
-  // 2. Batch-insert audit rows
-  const auditRows = entries.map((entry) => ({
-    shop_id: shopId,
-    product_id: entry.product_id,
-    qty_before: qtyBefore.get(entry.product_id) ?? 0,
-    qty_after: entry.qty_after,
-    teller_id: actingTellerId,
-  }))
+  // 2. Batch-insert audit rows. Only persist a reason when the count actually
+  //    went down — a reason on an unchanged/increased count is meaningless.
+  const auditRows = entries.map((entry) => {
+    const before = qtyBefore.get(entry.product_id) ?? 0
+    return {
+      shop_id: shopId,
+      product_id: entry.product_id,
+      qty_before: before,
+      qty_after: entry.qty_after,
+      teller_id: actingTellerId,
+      reason: entry.qty_after < before ? entry.reason ?? null : null,
+    }
+  })
 
   const { error: insertError } = await supabase
     .from('stock_take_entries')

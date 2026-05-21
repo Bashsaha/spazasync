@@ -21,6 +21,10 @@
   "empty_hint": "Wax kasta oo laga saaro iibka dibadiisa ayaa halkan ka muuqan doona.",
   "source_adjustment": "Saarid",
   "source_stock_take": "Tirinta",
+  "reason_unsure": "Ma hubo",
+  "reason_damaged_expired": "Waa kharribmay ama dhacay",
+  "reason_miscount": "Saxitaan tirin",
+  "reason_other": "Mid kale",
   "no_cost": "Qiime saad ma jiro",
   "footer_note": "Warbixintan kama mid aha alaabta lagu iibiyay iibyo dhammaystiran."
 }

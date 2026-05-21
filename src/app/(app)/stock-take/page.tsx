@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Check } from 'lucide-react'
@@ -10,6 +10,8 @@ import { BackButton } from '@/components/BackButton'
 import { FullScreenSpinner } from '@/components/Spinner'
 import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
 import { useUserRole } from '@/hooks/useUserRole'
+import { createClient } from '@/lib/supabase/client'
+import { STOCK_TAKE_LOSS_REASONS, type StockTakeLossReason } from '@/lib/validation/schemas'
 import { emitDataChanged } from '@/lib/events'
 
 export default function StockTakePage() {
@@ -19,6 +21,8 @@ export default function StockTakePage() {
   const isTeller = role === 'teller'
   const [products, setProducts] = useState<Product[]>([])
   const [counts, setCounts] = useState<Record<string, string>>({})
+  // Why a count came in lower than current stock, keyed by product id.
+  const [reasons, setReasons] = useState<Record<string, StockTakeLossReason>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorKey, setErrorKey] = useState<string | null>(null)
@@ -28,6 +32,7 @@ export default function StockTakePage() {
   const [productsMissingCost, setProductsMissingCost] = useState(0)
   const [productsMissingSupplier, setProductsMissingSupplier] = useState(0)
   const [suppliersCount, setSuppliersCount] = useState(0)
+  const [shopId, setShopId] = useState<string | null>(null)
 
   const loadStockTake = useCallback(() => {
     // Products are all a teller needs to count. /api/settings is fetched
@@ -65,10 +70,72 @@ export default function StockTakePage() {
       .catch(() => {})
   }, [role])
 
+  // Resolve the shop id from the local session (for the realtime channel).
+  useEffect(() => {
+    let cancelled = false
+    async function resolveShop() {
+      try {
+        const { data } = await createClient().auth.getSession()
+        if (!cancelled) setShopId((data.session?.user.app_metadata?.shop_id as string) ?? null)
+      } catch {
+        /* no session */
+      }
+    }
+    resolveShop()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // Realtime: when stock changes on another device (someone else saves a count,
+  // or a sale deducts stock), refresh the "current" column live so two people
+  // counting at the same time always see up-to-date numbers. Typed counts are
+  // kept (they're keyed by product id, separate from the products array), so a
+  // refresh mid-count never wipes what the user has entered. Debounced.
+  const rtDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (!shopId) return
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`stocktake-products:${shopId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'products', filter: `shop_id=eq.${shopId}` },
+        () => {
+          if (rtDebounce.current) clearTimeout(rtDebounce.current)
+          rtDebounce.current = setTimeout(() => loadStockTake(), 600)
+        },
+      )
+      .subscribe()
+    return () => {
+      if (rtDebounce.current) clearTimeout(rtDebounce.current)
+      supabase.removeChannel(channel)
+    }
+  }, [shopId, loadStockTake])
+
   const countedItems = Object.values(counts).filter((v) => v !== '').length
 
   function handleCount(productId: string, value: string) {
     setCounts((prev) => ({ ...prev, [productId]: value }))
+    // If the count is no longer lower than current stock, drop any reason —
+    // it only applies to shrinkage.
+    const product = products.find((p) => p.id === productId)
+    if (product) {
+      const n = parseInt(value, 10)
+      const stillLower = value !== '' && !isNaN(n) && n < product.stock_qty
+      if (!stillLower) {
+        setReasons((prev) => {
+          if (!(productId in prev)) return prev
+          const next = { ...prev }
+          delete next[productId]
+          return next
+        })
+      }
+    }
+  }
+
+  function setReason(productId: string, reason: StockTakeLossReason) {
+    setReasons((prev) => ({ ...prev, [productId]: reason }))
   }
 
   function markAllCorrect() {
@@ -86,12 +153,29 @@ export default function StockTakePage() {
     setErrorKey(null)
     setErrorRaw('')
 
-    const entries = products
-      .filter((p) => counts[p.id] !== undefined && counts[p.id] !== '')
-      .map((p) => ({
-        product_id: p.id,
-        qty_after: parseInt(counts[p.id], 10),
-      }))
+    const counted = products.filter((p) => counts[p.id] !== undefined && counts[p.id] !== '')
+
+    // A count lower than current stock must carry a reason (theft / waste
+    // tracking). 'unsure' is always available so the user is never stuck.
+    const lowerMissingReason = counted.some((p) => {
+      const n = parseInt(counts[p.id], 10)
+      return !isNaN(n) && n >= 0 && n < p.stock_qty && !reasons[p.id]
+    })
+    if (lowerMissingReason) {
+      setErrorKey('stock_take_error_reason_required')
+      return
+    }
+
+    const entries = counted
+      .map((p) => {
+        const qty_after = parseInt(counts[p.id], 10)
+        const isLower = !isNaN(qty_after) && qty_after < p.stock_qty
+        return {
+          product_id: p.id,
+          qty_after,
+          ...(isLower && reasons[p.id] ? { reason: reasons[p.id] } : {}),
+        }
+      })
       .filter((e) => !isNaN(e.qty_after) && e.qty_after >= 0)
 
     if (entries.length === 0) {
@@ -142,6 +226,7 @@ export default function StockTakePage() {
         <button
           onClick={() => {
             setCounts({})
+            setReasons({})
             setSavedCount(null)
           }}
           className="mt-4 text-sm text-gray-400 active:text-gray-600"
@@ -282,44 +367,80 @@ export default function StockTakePage() {
                 const parsed = parseInt(inputVal, 10)
                 const isChanged =
                   inputVal !== '' && !isNaN(parsed) && parsed !== p.stock_qty
+                const isLower =
+                  inputVal !== '' && !isNaN(parsed) && parsed >= 0 && parsed < p.stock_qty
+                const needsReason = isLower && !reasons[p.id]
 
                 return (
                   <div
                     key={p.id}
-                    className={`flex items-center gap-2 px-4 py-3 ${
+                    className={`px-4 py-3 ${
                       idx !== products.length - 1 ? 'border-b border-gray-100' : ''
                     } ${isChanged ? 'bg-brand-light' : ''}`}
                   >
-                    {/* product info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate text-sm">{p.name}</p>
-                      <p className="text-xs text-gray-400 font-mono">{p.barcode}</p>
+                    <div className="flex items-center gap-2">
+                      {/* product info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 truncate text-sm">{p.name}</p>
+                        <p className="text-xs text-gray-400 font-mono">{p.barcode}</p>
+                      </div>
+
+                      {/* current qty */}
+                      <span
+                        className={`w-14 text-right text-sm mr-1 shrink-0 ${
+                          p.stock_qty <= 5 ? 'text-red-500 font-semibold' : 'text-gray-400'
+                        }`}
+                      >
+                        {p.stock_qty}
+                      </span>
+
+                      {/* count input */}
+                      <input
+                        type="number"
+                        min="0"
+                        inputMode="numeric"
+                        placeholder="—"
+                        value={inputVal}
+                        onChange={(e) => handleCount(p.id, e.target.value)}
+                        aria-label={t('stock_take_input_label', { name: p.name })}
+                        className={`w-16 text-center border rounded-xl py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand ${
+                          needsReason
+                            ? 'border-red-400 text-red-600 bg-white'
+                            : isChanged
+                            ? 'border-brand text-brand-hover bg-white'
+                            : 'border-gray-200 text-gray-900'
+                        }`}
+                      />
                     </div>
 
-                    {/* current qty */}
-                    <span
-                      className={`w-14 text-right text-sm mr-1 shrink-0 ${
-                        p.stock_qty <= 5 ? 'text-red-500 font-semibold' : 'text-gray-400'
-                      }`}
-                    >
-                      {p.stock_qty}
-                    </span>
-
-                    {/* count input */}
-                    <input
-                      type="number"
-                      min="0"
-                      inputMode="numeric"
-                      placeholder="—"
-                      value={inputVal}
-                      onChange={(e) => handleCount(p.id, e.target.value)}
-                      aria-label={t('stock_take_input_label', { name: p.name })}
-                      className={`w-16 text-center border rounded-xl py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand ${
-                        isChanged
-                          ? 'border-brand text-brand-hover bg-white'
-                          : 'border-gray-200 text-gray-900'
-                      }`}
-                    />
+                    {/* Reason picker — shown only when the count is lower than
+                        current stock. Required before saving (see handleSubmit). */}
+                    {isLower && (
+                      <div className="mt-2.5">
+                        <p className="text-xs font-medium text-gray-500 mb-1.5">
+                          {t('reason_prompt')}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {STOCK_TAKE_LOSS_REASONS.map((code) => {
+                            const selected = reasons[p.id] === code
+                            return (
+                              <button
+                                key={code}
+                                type="button"
+                                onClick={() => setReason(p.id, code)}
+                                className={`text-xs font-medium px-3 py-1.5 rounded-full border ${
+                                  selected
+                                    ? 'bg-brand text-white border-brand'
+                                    : 'bg-white text-gray-600 border-gray-200 active:bg-gray-50'
+                                }`}
+                              >
+                                {t(`reason_${code}`)}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )
               })}
