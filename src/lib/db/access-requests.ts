@@ -200,21 +200,22 @@ export async function getTellerAccessStatus(
 
 /**
  * Lightweight boolean check used by the proxy on every teller request to
- * grant-gated paths. Two round-trips (teller lookup + grant lookup); both
- * are indexed lookups on small tables.
+ * grant-gated paths. This runs in middleware on EVERY such request (page nav,
+ * RSC prefetch, and the stock-take POST), so it's a single round-trip: we join
+ * access_requests → tellers and filter on the teller's user_id directly,
+ * instead of the previous two sequential queries (teller lookup, then grant
+ * lookup). `tellers!inner` drops rows with no matching teller, so a non-teller
+ * or unlinked user simply returns no row → false.
  */
 export async function isTellerInventoryGranted(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<boolean> {
-  const teller = await getTellerForUser(supabase, userId)
-  if (!teller) return false
-
   const nowIso = new Date().toISOString()
   const { data } = await supabase
     .from('access_requests')
-    .select('id')
-    .eq('teller_id', teller.id)
+    .select('id, tellers!inner(user_id)')
+    .eq('tellers.user_id', userId)
     .eq('feature', 'inventory')
     .eq('status', 'granted')
     .or(`expires_at.is.null,expires_at.gt.${nowIso}`)

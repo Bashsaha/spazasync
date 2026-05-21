@@ -30,18 +30,13 @@ export default function StockTakePage() {
   const [suppliersCount, setSuppliersCount] = useState(0)
 
   const loadStockTake = useCallback(() => {
-    Promise.all([
-      fetch('/api/products', { cache: 'no-store' }).then((r) => r.json()),
-      fetch('/api/settings', { cache: 'no-store' }).then((r) => r.json()).catch(() => null),
-    ])
-      .then(([productsData, settingsData]) => {
+    // Products are all a teller needs to count. /api/settings is fetched
+    // separately, owner-only — for a teller the proxy redirects it to /sale
+    // (a wasted full render) and it only feeds owner nudges anyway.
+    fetch('/api/products', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((productsData) => {
         setProducts((productsData.products ?? productsData) as Product[])
-        if (settingsData) {
-          setProfitTrackingEnabled(Boolean(settingsData.profit_tracking_enabled))
-          setProductsMissingCost(settingsData.products_missing_cost ?? 0)
-          setProductsMissingSupplier(settingsData.products_missing_supplier ?? 0)
-          setSuppliersCount(settingsData.suppliers_count ?? 0)
-        }
         setErrorKey(null)
       })
       .catch(() => setErrorKey('stock_take_error_load'))
@@ -53,6 +48,22 @@ export default function StockTakePage() {
   }, [loadStockTake])
 
   useRefetchOnVisible(loadStockTake)
+
+  // Owner/admin-only: settings drive the missing-cost / supplier nudges, which
+  // tellers never see. Skipping it for tellers avoids a redirect round-trip.
+  useEffect(() => {
+    if (role !== 'owner' && role !== 'admin') return
+    fetch('/api/settings', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((settingsData) => {
+        if (!settingsData) return
+        setProfitTrackingEnabled(Boolean(settingsData.profit_tracking_enabled))
+        setProductsMissingCost(settingsData.products_missing_cost ?? 0)
+        setProductsMissingSupplier(settingsData.products_missing_supplier ?? 0)
+        setSuppliersCount(settingsData.suppliers_count ?? 0)
+      })
+      .catch(() => {})
+  }, [role])
 
   const countedItems = Object.values(counts).filter((v) => v !== '').length
 
