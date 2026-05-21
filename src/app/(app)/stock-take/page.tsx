@@ -34,11 +34,20 @@ export default function StockTakePage() {
   const [suppliersCount, setSuppliersCount] = useState(0)
   const [shopId, setShopId] = useState<string | null>(null)
 
-  const loadStockTake = useCallback(() => {
+  const loadStockTake = useCallback((fresh = false) => {
     // Products are all a teller needs to count. /api/settings is fetched
     // separately, owner-only — for a teller the proxy redirects it to /sale
     // (a wasted full render) and it only feeds owner nudges anyway.
-    fetch('/api/products', { cache: 'no-store' })
+    //
+    // `fresh` is for realtime-triggered refetches: /api/products is served
+    // stale-while-revalidate by the service worker, so a plain refetch returns
+    // the PREVIOUS list and the new numbers only appear a beat later. When we
+    // KNOW the data just changed (a realtime products event), bust the SW with
+    // a unique query param so we get the current numbers immediately. The
+    // initial open + visibility refreshes keep the cached (instant) path, so
+    // open speed is unchanged.
+    const url = fresh ? `/api/products?_fresh=${Date.now()}` : '/api/products'
+    fetch(url, { cache: 'no-store' })
       .then((r) => r.json())
       .then((productsData) => {
         setProducts((productsData.products ?? productsData) as Product[])
@@ -103,7 +112,10 @@ export default function StockTakePage() {
         { event: '*', schema: 'public', table: 'products', filter: `shop_id=eq.${shopId}` },
         () => {
           if (rtDebounce.current) clearTimeout(rtDebounce.current)
-          rtDebounce.current = setTimeout(() => loadStockTake(), 600)
+          // Short debounce just to coalesce the burst of product UPDATEs from
+          // one save; force a cache-busting (fresh) fetch so the new numbers
+          // show at once, not after the SW's background revalidate.
+          rtDebounce.current = setTimeout(() => loadStockTake(true), 250)
         },
       )
       .subscribe()
