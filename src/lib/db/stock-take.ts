@@ -69,15 +69,22 @@ export async function saveStockTake(
 
   if (insertError) throw insertError
 
-  // 3. Update each product's stock_qty
-  for (const entry of entries) {
-    const { error } = await supabase
-      .from('products')
-      .update({ stock_qty: entry.qty_after })
-      .eq('id', entry.product_id)
+  // 3. Update each product's stock_qty. Each row is an independent, RLS-scoped
+  //    write keyed by id, so fire them concurrently instead of awaiting one
+  //    round-trip per product (a full-catalog count was N serial network hops).
+  //    Failure semantics are unchanged: a rejection still surfaces and earlier
+  //    writes may already have applied — same as the previous sequential loop.
+  const updates = await Promise.all(
+    entries.map((entry) =>
+      supabase
+        .from('products')
+        .update({ stock_qty: entry.qty_after })
+        .eq('id', entry.product_id),
+    ),
+  )
 
-    if (error) throw error
-  }
+  const failed = updates.find((u) => u.error)
+  if (failed?.error) throw failed.error
 
   return { updated: entries.length }
 }
