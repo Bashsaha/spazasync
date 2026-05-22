@@ -495,28 +495,24 @@ function StockAdjustContent() {
               </div>
             ) : (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  {t('reason_remove_prompt')}
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('reason_remove_prompt')}{' '}
+                  <span className="text-red-500 font-semibold">{t('reason_required_label')}</span>
                 </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {STOCK_TAKE_LOSS_REASONS.map((code) => {
-                    const selected = reason === code
-                    return (
-                      <button
-                        key={code}
-                        type="button"
-                        onClick={() => setReason(code)}
-                        className={`text-xs font-medium px-3 py-1.5 rounded-full border ${
-                          selected
-                            ? 'bg-brand text-white border-brand'
-                            : 'bg-white text-gray-600 border-gray-200 active:bg-gray-50'
-                        }`}
-                      >
-                        {t(`reason_${code}`)}
-                      </button>
-                    )
-                  })}
-                </div>
+                <select
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  className={`w-full border rounded-2xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand ${
+                    reason ? 'border-gray-200' : 'border-red-300'
+                  }`}
+                >
+                  <option value="">{t('adjust_reason_placeholder')}</option>
+                  {STOCK_TAKE_LOSS_REASONS.map((code) => (
+                    <option key={code} value={code}>
+                      {t(`reason_${code}`)}
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
 

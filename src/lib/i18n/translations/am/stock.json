@@ -126,6 +126,7 @@
   "stock_take_error_reason_required": "ከማስቀመጥዎ በፊት ለቀነሰ እያንዳንዱ እቃ ምክንያት ይምረጡ።",
   "reason_prompt": "ለምን ቀነሰ?",
   "reason_remove_prompt": "ለምን እያስወገዱት ነው?",
+  "reason_required_label": "(የግዴታ)",
   "reason_unsure": "እርግጠኛ አይደለሁም",
   "reason_damaged_expired": "ተበላሽቷል ወይም ጊዜው አልፎበታል",
   "reason_miscount": "የቆጠራ እርማት",

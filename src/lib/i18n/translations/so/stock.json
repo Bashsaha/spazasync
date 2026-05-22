@@ -126,6 +126,7 @@
   "stock_take_error_reason_required": "Ka hor intaadan keydin, dooro sabab walax kasta oo hooseeya.",
   "reason_prompt": "Maxay u hooseysaa?",
   "reason_remove_prompt": "Maxaad u saaraysaa?",
+  "reason_required_label": "(waajib)",
   "reason_unsure": "Ma hubo",
   "reason_damaged_expired": "Waa kharribmay ama dhacay",
   "reason_miscount": "Saxitaan tirin",

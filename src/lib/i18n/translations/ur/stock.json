@@ -126,6 +126,7 @@
   "stock_take_error_reason_required": "محفوظ کرنے سے پہلے ہر کم ہونے والی چیز کے لیے وجہ منتخب کریں۔",
   "reason_prompt": "یہ کم کیوں ہے؟",
   "reason_remove_prompt": "آپ اسے کیوں نکال رہے ہیں؟",
+  "reason_required_label": "(لازمی)",
   "reason_unsure": "یقین نہیں",
   "reason_damaged_expired": "خراب یا میعاد ختم",
   "reason_miscount": "گنتی کی درستی",

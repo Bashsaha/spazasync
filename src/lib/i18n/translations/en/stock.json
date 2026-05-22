@@ -122,6 +122,7 @@
   "stock_take_error_reason_required": "Pick a reason for each item that's lower before saving.",
   "reason_prompt": "Why is it lower?",
   "reason_remove_prompt": "Why are you removing it?",
+  "reason_required_label": "(required)",
   "reason_unsure": "Unsure",
   "reason_damaged_expired": "Damaged or expired",
   "reason_miscount": "Miscount fix",

@@ -126,6 +126,7 @@
   "stock_take_error_reason_required": "Khetha isizathu sento ngayinye ephansi ngaphambi kokulondoloza.",
   "reason_prompt": "Kungani kuphansi?",
   "reason_remove_prompt": "Kungani uyisusa?",
+  "reason_required_label": "(kuyadingeka)",
   "reason_unsure": "Angiqinisekile",
   "reason_damaged_expired": "Konakele noma kuphelelwe yisikhathi",
   "reason_miscount": "Ukulungisa ukubala",
