@@ -29,9 +29,11 @@ interface Props {
   t: T
   /** `inspection`-namespace t() for the readiness panel labels. */
   tInsp: InspT
+  /** Swap "ID number" copy for "passport" (CoA accepts ID OR passport — R638). */
+  isForeignNational?: boolean
 }
 
-export function HealthCertificateStep({ step, data, t, tInsp }: Props) {
+export function HealthCertificateStep({ step, data, t, tInsp, isForeignNational = false }: Props) {
   const goods = generateGoodsDescription(data.productNames)
   const storageBits: string[] = []
   if (data.shop.has_fridge) storageBits.push(t('coa_storage_fridge'))
@@ -41,7 +43,7 @@ export function HealthCertificateStep({ step, data, t, tInsp }: Props) {
 
   const formRows: FormSummaryRow[] = [
     { labelKey: 'form_person_in_charge', value: null, missing: 'fill_at_office' },
-    { labelKey: 'form_id_number', value: null, missing: 'fill_at_office' },
+    { labelKey: isForeignNational ? 'form_passport_number' : 'form_id_number', value: null, missing: 'fill_at_office' },
     { labelKey: 'form_capacity', value: t('coa_capacity_owner') },
     { labelKey: 'form_phone', value: data.shop.whatsapp_number, missing: 'add_in_settings' },
     { labelKey: 'form_shop_address', value: data.shop.location, missing: 'add_in_settings' },
@@ -61,7 +63,7 @@ export function HealthCertificateStep({ step, data, t, tInsp }: Props) {
       <section>
         <h4 className="text-sm font-semibold text-gray-800 mb-2">{t('coa_how_header')}</h4>
         <ol className="space-y-2">
-          {(['coa_how_step_1','coa_how_step_2','coa_how_step_3','coa_how_step_4','coa_how_step_5'] as const).map((key, i) => (
+          {(['coa_how_step_1','coa_how_step_2','coa_how_step_3', isForeignNational ? 'coa_how_step_4_foreign' : 'coa_how_step_4','coa_how_step_5'] as const).map((key, i) => (
             <li key={key} className="flex gap-2.5 text-sm text-gray-700">
               <span className="w-5 h-5 rounded-full bg-brand text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
               <span>{t(key)}</span>
@@ -94,7 +96,11 @@ export function HealthCertificateStep({ step, data, t, tInsp }: Props) {
         fallbackKey="coa_requirements_fallback"
       />
 
-      <FormSummaryCard rows={formRows} t={t} footerKey="form_bring_id_warning" />
+      <FormSummaryCard
+        rows={formRows}
+        t={t}
+        footerKey={isForeignNational ? 'form_bring_passport_warning' : 'form_bring_id_warning'}
+      />
 
       <OfficeDirections
         offices={data.healthOffices}

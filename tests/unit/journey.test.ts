@@ -77,19 +77,61 @@ describe('generateJourneySteps — step visibility', () => {
     expect(steps.length).toBe(7)
   })
 
-  it('Foreign national, no employees → 5 steps (no UIF, no SMMESA)', () => {
+  it('Foreign national, no employees → 6 steps (Right to Trade first, no UIF, no SMMESA)', () => {
     const steps = generateJourneySteps(
       makeOwner({ nationality_type: 'foreign_national' }),
       { has_employees: false, fund_interest: true }, // fund_interest forced false server-side normally
       [],
     )
     expect(steps.map((s) => s.key)).toEqual([
+      'right_to_trade',
       'food_safety_training',
       'cipc',
       'sars_tax',
       'coa',
       'municipal_registration',
     ])
+  })
+
+  it('right_to_trade is visible for a foreign national but hidden for an SA citizen', () => {
+    const fn = generateJourneySteps(
+      makeOwner({ nationality_type: 'foreign_national', visa_type: 'business_visa' }),
+      SHOP_BASE,
+      [],
+    )
+    expect(fn.find((s) => s.key === 'right_to_trade')).toBeDefined()
+
+    const sa = generateJourneySteps(makeOwner({ nationality_type: 'sa_citizen' }), SHOP_BASE, [])
+    expect(sa.find((s) => s.key === 'right_to_trade')).toBeUndefined()
+  })
+
+  it('right_to_trade: complete when a visa/permit is on file, not_started when null', () => {
+    const withVisa = generateJourneySteps(
+      makeOwner({ nationality_type: 'foreign_national', visa_type: 'refugee_s24' }),
+      SHOP_BASE,
+      [],
+    )
+    expect(withVisa.find((s) => s.key === 'right_to_trade')!.status).toBe('complete')
+
+    const noVisa = generateJourneySteps(
+      makeOwner({ nationality_type: 'foreign_national', visa_type: null }),
+      SHOP_BASE,
+      [],
+    )
+    expect(noVisa.find((s) => s.key === 'right_to_trade')!.status).toBe('not_started')
+  })
+
+  // Phase 41a model: a foreign-born owner naturalised as an SA citizen before
+  // 1994 is an SA citizen by law — they get the citizen journey (no visa step)
+  // AND qualify for the fund (SMMESA visible with fund_interest).
+  it('pre-1994 naturalised foreign-born owner → treated as citizen (no right_to_trade, SMMESA shows)', () => {
+    const steps = generateJourneySteps(
+      makeOwner({ nationality_type: 'foreign_national', naturalised_pre_1994: true }),
+      { has_employees: false, fund_interest: true },
+      [],
+    )
+    expect(steps.find((s) => s.key === 'right_to_trade')).toBeUndefined()
+    expect(steps.find((s) => s.key === 'smmesa')).toBeDefined()
   })
 
   it('SA citizen without fund_interest → 6 steps (no SMMESA)', () => {
@@ -130,13 +172,14 @@ describe('generateJourneySteps — step visibility', () => {
     expect(steps.find((s) => s.key === 'smmesa')).toBeUndefined()
   })
 
-  it('Foreign national, has_employees=true → 6 steps (UIF in, SMMESA out)', () => {
+  it('Foreign national, has_employees=true → 7 steps (Right to Trade + UIF in, SMMESA out)', () => {
     const steps = generateJourneySteps(
       makeOwner({ nationality_type: 'foreign_national' }),
       { has_employees: true, fund_interest: false },
       [],
     )
-    expect(steps.length).toBe(6)
+    expect(steps.length).toBe(7)
+    expect(steps.find((s) => s.key === 'right_to_trade')).toBeDefined()
     expect(steps.find((s) => s.key === 'smmesa')).toBeUndefined()
     expect(steps.find((s) => s.key === 'uif')).toBeDefined()
   })
@@ -384,10 +427,11 @@ describe('schema enums (Phase 37c)', () => {
     expect(DOCUMENT_STATUSES).toContain('in_progress')
   })
 
-  it('JOURNEY_STEP_ORDER has all 7 keys starting with food_safety_training', () => {
-    expect(JOURNEY_STEP_ORDER.length).toBe(7)
-    expect(JOURNEY_STEP_ORDER[0]).toBe('food_safety_training')
-    expect(JOURNEY_STEP_ORDER[4]).toBe('municipal_registration')
+  it('JOURNEY_STEP_ORDER has all 8 keys starting with right_to_trade then food_safety_training', () => {
+    expect(JOURNEY_STEP_ORDER.length).toBe(8)
+    expect(JOURNEY_STEP_ORDER[0]).toBe('right_to_trade')
+    expect(JOURNEY_STEP_ORDER[1]).toBe('food_safety_training')
+    expect(JOURNEY_STEP_ORDER[5]).toBe('municipal_registration')
   })
 })
 

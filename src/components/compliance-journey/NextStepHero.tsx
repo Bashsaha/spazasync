@@ -12,7 +12,7 @@
 import Link from 'next/link'
 import {
   Landmark, Stethoscope, Building2, Wallet,
-  Users, GraduationCap, ClipboardList,
+  Users, GraduationCap, ClipboardList, ShieldCheck,
   ArrowDown, type LucideIcon,
 } from 'lucide-react'
 import type { ComplianceJourneyStep, JourneyStepKey } from '@/types'
@@ -25,6 +25,7 @@ interface Props {
 }
 
 const STEP_ICON: Record<JourneyStepKey, LucideIcon> = {
+  right_to_trade: ShieldCheck,
   food_safety_training: GraduationCap,
   cipc: Building2,
   sars_tax: Wallet,

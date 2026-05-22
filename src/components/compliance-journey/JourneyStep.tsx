@@ -20,7 +20,7 @@
  */
 
 import { createContext, useContext, useState, type ReactNode } from 'react'
-import { Landmark, Stethoscope, Building2, Wallet, Users, GraduationCap, ClipboardList, ChevronDown, Lock, type LucideIcon } from 'lucide-react'
+import { Landmark, Stethoscope, Building2, Wallet, Users, GraduationCap, ClipboardList, ShieldCheck, ChevronDown, Lock, type LucideIcon } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import type {
   ComplianceJourneyStep,
@@ -79,6 +79,7 @@ interface Props {
 }
 
 const STEP_ICON: Record<JourneyStepKey, LucideIcon> = {
+  right_to_trade: ShieldCheck,
   municipal_registration: Landmark,
   coa: Stethoscope,
   cipc: Building2,

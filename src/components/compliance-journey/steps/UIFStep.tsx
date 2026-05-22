@@ -13,9 +13,11 @@ type T = (key: string, params?: Record<string, string | number>) => string
 interface Props {
   step: ComplianceJourneyStep
   t: T
+  /** Foreign employees are declared with a passport, so the copy says "ID or passport". */
+  isForeignNational?: boolean
 }
 
-export function UIFStep({ step, t }: Props) {
+export function UIFStep({ step, t, isForeignNational = false }: Props) {
   return (
     <>
       <section className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-sm">
@@ -34,7 +36,7 @@ export function UIFStep({ step, t }: Props) {
         <ol className="list-decimal list-inside text-sm text-gray-700 space-y-1.5">
           <li>{t('uif_how_step_1')}</li>
           <li>{t('uif_how_step_2')}</li>
-          <li>{t('uif_how_step_3')}</li>
+          <li>{t(isForeignNational ? 'uif_how_step_3_foreign' : 'uif_how_step_3')}</li>
           <li>{t('uif_how_step_4')}</li>
         </ol>
         <a

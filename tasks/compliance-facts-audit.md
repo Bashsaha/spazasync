@@ -30,7 +30,7 @@ This file is the single source of truth for: (a) every fact we make about extern
 3. **Re-check the Trading Permit per-metro fees + processing times** against each metro's site. These change most often.
 4. **Re-pull the SAnews "Beware fake assistants" advisory** — if superseded or removed, update the copy in `compliance-fund.json` + `fund-application-pack/route.ts`.
 5. **Check `scripts/seed-municipalities.ts`** for any `"As of <date>"` notes that are now older than 12 months — refresh the figure or delete the timestamped clause.
-6. **Spot-check the in-app rendering** of `/compliance/journey` (each of the 7 steps), `/compliance/fund`, AND `/inspection` (+ download the Inspection Pack PDF from `/api/reports/inspection-pack` and skim it) against the audit findings. `/inspection` is the destination of every "Action needed" alert on the dashboard `ComplianceCard`, so its score breakdown (Section K), inspection-readiness panel (mirrors journey-step statuses), and the Inspection Pack PDF must be re-walked end-to-end every cycle — a stale fact here is what an inspector will actually see.
+6. **Spot-check the in-app rendering** of `/compliance/journey` **on BOTH paths — once as an SA citizen and once as a foreign national** (toggle via Settings → Redo compliance check), confirming the Section M divergence table still holds (BizPortal vs eServices, ID vs passport, Right-to-Trade step shown only for foreigners, fund hidden for foreigners), then `/compliance/fund`, AND `/inspection` (+ download the Inspection Pack PDF from `/api/reports/inspection-pack` and skim it) against the audit findings. `/inspection` is the destination of every "Action needed" alert on the dashboard `ComplianceCard`, so its score breakdown (Section K), inspection-readiness panel (mirrors journey-step statuses), and the Inspection Pack PDF must be re-walked end-to-end every cycle — a stale fact here is what an inspector will actually see.
 7. **Log the audit** in the table at the bottom of this file (date, who, what changed, what was confirmed correct, any follow-up phase opened).
 8. **If anything material changed:** open a phase to fix it. Bug-tracked changes get a `BUG-XXX` entry in `tasks/bugs.md` per the project's existing rule.
 
@@ -52,7 +52,8 @@ This file is the single source of truth for: (a) every fact we make about extern
 | URL | Used by | Last verified |
 |---|---|---|
 | `https://www.spazashopfund.co.za` | `ApplySection.tsx`, `fund-application-pack/route.ts`, `compliance-fund.json` `apply_*` keys | 2026-05-17 |
-| `https://www.bizportal.gov.za` | `CIPCStep.tsx`, `compliance-journey.json` `cipc_*` keys, `compliance-reminders.json` `cipc_annual_body` | 2026-05-17 |
+| `https://www.bizportal.gov.za` | `CIPCStep.tsx` (SA-citizen path), `compliance-journey.json` `cipc_*` keys, `compliance-reminders.json` `cipc_annual_body` | 2026-05-17 |
+| `https://eservices.cipc.co.za` | `CIPCStep.tsx` (foreign-national path), `compliance-journey.json` `cipc_*_foreign` keys | 2026-05-22 |
 | `https://www.sarsefiling.co.za` | `SARSStep.tsx`, `compliance-journey.json` `sars_*` keys | 2026-05-17 |
 | `https://www.ufiling.co.za` | `UIFStep.tsx`, `compliance-journey.json` `uif_*` keys | 2026-05-17 |
 | `https://www.smmesa.gov.za` | `SMMESAStep.tsx`, `compliance-journey.json` `smmesa_*` keys | 2026-05-17 |
@@ -151,11 +152,15 @@ This file is the single source of truth for: (a) every fact we make about extern
 
 | Claim | Where in code | Source-of-truth |
 |---|---|---|
-| Business visa requires R5M investment (Tshwane spec) | `scripts/seed-municipalities.ts:164` (Tshwane requirements row) | Immigration Regulations 2014, Reg 15 — **needs Phase 39 re-pull** |
-| Section 22 (asylum seeker) + Section 24 (refugee) permits accepted | `compliance-onboarding.json:34-35`, `seed-municipalities.ts` Joburg/Durban requirements | Immigration Act 13 of 2002 §22/§24 |
-| B-BBEE Act §13O fronting penalty: 10 years prison + 10% annual turnover | `compliance-onboarding.json:31` fronting_body | B-BBEE Act 53 of 2003 §13O — **needs Phase 39 re-pull** |
-| Immigration Act §42 fronting penalty | `compliance-onboarding.json:31` | Immigration Act 13 of 2002 §42 — **needs Phase 39 re-pull** |
-| Visa expiry → trading permit invalid | `compliance-journey.json:99-101,108` `visa_warning_*` + `permit_foreign_visa_link_notice` | Immigration Regulations |
+| ~~Business visa requires R5M investment (Tshwane spec)~~ **CORRECTED Phase 43**: the Gauteng demand that foreign spaza owners prove R5m was **declared unlawful by the courts** — it is NOT a registration requirement. Tshwane seed row reworded to "certified passport + valid permit". | `scripts/seed-municipalities.ts` Tshwane row + migration 033 | citizen.co.za: "Gauteng's R5m spaza shop fee declared illegal" (2025) — verified 2026-05-22 |
+| Foreign nationals register CIPC via **eServices (eservices.cipc.co.za)** + certified passport + manual "Foreigner Assurance" check — **NOT BizPortal** (BizPortal's ID flow requires a 13-digit SA ID) | `CIPCStep.tsx`, `compliance-journey.json` `cipc_*_foreign` keys | cipc.co.za FAQ + eservices.cipc.co.za — verified 2026-05-22 |
+| SARS registers a foreigner on a **passport / asylum-seeker number** (liability-based, not immigration-status-based) | `SARSStep.tsx`, `compliance-journey.json` `sars_*_foreign` keys | sars.gov.za "Register as a taxpayer" + SMS-TRN service accepts ID/Passport/Asylum number — verified 2026-05-22 |
+| CoA (R638) accepts **ID OR passport** of the person in charge — nationality-neutral | `HealthCertificateStep.tsx` `form_passport_number`, `coa_how_step_4_foreign` | Cape Town CoA form (ID or passport) — verified 2026-05-22 |
+| Permits that allow trading: business visa, **s24 refugee** (full right to work/trade), **s22 asylum** (only if work-endorsed), permanent residence | `RightToTradeStep.tsx` `rtt_permit_*`, `compliance-onboarding.json:34-35` | UNHCR SA help pages + Immigration/Refugees Acts §22/§24 — verified 2026-05-22 |
+| Section 22 (asylum seeker) + Section 24 (refugee) permits accepted | `compliance-onboarding.json:34-35`, `seed-municipalities.ts` Joburg/Durban/Mangaung requirements | Immigration Act 13 of 2002 §22/§24 |
+| B-BBEE Act §13O fronting penalty: 10 years prison + 10% annual turnover | `compliance-onboarding.json:31` fronting_body, `compliance-journey.json` `rtt_fronting_body` | B-BBEE Act 53 of 2003 §13O; thedtic.gov.za + bbbeecommission.co.za — verified 2026-05-22 |
+| Immigration Act §42 fronting penalty | `compliance-onboarding.json:31` | Immigration Act 13 of 2002 §42 — **needs full statute re-pull** |
+| Visa expiry → trading permit invalid | `compliance-journey.json:99-101,108` `visa_warning_*` + `permit_foreign_visa_link_notice` + `rtt_renew_note` | sanews.gov.za spaza registration guide — verified 2026-05-22 |
 
 ## I. POPIA
 
@@ -188,6 +193,28 @@ This file is the single source of truth for: (a) every fact we make about extern
 | Checklist streak break: 3 missed days | same, `CHECKLIST_STREAK_BREAK_DAYS=3` | App rule |
 | Doc expiry buckets: 2m / 1m / expired | same | App rule |
 | Visa expiry buckets: 90d / 60d / 30d / expired | same | App rule |
+
+## M. Foreign-national vs SA-citizen path (Phase 43)
+
+The compliance journey renders TWO distinct paths off `owner_profiles.nationality_type` (a foreign-born owner naturalised before 1994 counts as an SA citizen — `qualifiesAsSaCitizenForFund` — and gets the citizen path). **Every 30-day audit MUST re-walk BOTH paths** (toggle nationality via Settings → Redo compliance check) and confirm the divergences below still hold. The divergence is what an inspector / a foreign owner actually relies on, so a stale fact here is high-impact.
+
+| Step | SA citizen | Foreign national | Where in code | Diverges? |
+|---|---|---|---|---|
+| Right to Trade | (not shown) | Visa/permit prerequisite step shown FIRST; fronting warning | `RightToTradeStep.tsx`, `journey.ts isStepVisible` | **FN-only step** |
+| CIPC | BizPortal + SA ID | **eServices + passport + Foreigner Assurance** | `CIPCStep.tsx` `isForeignNational` | **Different tooling** |
+| SARS | eFiling + ID | eFiling + passport / asylum number | `SARSStep.tsx` `isForeignNational` | Label swap |
+| CoA (R638) | ID copy | passport copy | `HealthCertificateStep.tsx` `isForeignNational` | Label swap |
+| Trading permit | ID | passport + permit; visa-link notice | `TradingPermitStep.tsx` `isForeignNational` | Label swap + visa note |
+| UIF | ID | ID or passport (employees) | `UIFStep.tsx` `isForeignNational` | Label swap |
+| Food safety | identical | identical | — | No |
+| SMMESA / Fund | eligible | **excluded** (except pre-1994 naturalised) | `journey.ts`, `fund.ts qualifiesAsSaCitizenForFund` | Hard exclusion |
+
+**Audit checklist for this section (every cycle):**
+1. Re-confirm BizPortal still needs an SA ID and eServices is still the foreign route (CIPC FAQ).
+2. Re-confirm the R5m municipal demand is still ruled unlawful (no new gazette reinstating it).
+3. Re-confirm the fund's citizenship clause (`spazashopfund.co.za/eligibility-criteria`) — SA citizen or pre-1994 naturalised.
+4. Re-pull the B-BBEE §13O + Immigration §42 fronting penalties against current statute.
+5. Confirm every seeded metro's `municipality_requirements.documents_required` still carries BOTH an `sa_citizen` AND a `foreign_national` row.
 
 ---
 
@@ -267,7 +294,7 @@ Run through every line. Mark off as you go. **The PR is not mergeable until ever
 2. [ ] Add matching `DocumentType` variant (if it lives in `business_documents`)
 3. [ ] Append key to `JOURNEY_STEP_ORDER` in `src/lib/compliance/journey.ts`
 4. [ ] Add entry to `STEP_DEPENDENCIES` (`[]` if independent)
-5. [ ] Update `isStepVisible` if conditional (nationality / has_employees / fund_interest / naturalised_pre_1994)
+5. [ ] Update `isStepVisible` if conditional (nationality / has_employees / fund_interest / naturalised_pre_1994). **If the step has any SA-citizen-only assumption (BizPortal, "ID number", CIPC self-service, fund), add the `isForeignNational` branch AND the `*_foreign` i18n variant — verify on BOTH paths (see Section M).**
 6. [ ] Update `rawStepStatus` (or extend the document-status reader) so the new doc resolves correctly
 7. [ ] Create `src/components/compliance-journey/steps/NewStep.tsx`
 8. [ ] Add render case in `app/(app)/compliance/journey/page.tsx` `renderStepBody` switch
@@ -277,7 +304,7 @@ Run through every line. Mark off as you go. **The PR is not mergeable until ever
 12. [ ] Update `buildJourneySteps` / `ONBOARDING_DOCUMENT_ORDER` in `src/lib/compliance/onboarding.ts` if the new step appears in compliance onboarding
 13. [ ] If fund-relevant: add to `FUND_REQUIRED_DOC_TYPES` + extend `computeFundReadiness`
 14. [ ] **Migration**: extend `business_documents.document_type` CHECK enum + extend `compliance_reminders.reminder_type` CHECK enum if reminders fire
-15. [ ] **Seed**: add per-metro requirements / offices in `scripts/seed-municipalities.ts` for each of the 6 seeded metros
+15. [ ] **Seed**: add per-metro requirements / offices in `scripts/seed-municipalities.ts` for each of the 6 seeded metros — **every `documents_required` array MUST carry BOTH an `sa_citizen` AND a `foreign_national` row** (a foreign owner with no foreign_national row sees an empty/citizen-only list)
 16. [ ] **i18n × 5 locales**: namespace keys for `step_<key>_title/why/short`, the numbered how-to, the where-to-go header, the doc-checklist header, any reminder bodies
 17. [ ] **Tests**: extend `tests/unit/journey.test.ts` (visibility + lock + status), `fund-readiness.test.ts` if affects funding, `reminders.test.ts` if reminders fire
 18. [ ] **Inventory update** (this file): add every new factual claim (fees, deadlines, URLs, regulation refs) to the relevant section above, with last-verified date = today
@@ -298,4 +325,5 @@ Any new factual claim about external regulation that lives in EN i18n, a seed ro
 |---|---|---|---|---|
 | 2026-05-17 | Claude (Phases 41a/41b/41c) | Fund, CIPC fees, SARS 2026 Budget, CoA, UIF, metro forms | Corrected CIPC R100k→R80k, added SARS grace, added naturalised-pre-1994, fixed stale CIPC "R30" → "R100/R450", swept SEFA→spazashopfund.co.za, wired Durban CoA PDF | Phases 41a, 41b, 41c |
 | 2026-05-17 | Claude (Phase 41d) | URL liveness + seed completeness | Closed 4/5 per-metro gaps from previous entry — wired Ekurhuleni trading-permit + business-licence PDFs, Tshwane R638 CoA PDF, Cape Town R638 CoA PDF, Joburg CoA portal landing. Confirmed Mangaung's online spaza forms are 404 (helpline-only). Built `npm run check:compliance-urls` script + `tests/unit/compliance-facts-completeness.test.ts` to keep this file machine-honest. Surfaced the SARS 6-month grace countdown to owners (was engine-only). Live URL ping pass on 17 URLs → 17/17 reachable (with 3 manual-verify skips for SARS/UIF/SMMESA WAF). | Phase 41d |
-| (next entry: 2026-11-17) | | | | |
+| 2026-05-22 | Claude (Phase 43, 2 research + 2 verify agents) | Foreign-national compliance path — full citizen-vs-foreigner split | Found the FN path sent foreigners to BizPortal (SA-ID-only) + used "ID number" on CIPC/SARS/UIF/CoA. Added a foreign-national-only **Right to Trade** journey step (visa/permit + fronting warning); routed CIPC to **eServices** (passport + Foreigner Assurance); swapped ID→passport copy on SARS/UIF/CoA; corrected Tshwane's court-invalidated "R5m" demand + seeded Mangaung FN doc rows (migration 033). Fixed 2 pre-1994-naturalised bugs (SMMESA visibility + fund-pack PDF 403 now use `qualifiesAsSaCitizenForFund`). Added Section M (FN-vs-citizen divergence table) to this doc + made walking BOTH paths a standing item in the monthly process. All facts sourced (CIPC FAQ, SARS, sanews, spazashopfund.co.za, citizen.co.za R5m ruling, B-BBEE Act §13O). | Phase 43 |
+| (next entry: 2026-06-16) | | | | |

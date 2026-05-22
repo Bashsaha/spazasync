@@ -19,13 +19,15 @@ interface Props {
   step: ComplianceJourneyStep
   data: ComplianceJourneyData
   t: T
+  /** Swap "ID number" copy for "passport / asylum-seeker number". */
+  isForeignNational?: boolean
 }
 
 function formatZar(amount: number): string {
   return amount.toLocaleString('en-ZA', { maximumFractionDigits: 0 })
 }
 
-export function SARSStep({ step, data, t }: Props) {
+export function SARSStep({ step, data, t, isForeignNational = false }: Props) {
   const monthly = data.monthlyRevenueZar
   const annual = monthly * 12
 
@@ -70,11 +72,16 @@ export function SARSStep({ step, data, t }: Props) {
         <ol className="list-decimal list-inside text-sm text-gray-700 space-y-1.5">
           <li>{t('sars_how_step_1')}</li>
           <li>{t('sars_how_step_2')}</li>
-          <li>{t('sars_how_step_3')}</li>
+          <li>{t(isForeignNational ? 'sars_how_step_3_foreign' : 'sars_how_step_3')}</li>
           <li>{t('sars_how_step_4')}</li>
           <li>{t('sars_how_step_5')}</li>
           <li>{t('sars_how_step_6')}</li>
         </ol>
+        {isForeignNational && (
+          <p className="text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 mt-3">
+            ℹ️ {t('sars_foreign_note')}
+          </p>
+        )}
         <a
           href="https://www.sarsefiling.co.za"
           target="_blank"

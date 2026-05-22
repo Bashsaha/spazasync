@@ -810,6 +810,7 @@ export interface JourneyStep {
  * permit) requires CIPC + SARS + food-safety training; `smmesa` requires CIPC.
  */
 export type JourneyStepKey =
+  | 'right_to_trade'           // Foreign-national-only prerequisite (visa/permit). No business_documents row — status derives from owner_profiles.visa_type.
   | 'municipal_registration'   // Step 1 — Trading Permit
   | 'coa'                      // Step 2 — Health Certificate
   | 'cipc'                     // Step 3

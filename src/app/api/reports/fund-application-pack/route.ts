@@ -17,6 +17,7 @@ import { NextResponse } from 'next/server'
 import { getShopAuth } from '@/lib/auth/shop-auth'
 import { getOwnerProfileReportData } from '@/lib/db/owner-profile-report'
 import { getComplianceScore } from '@/lib/db/compliance-score'
+import { qualifiesAsSaCitizenForFund } from '@/lib/compliance/fund'
 import { formatSAST } from '@/lib/utils/date'
 import {
   BRAND_BLUE,
@@ -77,8 +78,11 @@ export async function GET() {
     const data = await getOwnerProfileReportData(auth.shopId, auth.user.id)
     if (!data) return NextResponse.json({ error: 'Shop not found' }, { status: 404 })
 
-    // Eligibility gates (Design Rule 3)
-    if (data.ownerProfile?.nationality_type !== 'sa_citizen') {
+    // Eligibility gates (Design Rule 3). Use qualifiesAsSaCitizenForFund so a
+    // foreign-born owner naturalised as an SA citizen before 1994 (who legally
+    // qualifies for the fund) is NOT wrongly blocked — a bare `=== 'sa_citizen'`
+    // here used to 403 them even though the fund engine treats them as eligible.
+    if (!data.ownerProfile || !qualifiesAsSaCitizenForFund(data.ownerProfile)) {
       return NextResponse.json(
         { error: 'The Spaza Shop Support Fund is only open to South African citizens.' },
         { status: 403 },

@@ -27,6 +27,8 @@ import { SARSStep } from '@/components/compliance-journey/steps/SARSStep'
 import { UIFStep } from '@/components/compliance-journey/steps/UIFStep'
 import { FoodSafetyStep } from '@/components/compliance-journey/steps/FoodSafetyStep'
 import { SMMESAStep } from '@/components/compliance-journey/steps/SMMESAStep'
+import { RightToTradeStep } from '@/components/compliance-journey/steps/RightToTradeStep'
+import { qualifiesAsSaCitizenForFund } from '@/lib/compliance/fund'
 import type { ComplianceJourneyStep } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -48,11 +50,18 @@ export default async function ComplianceJourneyPage() {
   const currentStepKey =
     data.steps.find((s) => s.status !== 'complete')?.key ?? null
 
-  const showFundTeaser =
-    data.ownerProfile?.nationality_type === 'sa_citizen' && data.shop.fund_interest
+  // "Counts as an SA citizen for the fund" = sa_citizen OR foreign-born owner
+  // naturalised before 1994. The latter are SA citizens by law, so they get the
+  // citizen journey (SA ID, BizPortal, fund teaser) — NOT the foreign path.
+  const treatedAsCitizen = qualifiesAsSaCitizenForFund(
+    data.ownerProfile ?? { nationality_type: null },
+  )
+  const showFundTeaser = treatedAsCitizen && data.shop.fund_interest
 
+  // True foreign national = foreign_national who is NOT pre-1994 naturalised.
+  // Drives every passport/visa swap + eServices-instead-of-BizPortal routing.
   const isForeignNational =
-    data.ownerProfile?.nationality_type === 'foreign_national'
+    data.ownerProfile?.nationality_type === 'foreign_national' && !treatedAsCitizen
   const visaExpiry = data.ownerProfile?.visa_expiry_date ?? null
   const daysRemaining = computeDaysRemaining(visaExpiry)
 
@@ -121,16 +130,25 @@ function renderStepBody(
 ) {
   if (!data) return null
   switch (step.key) {
+    case 'right_to_trade':
+      return (
+        <RightToTradeStep
+          t={t}
+          visaType={data.ownerProfile?.visa_type ?? null}
+          visaExpiryDate={data.ownerProfile?.visa_expiry_date ?? null}
+          daysRemaining={computeDaysRemaining(data.ownerProfile?.visa_expiry_date ?? null)}
+        />
+      )
     case 'municipal_registration':
       return <TradingPermitStep step={step} data={data} t={t} isForeignNational={isForeignNational} />
     case 'coa':
-      return <HealthCertificateStep step={step} data={data} t={t} tInsp={tInsp} />
+      return <HealthCertificateStep step={step} data={data} t={t} tInsp={tInsp} isForeignNational={isForeignNational} />
     case 'cipc':
       return <CIPCStep step={step} data={data} t={t} isForeignNational={isForeignNational} />
     case 'sars_tax':
-      return <SARSStep step={step} data={data} t={t} />
+      return <SARSStep step={step} data={data} t={t} isForeignNational={isForeignNational} />
     case 'uif':
-      return <UIFStep step={step} t={t} />
+      return <UIFStep step={step} t={t} isForeignNational={isForeignNational} />
     case 'food_safety_training':
       return <FoodSafetyStep step={step} data={data} t={t} />
     case 'smmesa':

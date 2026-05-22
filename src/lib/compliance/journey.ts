@@ -17,23 +17,25 @@ import type {
   BusinessDocument,
   ComplianceJourneyStep,
   ComplianceJourneyStepStatus,
-  DocumentType,
   JourneyStepKey,
   OwnerProfile,
   Shop,
 } from '@/types'
+import { qualifiesAsSaCitizenForFund } from './fund'
 
 /**
  * Canonical step order — reflects the real-world dependency chain:
+ *  0. Right to Trade        — foreign nationals only; everything depends on a valid visa/permit
  *  1. Food Safety Training  — prerequisite for the CoA (R638 Reg 10)
  *  2. CIPC                  — prerequisite for trading permit + funding
  *  3. SARS Tax              — prerequisite for trading permit
  *  4. Health Certificate    — needs food-safety training; can run with CIPC/SARS
  *  5. Trading Permit        — depends on 1+2+3 (CoA runs alongside)
  *  6. UIF                   — only if has_employees
- *  7. SMMESA                — only if SA citizen + fund_interest; needs CIPC
+ *  7. SMMESA                — only if SA citizen (incl. pre-1994 naturalised) + fund_interest; needs CIPC
  */
 export const JOURNEY_STEP_ORDER: readonly JourneyStepKey[] = [
+  'right_to_trade',
   'food_safety_training',
   'cipc',
   'sars_tax',
@@ -54,6 +56,10 @@ export const JOURNEY_STEP_ORDER: readonly JourneyStepKey[] = [
  * - SMMESA needs CIPC (the registry asks for the company number).
  */
 const STEP_DEPENDENCIES: Record<JourneyStepKey, JourneyStepKey[]> = {
+  // right_to_trade has no hard lock — it's positioned first and framed as the
+  // foundation, but we don't lock the rest of the journey behind it (a foreign
+  // owner can still read what the other steps need while sorting out a permit).
+  right_to_trade: [],
   municipal_registration: ['cipc', 'sars_tax', 'food_safety_training'],
   coa: ['food_safety_training'],
   cipc: [],
@@ -71,17 +77,30 @@ const IN_PROGRESS_DOC_STATUSES = new Set(['in_progress', 'pending'])
 
 /**
  * Decide whether a single step is visible for this owner.
- * UIF only matters when the shop has employees. SMMESA only matters when the
- * owner is an SA citizen and ticked "interested in the fund" during onboarding.
+ *
+ * - right_to_trade: only true foreign nationals see it. A foreign-born owner
+ *   naturalised as an SA citizen before 1994 is an SA citizen by law (no visa),
+ *   so `qualifiesAsSaCitizenForFund` filters them out here too.
+ * - UIF: only when the shop has employees.
+ * - SMMESA: only when the owner counts as an SA citizen for the fund (incl.
+ *   pre-1994 naturalised) AND ticked "interested in the fund" at onboarding.
+ *   Previously this was a bare `=== 'sa_citizen'`, which wrongly hid the step
+ *   from pre-1994 naturalised owners who DO qualify for the fund.
  */
 function isStepVisible(
   key: JourneyStepKey,
   ownerProfile: OwnerProfile | null,
   shop: Pick<Shop, 'has_employees' | 'fund_interest'>,
 ): boolean {
+  if (key === 'right_to_trade') {
+    return (
+      ownerProfile?.nationality_type === 'foreign_national' &&
+      !qualifiesAsSaCitizenForFund(ownerProfile ?? { nationality_type: null })
+    )
+  }
   if (key === 'uif') return shop.has_employees
   if (key === 'smmesa') {
-    return ownerProfile?.nationality_type === 'sa_citizen' && shop.fund_interest
+    return qualifiesAsSaCitizenForFund(ownerProfile ?? { nationality_type: null }) && shop.fund_interest
   }
   return true
 }
@@ -95,7 +114,10 @@ function findDocument(
   key: JourneyStepKey,
   documents: BusinessDocument[],
 ): BusinessDocument | null {
-  return documents.find((d) => d.document_type === (key as DocumentType)) ?? null
+  // Compare as strings: JourneyStepKey now has one member (right_to_trade) that
+  // is NOT a DocumentType, so a direct `as DocumentType` cast no longer holds.
+  // right_to_trade has no document row anyway (its caller guards against it).
+  return documents.find((d) => (d.document_type as string) === key) ?? null
 }
 
 /**
@@ -113,6 +135,16 @@ function rawStepStatus(
   // ever writes there.
   if (key === 'food_safety_training') {
     if (ownerProfile?.food_safety_training_completed) return 'complete'
+  }
+
+  // Right to trade also lives on owner_profiles (visa_type), not
+  // business_documents. It's "complete" once the owner has recorded a visa /
+  // permit at onboarding; otherwise it's the first thing they need to sort out.
+  // Expiry urgency is surfaced separately by VisaPermitWarning + visa reminders,
+  // so we keep this status purely about whether a permit is on file (no clock
+  // here — the engine stays pure/deterministic for tests).
+  if (key === 'right_to_trade') {
+    return ownerProfile?.visa_type ? 'complete' : 'not_started'
   }
 
   if (!doc) return 'not_started'
@@ -135,7 +167,9 @@ export function buildVisibleSteps(
   const visible = JOURNEY_STEP_ORDER.filter((k) => isStepVisible(k, ownerProfile, shop))
 
   return visible.map((key, index) => {
-    const doc = findDocument(key, documents)
+    // right_to_trade has no business_documents row — its status comes from
+    // owner_profiles.visa_type (resolved in rawStepStatus).
+    const doc = key === 'right_to_trade' ? null : findDocument(key, documents)
     return {
       key,
       stepNumber: index + 1,

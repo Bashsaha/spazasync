@@ -185,7 +185,7 @@ const MUNICIPALITIES: SeedMunicipality[] = [
         requirement_type: 'trading_permit',
         documents_required: [
           { name: 'Certified copy of SA ID', applies_to: 'sa_citizen', required: true },
-          { name: 'Home Affairs documents for foreigners (certified copies)', applies_to: 'foreign_national', required: true, notes: 'Foreign nationals need proof of R5 million capital investment + business visa (Immigration Act Regulations 2014, Reg 15)' },
+          { name: 'Certified copy of passport with a valid permit (not older than 3 months)', applies_to: 'foreign_national', required: true, notes: 'Business visa OR Section 22 asylum seeker permit OR Section 24 refugee permit. (The Gauteng demand that foreign spaza owners prove R5 million was declared unlawful by the courts — it is NOT a registration requirement.)' },
           { name: 'Affidavit and certified ID of stand/erf owner', applies_to: 'all', required: true, notes: 'Required if property is zoned as Residential 5' },
           { name: 'Proof of ownership or permission to use premises', applies_to: 'all', required: true, notes: 'If City-owned property: Special Power of Attorney from City Manager through Group Property (Ou Raadsaal or Tshwane House)' },
         ],
@@ -392,7 +392,23 @@ const MUNICIPALITIES: SeedMunicipality[] = [
         notes: 'No online form currently available — call 0800 111 300 or visit the SMME Unit at Bram Fischer Building (9th floor) for the current spaza / tuck shop / general dealer application form.',
       },
     ],
-    requirements: [],
+    // Phase 43 — Mangaung's own form is helpline-only (its 2020 PDFs 404), but
+    // the identity-document split is the same nationality divergence as every
+    // other metro. Seed a minimal trading_permit requirements row with both
+    // nationality rows so foreign-national owners get the correct "what to
+    // bring" list (passport + permit, not SA ID). Fees/processing left null —
+    // confirm at the SMME Unit; the metro's own list governs.
+    requirements: [
+      {
+        requirement_type: 'trading_permit',
+        documents_required: [
+          { name: 'Certified copy of SA ID', applies_to: 'sa_citizen', required: true },
+          { name: 'Certified copy of passport with a valid permit (not older than 3 months)', applies_to: 'foreign_national', required: true, notes: 'Business visa OR Section 22 asylum seeker permit OR Section 24 refugee permit.' },
+          { name: 'Proof of address / permission to use the premises', applies_to: 'all', required: true },
+          { name: 'Affidavit: not trading in illegal goods (stamped by a Commissioner of Oaths)', applies_to: 'all', required: true },
+        ],
+      },
+    ],
   },
 ]
 

@@ -1,10 +1,12 @@
 /**
  * Phase 37c — Step 3: CIPC business registration.
  *
- * One-shot online process via bizportal.gov.za — no separate "applied" /
- * "received" workflow makes sense here, so the action row is variant='standard'
- * (so owners who DO want to track the wait between submission and approval
- * still can).
+ * SA citizens use BizPortal self-service (SA ID login). Foreign nationals
+ * CANNOT use BizPortal's ID flow — they register through CIPC eServices
+ * (eservices.cipc.co.za) with a certified passport, and CIPC runs a manual
+ * "Foreigner Assurance" identity check. The how-to copy, the portal link, and
+ * the form header all swap on `isForeignNational` so we never send a foreign
+ * owner to a dead end (verified 2026-05-21 — see compliance-facts-audit.md §C).
  */
 
 import { Wallet } from 'lucide-react'
@@ -73,7 +75,7 @@ export function CIPCStep({ step, data, t, isForeignNational = false }: Props) {
           {t('cipc_how_header')}
         </h4>
         <ol className="list-decimal list-inside text-sm text-gray-700 space-y-1.5">
-          <li>{t('cipc_how_step_1')}</li>
+          <li>{t(isForeignNational ? 'cipc_how_step_1_foreign' : 'cipc_how_step_1')}</li>
           <li>{t('cipc_how_step_2')}</li>
           <li>{t(isForeignNational ? 'cipc_how_step_3_foreign' : 'cipc_how_step_3')}</li>
           <li>{t('cipc_how_step_4')}</li>
@@ -81,17 +83,26 @@ export function CIPCStep({ step, data, t, isForeignNational = false }: Props) {
           <li>{t('cipc_how_step_6')}</li>
           <li>{t('cipc_how_step_7')}</li>
         </ol>
+        {isForeignNational && (
+          <p className="text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 mt-3">
+            ℹ️ {t('cipc_foreign_note')}
+          </p>
+        )}
         <a
-          href="https://www.bizportal.gov.za"
+          href={isForeignNational ? 'https://eservices.cipc.co.za' : 'https://www.bizportal.gov.za'}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-block mt-3 text-brand active:text-brand-hover underline text-sm font-semibold"
         >
-          {t('cipc_open_portal')} →
+          {t(isForeignNational ? 'cipc_open_portal_foreign' : 'cipc_open_portal')} →
         </a>
       </section>
 
-      <FormSummaryCard rows={formRows} t={t} headerKey="cipc_form_header" />
+      <FormSummaryCard
+        rows={formRows}
+        t={t}
+        headerKey={isForeignNational ? 'cipc_form_header_foreign' : 'cipc_form_header'}
+      />
 
       <p className="text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2">
         ℹ️ {t('cipc_annual_return_note')}

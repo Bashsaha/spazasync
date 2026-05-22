@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ClipboardList, Shield, Wallet } from 'lucide-react'
@@ -34,6 +34,14 @@ interface ShopSettings {
   nationality_type: 'sa_citizen' | 'foreign_national' | null
 }
 
+// Last-seen settings snapshot, persisted across PWA opens so the page paints
+// instantly on the next visit (cache-first) instead of blocking on the network
+// round-trip + JWT refresh. The background fetch below reconciles it. This is
+// the same pattern useActiveTeller uses for the sale screen — the snapshot is
+// the owner's own shop data, never a security boundary (writes still go through
+// the authenticated PATCH + RLS).
+const SETTINGS_CACHE_KEY = 'spaza_shop_settings'
+
 export default function SettingsPage() {
   const router = useRouter()
   const { t, tPlural, locale, setLocale } = useTranslation('settings')
@@ -57,24 +65,65 @@ export default function SettingsPage() {
   const role = useUserRole()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  // Flips true the moment the user edits any field, so a late background
+  // refresh never overwrites in-progress input. Display-only fields (missing
+  // cost, subscription, shop code) still update regardless.
+  const formTouchedRef = useRef(false)
 
   useEffect(() => {
+    // Hydrate every editable field from a settings object. Skipped on the
+    // background refresh once the user has started editing.
+    function applyEditableFields(data: ShopSettings) {
+      setName(data.name)
+      setThreshold(data.low_stock_threshold)
+      setRegNumber(data.registration_number ?? '')
+      setLocation(data.location ?? '')
+      setProfitTracking(Boolean(data.profit_tracking_enabled))
+      setHasFridge(data.has_fridge !== false)
+      setHasFreezer(data.has_freezer !== false)
+      setFundInterest(Boolean(data.fund_interest))
+      if (data.language) setLanguage(data.language as SupportedLocale)
+    }
+
+    // ── Instant paint from the last-seen snapshot ──────────────────────────
+    // If we have a cached copy, render the full page NOW and stop the spinner.
+    // The background fetch below keeps it fresh.
+    let paintedFromCache = false
+    try {
+      const cached = localStorage.getItem(SETTINGS_CACHE_KEY)
+      if (cached) {
+        const data = JSON.parse(cached) as ShopSettings
+        if (data?.id) {
+          setSettings(data)
+          applyEditableFields(data)
+          setLoading(false)
+          paintedFromCache = true
+        }
+      }
+    } catch {
+      // corrupt / unavailable cache — fall through to network
+    }
+
+    // ── Background revalidate ──────────────────────────────────────────────
     fetch('/api/settings')
       .then((r) => r.json())
       .then((data: ShopSettings) => {
         setSettings(data)
-        setName(data.name)
-        setThreshold(data.low_stock_threshold)
-        setRegNumber(data.registration_number ?? '')
-        setLocation(data.location ?? '')
-        setProfitTracking(Boolean(data.profit_tracking_enabled))
-        setHasFridge(data.has_fridge !== false)
-        setHasFreezer(data.has_freezer !== false)
-        setFundInterest(Boolean(data.fund_interest))
-        if (data.language) setLanguage(data.language as SupportedLocale)
+        // Don't stomp on edits already in progress.
+        if (!formTouchedRef.current) applyEditableFields(data)
+        try {
+          localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(data))
+        } catch {
+          // ignore storage errors
+        }
       })
-      .catch(() => setMessage({ type: 'err', key: 'msg_load_failed' }))
-      .finally(() => setLoading(false))
+      .catch(() => {
+        // Only surface a load error if we had nothing cached to show.
+        if (!paintedFromCache) setMessage({ type: 'err', key: 'msg_load_failed' })
+      })
+      .finally(() => {
+        if (!paintedFromCache) setLoading(false)
+      })
   }, [])
 
   // Re-fetch missing cost count when user returns from editing products
@@ -84,8 +133,16 @@ export default function SettingsPage() {
       fetch('/api/settings')
         .then((r) => r.json())
         .then((data: ShopSettings) => {
-          setSettings((prev) => prev ? { ...prev, products_missing_cost: data.products_missing_cost } : prev)
-          setProfitTracking(Boolean(data.profit_tracking_enabled))
+          setSettings((prev) => {
+            const next = prev ? { ...prev, ...data } : data
+            try {
+              localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(next))
+            } catch {
+              // ignore storage errors
+            }
+            return next
+          })
+          if (!formTouchedRef.current) setProfitTracking(Boolean(data.profit_tracking_enabled))
         })
         .catch(() => {})
     }
@@ -94,6 +151,7 @@ export default function SettingsPage() {
   }, [])
 
   async function handleProfitToggle(nextValue: boolean) {
+    formTouchedRef.current = true
     setProfitTracking(nextValue)
     const res = await fetch('/api/settings', {
       method: 'PATCH',
@@ -117,6 +175,7 @@ export default function SettingsPage() {
   }
 
   async function handleEquipmentToggle(kind: 'fridge' | 'freezer', nextValue: boolean) {
+    formTouchedRef.current = true
     if (kind === 'fridge') setHasFridge(nextValue)
     else setHasFreezer(nextValue)
 
@@ -145,6 +204,7 @@ export default function SettingsPage() {
   }
 
   async function handleFundInterestToggle(nextValue: boolean) {
+    formTouchedRef.current = true
     setFundInterest(nextValue)
     const res = await fetch('/api/settings', {
       method: 'PATCH',
@@ -168,6 +228,7 @@ export default function SettingsPage() {
   }
 
   async function handleLanguageChange(newLang: SupportedLocale) {
+    formTouchedRef.current = true
     setLanguage(newLang)
     setLocale(newLang)
 
@@ -208,7 +269,19 @@ export default function SettingsPage() {
 
     if (res.ok) {
       const updated: ShopSettings = await res.json()
-      setSettings(updated)
+      // Merge over the existing object so display-only fields (missing cost,
+      // subscription, nationality) the PATCH doesn't return are preserved, then
+      // refresh the cache so the next open paints these saved values.
+      setSettings((prev) => {
+        const next = prev ? { ...prev, ...updated } : updated
+        try {
+          localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(next))
+        } catch {
+          // ignore storage errors
+        }
+        return next
+      })
+      formTouchedRef.current = false
       setMessage({ type: 'ok', key: 'msg_saved' })
     } else {
       const err = await res.json().catch(() => ({}))
@@ -544,7 +617,7 @@ export default function SettingsPage() {
           <Input
             type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => { formTouchedRef.current = true; setName(e.target.value) }}
             required
             maxLength={100}
             placeholder={t('placeholder_shop_name')}
@@ -563,7 +636,7 @@ export default function SettingsPage() {
           <Input
             type="text"
             value={regNumber}
-            onChange={(e) => setRegNumber(e.target.value)}
+            onChange={(e) => { formTouchedRef.current = true; setRegNumber(e.target.value) }}
             maxLength={100}
             placeholder={t('placeholder_reg_number')}
           />
@@ -581,7 +654,7 @@ export default function SettingsPage() {
           <Input
             type="text"
             value={location}
-            onChange={(e) => setLocation(e.target.value)}
+            onChange={(e) => { formTouchedRef.current = true; setLocation(e.target.value) }}
             maxLength={200}
             placeholder={t('placeholder_location')}
           />
@@ -592,7 +665,7 @@ export default function SettingsPage() {
             <Input
               type="number"
               value={threshold}
-              onChange={(e) => setThreshold(Math.max(1, parseInt(e.target.value) || 1))}
+              onChange={(e) => { formTouchedRef.current = true; setThreshold(Math.max(1, parseInt(e.target.value) || 1)) }}
               min={1}
               max={9999}
               className="w-24 text-center"
