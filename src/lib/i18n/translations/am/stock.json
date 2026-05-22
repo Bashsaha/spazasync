@@ -125,10 +125,12 @@
   "stock_take_mark_all_correct": "ሁሉም ትክክል — እንደቆጠሩ ምልክት ያድርጉ",
   "stock_take_error_reason_required": "ከማስቀመጥዎ በፊት ለቀነሰ እያንዳንዱ እቃ ምክንያት ይምረጡ።",
   "reason_prompt": "ለምን ቀነሰ?",
+  "reason_remove_prompt": "ለምን እያስወገዱት ነው?",
   "reason_unsure": "እርግጠኛ አይደለሁም",
   "reason_damaged_expired": "ተበላሽቷል ወይም ጊዜው አልፎበታል",
   "reason_miscount": "የቆጠራ እርማት",
   "reason_other": "ሌላ",
+  "adjust_reason_required": "ይህን እቃ ከማስወገድዎ በፊት ምክንያት ይምረጡ።",
 
   "missing_supplier_tip_one": "{count} እቃ ገና አቅራቢ የለውም። አቅራቢዎችን ማገናኘት ድጋሚ መሙላትን ቀላል ያደርጋል።",
   "missing_supplier_tip_other": "{count} እቃዎች ገና አቅራቢ የላቸውም። አቅራቢዎችን ማገናኘት ድጋሚ መሙላትን ቀላል ያደርጋል።",

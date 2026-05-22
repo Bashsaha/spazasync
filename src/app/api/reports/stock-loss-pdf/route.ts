@@ -25,6 +25,20 @@ function fmtDate(iso: string): string {
   return formatSAST(iso, 'dd MMM yyyy')
 }
 
+// Coded loss reasons (shared by stock-take counts and manual removals) → English
+// labels for the PDF. Older free-text adjustment reasons pass through unchanged.
+const REASON_LABELS: Record<string, string> = {
+  unsure: 'Unsure',
+  damaged_expired: 'Damaged or expired',
+  miscount: 'Miscount fix',
+  other: 'Other',
+}
+
+function reasonLabel(reason: string | null): string {
+  if (!reason) return '—'
+  return REASON_LABELS[reason] ?? reason
+}
+
 /**
  * GET /api/reports/stock-loss-pdf?from=YYYY-MM-DD&to=YYYY-MM-DD
  *
@@ -121,7 +135,7 @@ export async function GET(request: Request) {
         r.cost_price !== null ? fmtR(r.cost_price) : '—',
         fmtR(r.value_lost),
         r.source === 'adjustment' ? 'Adjustment' : 'Stock-take',
-        r.reason ?? '—',
+        reasonLabel(r.reason),
       ])
 
       autoTable(doc, {

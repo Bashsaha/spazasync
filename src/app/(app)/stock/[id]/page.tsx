@@ -13,6 +13,7 @@ import { BackButton } from '@/components/BackButton'
 import { useTranslation } from '@/components/LanguageProvider'
 import { FullScreenSpinner } from '@/components/Spinner'
 import { emitDataChanged } from '@/lib/events'
+import { STOCK_TAKE_LOSS_REASONS } from '@/lib/validation/schemas'
 
 interface ExpiryEntry {
   expiry_date: string
@@ -159,6 +160,12 @@ function StockAdjustContent() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!product || !validAmount) return
+    // Removing stock must be categorised — same required loss reasons as the
+    // Count Stock tab, so every stock removal in the app is tracked the same way.
+    if (mode === 'remove' && !reason) {
+      setSaveErrorKey('adjust_reason_required')
+      return
+    }
     setSaving(true)
     setSaveErrorKey(null)
     setSaveErrorRaw('')
@@ -399,7 +406,7 @@ function StockAdjustContent() {
                 <button
                   key={m}
                   type="button"
-                  onClick={() => { setMode(m); if (m === 'remove') { setTrackAddExpiry(false); setAddExpiryEntries([]) } }}
+                  onClick={() => { setMode(m); setReason(''); if (m === 'remove') { setTrackAddExpiry(false); setAddExpiryEntries([]) } }}
                   className={`flex-1 py-3 rounded-full text-sm font-semibold transition-colors ${
                     mode === m
                       ? m === 'add'
@@ -465,24 +472,53 @@ function StockAdjustContent() {
               </div>
             )}
 
-            {/* Reason */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('adjust_label_reason')} <span className="text-gray-400 font-normal">{t('adjust_reason_optional')}</span>
-              </label>
-              <select
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
-              >
-                <option value="">{t('adjust_reason_placeholder')}</option>
-                {REASON_KEYS.map((rk) => (
-                  <option key={rk} value={t(rk)}>
-                    {t(rk)}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Reason — when adding it's optional context; when removing it's
+                required and uses the SAME loss reasons as the Count Stock tab,
+                so every stock removal across the app is categorised the same. */}
+            {mode === 'add' ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('adjust_label_reason')} <span className="text-gray-400 font-normal">{t('adjust_reason_optional')}</span>
+                </label>
+                <select
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+                >
+                  <option value="">{t('adjust_reason_placeholder')}</option>
+                  {REASON_KEYS.map((rk) => (
+                    <option key={rk} value={t(rk)}>
+                      {t(rk)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  {t('reason_remove_prompt')}
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {STOCK_TAKE_LOSS_REASONS.map((code) => {
+                    const selected = reason === code
+                    return (
+                      <button
+                        key={code}
+                        type="button"
+                        onClick={() => setReason(code)}
+                        className={`text-xs font-medium px-3 py-1.5 rounded-full border ${
+                          selected
+                            ? 'bg-brand text-white border-brand'
+                            : 'bg-white text-gray-600 border-gray-200 active:bg-gray-50'
+                        }`}
+                      >
+                        {t(`reason_${code}`)}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Supplier (only when adding stock) */}
             {mode === 'add' && (
@@ -559,7 +595,7 @@ function StockAdjustContent() {
 
             <button
               type="submit"
-              disabled={saving || !validAmount}
+              disabled={saving || !validAmount || (mode === 'remove' && !reason)}
               className="w-full bg-brand text-white font-semibold py-4 rounded-full text-base active:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving

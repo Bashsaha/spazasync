@@ -125,10 +125,12 @@
   "stock_take_mark_all_correct": "سب صحیح — گنے ہوئے کے طور پر نشان لگائیں",
   "stock_take_error_reason_required": "محفوظ کرنے سے پہلے ہر کم ہونے والی چیز کے لیے وجہ منتخب کریں۔",
   "reason_prompt": "یہ کم کیوں ہے؟",
+  "reason_remove_prompt": "آپ اسے کیوں نکال رہے ہیں؟",
   "reason_unsure": "یقین نہیں",
   "reason_damaged_expired": "خراب یا میعاد ختم",
   "reason_miscount": "گنتی کی درستی",
   "reason_other": "دیگر",
+  "adjust_reason_required": "اس اسٹاک کو نکالنے سے پہلے ایک وجہ منتخب کریں۔",
 
   "missing_supplier_tip_one": "{count} پروڈکٹ سے ابھی سپلائر منسلک نہیں ہے۔ سپلائرز کو منسلک کرنا دوبارہ اسٹاک کرنا تیز کر دیتا ہے۔",
   "missing_supplier_tip_other": "{count} پروڈکٹس سے ابھی سپلائر منسلک نہیں ہے۔ سپلائرز کو منسلک کرنا دوبارہ اسٹاک کرنا تیز کر دیتا ہے۔",

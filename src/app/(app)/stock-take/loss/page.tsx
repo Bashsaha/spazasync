@@ -251,10 +251,10 @@ export default function StockLossPage() {
                   </p>
                   {r.reason && (
                     <p className="text-xs text-gray-600 mt-1 italic">
-                      {/* Stock-take reasons are coded (unsure/damaged_expired/
-                          other) — translate them. Adjustment reasons are free
-                          text — show as-is. */}
-                      {r.source === 'stock_take' && KNOWN_REASONS.has(r.reason)
+                      {/* Coded reasons (unsure/damaged_expired/other) — from
+                          either stock-take OR a manual removal — get translated.
+                          Older free-text adjustment reasons show as-is. */}
+                      {KNOWN_REASONS.has(r.reason)
                         ? t(`reason_${r.reason}`)
                         : r.reason}
                     </p>

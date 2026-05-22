@@ -125,10 +125,12 @@
   "stock_take_mark_all_correct": "Dhammaan sax — u calaamadee sida la tiriyay",
   "stock_take_error_reason_required": "Ka hor intaadan keydin, dooro sabab walax kasta oo hooseeya.",
   "reason_prompt": "Maxay u hooseysaa?",
+  "reason_remove_prompt": "Maxaad u saaraysaa?",
   "reason_unsure": "Ma hubo",
   "reason_damaged_expired": "Waa kharribmay ama dhacay",
   "reason_miscount": "Saxitaan tirin",
   "reason_other": "Mid kale",
+  "adjust_reason_required": "Ka hor intaadan keydin, dooro sabab aad u saareyso badeecadan.",
 
   "missing_supplier_tip_one": "{count} walax weli ma laha iibiye la xidhiidha. Xidhiidhinta iibiyayaasha way fudaynaysaa dib-u-buuxinta.",
   "missing_supplier_tip_other": "{count} walxood weli ma laha iibiye la xidhiidha. Xidhiidhinta iibiyayaasha way fudaynaysaa dib-u-buuxinta.",

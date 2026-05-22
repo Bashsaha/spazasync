@@ -80,6 +80,10 @@ export function shapeStockLoss(
     // Only count negative deltas. Defensive: even if the DB query already
     // filtered, the shaping function alone should still be safe to call.
     if (row.delta >= 0) continue
+    // A "miscount" correction isn't real loss — it just fixes a previous
+    // over-count. Manual removals now use the same coded reasons as the Count
+    // Stock tab, so exclude miscount here too (mirrors the stock-take rule).
+    if (row.reason === 'miscount') continue
     const qtyRemoved = -row.delta
     const costPrice = row.products?.cost_price ?? null
     rows.push({

@@ -147,4 +147,19 @@ describe('shapeStockLoss', () => {
     expect(r.totals.total_items).toBe(2)
     expect(r.totals.total_value).toBe(10)
   })
+
+  it('excludes miscount manual removals too (same rule as stock-take)', () => {
+    const r = shapeStockLoss(
+      [
+        adj({ product_id: 'a', delta: -4, reason: 'miscount' }), // correction, not loss
+        adj({ product_id: 'b', delta: -2, reason: 'damaged_expired', products: { name: 'B', cost_price: 5 } }),
+      ],
+      [],
+    )
+    expect(r.rows).toHaveLength(1)
+    expect(r.rows[0].product_id).toBe('b')
+    expect(r.rows[0].reason).toBe('damaged_expired')
+    expect(r.totals.total_items).toBe(2)
+    expect(r.totals.total_value).toBe(10)
+  })
 })

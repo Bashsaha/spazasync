@@ -121,10 +121,12 @@
   "stock_take_mark_all_correct": "All correct — mark as counted",
   "stock_take_error_reason_required": "Pick a reason for each item that's lower before saving.",
   "reason_prompt": "Why is it lower?",
+  "reason_remove_prompt": "Why are you removing it?",
   "reason_unsure": "Unsure",
   "reason_damaged_expired": "Damaged or expired",
   "reason_miscount": "Miscount fix",
   "reason_other": "Other",
+  "adjust_reason_required": "Pick a reason for removing this stock before saving.",
 
   "missing_cost_alert_one": "Profit tracking is on, but {count} product doesn't have a cost price yet. Add one so your profit is accurate.",
   "missing_cost_alert_other": "Profit tracking is on, but {count} products don't have a cost price yet. Add them so your profit is accurate.",
