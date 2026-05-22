@@ -22,6 +22,7 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { Landmark, Stethoscope, Building2, Wallet, Users, GraduationCap, ClipboardList, ShieldCheck, ChevronDown, Lock, type LucideIcon } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
+import { journeyWhyKey } from '@/lib/compliance/nationality-divergence'
 import type {
   ComplianceJourneyStep,
   JourneyStepKey,
@@ -76,6 +77,8 @@ interface Props {
   children: ReactNode
   /** id attribute on the outer section — used by NextStepHero scroll anchor. */
   id?: string
+  /** Swap the `_why` subtitle to its fund-free foreign variant where one exists. */
+  isForeignNational?: boolean
 }
 
 const STEP_ICON: Record<JourneyStepKey, LucideIcon> = {
@@ -89,12 +92,12 @@ const STEP_ICON: Record<JourneyStepKey, LucideIcon> = {
   smmesa: ClipboardList,
 }
 
-export function JourneyStep({ step, defaultExpanded, children, id }: Props) {
+export function JourneyStep({ step, defaultExpanded, children, id, isForeignNational = false }: Props) {
   const { t } = useTranslation('compliance-journey')
   const [expanded, setExpanded] = useState(Boolean(defaultExpanded))
   const badge = STATUS_BADGE[step.status]
   const titleKey = `step_${step.key}_title`
-  const whyKey = `step_${step.key}_why`
+  const whyKey = journeyWhyKey(step.key, isForeignNational)
   const isLocked = step.status === 'locked'
   const isComplete = step.status === 'complete'
 

@@ -82,7 +82,7 @@ export default async function ComplianceJourneyPage() {
         />
       )}
 
-      <NextStepHero steps={data.steps} t={t} />
+      <NextStepHero steps={data.steps} t={t} isForeignNational={isForeignNational} />
 
       <JourneyProgress steps={data.steps} t={t} showFundTeaser={showFundTeaser} />
 
@@ -93,6 +93,7 @@ export default async function ComplianceJourneyPage() {
             id={`step-${step.key}`}
             step={step}
             defaultExpanded={step.key === currentStepKey}
+            isForeignNational={isForeignNational}
           >
             {renderStepBody(step, data, t, tInsp, isForeignNational)}
           </JourneyStep>

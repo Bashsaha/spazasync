@@ -15,6 +15,7 @@ import {
   Users, GraduationCap, ClipboardList, ShieldCheck,
   ArrowDown, type LucideIcon,
 } from 'lucide-react'
+import { journeyWhyKey } from '@/lib/compliance/nationality-divergence'
 import type { ComplianceJourneyStep, JourneyStepKey } from '@/types'
 
 type T = (key: string, params?: Record<string, string | number>) => string
@@ -22,6 +23,8 @@ type T = (key: string, params?: Record<string, string | number>) => string
 interface Props {
   steps: ComplianceJourneyStep[]
   t: T
+  /** Swap the `_why` subtitle to its fund-free foreign variant where one exists. */
+  isForeignNational?: boolean
 }
 
 const STEP_ICON: Record<JourneyStepKey, LucideIcon> = {
@@ -44,7 +47,7 @@ function pickNextStep(steps: ComplianceJourneyStep[]): ComplianceJourneyStep | n
   )
 }
 
-export function NextStepHero({ steps, t }: Props) {
+export function NextStepHero({ steps, t, isForeignNational = false }: Props) {
   const allDone = steps.every((s) => s.status === 'complete')
   if (allDone) return null
 
@@ -76,7 +79,7 @@ export function NextStepHero({ steps, t }: Props) {
               ? t('next_step_locked_hint', {
                   steps: next.blockedBy.map((k) => t(`step_${k}_short`)).join(', '),
                 })
-              : t(`step_${next.key}_why`)}
+              : t(journeyWhyKey(next.key, isForeignNational))}
           </p>
         </div>
       </div>

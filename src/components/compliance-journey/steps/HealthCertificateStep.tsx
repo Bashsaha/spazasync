@@ -93,7 +93,7 @@ export function HealthCertificateStep({ step, data, t, tInsp, isForeignNational 
         requirements={data.coaRequirements}
         t={t}
         headerKey="coa_what_to_bring"
-        fallbackKey="coa_requirements_fallback"
+        fallbackKey={isForeignNational ? 'coa_requirements_fallback_foreign' : 'coa_requirements_fallback'}
       />
 
       <FormSummaryCard

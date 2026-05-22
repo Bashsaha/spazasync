@@ -99,7 +99,7 @@ export function TradingPermitStep({ step, data, t, isForeignNational = false }: 
         requirements={data.permitRequirements}
         t={t}
         headerKey="permit_what_to_bring"
-        fallbackKey="permit_requirements_fallback"
+        fallbackKey={isForeignNational ? 'permit_requirements_fallback_foreign' : 'permit_requirements_fallback'}
       />
 
       <FormSummaryCard

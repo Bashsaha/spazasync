@@ -209,7 +209,10 @@ The compliance journey renders TWO distinct paths off `owner_profiles.nationalit
 | Food safety | identical | identical | — | No |
 | SMMESA / Fund | eligible | **excluded** (except pre-1994 naturalised) | `journey.ts`, `fund.ts qualifiesAsSaCitizenForFund` | Hard exclusion |
 
+**Automated backstop (Phase 43):** `src/lib/compliance/nationality-divergence.ts` is the single source of truth for this divergence (citizen-only token list + the allowlist of keys that may legitimately contain them + which steps have `_foreign` subtitle variants). `tests/unit/compliance-nationality-firewall.test.ts` runs in `npm test` and **fails the build** if any compliance-journey string in any locale carries a citizen-only concept (fund / R500m / R300k / BizPortal / SMMESA / "SA ID") in a key that isn't explicitly allowlisted as citizen-only. So a new fund/BizPortal string can't silently leak to foreign nationals — the dev must either gate it (with a `_foreign` variant) or consciously allowlist it. This catches the *copy* class of leak mechanically; the human checklist below still covers *rendering* + *data* (seed rows, which the test can't see).
+
 **Audit checklist for this section (every cycle):**
+0. Run `npm test` — the `compliance-nationality-firewall` suite must be green (catches new citizen-only copy leaks automatically).
 1. Re-confirm BizPortal still needs an SA ID and eServices is still the foreign route (CIPC FAQ).
 2. Re-confirm the R5m municipal demand is still ruled unlawful (no new gazette reinstating it).
 3. Re-confirm the fund's citizenship clause (`spazashopfund.co.za/eligibility-criteria`) — SA citizen or pre-1994 naturalised.

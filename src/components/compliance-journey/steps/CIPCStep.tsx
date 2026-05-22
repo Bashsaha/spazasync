@@ -53,7 +53,9 @@ export function CIPCStep({ step, data, t, isForeignNational = false }: Props) {
         <h4 className="font-semibold text-gray-800 mb-2">{t('cipc_need_header')}</h4>
         <p className="text-gray-700 mb-2">{t('cipc_need_required_intro')}</p>
         <ul className="list-disc list-inside text-gray-700 space-y-1 mb-3">
-          <li>{t('cipc_need_required_a')}</li>
+          {/* The citizen first-reason is "apply for government funding" — foreign
+              nationals are excluded from the fund, so they get a fund-free reason. */}
+          <li>{t(isForeignNational ? 'cipc_need_required_a_foreign' : 'cipc_need_required_a')}</li>
           <li>{t('cipc_need_required_b')}</li>
           <li>{t('cipc_need_required_c')}</li>
         </ul>
