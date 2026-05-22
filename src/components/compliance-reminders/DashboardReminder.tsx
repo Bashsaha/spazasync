@@ -34,7 +34,6 @@ export async function DashboardReminder({
       title={t(reminder.titleKey, reminder.params)}
       body={t(reminder.bodyKey, reminder.params)}
       ctaLabel={reminder.ctaKey ? t(reminder.ctaKey, reminder.params) : undefined}
-      dismissLabel={t('cta_dismiss')}
     />
   )
 }

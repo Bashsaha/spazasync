@@ -1,4 +1,3 @@
-import { DismissButton } from './DismissButton'
 import type { Reminder, ReminderPriority } from '@/types'
 
 const TONE: Record<ReminderPriority, { wrap: string; title: string; body: string }> = {
@@ -29,10 +28,16 @@ interface ReminderBannerProps {
   title: string
   body: string
   ctaLabel?: string
-  dismissLabel: string
 }
 
-export function ReminderBanner({ reminder, title, body, ctaLabel, dismissLabel }: ReminderBannerProps) {
+/**
+ * Reminders are NOT dismissible by design — they reflect a required task and
+ * are recomputed from live data on every load, so each one disappears on its
+ * own the moment the underlying issue is resolved (step completed, document
+ * renewed, count back to zero, etc.). Hiding a still-outstanding task would
+ * just bury work that still has to happen, so there's no Dismiss control.
+ */
+export function ReminderBanner({ reminder, title, body, ctaLabel }: ReminderBannerProps) {
   const tone = TONE[reminder.priority]
   const isExternal = reminder.ctaHref?.startsWith('http') ?? false
 
@@ -44,24 +49,18 @@ export function ReminderBanner({ reminder, title, body, ctaLabel, dismissLabel }
     >
       <p className={`font-semibold ${tone.title}`}>{title}</p>
       <p className={`text-sm mt-1 ${tone.body}`}>{body}</p>
-      <div className="flex flex-wrap gap-2 mt-3">
-        {ctaLabel && reminder.ctaHref && (
+      {ctaLabel && reminder.ctaHref && (
+        <div className="mt-3">
           <a
             href={reminder.ctaHref}
             target={isExternal ? '_blank' : undefined}
             rel={isExternal ? 'noopener noreferrer' : undefined}
-            className="flex-1 min-w-[160px] text-center bg-white border border-current/30 font-semibold py-2 px-4 rounded-full text-sm active:bg-current/10"
+            className="inline-block text-center bg-white border border-current/30 font-semibold py-2 px-4 rounded-full text-sm active:bg-current/10"
           >
             {ctaLabel}
           </a>
-        )}
-        <DismissButton
-          reminderKey={reminder.key}
-          reminderType={reminder.type}
-          label={dismissLabel}
-          className="px-4 py-2 bg-white border border-current/30 font-medium rounded-full text-sm active:bg-current/10"
-        />
-      </div>
+        </div>
+      )}
     </div>
   )
 }

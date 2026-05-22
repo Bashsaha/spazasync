@@ -20,8 +20,13 @@ const PRIORITY_DOT: Record<string, string> = {
 /**
  * Owner-only notification sheet. Tapping the bell opens a full-screen,
  * WhatsApp-style chat-list view of every active notification. Tapping a row
- * navigates to the related page (which implicitly acknowledges). The trailing
- * "Dismiss" button on reminder rows explicitly hides that reminder.
+ * navigates to the related page to act on it.
+ *
+ * Reminders are intentionally NOT dismissible — they represent required tasks
+ * and are recomputed from live data on every load, so each one clears on its
+ * own once the underlying issue is resolved (step done, document renewed,
+ * count back to zero, etc.). There's no "Dismiss" control to bury outstanding
+ * work. Access requests still have explicit Grant / Deny actions.
  *
  * Full-screen (not a popover) so it can never sit behind the FAB or BottomNav.
  */
@@ -32,7 +37,6 @@ export function NotificationBell({ shopId }: { shopId: string }) {
   const [reminders, setReminders] = useState<Reminder[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [pendingActionId, setPendingActionId] = useState<string | null>(null)
-  const [dismissingKey, setDismissingKey] = useState<string | null>(null)
 
   const refetchAccess = useCallback(async () => {
     try {
@@ -114,22 +118,6 @@ export function NotificationBell({ shopId }: { shopId: string }) {
     }
   }
 
-  async function handleDismissReminder(r: Reminder) {
-    setDismissingKey(r.key)
-    setReminders((prev) => prev.filter((x) => x.key !== r.key))
-    try {
-      await fetch('/api/compliance-reminders/dismiss', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reminder_type: r.type, reminder_key: r.key }),
-      })
-    } catch {
-      refetchReminders()
-    } finally {
-      setDismissingKey(null)
-    }
-  }
-
   const accessCount = pending.length
   const reminderCount = reminders.length
   const totalCount = accessCount + reminderCount
@@ -207,7 +195,6 @@ export function NotificationBell({ shopId }: { shopId: string }) {
                     </h2>
                     <ul className="bg-white">
                       {reminders.map((r) => {
-                        const busy = dismissingKey === r.key
                         const title = tRem(r.titleKey, r.params)
                         const body = tRem(r.bodyKey, r.params)
                         const dot = PRIORITY_DOT[r.priority] ?? 'bg-gray-400'
@@ -243,30 +230,19 @@ export function NotificationBell({ shopId }: { shopId: string }) {
                             key={r.key}
                             className="border-b border-gray-100 last:border-b-0"
                           >
-                            <div className="flex items-stretch">
-                              {r.ctaHref ? (
-                                <Link
-                                  href={r.ctaHref}
-                                  onClick={() => setIsOpen(false)}
-                                  className="flex-1 flex items-center gap-3 px-4 py-3 active:bg-gray-50 min-w-0"
-                                >
-                                  {RowInner}
-                                </Link>
-                              ) : (
-                                <div className="flex-1 flex items-center gap-3 px-4 py-3 min-w-0">
-                                  {RowInner}
-                                </div>
-                              )}
-                              <button
-                                type="button"
-                                onClick={() => handleDismissReminder(r)}
-                                disabled={busy}
-                                className="px-3 text-xs font-semibold text-gray-400 active:text-gray-600 disabled:opacity-50"
-                                aria-label={t('bell_btn_dismiss')}
+                            {r.ctaHref ? (
+                              <Link
+                                href={r.ctaHref}
+                                onClick={() => setIsOpen(false)}
+                                className="flex items-center gap-3 px-4 py-3 active:bg-gray-50 min-w-0"
                               >
-                                {t('bell_btn_dismiss')}
-                              </button>
-                            </div>
+                                {RowInner}
+                              </Link>
+                            ) : (
+                              <div className="flex items-center gap-3 px-4 py-3 min-w-0">
+                                {RowInner}
+                              </div>
+                            )}
                           </li>
                         )
                       })}
