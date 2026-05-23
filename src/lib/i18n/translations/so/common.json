@@ -81,5 +81,9 @@
   "error_btn_try_again": "Isku day mar kale",
   "not_found_title": "Bogga lama helin",
   "not_found_desc": "Ma aannu helin waxaad raadineysay.",
-  "btn_goto_dashboard": "Aad Daashboodhka"
+  "btn_goto_dashboard": "Aad Daashboodhka",
+
+  "legal_terms": "Shuruudaha Adeegga",
+  "legal_privacy": "Siyaasadda Asturnaanta",
+  "legal_continue_agree": "Markaad sii wadato, waxaad ogolaatay"
 }

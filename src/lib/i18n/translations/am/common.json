@@ -81,5 +81,9 @@
   "error_btn_try_again": "እንደገና ይሞክሩ",
   "not_found_title": "ገጽ አልተገኘም",
   "not_found_desc": "የሚፈልጉትን ማግኘት አልቻልንም።",
-  "btn_goto_dashboard": "ወደ ዳሽቦርድ ይሂዱ"
+  "btn_goto_dashboard": "ወደ ዳሽቦርድ ይሂዱ",
+
+  "legal_terms": "የአገልግሎት ውሎች",
+  "legal_privacy": "የግላዊነት ፖሊሲ",
+  "legal_continue_agree": "በመቀጠል፣ የእኛን ይስማማሉ"
 }

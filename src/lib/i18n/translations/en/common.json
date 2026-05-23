@@ -81,5 +81,9 @@
   "error_btn_try_again": "Try again",
   "not_found_title": "Page not found",
   "not_found_desc": "We could not find what you were looking for.",
-  "btn_goto_dashboard": "Go to Dashboard"
+  "btn_goto_dashboard": "Go to Dashboard",
+
+  "legal_terms": "Terms of Service",
+  "legal_privacy": "Privacy Policy",
+  "legal_continue_agree": "By continuing, you agree to our"
 }

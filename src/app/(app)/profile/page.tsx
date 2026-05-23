@@ -161,6 +161,15 @@ export default async function ProfilePage() {
         <LogoutButton label={t('profile_logout')} loadingLabel={t('profile_logging_out')} />
       </Card>
 
+      <p className="text-center text-xs text-gray-400 mb-2">
+        <Link href="/legal/terms" className="underline hover:text-brand">
+          {t('legal_terms')}
+        </Link>
+        {' · '}
+        <Link href="/legal/privacy" className="underline hover:text-brand">
+          {t('legal_privacy')}
+        </Link>
+      </p>
       <p className="text-center text-xs text-gray-400">{t('profile_footer')}</p>
     </main>
   )

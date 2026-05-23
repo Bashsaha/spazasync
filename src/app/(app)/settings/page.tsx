@@ -700,7 +700,16 @@ export default function SettingsPage() {
         </Card>
       )}
 
-      <p className="text-center text-xs text-gray-400 mt-8 mb-4">
+      <p className="text-center text-xs text-gray-400 mt-8 mb-2">
+        <Link href="/legal/terms" className="underline hover:text-brand">
+          {t('legal_terms')}
+        </Link>
+        {' · '}
+        <Link href="/legal/privacy" className="underline hover:text-brand">
+          {t('legal_privacy')}
+        </Link>
+      </p>
+      <p className="text-center text-xs text-gray-400 mb-4">
         Movestock — a product of Veyon
       </p>
 

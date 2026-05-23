@@ -81,5 +81,9 @@
   "error_btn_try_again": "دوبارہ کوشش کریں",
   "not_found_title": "صفحہ نہیں ملا",
   "not_found_desc": "ہم وہ تلاش نہ کر سکے جو آپ ڈھونڈ رہے تھے۔",
-  "btn_goto_dashboard": "ڈیش بورڈ پر جائیں"
+  "btn_goto_dashboard": "ڈیش بورڈ پر جائیں",
+
+  "legal_terms": "سروس کی شرائط",
+  "legal_privacy": "رازداری کی پالیسی",
+  "legal_continue_agree": "جاری رکھ کر، آپ ہماری ان سے اتفاق کرتے ہیں"
 }

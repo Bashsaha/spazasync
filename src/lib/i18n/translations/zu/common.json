@@ -81,5 +81,9 @@
   "error_btn_try_again": "Zama futhi",
   "not_found_title": "Ikhasi alitholakalanga",
   "not_found_desc": "Asikwazanga ukuthola lokho okufunayo.",
-  "btn_goto_dashboard": "Iya Kudeshibhodi"
+  "btn_goto_dashboard": "Iya Kudeshibhodi",
+
+  "legal_terms": "Imigomo Yesevisi",
+  "legal_privacy": "Inqubomgomo Yobumfihlo",
+  "legal_continue_agree": "Ngokuqhubeka, uyavuma"
 }

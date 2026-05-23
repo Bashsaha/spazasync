@@ -57,6 +57,12 @@ export async function proxy(request: NextRequest) {
     pathname === '/manifest.json' ||
     pathname === '/sw.js' ||
     pathname === '/offline.html' ||
+    // Public legal pages (Privacy / Terms). Early-return so they're reachable
+    // both logged-out (footer links on /login) AND logged-in (settings footer)
+    // — adding them to PUBLIC_ROUTES instead would bounce authenticated users
+    // away to their dashboard.
+    pathname === '/legal' ||
+    pathname.startsWith('/legal/') ||
     pathname.match(/\.(svg|png|jpg|jpeg|gif|ico|css|js|json|webmanifest)$/)
   ) {
     return NextResponse.next()

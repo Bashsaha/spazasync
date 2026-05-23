@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { LanguageProvider } from '@/components/LanguageProvider'
 import { InstallPwaButton } from '@/components/InstallPwaButton'
+import { LegalFooter } from '@/components/LegalFooter'
 import type { SupportedLocale, TranslationNamespace } from '@/lib/i18n/types'
 import { DEFAULT_LOCALE } from '@/lib/i18n/types'
 import { loadNamespacedTranslations } from '@/lib/i18n/loader'
@@ -26,6 +27,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
     >
       <InstallPwaButton />
       {children}
+      <LegalFooter />
     </LanguageProvider>
   )
 }
