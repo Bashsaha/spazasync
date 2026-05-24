@@ -2,12 +2,10 @@
   "title": "Faahfaahinta dukaanka",
   "subtitle": "Cusboonaysii macluumaadka dukaankaaga",
   "back": "← Dib",
-
   "compliance_title": "Warbixinta Hubinta",
   "compliance_desc": "Haddii kormeeraha caafimaadka uu soo booqdo dukaankaaga, tus PDF-kan. Waxay leedahay liiska alaabta oo dhan, taariikhaha dhicitaanka, iyo 30 maalmood oo iibka — wax kasta oo ay u baahan yihiin.",
   "btn_download_report": "Soo Dejiso PDF-ka Warbixinta",
   "btn_generating_report": "Warbixintaada waa la sameynayaa…",
-
   "subscription_label": "Ku biirid",
   "sub_free_trial": "Tijaabo Bilaash ah",
   "sub_active": "Firfircoon",
@@ -16,10 +14,8 @@
   "sub_renews": "Cusboonaysiinta {date}",
   "sub_days_left_one": "{count} maalin ayaa hadhay",
   "sub_days_left_other": "{count} maalmood ayaa hadhay",
-
   "shop_code_label": "Koodhkaaga dukaanka",
   "shop_code_hint": "Shaqaaluhu waxay ku isticmaalaan galitaanka. Lama bedeli karo.",
-
   "label_shop_name": "Magaca dukaanka",
   "placeholder_shop_name": "tusaale Cape Town Corner Shop",
   "label_reg_number": "Lambarka diiwaangelinta",
@@ -31,17 +27,19 @@
   "hint_location": "Cinwaanka dukaankaaga. Wuxuu ka muuqdaa warbixinnada hubinta.",
   "label_threshold": "I soo ogeysii marka alaab ka hoosayso",
   "threshold_suffix": "hadhay",
-
   "msg_saved": "Dejinta waa la keydiyay!",
   "msg_save_failed": "Lama keydin karin. Isku day mar kale.",
   "msg_load_failed": "Dejinta lama soo shubin.",
   "msg_report_failed": "Warbixinta lama sameyn karin.",
   "msg_download_failed": "Warbixinta lama soo dejin karin. Isku day mar kale.",
   "loading": "Soo degaya…",
-
   "btn_save": "Keydi dejinta",
   "btn_saving": "Keydiya…",
-
+  "data_title": "Xogtaada",
+  "data_desc": "Soo dejiso nuqul wax kasta oo Movestock ay ka kaydiso dukaankaaga — alaabahaaga, iibinta, shaqaalaha, alaab-qeybiyeyaasha iyo hubinta maalmeed. POPIA, sharciga xogta ee Koonfur Afrika, wuxuu ku siinayaa xaqa aad ku heli karto nuqulka xogtaada wakhti kasta.",
+  "data_btn": "Soo dejiso xogtayda",
+  "data_downloading": "Faylka waa la diyaarinayaa…",
+  "data_error": "Ma awoodin in la soo saaro xogtaada. Fadlan isku day mar kale.",
   "danger_title": "Tirtir akoonka",
   "danger_desc": "Si joogto ah u tirtir dukaankaaga iyo wax kasta oo ku jira — alaabta, iibka, shaqaalaha iyo warbixinnada. Tan dib looma celin karo.",
   "danger_btn": "Tirtir akoonkayga",
@@ -49,18 +47,15 @@
   "danger_confirm": "Tan si joogto ah ayey u tirtiraysaa dukaankaaga iyo wax kasta oo ku jira. Mar dambe ayaad ku diiwaangelin kartaa isla xogta gelitaanka. Ma hubtaa?",
   "danger_confirm_btn": "Haa, dhammaan tirtir",
   "danger_error": "Akoonkaaga lama tirtiri karin. Fadlan isku day mar kale.",
-
   "language_title": "Luuqadda",
   "language_change": "Bedel luuqadda",
-
   "profit_tracking_title": "La socodka faa'iidada",
   "profit_tracking_desc": "Arag inta faa'iido aad samayso maalin kasta. Waxaad u baahan doontaa inaad gelisid qiimaha kharashka alaab kasta.",
   "profit_tracking_on": "Shidan",
   "profit_tracking_off": "Damin",
   "profit_tracking_hint_missing_one": "{count} alaab ayaa weli u baahan qiimaha kharashka",
   "profit_tracking_hint_missing_other": "{count} alaab ayaa weli u baahan qiimaha kharashka",
-  "profit_tracking_fix_now": "Hada hagaaji \u2192",
-
+  "profit_tracking_fix_now": "Hada hagaaji →",
   "subscribe_page_title": "Qorshahaaga",
   "subscribe_trial_days_left_one": "Waxaad hayaa {count} maalin oo tijaabadaada bilaashka ah.",
   "subscribe_trial_days_left_other": "Waxaad hayaa {count} maalmood oo tijaabadaada bilaashka ah.",
@@ -89,7 +84,6 @@
   "subscribe_btn_goto_settings": "Aad Dejinta",
   "subscribe_error_generic": "Wax baa qaldamay. Fadlan isku day mar kale.",
   "subscribe_error_connect": "Lama xidhi karin. Fadlan hubi internetkaaga oo isku day mar kale.",
-
   "fund_interest_label": "Government Fund",
   "fund_interest_help": "Show the Spaza Shop Support Fund eligibility checker on your dashboard.",
   "fund_interest_open": "Open Fund Readiness"

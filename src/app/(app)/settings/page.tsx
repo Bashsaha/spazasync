@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ClipboardList, Shield, Wallet } from 'lucide-react'
+import { ClipboardList, Shield, Wallet, Download } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
 import { BackButton } from '@/components/BackButton'
@@ -61,6 +61,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [downloading, setDownloading] = useState(false)
+  const [exportingData, setExportingData] = useState(false)
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; key?: string; raw?: string } | null>(null)
   const role = useUserRole()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -333,6 +334,31 @@ export default function SettingsPage() {
     } catch {
       setDeleting(false)
       setMessage({ type: 'err', key: 'danger_error' })
+    }
+  }
+
+  async function handleExportData() {
+    setExportingData(true)
+    setMessage(null)
+    try {
+      const res = await fetch('/api/account/export')
+      if (!res.ok) {
+        setMessage({ type: 'err', key: 'data_error' })
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = res.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1] ?? 'movestock-export.json'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch {
+      setMessage({ type: 'err', key: 'data_error' })
+    } finally {
+      setExportingData(false)
     }
   }
 
@@ -682,6 +708,23 @@ export default function SettingsPage() {
           {saving ? t('btn_saving') : t('btn_save')}
         </Button>
       </form>
+
+      {/* Your data — POPIA right of access. Owners only. */}
+      {role === 'owner' && (
+        <Callout tone="brand" icon={Download} title={t('data_title')} className="mt-8 mb-6">
+          <p>{t('data_desc')}</p>
+          <Button
+            variant="primary"
+            size="md"
+            fullWidth
+            loading={exportingData}
+            onClick={handleExportData}
+            className="mt-3"
+          >
+            {exportingData ? t('data_downloading') : t('data_btn')}
+          </Button>
+        </Callout>
+      )}
 
       {/* Danger zone — permanent account deletion (owners only) */}
       {role === 'owner' && (

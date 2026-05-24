@@ -4,6 +4,7 @@ import { parseBody, STABLE_READ_CACHE } from '@/lib/utils/api'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createTellerSchema } from '@/lib/validation/schemas'
 import { provisionTellerAccount } from '@/lib/auth/teller'
+import { checkRateLimit } from '@/lib/utils/rateLimit'
 
 export async function GET() {
   const auth = await getShopAuth()
@@ -21,6 +22,14 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  // Provisioning a teller creates a Supabase Auth user + sends no email but
+  // is still write-heavy (auth user, tellers row, shop_users row); cap to 10
+  // per IP per minute to stop a hostile owner account or hijacked session
+  // from creating thousands of users.
+  if (checkRateLimit(request, { limit: 10, windowSecs: 60 }).limited) {
+    return NextResponse.json({ error: 'Too many requests. Try again in a minute.' }, { status: 429 })
+  }
+
   const parsed = await parseBody(request, createTellerSchema)
   if (parsed instanceof NextResponse) return parsed
 

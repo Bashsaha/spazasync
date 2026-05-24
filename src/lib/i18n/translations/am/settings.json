@@ -2,12 +2,10 @@
   "title": "የሱቅ ዝርዝሮች",
   "subtitle": "የሱቅዎን መረጃ ያዘምኑ",
   "back": "← ተመለስ",
-
   "compliance_title": "የተገዢነት ሪፖርት",
   "compliance_desc": "የጤና ተቆጣጣሪ ወደ መደብርዎ ቢጎበኝ ይህን PDF ያሳዩት። ሙሉ የስቶክ ዝርዝርዎን፣ የማብቂያ ቀኖችን እና የ30 ቀን ሽያጭን ይዟል — የሚያዩት ሁሉ።",
   "btn_download_report": "የ PDF ሪፖርት አውርድ",
   "btn_generating_report": "ሪፖርትዎን በመፍጠር ላይ…",
-
   "subscription_label": "ምዝገባ",
   "sub_free_trial": "ነፃ ሙከራ",
   "sub_active": "ንቁ",
@@ -16,10 +14,8 @@
   "sub_renews": "በ {date} ይታደሳል",
   "sub_days_left_one": "{count} ቀን ቀርቷል",
   "sub_days_left_other": "{count} ቀናት ቀርተዋል",
-
   "shop_code_label": "የመደብርዎ ኮድ",
   "shop_code_hint": "ሻጮች ይህን ለመግባት ይጠቀማሉ። መለወጥ አይቻልም።",
-
   "label_shop_name": "የመደብር ስም",
   "placeholder_shop_name": "ለምሳሌ Cape Town Corner Shop",
   "label_reg_number": "የምዝገባ ቁጥር",
@@ -31,17 +27,19 @@
   "hint_location": "የመደብርዎ አድራሻ። በተገዢነት ሪፖርቶች ላይ ይታያል።",
   "label_threshold": "ምርት ከዚህ ያነሰ ሲኖር አሳውቀኝ",
   "threshold_suffix": "በስቶክ ውስጥ የቀረ",
-
   "msg_saved": "ቅንብሮች ተቀምጠዋል!",
   "msg_save_failed": "ማስቀመጥ አልተቻለም። እንደገና ይሞክሩ።",
   "msg_load_failed": "ቅንብሮችን መጫን አልተቻለም።",
   "msg_report_failed": "ሪፖርት መፍጠር አልተቻለም።",
   "msg_download_failed": "ሪፖርት ማውረድ አልተቻለም። እንደገና ይሞክሩ።",
   "loading": "በመጫን ላይ…",
-
   "btn_save": "ቅንብሮችን አስቀምጥ",
   "btn_saving": "በማስቀመጥ ላይ…",
-
+  "data_title": "የእርስዎ ውሁብ",
+  "data_desc": "Movestock ስለ ሱቅዎ የሚያስቀምጠውን ሁሉንም ነገር ቅጃያ ያወርዱ — ምርቶችዎን፣ ሽያጮችን፣ ሰራተኞችን፣ አቅራቢዎችን እና የዕለት ምርመራዎችን። POPIA፣ የደቡብ አፍሪካ የመረጃ ሕገ፣ በማንኛውም ጊዜ የውሁብዎን ቅጃ የማግኘት መብት ይሰጥዎታል።",
+  "data_btn": "ውሁቤን አውርድ",
+  "data_downloading": "ፋይልዎን በማዘጋጀት ላይ…",
+  "data_error": "ውሁብዎን መላክ አልተቻለም። እባክዎ እንደገና ይሞክሩ።",
   "danger_title": "መለያ ሰርዝ",
   "danger_desc": "ሱቅዎን እና በውስጡ ያለውን ሁሉ — ምርቶች፣ ሽያጮች፣ ሰራተኞች እና ሪፖርቶች — በቋሚነት ይሰርዛል። ይህ መመለስ አይቻልም።",
   "danger_btn": "መለያዬን ሰርዝ",
@@ -49,18 +47,15 @@
   "danger_confirm": "ይህ ሱቅዎን እና በውስጡ ያለውን ሁሉ በቋሚነት ይሰርዛል። በኋላ በተመሳሳይ መግቢያ እንደገና መመዝገብ ይችላሉ። እርግጠኛ ነዎት?",
   "danger_confirm_btn": "አዎ፣ ሁሉንም ሰርዝ",
   "danger_error": "መለያዎን መሰረዝ አልተቻለም። እባክዎ እንደገና ይሞክሩ።",
-
   "language_title": "ቋንቋ",
   "language_change": "ቋንቋ ቀይር",
-
   "profit_tracking_title": "የትርፍ ክትትል",
   "profit_tracking_desc": "በየቀኑ ምን ያህል ትርፍ እንደሚያገኙ ይመልከቱ። ለእያንዳንዱ ምርት የዋጋ ወጪ ማስገባት ያስፈልግዎታል።",
   "profit_tracking_on": "ንቁ",
   "profit_tracking_off": "ጠፍቷል",
   "profit_tracking_hint_missing_one": "{count} ምርት አሁንም የዋጋ ወጪ ያስፈልገዋል",
   "profit_tracking_hint_missing_other": "{count} ምርቶች አሁንም የዋጋ ወጪ ያስፈልጋቸዋል",
-  "profit_tracking_fix_now": "አሁን አስተካክል \u2192",
-
+  "profit_tracking_fix_now": "አሁን አስተካክል →",
   "subscribe_page_title": "የእርስዎ ዕቅድ",
   "subscribe_trial_days_left_one": "በነፃ ሙከራዎ ላይ {count} ቀን ቀርቷል።",
   "subscribe_trial_days_left_other": "በነፃ ሙከራዎ ላይ {count} ቀናት ቀርተዋል።",
@@ -89,7 +84,6 @@
   "subscribe_btn_goto_settings": "ወደ ቅንብሮች ይሂዱ",
   "subscribe_error_generic": "የሆነ ችግር ተፈጥሯል። እባክዎ እንደገና ይሞክሩ።",
   "subscribe_error_connect": "መገናኘት አልተቻለም። እባክዎ በይነመረብዎን ይፈትሹ እና እንደገና ይሞክሩ።",
-
   "fund_interest_label": "Government Fund",
   "fund_interest_help": "Show the Spaza Shop Support Fund eligibility checker on your dashboard.",
   "fund_interest_open": "Open Fund Readiness"

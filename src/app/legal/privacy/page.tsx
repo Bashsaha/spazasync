@@ -148,7 +148,7 @@ export default function PrivacyPolicyPage() {
           <P>You have the right to:</P>
           <Bullets
             items={[
-              'See the personal information we hold about you.',
+              'See the personal information we hold about you. You can download a full copy of your shop’s data at any time from Settings → Your data.',
               'Ask us to correct anything that is wrong.',
               'Delete your account and data (you can do this yourself in Settings → Danger zone, or email us).',
               'Object to how we use your information.',

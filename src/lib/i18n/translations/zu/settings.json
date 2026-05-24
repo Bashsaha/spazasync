@@ -2,12 +2,10 @@
   "title": "Imininingwane yesitolo",
   "subtitle": "Buyekeza ulwazi lwesitolo sakho",
   "back": "← Emuva",
-
   "compliance_title": "Umbiko Wokulandela Imithetho",
   "compliance_desc": "Uma umhloli wezempilo evakashela isitolo sakho, mbonise le-PDF. Inohlu lwakho lwesitokhu sonke, izinsuku zokuphelelwa, nezinsuku ezingu-30 zokuthengisa — konke abakudingayo.",
   "btn_download_report": "Landa i-PDF Yombiko",
   "btn_generating_report": "Sakha umbiko wakho…",
-
   "subscription_label": "Okubhalisayo",
   "sub_free_trial": "Isilingo Samahhala",
   "sub_active": "Kuyasebenza",
@@ -16,10 +14,8 @@
   "sub_renews": "Kuvuselelwa ngo-{date}",
   "sub_days_left_one": "Kusele usuku olungu-{count}",
   "sub_days_left_other": "Kusele izinsuku ezingu-{count}",
-
   "shop_code_label": "Ikhodi yesitolo sakho",
   "shop_code_hint": "Abathengisi bayisebenzisa ukungena. Ayikwazi ukushintshwa.",
-
   "label_shop_name": "Igama lesitolo",
   "placeholder_shop_name": "isb. Cape Town Corner Shop",
   "label_reg_number": "Inombolo yokubhalisa",
@@ -31,17 +27,19 @@
   "hint_location": "Ikheli lesitolo sakho. Libonakala emibikweni yokulandela imithetho.",
   "label_threshold": "Ngazise uma umkhiqizo usale nangaphansi kwe-",
   "threshold_suffix": "esitokweni",
-
   "msg_saved": "Izilungiselelo zilondoloziwe!",
   "msg_save_failed": "Ayikwazanga ukulondoloza. Zama futhi.",
   "msg_load_failed": "Ayikwazanga ukulayisha izilungiselelo.",
   "msg_report_failed": "Ayikwazanga ukukhiqiza umbiko.",
   "msg_download_failed": "Ayikwazanga ukulanda umbiko. Zama futhi.",
   "loading": "Iyalayisha…",
-
   "btn_save": "Londoloza izilungiselelo",
   "btn_saving": "Iyalondoloza…",
-
+  "data_title": "Idatha yakho",
+  "data_desc": "Landa ikhophi yakho konke i-Movestock egcina ngesitolo sakho — imikhiqizo yakho, ukuthengisa, abasebenzi, abahlinzeki kanye nokuhlolwa kwansuku zonke. I-POPIA, umthetho wedatha waseNingizimu Afrika, ukunika ilungelo lokuthola ikhophi yedatha yakho noma nini.",
+  "data_btn": "Landa idatha yami",
+  "data_downloading": "Silungiselela ifayela lakho…",
+  "data_error": "Asikwazanga ukukhipha idatha yakho. Sicela uzame futhi.",
   "danger_title": "Susa i-akhawunti",
   "danger_desc": "Susa unomphela isitolo sakho nakho konke okukuso — imikhiqizo, ukuthengisa, abasebenzi nemibiko. Lokhu akunakubuyiselwa.",
   "danger_btn": "Susa i-akhawunti yami",
@@ -49,18 +47,15 @@
   "danger_confirm": "Lokhu kususa unomphela isitolo sakho nakho konke okukuso. Ungabhalisa futhi kamuva ngolwazi lokungena olufanayo. Uqinisekile?",
   "danger_confirm_btn": "Yebo, susa konke",
   "danger_error": "Ayikwazanga ukususa i-akhawunti yakho. Sicela uzame futhi.",
-
   "language_title": "Ulimi",
   "language_change": "Shintsha ulimi",
-
   "profit_tracking_title": "Ukulandelela inzuzo",
   "profit_tracking_desc": "Bona ukuthi ungakanani inzuzo oyenzayo nsuku zonke. Udinga ukufaka intengo yokubiza kumkhiqizo ngamunye.",
   "profit_tracking_on": "Kuvuliwe",
   "profit_tracking_off": "Kuvaliwe",
   "profit_tracking_hint_missing_one": "{count} umkhiqizo usadinga intengo yokubiza",
   "profit_tracking_hint_missing_other": "{count} imikhiqizo isadinga intengo yokubiza",
-  "profit_tracking_fix_now": "Lungisa manje \u2192",
-
+  "profit_tracking_fix_now": "Lungisa manje →",
   "subscribe_page_title": "Uhlelo Lwakho",
   "subscribe_trial_days_left_one": "Usele nosuku olungu-{count} esilingweni sakho samahhala.",
   "subscribe_trial_days_left_other": "Usele nezinsuku ezingu-{count} esilingweni sakho samahhala.",
@@ -89,7 +84,6 @@
   "subscribe_btn_goto_settings": "Iya Kuzilungiselelo",
   "subscribe_error_generic": "Kukhona okungalungile. Sicela uzame futhi.",
   "subscribe_error_connect": "Ayikwazanga ukuxhuma. Sicela uhlole i-inthanethi yakho uzame futhi.",
-
   "fund_interest_label": "Government Fund",
   "fund_interest_help": "Show the Spaza Shop Support Fund eligibility checker on your dashboard.",
   "fund_interest_open": "Open Fund Readiness"

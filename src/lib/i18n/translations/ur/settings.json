@@ -2,12 +2,10 @@
   "title": "دکان کی تفصیلات",
   "subtitle": "اپنی دکان کی معلومات اپ ڈیٹ کریں",
   "back": "← واپس",
-
   "compliance_title": "کمپلائنس رپورٹ",
   "compliance_desc": "اگر صحت کا انسپکٹر آپ کی دکان پر آئے تو انہیں یہ PDF دکھائیں۔ اس میں آپ کی مکمل اسٹاک کی فہرست، ختم ہونے کی تاریخیں، اور 30 دن کی فروخت ہے — جو کچھ بھی انہیں دیکھنے کی ضرورت ہے۔",
   "btn_download_report": "رپورٹ PDF ڈاؤن لوڈ کریں",
   "btn_generating_report": "آپ کی رپورٹ بنائی جا رہی ہے…",
-
   "subscription_label": "سبسکرپشن",
   "sub_free_trial": "مفت آزمائش",
   "sub_active": "فعال",
@@ -16,10 +14,8 @@
   "sub_renews": "{date} کو تجدید ہو گی",
   "sub_days_left_one": "{count} دن باقی",
   "sub_days_left_other": "{count} دن باقی",
-
   "shop_code_label": "آپ کا دکان کا کوڈ",
   "shop_code_hint": "ٹیلرز اسے لاگ ان کرنے کے لیے استعمال کرتے ہیں۔ اسے تبدیل نہیں کیا جا سکتا۔",
-
   "label_shop_name": "دکان کا نام",
   "placeholder_shop_name": "مثلاً Cape Town Corner Shop",
   "label_reg_number": "رجسٹریشن نمبر",
@@ -31,17 +27,19 @@
   "hint_location": "آپ کی دکان کا پتہ۔ کمپلائنس رپورٹس پر ظاہر ہوتا ہے۔",
   "label_threshold": "مجھے مطلع کریں جب کسی مصنوعات کی تعداد کم ہو",
   "threshold_suffix": "اسٹاک میں باقی",
-
   "msg_saved": "ترتیبات محفوظ ہو گئیں!",
   "msg_save_failed": "محفوظ نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
   "msg_load_failed": "ترتیبات لوڈ نہیں ہو سکیں۔",
   "msg_report_failed": "رپورٹ بنائی نہیں جا سکی۔",
   "msg_download_failed": "رپورٹ ڈاؤن لوڈ نہیں ہو سکی۔ دوبارہ کوشش کریں۔",
   "loading": "لوڈ ہو رہا ہے…",
-
   "btn_save": "ترتیبات محفوظ کریں",
   "btn_saving": "محفوظ ہو رہا ہے…",
-
+  "data_title": "آپ کا ڈیٹا",
+  "data_desc": "Movestock آپ کی دکان کے بارے میں جو کچھ بھی محفوظ کرتا ہے اس کی ایک کاپی ڈاؤن لوڈ کریں — آپ کی مصنوعات، فروخت، عملہ، سپلائرز اور روزانہ کی جانچ۔ POPIA، جنوبی افریقہ کا ڈیٹا قانون، آپ کو کسی بھی وقت اپنے ڈیٹا کی کاپی حاصل کرنے کا حق دیتا ہے۔",
+  "data_btn": "میرا ڈیٹا ڈاؤن لوڈ کریں",
+  "data_downloading": "آپ کی فائل تیار کی جا رہی ہے…",
+  "data_error": "آپ کا ڈیٹا ایکسپورٹ نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
   "danger_title": "اکاؤنٹ حذف کریں",
   "danger_desc": "اپنی دکان اور اس میں موجود ہر چیز — پروڈکٹس، فروخت، عملہ اور رپورٹس — کو مستقل طور پر حذف کریں۔ یہ واپس نہیں ہو سکتا۔",
   "danger_btn": "میرا اکاؤنٹ حذف کریں",
@@ -49,18 +47,15 @@
   "danger_confirm": "یہ آپ کی دکان اور اس میں موجود ہر چیز کو مستقل طور پر حذف کر دے گا۔ آپ بعد میں اسی لاگ ان سے دوبارہ سائن اپ کر سکتے ہیں۔ کیا آپ کو یقین ہے؟",
   "danger_confirm_btn": "ہاں، سب کچھ حذف کریں",
   "danger_error": "آپ کا اکاؤنٹ حذف نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
-
   "language_title": "زبان",
   "language_change": "زبان تبدیل کریں",
-
   "profit_tracking_title": "منافع کی ٹریکنگ",
   "profit_tracking_desc": "دیکھیں کہ آپ ہر دن کتنا منافع کماتے ہیں۔ آپ کو ہر مصنوعات کے لیے لاگت کی قیمت درج کرنی ہوگی۔",
   "profit_tracking_on": "چالو",
   "profit_tracking_off": "بند",
   "profit_tracking_hint_missing_one": "{count} مصنوعات کو ابھی بھی لاگت کی قیمت کی ضرورت ہے",
   "profit_tracking_hint_missing_other": "{count} مصنوعات کو ابھی بھی لاگت کی قیمت کی ضرورت ہے",
-  "profit_tracking_fix_now": "ابھی درست کریں \u2192",
-
+  "profit_tracking_fix_now": "ابھی درست کریں →",
   "subscribe_page_title": "آپ کا پلان",
   "subscribe_trial_days_left_one": "آپ کی مفت آزمائش کا {count} دن باقی ہے۔",
   "subscribe_trial_days_left_other": "آپ کی مفت آزمائش کے {count} دن باقی ہیں۔",
@@ -89,7 +84,6 @@
   "subscribe_btn_goto_settings": "ترتیبات پر جائیں",
   "subscribe_error_generic": "کچھ غلط ہو گیا۔ براہ کرم دوبارہ کوشش کریں۔",
   "subscribe_error_connect": "کنیکٹ نہیں ہو سکا۔ براہ کرم اپنا انٹرنیٹ چیک کریں اور دوبارہ کوشش کریں۔",
-
   "fund_interest_label": "Government Fund",
   "fund_interest_help": "Show the Spaza Shop Support Fund eligibility checker on your dashboard.",
   "fund_interest_open": "Open Fund Readiness"

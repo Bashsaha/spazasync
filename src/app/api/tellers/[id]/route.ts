@@ -1,10 +1,17 @@
 import { NextResponse } from 'next/server'
 import { getShopAuth } from '@/lib/auth/shop-auth'
+import { checkRateLimit } from '@/lib/utils/rateLimit'
 
 export async function PATCH(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  // Soft-deletes a teller (sets active=false). 20 per IP per minute is
+  // generous for an owner managing their roster and blocks abuse loops.
+  if (checkRateLimit(request, { limit: 20, windowSecs: 60 }).limited) {
+    return NextResponse.json({ error: 'Too many requests. Try again in a minute.' }, { status: 429 })
+  }
+
   const { id } = await params
   const auth = await getShopAuth()
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
