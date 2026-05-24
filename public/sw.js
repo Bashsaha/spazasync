@@ -23,7 +23,7 @@
  *                            navigations; cached HTML never was.
  */
 
-const CACHE = 'movestock-v54'
+const CACHE = 'movestock-v55'
 
 // Resources that MUST always be fetched fresh from the network so Chrome's
 // installability checker (and the platform's home-screen icon installer) sees
@@ -39,14 +39,24 @@ const NEVER_CACHE_PATHS = [
 // Read-only API endpoints safe to serve stale-while-revalidate. Each unique URL
 // (incl. query string) is cached separately. Adding endpoints here makes pages
 // open instantly on repeat visits and continue to work offline.
+//
+// Path match is EXACT here (not prefix). Sub-paths like '/api/products/popular'
+// or '/api/daily-checklist/status' need their own entry. Mutation invalidation
+// below uses prefix match so a POST/PATCH on '/api/tellers/:id' still clears
+// the cached '/api/tellers' list.
 const SWR_GET_PATHS = [
   '/api/products',
+  '/api/products/popular',
   '/api/settings',
   '/api/tellers',
   '/api/suppliers',
   '/api/business-documents',
   '/api/compliance-score',
+  '/api/compliance-reminders',
+  '/api/access-requests',
   '/api/daily-checklist',
+  '/api/daily-checklist/status',
+  '/api/pest-control',
 ]
 
 /** Only /offline.html is safe to precache — it has no per-user data and no

@@ -63,7 +63,8 @@ export async function proxy(request: NextRequest) {
     // away to their dashboard.
     pathname === '/legal' ||
     pathname.startsWith('/legal/') ||
-    pathname.match(/\.(svg|png|jpg|jpeg|gif|ico|css|js|json|webmanifest)$/)
+    pathname.startsWith('/icons/') ||
+    pathname.match(/\.(svg|png|jpg|jpeg|gif|ico|webp|css|js|woff|woff2|ttf|json|webmanifest)$/)
   ) {
     return NextResponse.next()
   }
@@ -89,10 +90,20 @@ export async function proxy(request: NextRequest) {
     },
   )
 
-  // Refresh the session — IMPORTANT: do not use getSession() here, use getUser()
+  // Cost-conscious: middleware runs on every request, so we deliberately
+  // avoid the auth.getUser() network round-trip and read the JWT locally
+  // via getSession(). The @supabase/ssr cookies handler still triggers a
+  // refresh-token swap when the access token is near expiry, so sessions
+  // stay alive — but the steady state is zero network calls from middleware.
+  //
+  // Security trade-off: a tampered cookie could lie about role/shop_id, but
+  // RLS is the actual security boundary at the data layer, and every API
+  // route calls getShopAuth()/requireAdmin() which DO verify the user via
+  // getUser() before touching shop-scoped data. Middleware is routing only.
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
+  const user = session?.user ?? null
 
   // ── Public routes ──────────────────────────────────────────
   const isPublic = PUBLIC_ROUTES.some((route) => pathname.startsWith(route))
@@ -194,6 +205,6 @@ export const config = {
      * - _next/image  (image optimisation)
      * - favicon.ico
      */
-    '/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|offline.html|apple-touch-icon.png|.*\\.(?:svg|png|jpg|jpeg|gif|webp|json|webmanifest)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|offline.html|apple-touch-icon.png|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|json|webmanifest)$).*)',
   ],
 }

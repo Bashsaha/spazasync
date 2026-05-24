@@ -38,9 +38,13 @@ export function NotificationBell({ shopId }: { shopId: string }) {
   const [isOpen, setIsOpen] = useState(false)
   const [pendingActionId, setPendingActionId] = useState<string | null>(null)
 
+  // Both endpoints are in the service worker's SWR_GET_PATHS — repeat calls
+  // hit the cache instantly and revalidate in the background, and the SW's
+  // mutation invalidation (BUG-041) keeps them correct after writes. We
+  // deliberately omit cache:'no-store' so the SW can serve the cached copy.
   const refetchAccess = useCallback(async () => {
     try {
-      const res = await fetch(PENDING_URL, { cache: 'no-store' })
+      const res = await fetch(PENDING_URL)
       if (!res.ok) return
       const data = (await res.json()) as { requests: AccessRequestWithTeller[] }
       setPending(data.requests ?? [])
@@ -51,7 +55,7 @@ export function NotificationBell({ shopId }: { shopId: string }) {
 
   const refetchReminders = useCallback(async () => {
     try {
-      const res = await fetch(REMINDERS_URL, { cache: 'no-store' })
+      const res = await fetch(REMINDERS_URL)
       if (!res.ok) return
       const data = (await res.json()) as { reminders: Reminder[] }
       setReminders(data.reminders ?? [])
@@ -97,9 +101,11 @@ export function NotificationBell({ shopId }: { shopId: string }) {
   }, [isOpen])
 
   function handleOpen() {
+    // No refetch here — the mount effect + realtime subscription keep the
+    // data current, and the SW serves any second tap from cache. Forcing a
+    // network round-trip on every bell tap was firing the heaviest GET in
+    // the app (compliance-reminders runs 10 parallel DB queries).
     setIsOpen(true)
-    refetchAccess()
-    refetchReminders()
   }
 
   async function handleResolve(id: string, action: 'grant' | 'deny') {

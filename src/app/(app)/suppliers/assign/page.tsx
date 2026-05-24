@@ -32,8 +32,8 @@ export default function AssignSupplierPage() {
     setLoading(true)
     try {
       const [pRes, sRes] = await Promise.all([
-        fetch('/api/products?missing_supplier=1', { cache: 'no-store' }),
-        fetch('/api/suppliers', { cache: 'no-store' }),
+        fetch('/api/products?missing_supplier=1'),
+        fetch('/api/suppliers'),
       ])
       const pData = pRes.ok ? await pRes.json() : { products: [] }
       const sData = sRes.ok ? await sRes.json() : []

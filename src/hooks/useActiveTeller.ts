@@ -97,7 +97,7 @@ export function useActiveTeller(): ActiveTellerState {
         let tellers: Teller[] = []
         let networkOk = false
         try {
-          const res = await fetch('/api/tellers', { cache: 'no-store' })
+          const res = await fetch('/api/tellers')
           if (res.ok) {
             tellers = (await res.json()) as Teller[]
             networkOk = true

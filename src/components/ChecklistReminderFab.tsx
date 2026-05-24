@@ -28,7 +28,7 @@ export function ChecklistReminderFab({ initialVisible }: { initialVisible: boole
 
   const recheck = useCallback(async () => {
     try {
-      const res = await fetch('/api/daily-checklist/status', { cache: 'no-store' })
+      const res = await fetch('/api/daily-checklist/status')
       if (res.ok) {
         const { completed } = await res.json() as { completed: boolean }
         setVisible(!completed)

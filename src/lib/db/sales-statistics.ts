@@ -16,7 +16,7 @@
  * fetcher resolves SAST day bounds → UTC timestamps and feeds it raw rows.
  */
 
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { formatInTimeZone } from 'date-fns-tz'
 import { SAST_TZ } from '@/lib/utils/date'
 import type { WeeklyDataPoint } from '@/types'
@@ -289,8 +289,17 @@ function normaliseName(raw: unknown): string {
 }
 
 /**
+ * Hard ceilings to protect Supabase egress + Vercel function duration when an
+ * owner picks a long date range. A typical shop won't approach these — the
+ * cap is purely a guardrail against pathological queries.
+ */
+const SALES_QUERY_LIMIT = 20_000
+const PRODUCTS_QUERY_LIMIT = 5_000
+
+/**
  * Fetch + shape sales statistics for a shop over an inclusive SAST day range.
- * Uses the admin client scoped by shopId (mirrors lib/db/reports.ts).
+ * Uses the request-scoped client (owner-authenticated; RLS does the row-level
+ * filtering, and shop_id is also explicitly bound).
  */
 export async function getSalesStatistics(
   shopId: string,
@@ -298,21 +307,23 @@ export async function getSalesStatistics(
   toYmd: string,
   profitTrackingEnabled: boolean,
 ): Promise<SalesStatistics> {
-  const admin = createAdminClient()
+  const supabase = await createClient()
   const fromIso = sastDayToUtc(fromYmd, false)
   const toIso = sastDayToUtc(toYmd, true)
 
   const [salesRes, productsRes] = await Promise.all([
-    admin
+    supabase
       .from('sales')
       .select('id, total, completed_at')
       .eq('shop_id', shopId)
       .gte('completed_at', fromIso)
-      .lte('completed_at', toIso),
-    admin
+      .lte('completed_at', toIso)
+      .limit(SALES_QUERY_LIMIT),
+    supabase
       .from('products')
       .select('id, name, stock_qty, price, cost_price, created_at')
-      .eq('shop_id', shopId),
+      .eq('shop_id', shopId)
+      .limit(PRODUCTS_QUERY_LIMIT),
   ])
 
   if (salesRes.error) throw salesRes.error
@@ -326,7 +337,7 @@ export async function getSalesStatistics(
   let items: RawStatItem[] = []
   const saleIds = (salesRes.data ?? []).map((s) => s.id as string)
   if (saleIds.length > 0) {
-    const { data: itemRows, error: itemsError } = await admin
+    const { data: itemRows, error: itemsError } = await supabase
       .from('sale_items')
       .select('product_id, quantity, unit_price, unit_cost, products(name)')
       .in('sale_id', saleIds)

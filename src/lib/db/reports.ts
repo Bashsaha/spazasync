@@ -1,3 +1,5 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { formatInTimeZone } from 'date-fns-tz'
 import { subDays } from 'date-fns'
@@ -17,18 +19,35 @@ function getSASTDayBounds(date: Date = new Date()): { start: string; end: string
 }
 
 /**
+ * Resolve which Supabase client to use:
+ *   - Caller-supplied client (e.g. request-scoped from a server component) wins.
+ *   - Otherwise fall back to the request-scoped client.
+ *   - External API routes (no owner session) MUST pass `createAdminClient()`
+ *     explicitly — the request-scoped client has no auth context there and
+ *     RLS would return zero rows.
+ *
+ * Dashboard server components default to the request-scoped client so owner
+ * dashboards don't open an admin connection (better Supabase connection
+ * pooling, and shop_id is still explicitly filtered).
+ */
+async function resolveClient(client: SupabaseClient | undefined, fallbackAdmin: boolean): Promise<SupabaseClient> {
+  if (client) return client
+  return fallbackAdmin ? createAdminClient() : await createClient()
+}
+
+/**
  * Get today's sales summary for a single shop.
- * Uses the admin client — shopId is always explicitly filtered.
+ * Dashboard defaults to request-scoped client; external API passes admin.
  */
 export async function getDailySalesForShop(
   shopId: string,
   date: Date = new Date(),
+  client?: SupabaseClient,
 ): Promise<DailySummaryData> {
-  const admin = createAdminClient()
+  const supabase = await resolveClient(client, false)
   const { start, end } = getSASTDayBounds(date)
 
-  // Fetch today's sales for this specific shop
-  const { data: sales, error: salesError } = await admin
+  const { data: sales, error: salesError } = await supabase
     .from('sales')
     .select('id, total, teller_id')
     .eq('shop_id', shopId)
@@ -45,20 +64,17 @@ export async function getDailySalesForShop(
   const totalRevenue = sales.reduce((acc, s) => acc + Number(s.total), 0)
   const tellerCount = new Set(sales.map((s) => s.teller_id).filter(Boolean)).size
 
-  // Fetch sale items with product names — all belong to sales already filtered by shop_id
-  const { data: saleItems, error: itemsError } = await admin
+  const { data: saleItems, error: itemsError } = await supabase
     .from('sale_items')
     .select('quantity, product_id, unit_price, unit_cost, products(name)')
     .in('sale_id', saleIds)
 
   if (itemsError) throw itemsError
 
-  // Aggregate quantities by product + compute profit
   const itemMap = new Map<string, { name: string; totalQty: number }>()
   let totalProfit = 0
   let hasProfitData = false
   for (const item of saleItems ?? []) {
-    // Supabase infers FK joins as arrays without generated types; cast via unknown
     const productRaw = item.products as unknown as { name: string } | null
     const productName = productRaw?.name ?? 'Unknown product'
     const existing = itemMap.get(item.product_id)
@@ -95,20 +111,19 @@ export async function getWeeklySalesForShop(
   shopId: string,
   days = 7,
   now: Date = new Date(),
+  client?: SupabaseClient,
 ): Promise<WeeklyDataPoint[]> {
-  const admin = createAdminClient()
+  const supabase = await resolveClient(client, false)
 
-  // Build the list of SAST dates we want (oldest first)
   const dates: Date[] = []
   for (let i = days - 1; i >= 0; i--) {
     dates.push(subDays(now, i))
   }
 
-  // Window start = beginning of the oldest day
   const windowStart = `${formatInTimeZone(dates[0], SAST_TZ, 'yyyy-MM-dd')}T00:00:00+02:00`
   const windowEnd = `${formatInTimeZone(now, SAST_TZ, 'yyyy-MM-dd')}T23:59:59.999+02:00`
 
-  const { data: sales, error } = await admin
+  const { data: sales, error } = await supabase
     .from('sales')
     .select('total, completed_at')
     .eq('shop_id', shopId)
@@ -117,7 +132,6 @@ export async function getWeeklySalesForShop(
 
   if (error) throw error
 
-  // Group by SAST date string
   const byDate = new Map<string, { revenue: number; salesCount: number }>()
   for (const sale of sales ?? []) {
     const dateKey = formatInTimeZone(new Date(sale.completed_at), SAST_TZ, 'yyyy-MM-dd')
@@ -130,7 +144,6 @@ export async function getWeeklySalesForShop(
     }
   }
 
-  // Build result array — fill zeros for days with no sales
   return dates.map((d) => {
     const dateKey = formatInTimeZone(d, SAST_TZ, 'yyyy-MM-dd')
     const entry = byDate.get(dateKey)
@@ -149,10 +162,11 @@ export async function getWeeklySalesForShop(
 export async function getRecentSalesForShop(
   shopId: string,
   limit = 10,
+  client?: SupabaseClient,
 ): Promise<RecentSale[]> {
-  const admin = createAdminClient()
+  const supabase = await resolveClient(client, false)
 
-  const { data, error } = await admin
+  const { data, error } = await supabase
     .from('sales')
     .select('id, total, completed_at, tellers(name)')
     .eq('shop_id', shopId)
@@ -179,14 +193,14 @@ export async function getTopProductsThisWeek(
   shopId: string,
   limit = 5,
   now: Date = new Date(),
+  client?: SupabaseClient,
 ): Promise<TopProduct[]> {
-  const admin = createAdminClient()
+  const supabase = await resolveClient(client, false)
 
   const weekStart = `${formatInTimeZone(subDays(now, 6), SAST_TZ, 'yyyy-MM-dd')}T00:00:00+02:00`
   const weekEnd = `${formatInTimeZone(now, SAST_TZ, 'yyyy-MM-dd')}T23:59:59.999+02:00`
 
-  // Get sales IDs for this shop in the last 7 days
-  const { data: sales, error: salesError } = await admin
+  const { data: sales, error: salesError } = await supabase
     .from('sales')
     .select('id')
     .eq('shop_id', shopId)
@@ -198,14 +212,13 @@ export async function getTopProductsThisWeek(
 
   const saleIds = sales.map((s) => s.id)
 
-  const { data: items, error: itemsError } = await admin
+  const { data: items, error: itemsError } = await supabase
     .from('sale_items')
     .select('product_id, quantity, subtotal, products(name)')
     .in('sale_id', saleIds)
 
   if (itemsError) throw itemsError
 
-  // Aggregate by product
   const productMap = new Map<string, TopProduct>()
   for (const item of items ?? []) {
     const productRaw = item.products as unknown as { name: string } | null
@@ -231,15 +244,15 @@ export async function getTopProductsThisWeek(
 
 /**
  * Get all products at or below the low-stock threshold for a single shop.
- * Uses the admin client — shopId is always explicitly filtered.
  */
 export async function getLowStockForShop(
   shopId: string,
   threshold: number,
+  client?: SupabaseClient,
 ): Promise<LowStockItem[]> {
-  const admin = createAdminClient()
+  const supabase = await resolveClient(client, false)
 
-  const { data, error } = await admin
+  const { data, error } = await supabase
     .from('products')
     .select('name, stock_qty')
     .eq('shop_id', shopId)
@@ -253,12 +266,17 @@ export async function getLowStockForShop(
 
 /**
  * Get all products for a single shop with stock levels.
- * Used by the external API stock endpoint.
+ * Used by the external API stock endpoint (no owner session — admin client
+ * is the only option there). Pass `createAdminClient()` explicitly from
+ * those callers.
  */
-export async function getProductsForShop(shopId: string): Promise<ShopProduct[]> {
-  const admin = createAdminClient()
+export async function getProductsForShop(
+  shopId: string,
+  client?: SupabaseClient,
+): Promise<ShopProduct[]> {
+  const supabase = await resolveClient(client, true)
 
-  const { data, error } = await admin
+  const { data, error } = await supabase
     .from('products')
     .select('id, name, barcode, price, stock_qty')
     .eq('shop_id', shopId)
@@ -277,21 +295,20 @@ export async function getProductsForShop(shopId: string): Promise<ShopProduct[]>
 
 /**
  * Get products with expired or expiring-soon batches for a single shop.
- * Uses the admin client — no auth needed; scoped by shopId.
  * "Expiring soon" = expiry_date between today and today + 7 days (inclusive).
  */
 export async function getExpiringProductsForShop(
   shopId: string,
+  client?: SupabaseClient,
 ): Promise<ExpiringProductAlert[]> {
-  const admin = createAdminClient()
+  const supabase = await resolveClient(client, false)
 
   const today = formatInTimeZone(new Date(), SAST_TZ, 'yyyy-MM-dd')
   const sevenDaysFromNow = new Date()
   sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7)
   const soonDate = formatInTimeZone(sevenDaysFromNow, SAST_TZ, 'yyyy-MM-dd')
 
-  // Get all non-zero batches that are expired or expiring within 7 days
-  const { data: batches, error } = await admin
+  const { data: batches, error } = await supabase
     .from('product_batches')
     .select('product_id, expiry_date, quantity')
     .eq('shop_id', shopId)
@@ -302,7 +319,6 @@ export async function getExpiringProductsForShop(
   if (error) throw error
   if (!batches || batches.length === 0) return []
 
-  // Group by product_id
   const productMap = new Map<
     string,
     { expired_qty: number; expiring_soon_qty: number; earliest_expiry: string }
@@ -325,14 +341,12 @@ export async function getExpiringProductsForShop(
     productMap.set(b.product_id, entry)
   }
 
-  // Fetch product names
   const productIds = Array.from(productMap.keys())
-  const { data: products } = await admin
+  const { data: products } = await supabase
     .from('products')
     .select('id, name')
     .in('id', productIds)
 
-  // Build result sorted by earliest_expiry ASC
   const result: ExpiringProductAlert[] = (products ?? []).map((p) => {
     const stats = productMap.get(p.id)!
     return {

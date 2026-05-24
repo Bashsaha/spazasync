@@ -53,7 +53,7 @@ export default function DocumentsPage() {
   const [errorKey, setErrorKey] = useState('')
 
   const loadDocs = useCallback(() => {
-    fetch('/api/business-documents', { cache: 'no-store' })
+    fetch('/api/business-documents')
       .then(async (res) => {
         if (!res.ok) throw new Error()
         setDocs(await res.json())

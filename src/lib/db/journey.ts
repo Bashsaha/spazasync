@@ -19,6 +19,7 @@ import {
   getOfficesForMunicipality,
 } from '@/lib/db/municipalities'
 import { getInspectionReadiness } from '@/lib/db/inspection-readiness'
+import { getShopForRequest } from '@/lib/db/shop'
 import { generateJourneySteps } from '@/lib/compliance/journey'
 import type {
   BusinessDocument,
@@ -194,12 +195,9 @@ export async function getJourneyProgressSummary(
   shop: Pick<Shop, 'has_employees' | 'fund_interest'> | null
 }> {
   const supabase = await createClient()
-  const [shopResult, ownerProfileResult, documentsResult] = await Promise.all([
-    supabase
-      .from('shops')
-      .select('has_employees, fund_interest')
-      .eq('id', shopId)
-      .maybeSingle(),
+  // Shared shop fetch — memoised via React.cache at the layout call site.
+  const [shopRow, ownerProfileResult, documentsResult] = await Promise.all([
+    getShopForRequest(shopId, supabase),
     supabase
       .from('owner_profiles')
       .select('*')
@@ -212,8 +210,9 @@ export async function getJourneyProgressSummary(
       .order('document_type'),
   ])
 
-  const shop =
-    (shopResult.data as Pick<Shop, 'has_employees' | 'fund_interest'> | null) ?? null
+  const shop = shopRow
+    ? { has_employees: shopRow.has_employees ?? false, fund_interest: shopRow.fund_interest ?? false }
+    : null
   const ownerProfile = (ownerProfileResult.data as OwnerProfile | null) ?? null
   const documents = (documentsResult.data as BusinessDocument[] | null) ?? []
 

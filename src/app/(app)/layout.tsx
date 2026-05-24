@@ -11,6 +11,7 @@ import { InstallPwaButton } from '@/components/InstallPwaButton'
 import { ChecklistReminderFab } from '@/components/ChecklistReminderFab'
 import { SaleDataWarmup } from '@/components/SaleDataWarmup'
 import { getTodayChecklist, todaySAST } from '@/lib/db/daily-checklist'
+import { getShopForRequest } from '@/lib/db/shop'
 import type { SupportedLocale, TranslationNamespace } from '@/lib/i18n/types'
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '@/lib/i18n/types'
 import { loadNamespacedTranslations } from '@/lib/i18n/loader'
@@ -57,8 +58,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   if (shopId) {
     const needsChecklist = role === 'owner' || role === 'admin'
-    const [shopRes, tellerRes, checklistRes] = await Promise.all([
-      supabase.from('shops').select('name, language').eq('id', shopId).single(),
+    // getShopForRequest is React.cache-memoised so this read is reused by
+    // every server component below (dashboard page, JourneyProgressCard,
+    // reminders composite reader) — one DB call serves the whole render.
+    const [shopRow, tellerRes, checklistRes] = await Promise.all([
+      getShopForRequest(shopId, supabase),
       supabase
         .from('tellers')
         .select('name')
@@ -70,7 +74,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         : Promise.resolve(null),
     ])
 
-    if (shopRes.data?.name) shopName = shopRes.data.name as string
+    if (shopRow?.name) shopName = shopRow.name
     personName = (tellerRes.data?.name as string | undefined) ?? null
     if (needsChecklist) showChecklistReminder = checklistRes === null
 
@@ -78,8 +82,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     // cookie was missing or didn't match, do a second fast i18n load for the
     // real locale. For users with the cookie set (the steady state), this is
     // a no-op — speculativeLocale already equals shop.language.
-    const shopLang = shopRes.data?.language as string | undefined
-    const resolvedShopLocale = parseLocale(shopLang)
+    const resolvedShopLocale = parseLocale(shopRow?.language ?? undefined)
     if (resolvedShopLocale && resolvedShopLocale !== speculativeLocale) {
       initialLocale = resolvedShopLocale
     }

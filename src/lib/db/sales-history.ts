@@ -87,6 +87,10 @@ export async function listSalesForDate(
     .gte('completed_at', start)
     .lte('completed_at', end)
     .order('completed_at', { ascending: false })
+    // Hard ceiling: a single day at a single spaza will never hit this; the
+    // limit is a guardrail against egress blow-up if a busy bulk-importer or
+    // pathological data ever produced more.
+    .limit(2000)
   if (error) throw error
 
   const rows = (data ?? []) as unknown as SaleRow[]

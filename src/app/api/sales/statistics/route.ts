@@ -30,6 +30,20 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'from must be <= to' }, { status: 400 })
   }
 
+  // Cap absolute range to 365 days. A multi-year range would pull tens of
+  // thousands of sales + items in one shot; we have no UI affordance for
+  // that and it just burns Supabase egress + Vercel duration. If a real
+  // need surfaces, we paginate.
+  const MAX_DAYS = 365
+  const fromMs = Date.parse(`${from}T00:00:00Z`)
+  const toMs = Date.parse(`${to}T00:00:00Z`)
+  if ((toMs - fromMs) / 86_400_000 > MAX_DAYS) {
+    return NextResponse.json(
+      { error: 'Date range too large — please pick at most 365 days' },
+      { status: 400 },
+    )
+  }
+
   try {
     const { data: shop } = await auth.supabase
       .from('shops')

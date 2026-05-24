@@ -67,7 +67,7 @@ export default function StockTakePage() {
   // tellers never see. Skipping it for tellers avoids a redirect round-trip.
   useEffect(() => {
     if (role !== 'owner' && role !== 'admin') return
-    fetch('/api/settings', { cache: 'no-store' })
+    fetch('/api/settings')
       .then((r) => r.json())
       .then((settingsData) => {
         if (!settingsData) return

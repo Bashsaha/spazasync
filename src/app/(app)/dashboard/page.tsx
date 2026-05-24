@@ -10,6 +10,7 @@ import { DashboardAutoRefresh } from '@/components/dashboard/DashboardAutoRefres
 import { ComplianceCard } from '@/components/dashboard/ComplianceCard'
 import { JourneyProgressCard } from '@/components/dashboard/JourneyProgressCard'
 import { DashboardComplianceOnboarding } from '@/components/compliance-onboarding/DashboardComplianceOnboarding'
+import { getShopForRequest } from '@/lib/db/shop'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 import type { DocumentStatus, NationalityType, OnboardingDocumentType } from '@/types'
 
@@ -72,14 +73,10 @@ export default async function DashboardPage({
   let preFilledMunicipality: { id: string; name: string } | null = null
 
   if (shopIdMeta) {
-    const [shopRes, docsRes, profileRes] = await Promise.all([
-      supabase
-        .from('shops')
-        .select(
-          'id, name, code, low_stock_threshold, subscription_status, trial_ends_at, subscription_ends_at, profit_tracking_enabled, municipality_id, onboarding_compliance_completed, onboarding_compliance_dismissed_at, onboarding_compliance_dismiss_count',
-        )
-        .eq('id', shopIdMeta)
-        .single(),
+    // getShopForRequest is React.cache-memoised at the layout call site —
+    // this hit reuses that result for free (zero DB call).
+    const [shopRow, docsRes, profileRes] = await Promise.all([
+      getShopForRequest(shopIdMeta, supabase),
       isOwnerUI
         ? supabase
             .from('business_documents')
@@ -97,7 +94,7 @@ export default async function DashboardPage({
         : Promise.resolve({ data: null }),
     ])
 
-    shop = (shopRes.data as Shop | null) ?? null
+    shop = (shopRow as Shop | null) ?? null
 
     if (isOwnerUI) {
       existingDocs = (docsRes.data ?? []) as typeof existingDocs

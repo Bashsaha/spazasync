@@ -22,7 +22,7 @@ export default function PestControlListPage() {
   const [deleting, setDeleting] = useState(false)
 
   const loadPest = useCallback(() => {
-    fetch('/api/pest-control', { cache: 'no-store' })
+    fetch('/api/pest-control')
       .then(async (r) => {
         if (!r.ok) throw new Error()
         const json = (await r.json()) as { logs: PestControlLog[] }

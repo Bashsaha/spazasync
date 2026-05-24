@@ -17,7 +17,7 @@ export default function SuppliersPage() {
   const [missingSupplierCount, setMissingSupplierCount] = useState(0)
 
   const loadSuppliers = useCallback(() => {
-    fetch('/api/suppliers', { cache: 'no-store' })
+    fetch('/api/suppliers')
       .then(async (res) => {
         if (!res.ok) throw new Error()
         setSuppliers(await res.json())
@@ -25,7 +25,7 @@ export default function SuppliersPage() {
       })
       .catch(() => setErrorKey('error_load'))
       .finally(() => setLoading(false))
-    fetch('/api/settings', { cache: 'no-store' })
+    fetch('/api/settings')
       .then(async (res) => {
         if (!res.ok) return
         const data = await res.json()

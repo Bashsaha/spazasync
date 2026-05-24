@@ -210,6 +210,10 @@ export async function getMonthlySalesReport(
     .gte('completed_at', start)
     .lte('completed_at', end)
     .order('completed_at', { ascending: true })
+    // Hard ceiling: protects PDF generation memory + Supabase egress. 200
+    // sales/day × 31 days = 6,200 — well under the cap. If a real shop ever
+    // hits 10k+ sales in a month, this needs proper pagination.
+    .limit(10_000)
   if (error) throw error
 
   const rows = (data ?? []) as unknown as SaleRow[]

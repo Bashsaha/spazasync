@@ -37,8 +37,8 @@ export default function TellersPage() {
     setLoading(true)
     try {
       const [tellersRes, grantsRes] = await Promise.all([
-        fetch('/api/tellers', { cache: 'no-store' }),
-        fetch('/api/access-requests?status=granted', { cache: 'no-store' }),
+        fetch('/api/tellers'),
+        fetch('/api/access-requests?status=granted'),
       ])
       const tellersData = await tellersRes.json()
       if (!tellersRes.ok) {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireExternalApi } from '@/lib/auth/external-api-guard'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getProductsForShop, getLowStockForShop } from '@/lib/db/reports'
 
 export async function GET(
@@ -14,9 +15,12 @@ export async function GET(
     const url = new URL(request.url)
     const threshold = parseInt(url.searchParams.get('threshold') ?? '5', 10) || 5
 
+    // External API has no owner session — pass the admin client so RLS
+    // doesn't block the read.
+    const admin = createAdminClient()
     const [products, lowStock] = await Promise.all([
-      getProductsForShop(id),
-      getLowStockForShop(id, threshold),
+      getProductsForShop(id, admin),
+      getLowStockForShop(id, threshold, admin),
     ])
 
     return NextResponse.json({ products, lowStock })

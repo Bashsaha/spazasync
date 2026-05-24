@@ -7,7 +7,7 @@ export async function listProducts(
   opts?: { missingCost?: boolean; missingSupplier?: boolean },
 ): Promise<Product[]> {
   const supabase = await createClient()
-  let query = supabase.from('products').select('*').order('name')
+  let query = supabase.from('products').select('*').order('name').limit(5000)
   if (search?.trim()) {
     query = query.or(`name.ilike.%${search.trim()}%,barcode.ilike.%${search.trim()}%`)
   }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireExternalApi } from '@/lib/auth/external-api-guard'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getExpiringProductsForShop } from '@/lib/db/reports'
 
 export async function GET(
@@ -11,7 +12,8 @@ export async function GET(
 
   try {
     const { id } = await params
-    const expiring = await getExpiringProductsForShop(id)
+    // External API has no owner session — admin client required.
+    const expiring = await getExpiringProductsForShop(id, createAdminClient())
     return NextResponse.json(expiring)
   } catch (err) {
     console.error('External API /shops/[id]/expiry error:', err)

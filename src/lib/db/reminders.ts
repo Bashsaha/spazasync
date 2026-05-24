@@ -15,6 +15,7 @@ import { getChecklistStreakStatus } from '@/lib/db/daily-checklist'
 import { generateJourneySteps } from '@/lib/compliance/journey'
 import { computeFundReadiness } from '@/lib/compliance/fund'
 import { evaluateReminders, sortByPriority, pickTopReminder } from '@/lib/compliance/reminders'
+import { getShopForRequest } from '@/lib/db/shop'
 import type {
   AdminAlert,
   BusinessDocument,
@@ -34,7 +35,7 @@ export async function getDashboardReminder(
   // Active admin alerts use a public-readable RLS policy gated by
   // starts_at/expires_at; a normal client read is fine.
   const [
-    shopResult,
+    shopRow,
     ownerProfileResult,
     documentsResult,
     scoreResult,
@@ -45,30 +46,27 @@ export async function getDashboardReminder(
     missingSupplierResult,
     suppliersCountResult,
   ] = await Promise.all([
-    supabase
-      .from('shops')
-      .select('id, has_employees, fund_interest, fund_township_rural, fund_owner_managed')
-      .eq('id', shopId)
-      .maybeSingle(),
+    // Shared, request-memoised shop fetch — the layout already paid for this.
+    getShopForRequest(shopId, supabase),
     supabase
       .from('owner_profiles')
-      .select('*')
+      .select('user_id, nationality_type, food_safety_training_completed, food_safety_training_date, food_safety_training_provider, has_disability, visa_type, visa_expiry_date, naturalised_pre_1994, created_at, updated_at')
       .eq('user_id', userId)
       .maybeSingle(),
     supabase
       .from('business_documents')
-      .select('*')
+      .select('id, shop_id, document_type, status, reference_number, date_issued, expiry_date, notes, applied_at, created_at, updated_at')
       .eq('shop_id', shopId)
       .order('document_type'),
     getComplianceScore(supabase, shopId),
     getChecklistStreakStatus(shopId),
     supabase
       .from('admin_alerts')
-      .select('*')
+      .select('id, title, message, link_text, link_url, priority, target_audience, starts_at, expires_at')
       .order('priority', { ascending: false }),
     supabase
       .from('compliance_reminders')
-      .select('*')
+      .select('id, shop_id, reminder_type, reminder_key, shown_at, dismissed_at')
       .eq('shop_id', shopId),
     supabase
       .from('products')
@@ -83,11 +81,13 @@ export async function getDashboardReminder(
       .select('id', { count: 'exact', head: true }),
   ])
 
-  const shop = shopResult.data as Pick<
-    Shop,
-    'id' | 'has_employees' | 'fund_interest' | 'fund_township_rural' | 'fund_owner_managed'
-  > | null
-  if (!shop) return null
+  if (!shopRow) return null
+  const shop = {
+    has_employees: shopRow.has_employees ?? false,
+    fund_interest: shopRow.fund_interest ?? false,
+    fund_township_rural: shopRow.fund_township_rural ?? null,
+    fund_owner_managed: shopRow.fund_owner_managed ?? null,
+  }
 
   const ownerProfile = (ownerProfileResult.data as OwnerProfile | null) ?? null
   const documents = (documentsResult.data as BusinessDocument[] | null) ?? []
@@ -170,7 +170,7 @@ export async function listDashboardReminders(
   const todayISO = formatInTimeZone(new Date(), SAST_TZ, 'yyyy-MM-dd')
 
   const [
-    shopResult,
+    shopRow,
     ownerProfileResult,
     documentsResult,
     scoreResult,
@@ -181,30 +181,26 @@ export async function listDashboardReminders(
     missingSupplierResult,
     suppliersCountResult,
   ] = await Promise.all([
-    supabase
-      .from('shops')
-      .select('id, has_employees, fund_interest, fund_township_rural, fund_owner_managed')
-      .eq('id', shopId)
-      .maybeSingle(),
+    getShopForRequest(shopId, supabase),
     supabase
       .from('owner_profiles')
-      .select('*')
+      .select('user_id, nationality_type, food_safety_training_completed, food_safety_training_date, food_safety_training_provider, has_disability, visa_type, visa_expiry_date, naturalised_pre_1994, created_at, updated_at')
       .eq('user_id', userId)
       .maybeSingle(),
     supabase
       .from('business_documents')
-      .select('*')
+      .select('id, shop_id, document_type, status, reference_number, date_issued, expiry_date, notes, applied_at, created_at, updated_at')
       .eq('shop_id', shopId)
       .order('document_type'),
     getComplianceScore(supabase, shopId),
     getChecklistStreakStatus(shopId),
     supabase
       .from('admin_alerts')
-      .select('*')
+      .select('id, title, message, link_text, link_url, priority, target_audience, starts_at, expires_at')
       .order('priority', { ascending: false }),
     supabase
       .from('compliance_reminders')
-      .select('*')
+      .select('id, shop_id, reminder_type, reminder_key, shown_at, dismissed_at')
       .eq('shop_id', shopId),
     supabase
       .from('products')
@@ -219,11 +215,13 @@ export async function listDashboardReminders(
       .select('id', { count: 'exact', head: true }),
   ])
 
-  const shop = shopResult.data as Pick<
-    Shop,
-    'id' | 'has_employees' | 'fund_interest' | 'fund_township_rural' | 'fund_owner_managed'
-  > | null
-  if (!shop) return []
+  if (!shopRow) return []
+  const shop = {
+    has_employees: shopRow.has_employees ?? false,
+    fund_interest: shopRow.fund_interest ?? false,
+    fund_township_rural: shopRow.fund_township_rural ?? null,
+    fund_owner_managed: shopRow.fund_owner_managed ?? null,
+  }
 
   const ownerProfile = (ownerProfileResult.data as OwnerProfile | null) ?? null
   const documents = (documentsResult.data as BusinessDocument[] | null) ?? []

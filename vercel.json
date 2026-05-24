@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/expire-subscriptions",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/prune-reminders",
+      "schedule": "30 0 * * *"
     }
   ],
   "headers": [

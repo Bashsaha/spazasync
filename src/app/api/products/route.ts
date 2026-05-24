@@ -48,7 +48,7 @@ export async function GET(request: Request) {
   const missingSupplier = searchParams.get('missing_supplier') === '1'
   const missingCost = searchParams.get('missing_cost') === '1'
 
-  let q = supabase.from('products').select('*').order('name')
+  let q = supabase.from('products').select('*').order('name').limit(5000)
   if (search) {
     q = q.or(`name.ilike.%${search}%,barcode.ilike.%${search}%`)
   }
