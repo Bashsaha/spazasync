@@ -23,7 +23,7 @@
  *                            navigations; cached HTML never was.
  */
 
-const CACHE = 'movestock-v56'
+const CACHE = 'movestock-v57'
 
 // Resources that MUST always be fetched fresh from the network so Chrome's
 // installability checker (and the platform's home-screen icon installer) sees
@@ -41,9 +41,14 @@ const NEVER_CACHE_PATHS = [
 // open instantly on repeat visits and continue to work offline.
 //
 // Path match is EXACT here (not prefix). Sub-paths like '/api/products/popular'
-// or '/api/daily-checklist/status' need their own entry. Mutation invalidation
-// below uses prefix match so a POST/PATCH on '/api/tellers/:id' still clears
-// the cached '/api/tellers' list.
+// need their own entry. Mutation invalidation below uses prefix match so a
+// POST/PATCH on '/api/tellers/:id' clears the cached '/api/tellers' list AND
+// any cached sub-paths of '/api/tellers' (e.g. '/api/tellers/me').
+//
+// Note: '/api/daily-checklist/status' is deliberately NOT here — the route
+// returns `Cache-Control: no-store` because the checklist buzzer relies on
+// fresh state to clear immediately on save and to flip on a new-day rollover.
+// Caching it caused stale buzzer visibility for ~10s after completing.
 const SWR_GET_PATHS = [
   '/api/products',
   '/api/products/popular',
@@ -55,7 +60,6 @@ const SWR_GET_PATHS = [
   '/api/compliance-reminders',
   '/api/access-requests',
   '/api/daily-checklist',
-  '/api/daily-checklist/status',
   '/api/pest-control',
 ]
 
@@ -100,12 +104,13 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return
 
   // Mutations to a SWR-cached resource (or any sub-path of it) invalidate the
-  // cached GET response so the next read hits network. Without this, e.g. a
-  // POST /api/tellers (add) or PATCH /api/tellers/:id (remove) succeeds but
-  // the immediately-following GET /api/tellers still serves the stale pre-
-  // mutation snapshot from the SW SWR cache — the new teller doesn't appear
-  // and the removed one keeps showing until the next visibility-triggered
-  // refetch happens to land after the background revalidation completes.
+  // cached GET response so the next read hits network. We clear BOTH the
+  // matched SWR base path AND any other cached SWR entries that share its
+  // prefix — e.g. a POST /api/daily-checklist invalidates the cached
+  // /api/daily-checklist GET AND the cached /api/daily-checklist/status GET.
+  // Without this, a freshly-completed checklist would still see the FAB stuck
+  // visible for up to 10s while the SW background-revalidated the status
+  // endpoint.
   if (request.method !== 'GET') {
     const swrPath = SWR_GET_PATHS.find(
       (p) => url.pathname === p || url.pathname.startsWith(p + '/'),
@@ -116,7 +121,13 @@ self.addEventListener('fetch', (event) => {
           const keys = await cache.keys()
           await Promise.all(
             keys
-              .filter((req) => new URL(req.url).pathname === swrPath)
+              .filter((req) => {
+                const path = new URL(req.url).pathname
+                // Invalidate the matched path itself + any sub-paths of it
+                // (so POST /api/daily-checklist clears both /api/daily-checklist
+                // and /api/daily-checklist/status).
+                return path === swrPath || path.startsWith(swrPath + '/')
+              })
               .map((req) => cache.delete(req)),
           )
         }),
@@ -199,9 +210,42 @@ self.addEventListener('fetch', (event) => {
   // build-specific chunk hashes that 404 after the next deploy. The fast path
   // for repeat visits is the in-flight Next.js router prefetch + cached RSC
   // payload, not a stale HTML snapshot. (BUG-040)
+  //
+  // 15s timeout race: on mobile, when the radio is suspended by Android's
+  // battery-save heuristics, fetch() can hang indefinitely until a user
+  // interaction wakes the radio — the symptom is "the screen loads endlessly
+  // until I tap on the screen". Bailing to offline.html after 15s lets the
+  // user see something and reload, rather than staring at a blank page.
   event.respondWith(
-    fetch(request).catch(() =>
-      caches.open(CACHE).then((cache) => cache.match('/offline.html')),
-    ),
+    new Promise((resolve) => {
+      let settled = false
+      const timer = setTimeout(() => {
+        if (settled) return
+        settled = true
+        caches.open(CACHE).then((cache) =>
+          cache.match('/offline.html').then((res) =>
+            resolve(res ?? new Response('', { status: 504 })),
+          ),
+        )
+      }, 15000)
+
+      fetch(request)
+        .then((res) => {
+          if (settled) return
+          settled = true
+          clearTimeout(timer)
+          resolve(res)
+        })
+        .catch(() => {
+          if (settled) return
+          settled = true
+          clearTimeout(timer)
+          caches.open(CACHE).then((cache) =>
+            cache.match('/offline.html').then((res) =>
+              resolve(res ?? new Response('', { status: 504 })),
+            ),
+          )
+        })
+    }),
   )
 })

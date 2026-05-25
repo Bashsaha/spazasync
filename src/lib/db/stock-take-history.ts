@@ -75,37 +75,80 @@ export function shapeStockTakeHistory(entries: RawStockTakeEntry[]): StockTakeSe
 }
 
 /**
- * Fetch recent stock-count sessions for a shop, attributed to the person who
- * did each count. Scoped by RLS (caller must be in the shop). Capped at the
- * most recent 500 entry rows.
+ * Fetch recent stock-change sessions for a shop, attributed to the person who
+ * made each change. Sources:
+ *   - stock_take_entries — bulk "Count stock" submissions on /stock-take
+ *   - stock_adjustments — single-product Add / Remove on /stock/[id]
+ *
+ * Both are merged into one chronological list so owners can see every stock
+ * change in one place. Scoped by RLS (caller must be in the shop). Capped at
+ * the most recent 500 combined entry rows.
  */
 export async function getStockTakeHistory(shopId: string): Promise<StockTakeSession[]> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase
-    .from('stock_take_entries')
-    .select('taken_at, qty_before, qty_after, tellers(name), products(name)')
-    .eq('shop_id', shopId)
-    .order('taken_at', { ascending: false })
-    .limit(500)
+  const [takeRes, adjustRes, tellersRes] = await Promise.all([
+    supabase
+      .from('stock_take_entries')
+      .select('taken_at, qty_before, qty_after, tellers(name), products(name)')
+      .eq('shop_id', shopId)
+      .order('taken_at', { ascending: false })
+      .limit(500),
+    // stock_adjustments has no FK to tellers (adjusted_by → auth.users.id),
+    // so we resolve names via a separate tellers lookup below.
+    supabase
+      .from('stock_adjustments')
+      .select('adjusted_at, qty_before, qty_after, adjusted_by, products(name)')
+      .eq('shop_id', shopId)
+      .order('adjusted_at', { ascending: false })
+      .limit(500),
+    supabase
+      .from('tellers')
+      .select('user_id, name')
+      .eq('shop_id', shopId),
+  ])
 
-  if (error) throw error
+  if (takeRes.error) throw takeRes.error
+  if (adjustRes.error) throw adjustRes.error
 
-  const rows: RawStockTakeEntry[] = (data ?? []).map((r) => {
-    // Supabase returns the joined relation as an object (or array under some
-    // configs) — normalise both shapes to a flat name.
-    const teller = r.tellers as { name?: string } | { name?: string }[] | null
-    const product = r.products as { name?: string } | { name?: string }[] | null
-    const tellerName = Array.isArray(teller) ? teller[0]?.name : teller?.name
-    const productName = Array.isArray(product) ? product[0]?.name : product?.name
+  const userIdToName = new Map<string, string>()
+  for (const t of tellersRes.data ?? []) {
+    const uid = t.user_id as string | null
+    const name = t.name as string | null
+    if (uid && name) userIdToName.set(uid, name)
+  }
+
+  // Supabase returns joined relations as either an object or a single-element
+  // array depending on PostgREST inference — normalise both shapes to a name.
+  const extractName = (rel: unknown): string | null => {
+    const r = rel as { name?: string } | { name?: string }[] | null
+    if (!r) return null
+    return (Array.isArray(r) ? r[0]?.name : r.name) ?? null
+  }
+
+  const takeRows: RawStockTakeEntry[] = (takeRes.data ?? []).map((r) => ({
+    taken_at: r.taken_at as string,
+    qty_before: (r.qty_before as number) ?? 0,
+    qty_after: (r.qty_after as number) ?? 0,
+    teller_name: extractName(r.tellers),
+    product_name: extractName(r.products),
+  }))
+
+  const adjustRows: RawStockTakeEntry[] = (adjustRes.data ?? []).map((r) => {
+    const adjustedBy = r.adjusted_by as string | null
     return {
-      taken_at: r.taken_at as string,
+      taken_at: r.adjusted_at as string,
       qty_before: (r.qty_before as number) ?? 0,
       qty_after: (r.qty_after as number) ?? 0,
-      teller_name: tellerName ?? null,
-      product_name: productName ?? null,
+      teller_name: adjustedBy ? userIdToName.get(adjustedBy) ?? null : null,
+      product_name: extractName(r.products),
     }
   })
 
-  return shapeStockTakeHistory(rows)
+  // Merge, sort by timestamp desc, cap at 500 most-recent combined rows.
+  const allRows = [...takeRows, ...adjustRows]
+    .sort((a, b) => b.taken_at.localeCompare(a.taken_at))
+    .slice(0, 500)
+
+  return shapeStockTakeHistory(allRows)
 }
