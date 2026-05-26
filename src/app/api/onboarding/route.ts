@@ -75,6 +75,8 @@ export async function POST(request: Request) {
     language,
     municipality_id: pickedMunicipalityId,
     municipality_area_text: areaText,
+    has_fridge: hasFridge,
+    has_freezer: hasFreezer,
   } = parsed.data
 
   // Resolve area-text into a known municipality_id when possible.
@@ -133,6 +135,8 @@ export async function POST(request: Request) {
       trial_ends_at: trialEndsAt,
       municipality_id: municipalityId,
       municipality_area_text: municipalityAreaText,
+      ...(typeof hasFridge === 'boolean' ? { has_fridge: hasFridge } : {}),
+      ...(typeof hasFreezer === 'boolean' ? { has_freezer: hasFreezer } : {}),
     })
     .select('id')
     .single()

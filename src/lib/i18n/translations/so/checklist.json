@@ -56,6 +56,10 @@
   "history_partial": "La kaydiyay",
   "history_link": "Arag taariikhda oo dhan",
   "reminder_aria": "Liiska maalinlaha ah weli lama dhamaystirin — taabo si aad u furto",
+  "intro_title": "Wax ku saabsan liiska maalinlaha ah",
+  "intro_body": "Subax walba taabo badhankan si aad u hubiso fridge-ga, freezer-ka, nadaafada, iyo alaabta dhacday. Wuxuu qaataa qiyaastii 30 ilbiriqsi.",
+  "intro_why": "Tani waxay kaa caawinaysaa inaad diyaar u ahaato kormeeryada caafimaadka, dukaankaaguna ammaan u ahaado.",
+  "intro_got_it": "Waan fahmay",
   "history_back": "← Ku noqo dashboard-ka",
 
   "status_done": "Liiska maanta waa la dhameystiray ✓",

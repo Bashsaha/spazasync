@@ -52,6 +52,10 @@ export const onboardingSchema = z
       .max(200)
       .nullable()
       .optional(),
+    // Equipment captured at signup so the daily checklist only asks about
+    // what the shop actually has. Default true (most spaza shops have both).
+    has_fridge: z.boolean().optional(),
+    has_freezer: z.boolean().optional(),
   })
   .refine(
     (v) =>

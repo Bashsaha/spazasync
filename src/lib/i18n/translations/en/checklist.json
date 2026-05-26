@@ -56,6 +56,10 @@
   "history_partial": "Saved",
   "history_link": "View full history",
   "reminder_aria": "Daily checklist not done yet — tap to open",
+  "intro_title": "About the daily checklist",
+  "intro_body": "Tap this button every morning to check your fridge, freezer, cleaning, and expired items. It takes about 30 seconds.",
+  "intro_why": "This helps you stay ready for health inspections and keeps your shop safe.",
+  "intro_got_it": "Got it, I understand",
   "history_back": "← Back to dashboard",
 
   "status_done": "Today's checklist done ✓",

@@ -27,6 +27,8 @@ export default function OnboardingPage() {
     municipality_id: null,
     municipality_area_text: null,
   })
+  const [hasFridge, setHasFridge] = useState(true)
+  const [hasFreezer, setHasFreezer] = useState(true)
   const [generatedCode, setGeneratedCode] = useState('')
   const [codeCopied, setCodeCopied] = useState(false)
   const [error, setError] = useState('')
@@ -103,6 +105,8 @@ export default function OnboardingPage() {
         language: locale,
         municipality_id: area.municipality_id,
         municipality_area_text: area.municipality_id ? null : trimmedArea || null,
+        has_fridge: hasFridge,
+        has_freezer: hasFreezer,
       }),
     })
 
@@ -205,6 +209,10 @@ export default function OnboardingPage() {
               setLocation={setLocation}
               area={area}
               setArea={setArea}
+              hasFridge={hasFridge}
+              setHasFridge={setHasFridge}
+              hasFreezer={hasFreezer}
+              setHasFreezer={setHasFreezer}
               error={error}
               loading={loading}
               onSubmit={handleSetup}
@@ -310,6 +318,8 @@ function ShopSetupForm({
   registrationNumber, setRegistrationNumber,
   location, setLocation,
   area, setArea,
+  hasFridge, setHasFridge,
+  hasFreezer, setHasFreezer,
   error, loading, onSubmit,
 }: {
   shopName: string; setShopName: (v: string) => void
@@ -317,6 +327,8 @@ function ShopSetupForm({
   registrationNumber: string; setRegistrationNumber: (v: string) => void
   location: string; setLocation: (v: string) => void
   area: AreaPickerValue; setArea: (v: AreaPickerValue) => void
+  hasFridge: boolean; setHasFridge: (v: boolean) => void
+  hasFreezer: boolean; setHasFreezer: (v: boolean) => void
   error: string; loading: boolean; onSubmit: (e: React.FormEvent) => void
 }) {
   const { t } = useTranslation()
@@ -387,11 +399,58 @@ function ShopSetupForm({
 
       <AreaPicker value={area} onChange={setArea} copyNamespace="auth" />
 
+      <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3">
+        <p className="text-sm font-semibold text-gray-900">{t('equipment_title')}</p>
+        <p className="text-xs text-gray-500 mb-3">{t('equipment_subtitle')}</p>
+
+        <EquipmentToggleRow
+          label={t('equipment_has_fridge')}
+          checked={hasFridge}
+          onChange={setHasFridge}
+        />
+        <div className="border-t border-gray-100 mt-2 pt-2">
+          <EquipmentToggleRow
+            label={t('equipment_has_freezer')}
+            checked={hasFreezer}
+            onChange={setHasFreezer}
+          />
+        </div>
+      </div>
+
       {error && <Callout tone="error">{error}</Callout>}
 
       <Button type="submit" variant="primary" size="lg" fullWidth loading={loading}>
         {loading ? t('btn_creating_shop') : t('btn_create_shop')}
       </Button>
     </form>
+  )
+}
+
+function EquipmentToggleRow({
+  label, checked, onChange,
+}: {
+  label: string
+  checked: boolean
+  onChange: (v: boolean) => void
+}) {
+  return (
+    <div className="flex items-center justify-between py-1">
+      <p className="text-sm text-gray-800">{label}</p>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${
+          checked ? 'bg-green-500' : 'bg-gray-300'
+        }`}
+      >
+        <span
+          className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+            checked ? 'translate-x-6' : 'translate-x-1'
+          }`}
+        />
+      </button>
+    </div>
   )
 }
