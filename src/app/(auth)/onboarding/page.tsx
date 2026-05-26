@@ -10,6 +10,7 @@ import { LanguagePicker } from '@/components/LanguagePicker'
 import { AreaPicker, type AreaPickerValue } from '@/components/compliance-onboarding/AreaPicker'
 import { recordRecentUser } from '@/lib/auth/recent-users'
 import { Button, Card, FormField, Input, Callout } from '@/components/ui'
+import { EmailOtpForm } from '@/components/auth/EmailOtpForm'
 import type { SupportedLocale } from '@/lib/i18n/types'
 
 export default function OnboardingPage() {
@@ -186,6 +187,11 @@ export default function OnboardingPage() {
               loading={loading}
               error={error}
               onSignIn={handleGoogleSignIn}
+              email={email}
+              onEmailVerified={(verifiedEmail) => {
+                setEmail(verifiedEmail)
+                setStep('setup')
+              }}
             />
           ) : (
             <ShopSetupForm
@@ -223,12 +229,16 @@ export default function OnboardingPage() {
 
 function GoogleSignInStep({
   loading, error, onSignIn,
+  email, onEmailVerified,
 }: {
   loading: boolean
   error: string
   onSignIn: () => void
+  email: string
+  onEmailVerified: (email: string) => void
 }) {
   const { t } = useTranslation()
+  const [showEmail, setShowEmail] = useState(false)
 
   return (
     <div className="space-y-4">
@@ -240,6 +250,43 @@ function GoogleSignInStep({
       </Button>
 
       {error && <Callout tone="error">{error}</Callout>}
+
+      {/* Email OTP — secondary path, collapsed by default */}
+      <div className="pt-1">
+        {!showEmail ? (
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-gray-200" />
+            <button
+              type="button"
+              onClick={() => setShowEmail(true)}
+              className="text-sm text-brand font-medium active:opacity-70"
+            >
+              {t('otp_show_email_link')}
+            </button>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
+        ) : (
+          <div className="space-y-3 pt-2 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                {t('otp_divider_or')}
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowEmail(false)}
+                className="text-xs text-gray-500 active:opacity-70"
+              >
+                {t('otp_hide_email_link')}
+              </button>
+            </div>
+            <EmailOtpForm
+              initialEmail={email}
+              onVerified={onEmailVerified}
+              autoFocusEmail
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }

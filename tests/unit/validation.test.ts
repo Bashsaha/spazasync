@@ -9,10 +9,70 @@ import {
   createTellerSchema,
   stockAdjustSchema,
   updateShopSettingsSchema,
+  ownerEmailOtpRequestSchema,
+  ownerOtpVerifySchema,
 } from '@/lib/validation/schemas'
 
-// Owner login schema removed: owner auth is now Google OAuth — no fields to
-// validate on our side. Supabase handles the OAuth handshake end-to-end.
+// Owner auth: Google OAuth (no schema needed) OR email + 6-digit OTP (schemas below).
+
+// ---------------------------------------------------------------------------
+// ownerEmailOtpRequestSchema
+// ---------------------------------------------------------------------------
+
+describe('ownerEmailOtpRequestSchema', () => {
+  it('accepts a valid email and lowercases it', () => {
+    const result = ownerEmailOtpRequestSchema.safeParse({ email: 'Owner@Example.COM' })
+    expect(result.success).toBe(true)
+    if (result.success) expect(result.data.email).toBe('owner@example.com')
+  })
+
+  it('trims surrounding whitespace', () => {
+    const result = ownerEmailOtpRequestSchema.safeParse({ email: '  owner@example.com  ' })
+    expect(result.success).toBe(true)
+    if (result.success) expect(result.data.email).toBe('owner@example.com')
+  })
+
+  it('rejects an empty string', () => {
+    const result = ownerEmailOtpRequestSchema.safeParse({ email: '' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects a value missing the @ sign', () => {
+    const result = ownerEmailOtpRequestSchema.safeParse({ email: 'not-an-email' })
+    expect(result.success).toBe(false)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// ownerOtpVerifySchema
+// ---------------------------------------------------------------------------
+
+describe('ownerOtpVerifySchema', () => {
+  it('accepts a valid 6-digit code with valid email', () => {
+    const result = ownerOtpVerifySchema.safeParse({ email: 'owner@example.com', token: '123456' })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects a code shorter than 6 digits', () => {
+    const result = ownerOtpVerifySchema.safeParse({ email: 'owner@example.com', token: '12345' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects a code longer than 6 digits', () => {
+    const result = ownerOtpVerifySchema.safeParse({ email: 'owner@example.com', token: '1234567' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects a code with non-digit characters', () => {
+    const result = ownerOtpVerifySchema.safeParse({ email: 'owner@example.com', token: '12345a' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects when email is invalid', () => {
+    const result = ownerOtpVerifySchema.safeParse({ email: 'nope', token: '123456' })
+    expect(result.success).toBe(false)
+  })
+})
 
 // ---------------------------------------------------------------------------
 // tellerLoginSchema

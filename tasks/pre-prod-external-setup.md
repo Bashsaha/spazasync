@@ -81,7 +81,22 @@ Only works if your domain's DNS is on Cloudflare. If you bought through Domains.
 
 ---
 
-## 3. Custom SMTP in Supabase (Resend)
+## 3. Custom SMTP in Supabase (Resend) — ✅ DONE (2026-05-26)
+
+**Status:** Live. Resend is wired into Supabase Auth → SMTP Settings. Movestock domain verified in Resend; sender is `noreply@movestock.co.za` / "Movestock"; invite test delivered successfully to `director@movestock.co.za`.
+
+**Final config (for reference):**
+- Resend domain: `movestock.co.za` — verified (DKIM on `resend._domainkey`, SPF + MX on the `send.` subdomain — no conflict with Google Workspace SPF on the apex)
+- Resend API key name: "Supabase Movestock" (sending access scoped to movestock.co.za)
+- Supabase SMTP: Host `smtp.resend.com` · Port `465` · Username `resend` · Password = Resend API key
+- Sender email: `noreply@movestock.co.za` (send-only, not a real Google Workspace mailbox)
+- Region match: Resend eu-west-1 ↔ Supabase eu-west-1 (Ireland)
+
+**Honest scope:** nothing user-facing in Movestock currently triggers a Supabase email — owners log in via Google OAuth ([login/page.tsx:205](src/app/(auth)/login/page.tsx#L205)), tellers via 6-digit PIN set by the owner. This setup covers (a) edge flows like manual Supabase-dashboard invites, (b) future email-based features (welcome email, subscription expiry warning, daily summary, etc.), and (c) the prerequisite for adding email + 6-digit OTP login back as an alternative to Google (the BUG-034 pattern, now potentially viable to resurrect since the SMTP pipe exists). Templates were left as Supabase defaults — only customise them when you ship a user-facing email feature that uses them.
+
+---
+
+## (Original instructions kept below for historical reference)
 
 **Why it matters:** Supabase's default mailer is rate-limited to ~4 emails/hour and routes to spam. Movestock doesn't use email-OTP for owner auth anymore (that's why login still works without this), but Supabase still sends emails for password resets and email verification on edge flows. Without custom SMTP, those silently fail or land in junk.
 

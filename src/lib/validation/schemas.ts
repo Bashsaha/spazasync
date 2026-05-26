@@ -7,8 +7,21 @@ const languageEnum = z.enum(SUPPORTED_LOCALES as [string, ...string[]])
 // Auth
 // ============================================================
 
-// Owner sign-in is Google OAuth — no password, no email field on our side.
-// Supabase handles the OAuth redirect / token exchange end-to-end.
+// Owner sign-in: Google OAuth (primary) OR email + 6-digit OTP (secondary).
+// Google OAuth has no client-side schema (Supabase handles redirect/token exchange).
+// Email OTP is a 2-phase flow: (1) request a code be emailed, (2) verify the code.
+// No `<input type="password">` anywhere — see BUG-034 prevention rule.
+
+export const ownerEmailOtpRequestSchema = z.object({
+  email: z.string().trim().toLowerCase().email('Enter a valid email address'),
+})
+
+export const ownerOtpVerifySchema = z.object({
+  email: z.string().trim().toLowerCase().email('Enter a valid email address'),
+  token: z
+    .string()
+    .regex(/^\d{6}$/, 'Code must be 6 digits'),
+})
 
 export const tellerLoginSchema = z.object({
   shopCode: z
