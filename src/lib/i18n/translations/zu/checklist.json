@@ -14,7 +14,11 @@
   "q_freezer_hint": "Thepha Yebo uma u-ice cream uqinile. Faka isibalo uma uneThemomitha.",
   "label_temp": "Isibalo esibonayo (°C)",
   "placeholder_temp": "isib: 4",
-  "placeholder_freezer_temp": "isb. -20",
+  "placeholder_freezer_temp_positive": "isib. 20",
+  "freezer_below_zero": "Ngaphansi kuka 0",
+  "freezer_above_zero": "Ngenhla kuka 0",
+  "freezer_sign_aria": "Thepha ukushintsha phakathi kwangaphansi kuka 0 nangenhla kuka 0",
+  "freezer_sign_hint": "Thepha inkinobho ukuze ushintshe — ama-freezer ngokuvamile angaphansi kuka 0.",
   "temp_optional": "Ngokuzithandela",
 
   "q_surfaces": "Izingqondolo namakhawuntala kuhlanjiwe?",

@@ -14,7 +14,11 @@
   "q_freezer_hint": "Tap Yes if ice cream is rock-hard. Add the reading if you have a thermometer.",
   "label_temp": "Actual reading (°C)",
   "placeholder_temp": "e.g. 4",
-  "placeholder_freezer_temp": "e.g. -20",
+  "placeholder_freezer_temp_positive": "e.g. 20",
+  "freezer_below_zero": "Below zero",
+  "freezer_above_zero": "Above zero",
+  "freezer_sign_aria": "Tap to switch between below zero and above zero",
+  "freezer_sign_hint": "Tap the button to switch — freezers are usually below zero.",
   "temp_optional": "Optional",
 
   "q_surfaces": "Surfaces and counters cleaned?",

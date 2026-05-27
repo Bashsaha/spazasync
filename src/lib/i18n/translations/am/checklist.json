@@ -14,7 +14,11 @@
   "q_freezer_hint": "አይስ ክሬሙ ጠጠር ከሆነ አዎ ይጫኑ። ቴርሞሜትር ካለዎት የሙቀት መጠኑን ያስገቡ።",
   "label_temp": "ትክክለኛ መለኪያ (°C)",
   "placeholder_temp": "ለምሳሌ: 4",
-  "placeholder_freezer_temp": "ለምሳሌ -20",
+  "placeholder_freezer_temp_positive": "ለምሳሌ 20",
+  "freezer_below_zero": "ከዜሮ በታች",
+  "freezer_above_zero": "ከዜሮ በላይ",
+  "freezer_sign_aria": "በዜሮ በታች እና በዜሮ በላይ መካከል ለመቀየር ይጫኑ",
+  "freezer_sign_hint": "ለመቀየር አዝራሩን ይጫኑ — ፍሪዘሮች በተለምዶ ከዜሮ በታች ናቸው።",
   "temp_optional": "አስፈላጊ አይደለም",
 
   "q_surfaces": "ገጽታዎችና ካውንተሮች ጸድተዋል?",

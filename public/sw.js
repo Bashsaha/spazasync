@@ -23,7 +23,7 @@
  *                            navigations; cached HTML never was.
  */
 
-const CACHE = 'movestock-v59'
+const CACHE = 'movestock-v60'
 
 // Resources that MUST always be fetched fresh from the network so Chrome's
 // installability checker (and the platform's home-screen icon installer) sees
@@ -211,11 +211,14 @@ self.addEventListener('fetch', (event) => {
   // for repeat visits is the in-flight Next.js router prefetch + cached RSC
   // payload, not a stale HTML snapshot. (BUG-040)
   //
-  // 15s timeout race: on mobile, when the radio is suspended by Android's
+  // 25s timeout race: on mobile, when the radio is suspended by Android's
   // battery-save heuristics, fetch() can hang indefinitely until a user
   // interaction wakes the radio — the symptom is "the screen loads endlessly
-  // until I tap on the screen". Bailing to offline.html after 15s lets the
+  // until I tap on the screen". Bailing to offline.html after 25s lets the
   // user see something and reload, rather than staring at a blank page.
+  // (Bumped from 15s — 15s was firing during normal slow-3G cold opens and
+  // the user saw a misleading "You're offline" message while actually online.
+  // The offline.html template auto-reloads, so the user doesn't need to tap.)
   event.respondWith(
     new Promise((resolve) => {
       let settled = false
@@ -227,7 +230,7 @@ self.addEventListener('fetch', (event) => {
             resolve(res ?? new Response('', { status: 504 })),
           ),
         )
-      }, 15000)
+      }, 25000)
 
       fetch(request)
         .then((res) => {

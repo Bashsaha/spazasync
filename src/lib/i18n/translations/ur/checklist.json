@@ -14,7 +14,11 @@
   "q_freezer_hint": "اگر آئس کریم سخت ہے تو ہاں دبائیں۔ اگر تھرمومیٹر ہے تو ریڈنگ لکھیں۔",
   "label_temp": "اصل ریڈنگ (°C)",
   "placeholder_temp": "مثلاً: 4",
-  "placeholder_freezer_temp": "مثلاً -20",
+  "placeholder_freezer_temp_positive": "مثلاً 20",
+  "freezer_below_zero": "صفر سے کم",
+  "freezer_above_zero": "صفر سے زیادہ",
+  "freezer_sign_aria": "صفر سے کم اور صفر سے زیادہ کے درمیان تبدیل کرنے کے لیے دبائیں",
+  "freezer_sign_hint": "تبدیل کرنے کے لیے بٹن دبائیں — فریزر عام طور پر صفر سے کم ہوتے ہیں۔",
   "temp_optional": "اختیاری",
 
   "q_surfaces": "سطحیں اور کاؤنٹرز صاف ہیں؟",

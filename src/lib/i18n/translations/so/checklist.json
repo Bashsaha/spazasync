@@ -14,7 +14,11 @@
   "q_freezer_hint": "Taabo Haa haddii aaskiriimka uu adag yahay. Kudar akhriska haddii aad haysato heerkul-qiyaasiye.",
   "label_temp": "Akhriska dhabta ah (°C)",
   "placeholder_temp": "tusaale: 4",
-  "placeholder_freezer_temp": "tusaale: -20",
+  "placeholder_freezer_temp_positive": "tusaale: 20",
+  "freezer_below_zero": "Ka hooseeya eber",
+  "freezer_above_zero": "Ka sareeya eber",
+  "freezer_sign_aria": "Taabo si aad u beddesho inta u dhaxaysa ka hooseeya iyo ka sareeya eber",
+  "freezer_sign_hint": "Taabo badhanka si aad u beddesho — qaboojiyayaasha caadi ahaan way ka hooseeyaan eber.",
   "temp_optional": "Ikhtiyaari",
 
   "q_surfaces": "Dusha & miisaska waa la nadiifiyay?",

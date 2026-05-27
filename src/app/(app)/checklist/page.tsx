@@ -82,7 +82,8 @@ export default function ChecklistPage() {
   const [fridgeOk, setFridgeOk] = useState<YesNo>(null)
   const [fridgeTemp, setFridgeTemp] = useState('')
   const [freezerOk, setFreezerOk] = useState<YesNo>(null)
-  const [freezerTemp, setFreezerTemp] = useState('')
+  const [freezerTemp, setFreezerTemp] = useState('') // always stored as a positive string; sign lives in freezerSign
+  const [freezerSign, setFreezerSign] = useState<'-' | '+'>('-') // freezers are below zero by default
   const [surfaces, setSurfaces] = useState<YesNo>(null)
   const [floor, setFloor] = useState<YesNo>(null)
   const [storage, setStorage] = useState<YesNo>(null)
@@ -102,7 +103,12 @@ export default function ChecklistPage() {
           setFridgeOk(c.fridge_ok)
           setFridgeTemp(c.fridge_temp !== null ? String(c.fridge_temp) : '')
           setFreezerOk(c.freezer_ok)
-          setFreezerTemp(c.freezer_temp !== null ? String(c.freezer_temp) : '')
+          if (c.freezer_temp !== null) {
+            setFreezerSign(c.freezer_temp < 0 ? '-' : '+')
+            setFreezerTemp(String(Math.abs(c.freezer_temp)))
+          } else {
+            setFreezerTemp('')
+          }
           setSurfaces(c.surfaces_cleaned)
           setFloor(c.floor_cleaned)
           setStorage(c.storage_clean)
@@ -114,7 +120,9 @@ export default function ChecklistPage() {
             setFridgeTemp(String(json.previousTemps.fridge_temp))
           }
           if (json.previousTemps.freezer_temp !== null) {
-            setFreezerTemp(String(json.previousTemps.freezer_temp))
+            const prev = json.previousTemps.freezer_temp
+            setFreezerSign(prev < 0 ? '-' : '+')
+            setFreezerTemp(String(Math.abs(prev)))
           }
         }
       })
@@ -133,7 +141,10 @@ export default function ChecklistPage() {
           fridge_ok: fridgeOk,
           fridge_temp: fridgeTemp.trim() === '' ? null : Number(fridgeTemp),
           freezer_ok: freezerOk,
-          freezer_temp: freezerTemp.trim() === '' ? null : Number(freezerTemp),
+          freezer_temp:
+            freezerTemp.trim() === ''
+              ? null
+              : (freezerSign === '-' ? -1 : 1) * Math.abs(Number(freezerTemp)),
           surfaces_cleaned: surfaces,
           floor_cleaned: floor,
           storage_clean: storage,
@@ -245,15 +256,33 @@ export default function ChecklistPage() {
                 {t('label_temp')}{' '}
                 <span className="text-gray-400 font-normal">({t('temp_optional')})</span>
               </label>
-              <input
-                type="number"
-                step="0.1"
-                inputMode="decimal"
-                value={freezerTemp}
-                onChange={(e) => setFreezerTemp(e.target.value)}
-                placeholder={t('placeholder_freezer_temp')}
-                className="w-28 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
-              />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFreezerSign((s) => (s === '-' ? '+' : '-'))}
+                  aria-pressed={freezerSign === '-'}
+                  aria-label={t('freezer_sign_aria')}
+                  className={`px-3 py-2 rounded-xl text-xs font-semibold border min-w-[96px] transition-colors ${
+                    freezerSign === '-'
+                      ? 'bg-brand text-white border-brand'
+                      : 'bg-white text-gray-700 border-gray-200'
+                  }`}
+                >
+                  {freezerSign === '-' ? t('freezer_below_zero') : t('freezer_above_zero')}
+                </button>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  inputMode="decimal"
+                  value={freezerTemp}
+                  onChange={(e) => setFreezerTemp(e.target.value.replace(/^-/, ''))}
+                  placeholder={t('placeholder_freezer_temp_positive')}
+                  className="w-24 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                />
+                <span className="text-sm text-gray-500">°C</span>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">{t('freezer_sign_hint')}</p>
             </div>
           )}
         </section>
