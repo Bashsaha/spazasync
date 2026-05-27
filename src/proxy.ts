@@ -176,16 +176,38 @@ export async function proxy(request: NextRequest) {
   if (role === 'admin') return supabaseResponse
 
   // ── Subscription gate ────────────────────────────────────
-  // Check sub_status and sub_until from JWT metadata (zero DB queries)
+  // Check sub_status and sub_until from JWT metadata (zero DB queries).
+  //
+  // Allow-list approach: only 'active' and 'manual_override' (with a future
+  // sub_until or null) bypass. Any other status — 'trialing', 'cancelled',
+  // 'expired' — must have a future sub_until to retain access. A missing or
+  // empty sub_until on a non-'active' status is treated as expired, since
+  // that's a corrupted state (every trial / cancelled sub MUST carry an end
+  // date). Without this defence, owners whose JWT metadata is missing
+  // sub_until silently bypass the gate forever.
   const isExempt = SUBSCRIPTION_EXEMPT.some((r) => pathname.startsWith(r))
   if (role && !isExempt) {
     const subStatus = user.app_metadata?.sub_status as string | undefined
     const subUntil = user.app_metadata?.sub_until as string | undefined
     const accessGranted = user.app_metadata?.access_granted as boolean | undefined
 
-    const isExpired =
-      subStatus === 'expired' ||
-      (subUntil && new Date(subUntil) < new Date())
+    const now = new Date()
+    const subUntilDate = subUntil ? new Date(subUntil) : null
+    const hasFutureUntil = subUntilDate ? subUntilDate.getTime() > now.getTime() : false
+    // 'active' (PayFast recurring) doesn't strictly require a future date —
+    // ITN renews it on each cycle. 'manual_override' with null sub_until is
+    // an admin-granted indefinite override.
+    const isActiveLike =
+      (subStatus === 'active' && (hasFutureUntil || !subUntilDate)) ||
+      (subStatus === 'manual_override' && (hasFutureUntil || !subUntilDate))
+    // 'trialing' / 'cancelled' / anything else needs a future sub_until.
+    const isOtherWithFutureUntil =
+      hasFutureUntil &&
+      subStatus !== 'expired' &&
+      subStatus !== 'active' &&
+      subStatus !== 'manual_override'
+
+    const isExpired = !(isActiveLike || isOtherWithFutureUntil)
 
     if (isExpired && !accessGranted) {
       const subUrl = request.nextUrl.clone()
