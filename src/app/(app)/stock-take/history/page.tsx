@@ -21,7 +21,7 @@ export default async function StockCountHistoryPage() {
   const sessions = await getStockTakeHistory(auth.shopId)
 
   return (
-    <main className="px-4 pt-8 pb-24 max-w-lg mx-auto">
+    <main className="px-4 pt-8 pb-24 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       <div className="flex items-center gap-2 mb-1">
         <BackButton fallbackHref="/stock-take" />
         <h1 className="text-2xl font-bold text-gray-900">{t('history_title')}</h1>

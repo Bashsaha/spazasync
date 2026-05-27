@@ -59,7 +59,7 @@ export default async function ProductsPage({
   const suppliersCount = suppliersRes.count ?? 0
 
   return (
-    <main className="px-4 pt-10 pb-36 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-36 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       <div className="flex items-center gap-2 mb-4">
         <BackButton fallbackHref="/inventory" />
         <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>

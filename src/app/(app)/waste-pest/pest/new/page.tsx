@@ -66,7 +66,7 @@ export default function NewPestControlVisitPage() {
   const canSave = providerName.trim() && treatment.trim() && visitDate && !saving
 
   return (
-    <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-24 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       {saving && <FullScreenSpinner label={t('btn_saving')} />}
       <div className="flex items-center gap-2 mb-6">
         <BackButton fallbackHref="/waste-pest/pest" />

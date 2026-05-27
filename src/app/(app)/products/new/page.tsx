@@ -141,7 +141,7 @@ function NewProductContent() {
   const errorMessage = errorRaw || (errorKey ? t(errorKey) : '')
 
   return (
-    <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       {loading && <FullScreenSpinner label={t('btn_saving')} />}
       <div className="flex items-center gap-2 mb-8">
         <BackButton fallbackHref="/products" />
@@ -322,7 +322,7 @@ function NewProductContent() {
 
 export default function NewProductPage() {
   return (
-    <Suspense fallback={<main className="px-4 pt-10 pb-24 max-w-lg mx-auto"><p className="text-center text-gray-400 text-sm mt-12">Loading...</p></main>}>
+    <Suspense fallback={<main className="px-4 pt-10 pb-24 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto"><p className="text-center text-gray-400 text-sm mt-12">Loading...</p></main>}>
       <NewProductContent />
     </Suspense>
   )

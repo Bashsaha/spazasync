@@ -111,7 +111,7 @@ function SalesHistoryContent() {
   const sales = data?.sales ?? []
 
   return (
-    <main className="px-4 pt-10 pb-44 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-44 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         <BackButton fallbackHref="/sales" />
@@ -318,7 +318,7 @@ export default function SalesHistoryPage() {
   return (
     <Suspense
       fallback={
-        <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+        <main className="px-4 pt-10 pb-24 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
           <p className="text-center text-gray-400 text-sm mt-12">Loading…</p>
         </main>
       }

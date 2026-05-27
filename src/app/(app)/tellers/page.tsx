@@ -101,7 +101,7 @@ export default function TellersPage() {
   const errorMessage = errorRaw || (errorKey ? t(errorKey) : '')
 
   return (
-    <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <BackButton fallbackHref="/manage" />

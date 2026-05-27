@@ -25,7 +25,7 @@ export function CartSummary({ total, itemCount, onCompleteSale, isSubmitting, ab
       className="fixed inset-x-0 bg-white border-t border-gray-200 z-50"
       style={{ bottom: aboveNav ? 'calc(56px + env(safe-area-inset-bottom, 0px))' : '0px' }}
     >
-      <div className="max-w-lg mx-auto flex items-center gap-4 px-4 py-3" style={{ paddingBottom: aboveNav ? '12px' : 'max(12px, env(safe-area-inset-bottom))' }}>
+      <div className="max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto flex items-center gap-4 px-4 py-3" style={{ paddingBottom: aboveNav ? '12px' : 'max(12px, env(safe-area-inset-bottom))' }}>
         <div className="flex-shrink-0">
           <p className="text-xs text-gray-400">
             {tPlural('item', itemCount, { count: itemCount })}

@@ -45,7 +45,7 @@ export default function NewTellerPage() {
   const errorMessage = errorRaw || (errorKey ? t(errorKey) : '')
 
   return (
-    <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-24 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       {loading && <FullScreenSpinner label={t('btn_creating')} />}
       <div className="flex items-center gap-2 mb-8">
         <BackButton fallbackHref="/tellers" />

@@ -113,7 +113,7 @@ export default function StockPage() {
   const outCount = products.filter((p) => p.stock_qty === 0).length
 
   return (
-    <main className="px-4 pt-10 pb-36 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-36 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">

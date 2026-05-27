@@ -103,7 +103,7 @@ export default function AssignSupplierPage() {
   const noSuppliers = !loading && suppliers.length === 0
 
   return (
-    <main className="px-4 pt-10 pb-60 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-60 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       <div className="flex items-center gap-3 mb-2">
         <BackButton fallbackHref="/suppliers" />
         <h1 className="text-2xl font-bold text-gray-900">{t('assign_title')}</h1>
@@ -189,7 +189,7 @@ export default function AssignSupplierPage() {
             zIndex: 35,
           }}
         >
-          <div className="max-w-lg mx-auto space-y-2">
+          <div className="max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto space-y-2">
             <select
               value={supplierId}
               onChange={(e) => setSupplierId(e.target.value)}

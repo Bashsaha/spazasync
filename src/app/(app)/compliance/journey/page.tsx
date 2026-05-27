@@ -66,7 +66,7 @@ export default async function ComplianceJourneyPage() {
   const daysRemaining = computeDaysRemaining(visaExpiry)
 
   return (
-    <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       <div className="flex items-center gap-3 mb-2">
         <BackButton fallbackHref="/profile" />
         <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>

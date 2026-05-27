@@ -254,7 +254,7 @@ export default function StockTakePage() {
   return (
     <>
       {isSubmitting && <FullScreenSpinner label={t('stock_take_btn_saving')} />}
-      <main className="px-4 pt-8 pb-44 max-w-lg mx-auto">
+      <main className="px-4 pt-8 pb-44 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
         {/* header */}
         <div className="flex items-center gap-2 mb-1">
           <BackButton fallbackHref="/inventory" />
@@ -467,7 +467,7 @@ export default function StockTakePage() {
           className="fixed inset-x-0 bg-white border-t border-gray-200 z-30"
           style={{ bottom: 'calc(64px + env(safe-area-inset-bottom, 0px))' }}
         >
-          <div className="max-w-lg mx-auto px-4 py-3">
+          <div className="max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto px-4 py-3">
             <button
               type="submit"
               form="stock-take-form"

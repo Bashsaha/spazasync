@@ -117,7 +117,7 @@ export default async function ProfilePage() {
   ]
 
   return (
-    <main className="px-4 pt-6 pb-40 max-w-lg mx-auto">
+    <main className="px-4 pt-6 pb-40 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       <PageHeader title={t('profile_title')} />
 
       {/* Hero — avatar + name + role + shop code */}

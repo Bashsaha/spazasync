@@ -233,7 +233,7 @@ export default function SalePage() {
   // worker stamps it on the server.
   if ((role === 'owner' || role === 'admin') && !activeTeller && isOnline) {
     return (
-      <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+      <main className="px-4 pt-10 pb-24 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
         <PageHeader title={t('start_sale')} subtitle={t('select_teller')} />
         <TellerSelector onSelect={setActiveTeller} selectedId={null} />
       </main>
@@ -245,7 +245,7 @@ export default function SalePage() {
   // as the owner path; the sync worker resolves it server-side.
   if (role === 'teller' && !activeTeller && isOnline) {
     return (
-      <main className="px-4 pt-10 pb-24 max-w-lg mx-auto text-center">
+      <main className="px-4 pt-10 pb-24 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto text-center">
         <p className="text-red-500 text-sm">{t('teller_record_missing')}</p>
       </main>
     )
@@ -258,7 +258,7 @@ export default function SalePage() {
       {(isScanLoading || isSubmitting) && (
         <FullScreenSpinner label={isSubmitting ? t('btn_processing') : t('btn_scanning')} />
       )}
-      <main className="px-4 pt-8 max-w-lg mx-auto pb-52">
+      <main className="px-4 pt-8 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto pb-52">
         {/* header */}
         <div className="flex items-center justify-between mb-1">
           <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>

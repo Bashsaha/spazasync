@@ -94,7 +94,7 @@ export default function EditSupplierPage() {
 
   if (loading) {
     return (
-      <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+      <main className="px-4 pt-10 pb-24 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
         <p className="text-gray-400 text-sm">{t('loading')}</p>
       </main>
     )
@@ -102,14 +102,14 @@ export default function EditSupplierPage() {
 
   if (!supplier) {
     return (
-      <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+      <main className="px-4 pt-10 pb-24 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
         <p className="text-red-500 text-sm">{t('error_load')}</p>
       </main>
     )
   }
 
   return (
-    <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       {saving && <FullScreenSpinner label={t('btn_saving')} />}
       <div className="flex items-center gap-2 mb-8">
         <BackButton fallbackHref="/suppliers" />

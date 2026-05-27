@@ -219,7 +219,7 @@ export default function ExpiryPage() {
   const ok = products.filter((p) => p.urgency === 'ok')
 
   return (
-    <main className="px-4 pt-10 pb-36 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-36 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-2 mb-6">
         <BackButton fallbackHref="/inventory" />

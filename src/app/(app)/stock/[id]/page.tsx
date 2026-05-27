@@ -327,7 +327,7 @@ function StockAdjustContent() {
   /* ── Success screen ── */
   if (done && product) {
     return (
-      <main className="px-4 pt-10 pb-24 max-w-lg mx-auto flex flex-col items-center text-center">
+      <main className="px-4 pt-10 pb-24 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto flex flex-col items-center text-center">
         <Check className="w-12 h-12 mb-4 text-green-600" strokeWidth={2.5} />
         <h2 className="text-2xl font-bold text-gray-900 mb-1">{t('adjust_success_title')}</h2>
         <p className="text-gray-500 mb-2">{product.name}</p>
@@ -363,7 +363,7 @@ function StockAdjustContent() {
     status === 'expired' ? 'batches_status_expired' : status === 'soon' ? 'batches_status_soon' : 'batches_status_ok'
 
   return (
-    <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       {(saving || batchSaving) && (
         <FullScreenSpinner label={t(saving ? 'adjust_btn_saving' : 'batches_btn_saving')} />
       )}
@@ -749,7 +749,7 @@ function StockAdjustContent() {
 
 export default function StockAdjustPage() {
   return (
-    <Suspense fallback={<main className="px-4 pt-10 pb-24 max-w-lg mx-auto"><p className="text-center text-gray-400 text-sm mt-12">Loading…</p></main>}>
+    <Suspense fallback={<main className="px-4 pt-10 pb-24 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto"><p className="text-center text-gray-400 text-sm mt-12">Loading…</p></main>}>
       <StockAdjustContent />
     </Suspense>
   )

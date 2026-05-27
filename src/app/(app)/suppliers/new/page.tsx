@@ -55,7 +55,7 @@ export default function NewSupplierPage() {
   const optionalLabel = `(${t('type_none').toLowerCase()})`
 
   return (
-    <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       {loading && <FullScreenSpinner label={t('btn_creating')} />}
       <div className="flex items-center gap-2 mb-8">
         <BackButton fallbackHref="/suppliers" />

@@ -98,7 +98,7 @@ export default function StockLossPage() {
   const totals = data?.totals
 
   return (
-    <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-2 mb-1">
         <BackButton fallbackHref="/stock-take" />

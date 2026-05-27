@@ -20,7 +20,7 @@ export default async function ProductsMissingSupplierPage() {
   ])
 
   return (
-    <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       <div className="flex items-center gap-2 mb-4">
         <BackButton fallbackHref="/products" />
         <h1 className="text-2xl font-bold text-gray-900">{t('missing_supplier_page_title')}</h1>

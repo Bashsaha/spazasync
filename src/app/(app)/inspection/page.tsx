@@ -65,7 +65,7 @@ export default async function InspectionPage() {
   const dash = (score.overall / 100) * circumference
 
   return (
-    <main className="px-4 pt-10 pb-24 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-24 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       <div className="flex items-center gap-2 mb-2">
         <Link
           href="/dashboard"

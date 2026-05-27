@@ -69,7 +69,7 @@ export default function ChecklistHistoryPage() {
 
   if (loading) {
     return (
-      <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
+      <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
         <p className="text-gray-400 text-sm">{t('loading')}</p>
       </main>
     )
@@ -77,7 +77,7 @@ export default function ChecklistHistoryPage() {
 
   if (errorKey || !data) {
     return (
-      <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
+      <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
         <div className="mb-6">
           <BackButton fallbackHref="/checklist" />
         </div>
@@ -89,7 +89,7 @@ export default function ChecklistHistoryPage() {
   const { entries, stats, days } = data
 
   return (
-    <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       <div className="mb-2">
         <BackButton fallbackHref="/checklist" />
       </div>

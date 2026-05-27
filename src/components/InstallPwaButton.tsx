@@ -35,12 +35,14 @@ function isAndroid(): boolean {
 /** "Add to Home Screen" prompt.
  *
  *  Visibility:
- *  - Hidden ONLY when running in standalone (display-mode: standalone or
- *    iOS navigator.standalone) — i.e. the app is actually installed.
- *  - Otherwise always visible. If Chrome fired `beforeinstallprompt`, the
- *    button triggers the native install dialog. If it didn't (Chrome
- *    suppressed it, criteria not met, or we're not on Chrome), we fall back
- *    to written instructions for the platform (Android menu / iOS share).
+ *  - Hidden when running in standalone (display-mode: standalone or iOS
+ *    navigator.standalone) — i.e. the app is actually installed.
+ *  - Hidden on desktop (anything that's not iOS or Android). Desktop users
+ *    who want to install can use Chrome's address-bar install icon; the
+ *    on-page banner only ever has actionable copy for mobile.
+ *  - On iOS/Android: if Chrome fired `beforeinstallprompt`, the button
+ *    triggers the native install dialog. If it didn't, we show
+ *    platform-specific manual instructions (Android menu / iOS share).
  *  - "Not now" hides the banner for the current page-load only; it returns
  *    on the next navigation/refresh.
  *
@@ -114,8 +116,11 @@ export function InstallPwaButton() {
   // and avoids a flash of the banner on already-installed standalone clients.)
   if (!mounted) return null
   if (installed || hiddenForSession) return null
+  // Desktop: nothing actionable to show. Chrome's address-bar install icon
+  // covers the rare desktop user who wants to install.
+  if (platform === 'other') return null
 
-  const hint = platform === 'ios' ? t('install_ios_hint') : platform === 'android' ? t('install_android_hint') : null
+  const hint = platform === 'ios' ? t('install_ios_hint') : t('install_android_hint')
 
   return (
     <div className="bg-brand-light border border-brand-light rounded-2xl p-4 mb-4 mx-4 mt-4">

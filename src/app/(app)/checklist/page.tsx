@@ -173,7 +173,7 @@ export default function ChecklistPage() {
 
   if (loading) {
     return (
-      <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
+      <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
         <p className="text-gray-400 text-sm">{t('loading')}</p>
       </main>
     )
@@ -181,7 +181,7 @@ export default function ChecklistPage() {
 
   if (errorKey && !data) {
     return (
-      <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
+      <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
         <div className="mb-6">
           <BackButton fallbackHref="/manage" />
         </div>
@@ -202,7 +202,7 @@ export default function ChecklistPage() {
   const expiringCount = data?.expiringToday.length ?? 0
 
   return (
-    <main className="px-4 pt-10 pb-40 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-40 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       {saving && <FullScreenSpinner label={t('btn_saving')} />}
       <div className="mb-2">
         <BackButton fallbackHref="/manage" />
@@ -392,7 +392,7 @@ export default function ChecklistPage() {
         className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 px-4 py-3 z-40"
         style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px) + 56px)' }}
       >
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
           <button
             type="button"
             onClick={handleSave}

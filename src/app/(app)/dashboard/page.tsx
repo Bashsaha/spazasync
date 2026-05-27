@@ -145,7 +145,7 @@ export default async function DashboardPage({
   const { t, tPlural } = await getServerTranslations(locale, ['dashboard'])
 
   return (
-    <main className="px-4 pt-10 pb-32 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       {/* Re-pulls server data after a sale (or any mutation) without a reload;
           also live-refreshes when a sale is recorded on another device. */}
       <DashboardAutoRefresh shopId={shopIdMeta} />

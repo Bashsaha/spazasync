@@ -390,7 +390,7 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <main className="px-4 pt-10 pb-40 max-w-lg mx-auto">
+      <main className="px-4 pt-10 pb-40 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
         <p className="text-gray-400 text-sm">{t('loading')}</p>
       </main>
     )
@@ -408,7 +408,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="px-4 pt-10 pb-40 max-w-lg mx-auto">
+    <main className="px-4 pt-10 pb-40 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       {saving && <FullScreenSpinner label={t('btn_saving')} />}
       <div className="mb-6">
         <BackButton fallbackHref="/profile" />
