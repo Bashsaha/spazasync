@@ -213,6 +213,32 @@ export const adminStoreListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
 })
 
+// --- Admin EFT reconciliation (bank-statement upload) ---
+
+export const EFT_FILE_FORMATS = ['ofx', 'csv'] as const
+
+export const eftColumnMapSchema = z.object({
+  date: z.number().int().min(0),
+  amount: z.number().int().min(0),
+  reference: z.number().int().min(0),
+})
+
+export const eftReconcileSchema = z.object({
+  // ~2 MB cap — a month of deposits is a few KB; this guards against abuse.
+  fileText: z.string().min(1).max(2_000_000),
+  format: z.enum(EFT_FILE_FORMATS),
+  mapping: eftColumnMapSchema.optional(),
+})
+
+export const eftApplyOneSchema = z.object({
+  dedupe_key: z.string().min(1).max(300),
+  deposit_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD'),
+  amount: z.number().positive(),
+  raw_reference: z.string().max(500).optional().default(''),
+  shop_id: z.string().uuid(),
+  months: z.number().int().min(1).max(36),
+})
+
 // ============================================================
 // Suppliers
 // ============================================================
