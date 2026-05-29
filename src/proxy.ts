@@ -185,8 +185,13 @@ export async function proxy(request: NextRequest) {
   // that's a corrupted state (every trial / cancelled sub MUST carry an end
   // date). Without this defence, owners whose JWT metadata is missing
   // sub_until silently bypass the gate forever.
+  // Gate OWNERS ONLY. Tellers can't subscribe (they have no billing identity
+  // and their JWT doesn't carry the shop's sub_until), so applying the gate to
+  // them would redirect them to /subscribe — which teller enforcement above
+  // immediately bounces back to /sale, producing an infinite /sale ⇄ /subscribe
+  // redirect loop (BUG-047). Subscription enforcement is the owner's concern.
   const isExempt = SUBSCRIPTION_EXEMPT.some((r) => pathname.startsWith(r))
-  if (role && !isExempt) {
+  if (role === 'owner' && !isExempt) {
     const subStatus = user.app_metadata?.sub_status as string | undefined
     const subUntil = user.app_metadata?.sub_until as string | undefined
     const accessGranted = user.app_metadata?.access_granted as boolean | undefined
