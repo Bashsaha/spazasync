@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next'
-import { headers } from 'next/headers'
 import { Plus_Jakarta_Sans, Noto_Sans_Ethiopic, Noto_Nastaliq_Urdu } from 'next/font/google'
 import './globals.css'
 import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar'
@@ -63,12 +62,7 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 }
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // CSP nonce set per-request by proxy.ts. Stamping it on our one inline script
-  // lets the browser run it under `script-src 'self' 'nonce-…'` (no
-  // 'unsafe-inline'). Reading headers() opts the tree into dynamic rendering —
-  // acceptable here since the app is authenticated/dynamic already.
-  const nonce = (await headers()).get('x-nonce') ?? undefined
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
@@ -79,7 +73,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             it once, often before React hydrates. Stash it on window so the
             InstallPwaButton can read it on mount even if it loaded late. */}
         <script
-          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: `
               window.__bipEvent = null;
