@@ -6,7 +6,13 @@ These four items are the last things gating launch. I (Claude) can't do them —
 
 ---
 
-## 1. Custom domain on Vercel
+## 1. Custom domain on Vercel — ✅ DONE (2026-05-29)
+
+**Status:** Live. `movestock.co.za` is pointed at the Movestock app on Vercel (no longer `*.vercel.app`). This removes the Chrome "deceptive site"/heuristic warning class and starts accumulating Safe Browsing reputation.
+
+---
+
+### (Original instructions kept below for reference)
 
 **Why it matters:** Vercel preview URLs (`*.vercel.app`) have near-zero Safe Browsing reputation. Chrome heuristics — including the "deceptive site" warning, the password-reuse alert, the install-to-home-screen icon glitch — fire aggressively on them. A registered `.co.za` domain accumulates reputation over time and is durable against future heuristic shifts. Owners trust `movestock.co.za` more than `spazasync-bashsaha.vercel.app`.
 
@@ -47,7 +53,13 @@ These four items are the last things gating launch. I (Claude) can't do them —
 
 ---
 
-## 2. Email forwarding for `@movestock.co.za`
+## 2. Email forwarding for `@movestock.co.za` — ✅ DONE (2026-05-29)
+
+**Status:** Satisfied by a Google Workspace mailbox on `movestock.co.za` (set up for professional email) — a real branded inbox rather than a forwarding alias. Use it as the OAuth consent-screen support email (step 4 below). Note: Resend handles *sending* login codes / transactional email — a separate pipe (item #3).
+
+---
+
+### (Original instructions kept below for reference)
 
 **Why it matters:** Google's OAuth consent screen requires a publicly visible support email (step 4). A personal Gmail there looks unprofessional and damages trust signals. `hello@movestock.co.za` forwarding to your real inbox is free and takes 10 minutes.
 
