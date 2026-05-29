@@ -44,13 +44,66 @@ function pathMatches(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(prefix + '/')
 }
 
+/**
+ * Content-Security-Policy with a per-request nonce.
+ *
+ * `script-src 'self' 'nonce-…'` (note: NO 'unsafe-inline', NO 'unsafe-eval')
+ * means the browser only runs scripts that are either same-origin `<script src>`
+ * (our Next.js chunks) or carry this exact nonce (Next.js auto-stamps it on its
+ * inline hydration scripts when it sees the nonce in the request CSP header, and
+ * the root layout stamps it on the one inline beforeinstallprompt script). An
+ * injected inline `<script>` from an XSS payload has no nonce → blocked.
+ *
+ * We deliberately omit 'strict-dynamic': with plain `'self' 'nonce-…'`, a
+ * same-origin chunk that somehow misses the nonce still loads via 'self', so a
+ * stray un-nonced framework script degrades to "still works" rather than
+ * "white screen" — the safer failure mode for an auth-critical path.
+ *
+ * style-src keeps 'unsafe-inline' (Next.js + next/font + Tailwind inject inline
+ * styles; nonce-ing those is a separate, larger task and not in scope here).
+ */
+function buildCsp(nonce: string): string {
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}'`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.payfast.co.za https://sandbox.payfast.co.za",
+    "font-src 'self'",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "form-action 'self' https://www.payfast.co.za https://sandbox.payfast.co.za",
+  ].join('; ')
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Skip proxy for Next.js internals and static files. Manifest + service
-  // worker MUST be reachable without auth — Chrome's installability checker
-  // and the navigator.serviceWorker.register() call both fetch them
+  // ── Per-request CSP nonce ──────────────────────────────────
+  // Generated once per request and threaded onto BOTH the forwarded request
+  // headers (so Next.js can read `x-nonce` / the CSP and stamp its inline
+  // scripts + so the root layout can read it via `headers()`) and the response
+  // (the header the browser actually enforces).
+  const nonce = crypto.randomUUID().replace(/-/g, '')
+  const csp = buildCsp(nonce)
+
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-nonce', nonce)
+  requestHeaders.set('content-security-policy', csp)
+
+  // Apply the enforced CSP header to any outgoing response (next OR redirect).
+  const applyCsp = <T extends NextResponse>(res: T): T => {
+    res.headers.set('content-security-policy', csp)
+    return res
+  }
+  const redirectTo = (url: URL) => applyCsp(NextResponse.redirect(url))
+
+  // Skip proxy auth logic for Next.js internals and static files. Manifest +
+  // service worker MUST be reachable without auth — Chrome's installability
+  // checker and the navigator.serviceWorker.register() call both fetch them
   // pre-auth, and a redirect-to-/login would block PWA install (BUG-021).
+  // We still forward the nonce + apply the CSP so HTML served from these
+  // early-returns (the public legal pages) gets a working policy.
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon') ||
@@ -66,10 +119,10 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/icons/') ||
     pathname.match(/\.(svg|png|jpg|jpeg|gif|ico|webp|css|js|woff|woff2|ttf|json|webmanifest)$/)
   ) {
-    return NextResponse.next()
+    return applyCsp(NextResponse.next({ request: { headers: requestHeaders } }))
   }
 
-  let supabaseResponse = NextResponse.next({ request })
+  let supabaseResponse = applyCsp(NextResponse.next({ request: { headers: requestHeaders } }))
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -81,7 +134,12 @@ export async function proxy(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({ request })
+          // Keep the forwarded request's cookie header in sync with the refreshed
+          // tokens so the downstream RSC render reads the new session, not the
+          // stale one (BUG-043 cookie-race class). The nonce + CSP request
+          // headers are preserved because we re-forward `requestHeaders`.
+          requestHeaders.set('cookie', request.headers.get('cookie') ?? requestHeaders.get('cookie') ?? '')
+          supabaseResponse = applyCsp(NextResponse.next({ request: { headers: requestHeaders } }))
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options),
           )
@@ -113,7 +171,7 @@ export async function proxy(request: NextRequest) {
     // Not authenticated — send to login
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'
-    return NextResponse.redirect(loginUrl)
+    return redirectTo(loginUrl)
   }
 
   // ── Authenticated — user is logged in ──────────────────────
@@ -125,7 +183,7 @@ export async function proxy(request: NextRequest) {
     const dest = role === 'admin' ? '/admin' : role === 'teller' ? '/sale' : '/dashboard'
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = dest
-    return NextResponse.redirect(redirectUrl)
+    return redirectTo(redirectUrl)
   }
 
   const role = user.app_metadata?.role as string | undefined
@@ -136,7 +194,7 @@ export async function proxy(request: NextRequest) {
   if (!role && pathname !== '/onboarding' && !pathname.startsWith('/api/municipalities')) {
     const onboardUrl = request.nextUrl.clone()
     onboardUrl.pathname = '/onboarding'
-    return NextResponse.redirect(onboardUrl)
+    return redirectTo(onboardUrl)
   }
 
   // ── Teller route enforcement ───────────────────────────────
@@ -148,7 +206,7 @@ export async function proxy(request: NextRequest) {
       // Path not on either list — bounce back to /sale.
       const saleUrl = request.nextUrl.clone()
       saleUrl.pathname = '/sale'
-      return NextResponse.redirect(saleUrl)
+      return redirectTo(saleUrl)
     }
 
     if (isGrantedOnly) {
@@ -157,7 +215,7 @@ export async function proxy(request: NextRequest) {
         // Lacking grant — redirect to /inventory where the request-access UI lives.
         const invUrl = request.nextUrl.clone()
         invUrl.pathname = '/inventory'
-        return NextResponse.redirect(invUrl)
+        return redirectTo(invUrl)
       }
     }
   }
@@ -167,7 +225,7 @@ export async function proxy(request: NextRequest) {
   if (isAdminRoute && role !== 'admin') {
     const dashUrl = request.nextUrl.clone()
     dashUrl.pathname = role === 'teller' ? '/sale' : '/dashboard'
-    return NextResponse.redirect(dashUrl)
+    return redirectTo(dashUrl)
   }
 
   // Admin users skip subscription gate.
@@ -212,7 +270,7 @@ export async function proxy(request: NextRequest) {
     if (isExpired && !accessGranted) {
       const subUrl = request.nextUrl.clone()
       subUrl.pathname = '/subscribe'
-      return NextResponse.redirect(subUrl)
+      return redirectTo(subUrl)
     }
   }
 
