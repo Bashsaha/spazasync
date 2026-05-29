@@ -12,7 +12,7 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const denied = requireExternalApi(request)
+  const denied = await requireExternalApi(request)
   if (denied) return denied
 
   try {

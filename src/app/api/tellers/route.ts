@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   // is still write-heavy (auth user, tellers row, shop_users row); cap to 10
   // per IP per minute to stop a hostile owner account or hijacked session
   // from creating thousands of users.
-  if (checkRateLimit(request, { limit: 10, windowSecs: 60 }).limited) {
+  if ((await checkRateLimit(request, { limit: 10, windowSecs: 60 })).limited) {
     return NextResponse.json({ error: 'Too many requests. Try again in a minute.' }, { status: 429 })
   }
 

@@ -11,7 +11,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { limited } = checkRateLimit(request, { limit: 30, windowSecs: 60 })
+  const { limited } = await checkRateLimit(request, { limit: 30, windowSecs: 60 })
   if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
 
   const auth = await getShopAuth()

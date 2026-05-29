@@ -11,7 +11,7 @@ export async function POST(
   const admin = await requireAdmin()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { limited } = checkRateLimit(request, { limit: 30, windowSecs: 60 })
+  const { limited } = await checkRateLimit(request, { limit: 30, windowSecs: 60 })
   if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
 
   const { id } = await params

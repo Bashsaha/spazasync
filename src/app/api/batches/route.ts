@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
  * Add a batch with an expiry date. Also increments the product's stock_qty.
  */
 export async function POST(request: NextRequest) {
-  const { limited } = checkRateLimit(request, { limit: 30, windowSecs: 60 })
+  const { limited } = await checkRateLimit(request, { limit: 30, windowSecs: 60 })
   if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
 
   const auth = await getShopAuth()

@@ -21,7 +21,7 @@ const schema = z.object({
  * the session cookie is set correctly by @supabase/ssr.
  */
 export async function POST(request: Request) {
-  const { limited } = checkRateLimit(request, { limit: 10, windowSecs: 60 })
+  const { limited } = await checkRateLimit(request, { limit: 10, windowSecs: 60 })
   if (limited) {
     return NextResponse.json(
       { error: 'Too many attempts. Please wait a minute and try again.' },

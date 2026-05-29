@@ -8,7 +8,7 @@ export async function PATCH(
 ) {
   // Soft-deletes a teller (sets active=false). 20 per IP per minute is
   // generous for an owner managing their roster and blocks abuse loops.
-  if (checkRateLimit(request, { limit: 20, windowSecs: 60 }).limited) {
+  if ((await checkRateLimit(request, { limit: 20, windowSecs: 60 })).limited) {
     return NextResponse.json({ error: 'Too many requests. Try again in a minute.' }, { status: 429 })
   }
 

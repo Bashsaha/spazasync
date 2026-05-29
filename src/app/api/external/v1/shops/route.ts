@@ -4,7 +4,7 @@ import { listShops } from '@/lib/db/admin'
 import type { SubscriptionStatus } from '@/types'
 
 export async function GET(request: Request) {
-  const denied = requireExternalApi(request)
+  const denied = await requireExternalApi(request)
   if (denied) return denied
 
   try {

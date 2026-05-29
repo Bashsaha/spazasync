@@ -46,7 +46,7 @@ async function generateShopCode(
  * Also sets app_metadata on the auth user so proxy can read their role.
  */
 export async function POST(request: Request) {
-  const { limited } = checkRateLimit(request, { limit: 3, windowSecs: 60 })
+  const { limited } = await checkRateLimit(request, { limit: 3, windowSecs: 60 })
   if (limited) {
     return NextResponse.json(
       { error: 'Too many attempts. Please wait a minute and try again.' },
