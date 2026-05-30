@@ -68,21 +68,10 @@ export async function POST(request: Request) {
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { shopId, supabase } = auth
 
-  // When profit tracking is on, cost_price is mandatory
-  const { data: shop } = await supabase
-    .from('shops')
-    .select('profit_tracking_enabled')
-    .eq('id', shopId)
-    .single()
-
-  if (shop?.profit_tracking_enabled) {
-    if (parsed.cost_price === undefined || parsed.cost_price === null) {
-      return NextResponse.json(
-        { error: 'Cost price is required when profit tracking is on', code: 'cost_required' },
-        { status: 422 },
-      )
-    }
-  }
+  // cost_price is always optional. Products created without one simply surface
+  // in the missing-cost nudge (and are excluded from profit math) — the same
+  // already-supported partial state catalog/bulk imports produce. Owners can
+  // fill it in any time, with or without profit tracking switched on.
 
   const { data, error } = await supabase
     .from('products')

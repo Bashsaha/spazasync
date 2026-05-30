@@ -28,26 +28,11 @@ export async function PATCH(
 
   const auth = await getShopAuth()
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { shopId, supabase } = auth
+  const { supabase } = auth
 
-  // When profit tracking is on, cost_price cannot be explicitly cleared to null.
-  // (An update that omits cost_price is allowed — it just doesn't touch the field.)
-  const { data: shop } = await supabase
-    .from('shops')
-    .select('profit_tracking_enabled')
-    .eq('id', shopId)
-    .single()
-
-  if (
-    shop?.profit_tracking_enabled &&
-    'cost_price' in parsed &&
-    (parsed.cost_price === null || parsed.cost_price === undefined)
-  ) {
-    return NextResponse.json(
-      { error: 'Cost price is required when profit tracking is on', code: 'cost_required' },
-      { status: 422 },
-    )
-  }
+  // cost_price is always optional — it may be set, cleared, or left untouched
+  // regardless of the profit-tracking toggle. A product without a cost just
+  // shows up in the missing-cost nudge and is skipped in profit math.
 
   const { data, error } = await supabase
     .from('products')

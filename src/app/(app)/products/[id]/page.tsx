@@ -24,7 +24,6 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const [productId, setProductId] = useState<string>('')
   const [product, setProduct] = useState<Product | null>(null)
   const [form, setForm] = useState({ name: '', price: '', cost_price: '', stock_qty: '', supplier_id: '' })
-  const [profitTracking, setProfitTracking] = useState(false)
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [errorKey, setErrorKey] = useState('')
   const [errorRaw, setErrorRaw] = useState('')
@@ -37,10 +36,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       setProductId(id)
       Promise.all([
         fetch(`/api/products/${id}`).then((r) => r.json()),
-        fetch('/api/settings').then((r) => (r.ok ? r.json() : null)),
         fetch('/api/suppliers').then((r) => (r.ok ? r.json() : [])),
       ])
-        .then(([data, settings, sups]: [Product, { profit_tracking_enabled?: boolean } | null, Supplier[]]) => {
+        .then(([data, sups]: [Product, Supplier[]]) => {
           setProduct(data)
           setForm({
             name: data.name,
@@ -49,7 +47,6 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             stock_qty: String(data.stock_qty),
             supplier_id: data.supplier_id ?? '',
           })
-          if (settings?.profit_tracking_enabled) setProfitTracking(true)
           setSuppliers(sups)
         })
         .catch(() => setLoadError(true))
@@ -68,9 +65,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         stock_qty: parseInt(form.stock_qty, 10),
         supplier_id: form.supplier_id || null,
       }
-      if (profitTracking) {
-        body.cost_price = form.cost_price.trim() !== '' ? parseFloat(form.cost_price) : null
-      }
+      body.cost_price = form.cost_price.trim() !== '' ? parseFloat(form.cost_price) : null
       const res = await fetch(`/api/products/${productId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -149,26 +144,31 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           </div>
         </FormField>
 
-        {profitTracking && (
-          <FormField label={t('label_cost_price')} hint={t('hint_cost_price')}>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 pointer-events-none z-10">
-                R
-              </span>
-              <Input
-                type="number"
-                inputMode="decimal"
-                step="0.01"
-                min="0"
-                value={form.cost_price}
-                onChange={(e) => setForm((f) => ({ ...f, cost_price: e.target.value }))}
-                placeholder={t('placeholder_cost_price')}
-                required
-                className="pl-8"
-              />
-            </div>
-          </FormField>
-        )}
+        <FormField
+          label={
+            <>
+              {t('label_cost_price')}{' '}
+              <span className="text-gray-400 font-normal">{t('label_optional')}</span>
+            </>
+          }
+          hint={t('hint_cost_price')}
+        >
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 pointer-events-none z-10">
+              R
+            </span>
+            <Input
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              min="0"
+              value={form.cost_price}
+              onChange={(e) => setForm((f) => ({ ...f, cost_price: e.target.value }))}
+              placeholder={t('placeholder_cost_price')}
+              className="pl-8"
+            />
+          </div>
+        </FormField>
 
         <FormField
           label={

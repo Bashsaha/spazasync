@@ -5,6 +5,14 @@ Claude must read this file at session start and reference it before touching aut
 
 ---
 
+## BUG-048: "Unexpected error" + dead-tap slowness on resume-from-background
+**Symptom:** Returning to the PWA after it sat in the background (user was in WhatsApp etc.) sometimes showed the `(app)/error.tsx` screen ("The app hit an unexpected error. Your sales and stock data are safe."), and tabs felt unresponsive — you could tap several times before anything happened.
+**Root cause:** On resume, `useRefetchOnVisible` consumers (notably `DashboardAutoRefresh`'s `router.refresh()`) fired **synchronously** on the `visibilitychange`/`focus`/`pageshow` events — while Android still had the radio suspended and/or the Supabase access token had expired in the background. The resulting RSC re-render ran Server Components whose Supabase queries threw on the dead/mid-wake connection, bubbling to the `(app)` error boundary. RSC payload fetches also deliberately bypass the service worker (no offline fallback, no timeout — see `sw.js`), so a failed refresh had nowhere soft to land. The refresh storm also contended with the waking radio, making real navigations feel dead.
+**Fix:** (a) `useRefetchOnVisible` now **skips passive refreshes while `navigator.onLine === false`** and **defers them by a ~600ms settle window** so the refresh doesn't race the waking radio (DATA_CHANGED mutations still fire immediately). (b) `(app)/error.tsx` is now **self-healing**: on a transient error it auto-calls `reset()` — after the `online` event if currently offline, or after a 1.2s beat if online — with a 10s `sessionStorage` throttle so a genuinely-persistent error retries once then falls through to the manual "Try again" screen instead of looping.
+**Prevention rule:** Never fire `router.refresh()` or a network refetch synchronously on a visibility/focus/resume event — gate it on `navigator.onLine` and a small settle delay, because the mobile radio is often still asleep at that instant. For an authenticated PWA where RSC fetches bypass the SW, treat the route error boundary as recoverable: auto-retry transient failures (throttled) rather than showing an alarming screen for what a reload fixes.
+
+---
+
 ## BUG-001: /onboarding blocked for unauthenticated users
 **Symptom:** Clicking "Create your shop" on the login page reloaded the login page instead of opening onboarding.
 **Root cause:** `/onboarding` was not listed in `PUBLIC_ROUTES` in `src/middleware.ts`. Unauthenticated users were redirected to `/login` before the page could render.

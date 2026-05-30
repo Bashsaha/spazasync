@@ -34,7 +34,6 @@ function NewProductContent() {
     stock_qty: '0',
     supplier_id: '',
   })
-  const [profitTracking, setProfitTracking] = useState(false)
   const [trackExpiry, setTrackExpiry] = useState(false)
   const [expiryEntries, setExpiryEntries] = useState<ExpiryEntry[]>([])
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
@@ -43,15 +42,6 @@ function NewProductContent() {
   const [loading, setLoading] = useState(false)
   const [scanning, setScanning] = useState(false)
   const [showNewSupplier, setShowNewSupplier] = useState(false)
-
-  useEffect(() => {
-    fetch('/api/settings')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.profit_tracking_enabled) setProfitTracking(true)
-      })
-      .catch(() => { /* default off */ })
-  }, [])
 
   useEffect(() => {
     fetch('/api/suppliers')
@@ -95,7 +85,7 @@ function NewProductContent() {
           barcode: form.barcode.trim() || null,
           name: form.name.trim(),
           price: parseFloat(form.price),
-          cost_price: profitTracking && form.cost_price.trim() !== ''
+          cost_price: form.cost_price.trim() !== ''
             ? parseFloat(form.cost_price)
             : null,
           stock_qty: hasExpiry ? 0 : stockQty,
@@ -199,20 +189,25 @@ function NewProductContent() {
           />
         </FormField>
 
-        {profitTracking && (
-          <FormField label={t('label_cost_price')} hint={t('hint_cost_price')}>
-            <Input
-              type="number"
-              inputMode="decimal"
-              step="0.01"
-              min="0"
-              value={form.cost_price}
-              onChange={(e) => setForm((f) => ({ ...f, cost_price: e.target.value }))}
-              placeholder={t('placeholder_cost_price')}
-              required
-            />
-          </FormField>
-        )}
+        <FormField
+          label={
+            <>
+              {t('label_cost_price')}{' '}
+              <span className="text-gray-400 font-normal">{t('label_optional')}</span>
+            </>
+          }
+          hint={t('hint_cost_price')}
+        >
+          <Input
+            type="number"
+            inputMode="decimal"
+            step="0.01"
+            min="0"
+            value={form.cost_price}
+            onChange={(e) => setForm((f) => ({ ...f, cost_price: e.target.value }))}
+            placeholder={t('placeholder_cost_price')}
+          />
+        </FormField>
 
         <FormField
           label={

@@ -16,7 +16,46 @@ export default function AppError({
 
   useEffect(() => {
     console.error(error)
-  }, [error])
+
+    // Most (app) errors are transient resume-from-background blips: the access
+    // token expired or the radio was mid-wake when a Server Component ran, so a
+    // query threw. Auto-recover by re-running the render — once the network is
+    // back if we're offline, or after a short beat if we're online — instead of
+    // showing the alarming screen for something a reload would fix.
+    //
+    // A short throttle stops a genuinely-persistent error from looping: the
+    // first occurrence retries silently; an immediate re-throw within the
+    // window falls through to the manual "Try again" screen below.
+    const AUTORETRY_KEY = 'mvs_err_autoretry_at'
+    const AUTORETRY_THROTTLE_MS = 10_000
+
+    let recentlyRetried = false
+    try {
+      const last = Number(sessionStorage.getItem(AUTORETRY_KEY) || 0)
+      recentlyRetried = Date.now() - last < AUTORETRY_THROTTLE_MS
+    } catch {
+      /* private mode / quota — skip auto-retry, show the manual screen */
+    }
+    if (recentlyRetried) return
+
+    function retry() {
+      try {
+        sessionStorage.setItem(AUTORETRY_KEY, String(Date.now()))
+      } catch {
+        /* ignore */
+      }
+      reset()
+    }
+
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      const onOnline = () => retry()
+      window.addEventListener('online', onOnline, { once: true })
+      return () => window.removeEventListener('online', onOnline)
+    }
+
+    const timer = setTimeout(retry, 1200)
+    return () => clearTimeout(timer)
+  }, [error, reset])
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center bg-surface">
