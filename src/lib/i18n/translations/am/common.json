@@ -37,6 +37,10 @@
   "profile_logging_out": "በመውጣት ላይ…",
   "profile_footer": "Movestock — የ Veyon ምርት",
 
+  "shop_suspended_title": "የደንበኝነት ምዝገባ አብቅቷል",
+  "shop_suspended_body": "የዚህ ሱቅ የደንበኝነት ምዝገባ አብቅቷል፣ ስለዚህ አፑ ለአሁኑ ተቆልፏል።",
+  "shop_suspended_hint": "እባክዎ የሱቅ ባለቤቱ እንደገና እንዲመዘገብ ይጠይቁ። ካደረገ በኋላ ለመቀጠል እንደገና ይግቡ።",
+
   "back": "ተመለስ",
   "save": "አስቀምጥ",
   "cancel": "ሰርዝ",

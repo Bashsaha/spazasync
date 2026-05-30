@@ -37,6 +37,10 @@
   "profile_logging_out": "Logging out…",
   "profile_footer": "Movestock — a product of Veyon",
 
+  "shop_suspended_title": "Subscription ended",
+  "shop_suspended_body": "This shop's subscription has ended, so the app is locked for now.",
+  "shop_suspended_hint": "Please ask the shop owner to resubscribe. Once they do, sign in again to carry on.",
+
   "back": "Back",
   "save": "Save",
   "cancel": "Cancel",

@@ -37,6 +37,10 @@
   "profile_logging_out": "Iyaphuma…",
   "profile_footer": "Movestock — umkhiqizo we-Veyon",
 
+  "shop_suspended_title": "Ukubhalisa kuphelile",
+  "shop_suspended_body": "Ukubhalisa kwalesi sitolo kuphelile, ngakho i-app ivaliwe okwamanje.",
+  "shop_suspended_hint": "Sicela ucele umnikazi wesitolo ukuthi abhalise kabusha. Uma esekwenzile, ngena futhi ukuze uqhubeke.",
+
   "back": "Emuva",
   "save": "Gcina",
   "cancel": "Khansela",

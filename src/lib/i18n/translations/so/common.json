@@ -37,6 +37,10 @@
   "profile_logging_out": "Waa laga baxayaa…",
   "profile_footer": "Movestock — alaab Veyon ay soo saartay",
 
+  "shop_suspended_title": "Rukunsigii wuu dhammaaday",
+  "shop_suspended_body": "Rukunsiga dukaankan wuu dhammaaday, sidaas darteed app-ka hadda waa la xiray.",
+  "shop_suspended_hint": "Fadlan weydiiso mulkiilaha dukaanka inuu dib u rukunsado. Markuu sameeyo, mar kale saxiix si aad u sii wadato.",
+
   "back": "Dib u noqo",
   "save": "Kaydi",
   "cancel": "Ka noqo",

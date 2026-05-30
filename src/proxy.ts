@@ -2,47 +2,15 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { isTellerInventoryGranted } from '@/lib/db/access-requests'
-
-// Routes that don't require authentication
-const PUBLIC_ROUTES = ['/login', '/onboarding', '/auth/callback', '/api/auth/teller-login', '/api/onboarding', '/api/subscribe/notify', '/api/external']
-
-// Routes a teller can always reach — pre- or post-grant.
-// Includes /inventory (the request-access UI lives there), the access-request
-// API, and /profile (where Switch user lives).
-const TELLER_ALWAYS_ALLOWED = [
-  '/sale',
-  '/inventory',
-  '/profile',
-  '/api/access-requests',
-  // existing API endpoints the sale flow uses
-  '/api/sales',
-  '/api/products',
-  '/api/tellers/me',
-  '/api/summary',
-]
-
-// Routes a teller can only reach with an active inventory grant. Scope is
-// deliberately limited to the stock count: a granted teller can count stock and
-// update the numbers, nothing more. Products, stock adjustments, expiry and
-// suppliers stay owner-only. /api/products is read-only and already in
-// TELLER_ALWAYS_ALLOWED (the sale flow + the count list both need it).
-// NOTE: /stock-take must come before any '/stock' prefix check would shadow it;
-// it's matched on its own here so '/stock' (adjustments) is NOT granted.
-const TELLER_GRANTED_ONLY = [
-  '/stock-take',
-  '/api/stock-take',
-]
-
-// Routes accessible even when subscription is expired
-const SUBSCRIPTION_EXEMPT = ['/subscribe', '/api/subscribe', '/settings', '/api/settings', '/api/account']
-
-// Admin-only routes
-const ADMIN_ROUTES = ['/admin', '/api/admin']
-
-/** Exact-match or trailing-slash sub-route check. */
-function pathMatches(pathname: string, prefix: string): boolean {
-  return pathname === prefix || pathname.startsWith(prefix + '/')
-}
+import { isSubscriptionExpired } from '@/lib/subscription/expiry'
+import {
+  PUBLIC_ROUTES,
+  TELLER_ALWAYS_ALLOWED,
+  TELLER_GRANTED_ONLY,
+  SUBSCRIPTION_EXEMPT,
+  ADMIN_ROUTES,
+  pathMatches,
+} from '@/lib/auth/route-access'
 
 /**
  * Content-Security-Policy with a per-request nonce.
@@ -258,35 +226,23 @@ export async function proxy(request: NextRequest) {
   // sub_until silently bypass the gate forever.
   //
   // Gate OWNERS ONLY. Tellers can't subscribe (they have no billing identity
-  // and their JWT doesn't carry the shop's sub_until), so applying the gate to
+  // and their JWT doesn't carry the shop's sub_until), so applying THIS gate to
   // them would redirect them to /subscribe — which teller enforcement above
   // immediately bounces back to /sale, producing an infinite /sale ⇄ /subscribe
-  // redirect loop (BUG-047). Subscription enforcement is the owner's concern.
+  // redirect loop (BUG-047). Teller lockout for an expired shop is enforced
+  // separately in (app)/layout.tsx using the LIVE shop row (the teller's JWT
+  // can't be trusted for sub state), redirecting to /shop-suspended — a path
+  // teller enforcement DOES allow. Both gates share isSubscriptionExpired() so
+  // they can never drift.
   const isExempt = SUBSCRIPTION_EXEMPT.some((r) => pathname.startsWith(r))
   if (role === 'owner' && !isExempt) {
-    const subStatus = user.app_metadata?.sub_status as string | undefined
-    const subUntil = user.app_metadata?.sub_until as string | undefined
-    const accessGranted = user.app_metadata?.access_granted as boolean | undefined
+    const expired = isSubscriptionExpired({
+      status: user.app_metadata?.sub_status as string | undefined,
+      subUntil: user.app_metadata?.sub_until as string | undefined,
+      accessGranted: user.app_metadata?.access_granted as boolean | undefined,
+    })
 
-    const now = new Date()
-    const subUntilDate = subUntil ? new Date(subUntil) : null
-    const hasFutureUntil = subUntilDate ? subUntilDate.getTime() > now.getTime() : false
-    // 'active' (PayFast recurring) doesn't strictly require a future date —
-    // ITN renews it on each cycle. 'manual_override' with null sub_until is
-    // an admin-granted indefinite override.
-    const isActiveLike =
-      (subStatus === 'active' && (hasFutureUntil || !subUntilDate)) ||
-      (subStatus === 'manual_override' && (hasFutureUntil || !subUntilDate))
-    // 'trialing' / 'cancelled' / anything else needs a future sub_until.
-    const isOtherWithFutureUntil =
-      hasFutureUntil &&
-      subStatus !== 'expired' &&
-      subStatus !== 'active' &&
-      subStatus !== 'manual_override'
-
-    const isExpired = !(isActiveLike || isOtherWithFutureUntil)
-
-    if (isExpired && !accessGranted) {
+    if (expired) {
       const subUrl = request.nextUrl.clone()
       subUrl.pathname = '/subscribe'
       return redirectTo(subUrl)

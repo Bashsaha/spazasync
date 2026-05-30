@@ -31,6 +31,7 @@ export const SHOP_DEDUP_COLUMNS = [
   'subscription_status',
   'trial_ends_at',
   'subscription_ends_at',
+  'access_granted',
   'profit_tracking_enabled',
   'municipality_id',
   'onboarding_compliance_completed',

@@ -12,6 +12,7 @@ import { ChecklistReminderFab } from '@/components/ChecklistReminderFab'
 import { SaleDataWarmup } from '@/components/SaleDataWarmup'
 import { getTodayChecklist, todaySAST } from '@/lib/db/daily-checklist'
 import { getShopForRequest } from '@/lib/db/shop'
+import { isSubscriptionExpired, subscriptionEndDate } from '@/lib/subscription/expiry'
 import type { SupportedLocale, TranslationNamespace } from '@/lib/i18n/types'
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '@/lib/i18n/types'
 import { loadNamespacedTranslations } from '@/lib/i18n/loader'
@@ -77,6 +78,26 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     if (shopRow?.name) shopName = shopRow.name
     personName = (tellerRes.data?.name as string | undefined) ?? null
     if (needsChecklist) showChecklistReminder = checklistRes === null
+
+    // Teller lockout for an expired shop. A teller's JWT doesn't carry the
+    // shop's subscription state, so we decide from the LIVE shop row (read
+    // for free via the React.cache'd getShopForRequest above — no extra
+    // query) using the SAME helper the owner gate uses. /shop-suspended sits
+    // OUTSIDE this (app) route group, so redirecting there does NOT re-enter
+    // this layout — no loop (BUG-047). Fail open if the row is missing so a
+    // transient read can't lock out a paid teller; /shop-suspended re-checks.
+    if (role === 'teller' && shopRow) {
+      const expired = isSubscriptionExpired({
+        status: shopRow.subscription_status,
+        subUntil: subscriptionEndDate(
+          shopRow.subscription_status,
+          shopRow.trial_ends_at,
+          shopRow.subscription_ends_at,
+        ),
+        accessGranted: shopRow.access_granted,
+      })
+      if (expired) redirect('/shop-suspended')
+    }
 
     // Reconcile speculative locale against the shop's stored language. If the
     // cookie was missing or didn't match, do a second fast i18n load for the
