@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { ProductWithStock } from '@/lib/db/stock'
@@ -8,9 +8,19 @@ import { BarcodeScanner } from '@/components/scanner/BarcodeScanner'
 import { BackButton } from '@/components/BackButton'
 import { useToast } from '@/components/Toast'
 import { useTranslation } from '@/components/LanguageProvider'
-import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
+import { useCachedData } from '@/hooks/useCachedData'
 
 type Tab = 'all' | 'low' | 'expiring'
+
+interface StockData {
+  products: ProductWithStock[]
+  threshold: number
+  expiring_count?: number
+  profit_tracking_enabled?: boolean
+  products_missing_cost?: number
+  products_missing_supplier?: number
+  suppliers_count?: number
+}
 
 interface ExpiringProduct {
   product_id: string
@@ -27,50 +37,30 @@ export default function StockPage() {
   const { addToast } = useToast()
   const { t, tPlural } = useTranslation('stock')
   const { t: tp } = useTranslation('products')
-  const [products, setProducts] = useState<ProductWithStock[]>([])
-  const [threshold, setThreshold] = useState(5)
   const [tab, setTab] = useState<Tab>('all')
   const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [errorKey, setErrorKey] = useState<string>('')
   const [scanning, setScanning] = useState(false)
 
-  // Profit tracking
-  const [profitTrackingEnabled, setProfitTrackingEnabled] = useState(false)
-  const [productsMissingCost, setProductsMissingCost] = useState(0)
-  const [productsMissingSupplier, setProductsMissingSupplier] = useState(0)
-  const [suppliersCount, setSuppliersCount] = useState(0)
+  // Cache-first: paint the last-known stock list instantly, revalidate in the
+  // background, and re-fetch on resume / mutation. (Phase 44b)
+  const { data, loading, error } = useCachedData<StockData>('stock', () =>
+    fetch('/api/stock', { cache: 'no-store' }).then((r) => {
+      if (!r.ok) throw new Error('load failed')
+      return r.json()
+    }),
+  )
+
+  const products = data?.products ?? []
+  const threshold = data?.threshold ?? 5
+  const expiryCount = data?.expiring_count ?? 0
+  const profitTrackingEnabled = Boolean(data?.profit_tracking_enabled)
+  const productsMissingCost = data?.products_missing_cost ?? 0
+  const productsMissingSupplier = data?.products_missing_supplier ?? 0
+  const suppliersCount = data?.suppliers_count ?? 0
 
   // Expiry data (loaded lazily when tab selected)
   const [expiringProducts, setExpiringProducts] = useState<ExpiringProduct[]>([])
-  const [expiryCount, setExpiryCount] = useState(0)
   const [expiryLoaded, setExpiryLoaded] = useState(false)
-
-  const loadStock = useCallback(() => {
-    fetch('/api/stock', { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((data: { products: ProductWithStock[]; threshold: number; expiring_count?: number; profit_tracking_enabled?: boolean; products_missing_cost?: number; products_missing_supplier?: number; suppliers_count?: number }) => {
-        setProducts(data.products ?? [])
-        setThreshold(data.threshold ?? 5)
-        setExpiryCount(data.expiring_count ?? 0)
-        setProfitTrackingEnabled(Boolean(data.profit_tracking_enabled))
-        setProductsMissingCost(data.products_missing_cost ?? 0)
-        setProductsMissingSupplier(data.products_missing_supplier ?? 0)
-        setSuppliersCount(data.suppliers_count ?? 0)
-        setExpiryLoaded(false)
-        setLoading(false)
-      })
-      .catch(() => {
-        setErrorKey('error_load')
-        setLoading(false)
-      })
-  }, [])
-
-  useEffect(() => {
-    loadStock()
-  }, [loadStock])
-
-  useRefetchOnVisible(loadStock)
 
   // Load expiring products when switching to the Expiring tab
   useEffect(() => {
@@ -163,7 +153,7 @@ export default function StockPage() {
       ) : null}
 
       {/* Summary strip */}
-      {!loading && !errorKey && (
+      {!loading && !error && (
         <div className="grid grid-cols-4 gap-2 mb-5">
           <div className="bg-white rounded-2xl p-3 border border-gray-100 text-center ">
             <p className="text-xl font-bold text-gray-900">{products.length}</p>
@@ -237,12 +227,12 @@ export default function StockPage() {
         <p className="text-center text-gray-400 text-sm mt-12">{t('loading')}</p>
       )}
 
-      {errorKey && (
-        <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4 mb-4">{t(errorKey)}</div>
+      {error && (
+        <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4 mb-4">{t('error_load')}</div>
       )}
 
       {/* Expiring tab */}
-      {!loading && !errorKey && tab === 'expiring' && (
+      {!loading && !error && tab === 'expiring' && (
         <>
           <div className="mb-4">
             <Link
@@ -292,13 +282,13 @@ export default function StockPage() {
       )}
 
       {/* All / Low tabs */}
-      {!loading && !errorKey && tab !== 'expiring' && filtered.length === 0 && (
+      {!loading && !error && tab !== 'expiring' && filtered.length === 0 && (
         <p className="text-center text-gray-400 text-sm mt-12">
           {tab === 'low' ? t('empty_low') : t('empty_all')}
         </p>
       )}
 
-      {!loading && !errorKey && tab !== 'expiring' && filtered.length > 0 && (
+      {!loading && !error && tab !== 'expiring' && filtered.length > 0 && (
         <ul className="space-y-2">
           {filtered.map((p) => {
             const isOut = p.stock_qty === 0
@@ -336,7 +326,7 @@ export default function StockPage() {
       )}
 
       {/* Stock take prompt if many out of stock */}
-      {!loading && !errorKey && outCount >= 3 && (
+      {!loading && !error && outCount >= 3 && (
         <div className="mt-6 bg-brand-light border border-brand-light rounded-2xl p-4 text-sm text-brand-hover">
           <p className="font-semibold mb-1">{t('out_of_stock_prompt', { count: outCount })}</p>
           <p className="text-brand-hover mb-3">

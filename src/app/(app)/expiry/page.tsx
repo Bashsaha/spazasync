@@ -1,11 +1,11 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import type { ExpiryProductDetail, BatchDetail } from '@/types'
 import { BackButton } from '@/components/BackButton'
 import { useTranslation } from '@/components/LanguageProvider'
-import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
+import { useCachedData } from '@/hooks/useCachedData'
 
 type UrgencyGroup = 'expired' | 'expiring_soon' | 'ok'
 
@@ -191,28 +191,18 @@ function UrgencySection({
 
 export default function ExpiryPage() {
   const { t } = useTranslation('expiry')
-  const [products, setProducts] = useState<ExpiryProductDetail[]>([])
-  const [loading, setLoading] = useState(true)
-  const [errorKey, setErrorKey] = useState('')
 
-  const loadExpiry = useCallback(() => {
-    fetch('/api/stock/expiry', { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((data: { products: ExpiryProductDetail[] }) => {
-        setProducts(data.products ?? [])
-        setLoading(false)
-      })
-      .catch(() => {
-        setErrorKey('error_load')
-        setLoading(false)
-      })
-  }, [])
-
-  useEffect(() => {
-    loadExpiry()
-  }, [loadExpiry])
-
-  useRefetchOnVisible(loadExpiry)
+  // Cache-first: paint the last-known expiry list instantly, revalidate in the
+  // background, re-fetch on resume / mutation. (Phase 44b)
+  const { data, loading, error } = useCachedData<{ products: ExpiryProductDetail[] }>(
+    'expiry',
+    () =>
+      fetch('/api/stock/expiry', { cache: 'no-store' }).then((r) => {
+        if (!r.ok) throw new Error('load failed')
+        return r.json()
+      }),
+  )
+  const products = data?.products ?? []
 
   const expired = products.filter((p) => p.urgency === 'expired')
   const expiringSoon = products.filter((p) => p.urgency === 'expiring_soon')
@@ -227,7 +217,7 @@ export default function ExpiryPage() {
       </div>
 
       {/* Summary strip */}
-      {!loading && !errorKey && products.length > 0 && (
+      {!loading && !error && products.length > 0 && (
         <div className="grid grid-cols-3 gap-2 mb-5">
           <div
             className={`rounded-2xl p-3 border text-center ${
@@ -262,12 +252,12 @@ export default function ExpiryPage() {
       )}
 
       {/* Error */}
-      {errorKey && (
-        <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4 mb-4">{t(errorKey)}</div>
+      {error && (
+        <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4 mb-4">{t('error_load')}</div>
       )}
 
       {/* Empty state */}
-      {!loading && !errorKey && products.length === 0 && (
+      {!loading && !error && products.length === 0 && (
         <div className="text-center mt-16">
           <p className="text-gray-400 text-sm">{t('empty_title')}</p>
           <p className="text-gray-400 text-xs mt-2">
@@ -277,7 +267,7 @@ export default function ExpiryPage() {
       )}
 
       {/* Grouped sections */}
-      {!loading && !errorKey && products.length > 0 && (
+      {!loading && !error && products.length > 0 && (
         <>
           <UrgencySection urgency="expired" products={expired} />
           <UrgencySection urgency="expiring_soon" products={expiringSoon} />

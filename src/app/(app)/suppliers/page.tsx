@@ -1,44 +1,42 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import type { Supplier } from '@/types'
 import { Tag } from 'lucide-react'
 import { Skeleton } from '@/components/Skeleton'
 import { BackButton } from '@/components/BackButton'
 import { useTranslation } from '@/components/LanguageProvider'
-import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
+import { useCachedData } from '@/hooks/useCachedData'
+
+interface SuppliersData {
+  suppliers: Supplier[]
+  missingSupplierCount: number
+}
 
 export default function SuppliersPage() {
   const { t } = useTranslation('suppliers')
-  const [suppliers, setSuppliers] = useState<Supplier[]>([])
-  const [loading, setLoading] = useState(true)
-  const [errorKey, setErrorKey] = useState('')
-  const [missingSupplierCount, setMissingSupplierCount] = useState(0)
 
-  const loadSuppliers = useCallback(() => {
-    fetch('/api/suppliers')
-      .then(async (res) => {
-        if (!res.ok) throw new Error()
-        setSuppliers(await res.json())
-        setErrorKey('')
-      })
-      .catch(() => setErrorKey('error_load'))
-      .finally(() => setLoading(false))
-    fetch('/api/settings')
-      .then(async (res) => {
-        if (!res.ok) return
-        const data = await res.json()
-        setMissingSupplierCount(data.products_missing_supplier ?? 0)
-      })
-      .catch(() => {})
-  }, [])
+  // Cache-first: paint the last-known supplier list instantly, revalidate in the
+  // background, re-fetch on resume / mutation. Composes the two reads (list +
+  // missing-supplier count) into one cached snapshot. (Phase 44b)
+  const { data, loading, error } = useCachedData<SuppliersData>('suppliers', async () => {
+    const [supRes, setRes] = await Promise.all([
+      fetch('/api/suppliers'),
+      fetch('/api/settings').catch(() => null),
+    ])
+    if (!supRes.ok) throw new Error('load failed')
+    const suppliers = (await supRes.json()) as Supplier[]
+    let missingSupplierCount = 0
+    if (setRes && setRes.ok) {
+      const s = await setRes.json()
+      missingSupplierCount = s.products_missing_supplier ?? 0
+    }
+    return { suppliers, missingSupplierCount }
+  })
 
-  useEffect(() => {
-    loadSuppliers()
-  }, [loadSuppliers])
-
-  useRefetchOnVisible(loadSuppliers)
+  const suppliers = data?.suppliers ?? []
+  const missingSupplierCount = data?.missingSupplierCount ?? 0
 
   const typeLabel = (type: string | null) => {
     if (!type) return t('type_none')
@@ -60,7 +58,7 @@ export default function SuppliersPage() {
         </Link>
       </div>
 
-      {errorKey && <p className="text-red-500 text-sm mb-4">{t(errorKey)}</p>}
+      {error && <p className="text-red-500 text-sm mb-4">{t('error_load')}</p>}
 
       {!loading && suppliers.length > 0 && missingSupplierCount > 0 && (
         <Link
