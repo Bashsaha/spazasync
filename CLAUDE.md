@@ -239,7 +239,9 @@ The file tree below is ground truth. After every phase: Glob scan, diff against 
 
 ## Living Scope
 
-Phases 1–36c + 37a–37g + 38 + 39 + 40 + 41a + 41b + 41c + 41d + 41e + 42 + 43 + 44a complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+Phases 1–36c + 37a–37g + 38 + 39 + 40 + 41a + 41b + 41c + 41d + 41e + 42 + 43 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+
+**Phase 44 — App Shell Architecture / instant-open PWA — IN PROGRESS.** 44a (resume-crash fix foundation) DONE + phone-verified; 44b (per-screen cache-first rollout) underway. **→ The authoritative continuation checklist — what's done, what's left, and HOW to convert each remaining page — lives in [tasks/todo.md](tasks/todo.md). A new chat MUST read that before continuing Phase 44.**
 
 Most recent:
 - Phase 44b (in progress) — cache-first instant paint, batch 1 (2026-05-31) — the "opens instantly" work, rolled out per screen. New reusable engine [src/hooks/useCachedData.ts](src/hooks/useCachedData.ts): paints a screen INSTANTLY from the last snapshot saved in `localStorage` (synchronous read → no spinner on repeat visits), revalidates in the background, and re-fetches on `RESUME_READY` (post session-refresh, from 44a's ResumeGuard) + `DATA_CHANGED`. `error` surfaces only when there's NOTHING cached (a failed background refresh never replaces good cached data with an error banner). **Converted so far** (client read-list pages → cache-first; each drops its bespoke `loadX`/`useRefetchOnVisible`/`errorKey` state for the hook): batch 1 = [stock](src/app/(app)/stock/page.tsx), [expiry](src/app/(app)/expiry/page.tsx), [suppliers](src/app/(app)/suppliers/page.tsx); batch 2 = [documents](src/app/(app)/documents/page.tsx), [checklist/history](src/app/(app)/checklist/history/page.tsx), [sales/history](src/app/(app)/sales/history/page.tsx) (key includes the date), [waste-pest/pest](src/app/(app)/waste-pest/pest/page.tsx) (delete now relies on `emitDataChanged()` → hook refresh, dropping the optimistic local filter). No DB migration, no new i18n. SW cache v70 → v72. 780/780 tests; tsc + build clean.
@@ -308,7 +310,7 @@ When starting a new phase, append it here and update the file tree.
 
 ## Current File Tree
 
-_Last updated: Phase 44a — App Shell Architecture (instant-open + resume fix) (2026-05-31)_
+_Last updated: Phase 44b in progress — cache-first rollout (2026-05-31)_
 
 ```
 spaza shop/
