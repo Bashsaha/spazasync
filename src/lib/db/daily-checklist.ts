@@ -15,6 +15,23 @@ export function dateStrSAST(d: Date): string {
   return formatInTimeZone(d, SAST_TZ, 'yyyy-MM-dd')
 }
 
+/**
+ * Has this shop EVER completed any daily checklist? Drives the one-time intro
+ * explainer on the checklist FAB (Phase 44c) — it must fire only before the
+ * genuine first checklist, never again afterwards. Keying this off a server
+ * fact (not localStorage, which Android PWAs evict — the "fires at random" bug)
+ * means established shops never see the intro again even if their device cache
+ * is wiped.
+ */
+export async function hasAnyChecklist(shopId: string): Promise<boolean> {
+  const supabase = await createClient()
+  const { count } = await supabase
+    .from('daily_checklists')
+    .select('shop_id', { count: 'exact', head: true })
+    .eq('shop_id', shopId)
+  return (count ?? 0) > 0
+}
+
 /** Get today's checklist row for a shop (or null if none saved yet). */
 export async function getTodayChecklist(shopId: string, date: string): Promise<DailyChecklist | null> {
   const supabase = await createClient()

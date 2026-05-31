@@ -1,18 +1,22 @@
 import { NextResponse } from 'next/server'
 import { getShopAuth } from '@/lib/auth/shop-auth'
-import { getTodayChecklist, todaySAST } from '@/lib/db/daily-checklist'
+import { getTodayChecklist, hasAnyChecklist, todaySAST } from '@/lib/db/daily-checklist'
 
 /** GET /api/daily-checklist/status
- *  Lightweight check — returns { completed: boolean } so the FAB can
- *  hide itself after a checklist save without re-fetching the full page data.
+ *  Lightweight check — returns { completed, everCompleted } so the FAB can
+ *  hide itself after a checklist save (completed) AND decide whether to show
+ *  the one-time intro explainer (everCompleted === false → first checklist).
  */
 export async function GET() {
   const auth = await getShopAuth()
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const checklist = await getTodayChecklist(auth.shopId, todaySAST())
+  const [checklist, everCompleted] = await Promise.all([
+    getTodayChecklist(auth.shopId, todaySAST()),
+    hasAnyChecklist(auth.shopId),
+  ])
   return NextResponse.json(
-    { completed: checklist !== null },
+    { completed: checklist !== null, everCompleted },
     { headers: { 'Cache-Control': 'no-store' } },
   )
 }

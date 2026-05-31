@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthClaims } from '@/lib/auth/claims'
 import { OfflineSyncProvider } from '@/components/OfflineSyncProvider'
 import { ToastProvider } from '@/components/Toast'
 import { LanguageProvider } from '@/components/LanguageProvider'
@@ -10,6 +11,7 @@ import DailySummaryAlert from '@/components/DailySummaryAlert'
 import { InstallPwaButton } from '@/components/InstallPwaButton'
 import { ChecklistReminderFab } from '@/components/ChecklistReminderFab'
 import { SaleDataWarmup } from '@/components/SaleDataWarmup'
+import { ResumeGuard } from '@/components/ResumeGuard'
 import { getTodayChecklist, todaySAST } from '@/lib/db/daily-checklist'
 import { getShopForRequest } from '@/lib/db/shop'
 import { isSubscriptionExpired, subscriptionEndDate } from '@/lib/subscription/expiry'
@@ -39,18 +41,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const cookieLocale = parseLocale(cookieStore.get(LOCALE_COOKIE)?.value)
   const speculativeLocale: SupportedLocale = cookieLocale ?? DEFAULT_LOCALE
 
-  // Fire EVERYTHING in parallel from the start. auth.getUser is cheap (one
-  // RTT) but doesn't gate the i18n load — translations only depend on locale.
-  const [userRes, initialNsMap] = await Promise.all([
-    supabase.auth.getUser(),
+  // Fire EVERYTHING in parallel from the start. getAuthClaims verifies the JWT
+  // LOCALLY (no network) once asymmetric signing keys are enabled — so a valid
+  // token renders the shell instantly even when the radio is still waking on
+  // resume, instead of hanging/throwing like the old auth.getUser() network
+  // call did. Translations only depend on locale, so they run in parallel.
+  // (BUG-049 — see lib/auth/claims.ts.)
+  const [claims, initialNsMap] = await Promise.all([
+    getAuthClaims(supabase),
     loadNamespacedTranslations(speculativeLocale, APP_SHELL_NAMESPACES),
   ])
 
-  const user = userRes.data.user
-  if (!user) redirect('/login')
+  if (!claims) redirect('/login')
 
-  const role = (user.app_metadata?.role as string) ?? 'owner'
-  const shopId = user.app_metadata?.shop_id as string | undefined
+  const role = (claims.appMetadata.role as string) ?? 'owner'
+  const shopId = claims.appMetadata.shop_id as string | undefined
 
   let initialLocale: SupportedLocale = speculativeLocale
   let shopName = 'Movestock'
@@ -67,9 +72,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       supabase
         .from('tellers')
         .select('name')
-        .eq('user_id', user.id)
+        .eq('user_id', claims.id)
         .eq('shop_id', shopId)
-        .maybeSingle(),
+        .maybeSingle()
+        // Degrade to a nameless shell on a transient network failure rather
+        // than crashing the whole (app) render on resume. (BUG-049)
+        .then((r) => r, () => ({ data: null as { name?: string } | null })),
       needsChecklist
         ? getTodayChecklist(shopId, todaySAST()).catch(() => null)
         : Promise.resolve(null),
@@ -133,6 +141,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         initialNsMap={finalNsMap}
       >
         <ToastProvider>
+          {/* Refreshes the session + confirms connectivity on resume BEFORE any
+              passive data refresh fires — kills the resume-from-background crash
+              / "tab won't load" (BUG-049). Mounted for every app user. */}
+          <ResumeGuard />
           <TopAppBar
             title={shopName}
             subtitle={personName ?? undefined}

@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthClaims } from '@/lib/auth/claims'
 import { redirect } from 'next/navigation'
 import { Skeleton } from '@/components/Skeleton'
 import { TodaySummary } from '@/components/dashboard/TodaySummary'
@@ -20,11 +21,12 @@ export default async function DashboardPage({
   searchParams?: Promise<{ redo_compliance?: string }>
 }) {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Local JWT verification (no network round-trip on the resume/refresh path
+  // once asymmetric keys are enabled) instead of auth.getUser(). RLS + the
+  // per-query scoping below remain the security boundary. (BUG-049)
+  const claims = await getAuthClaims(supabase)
 
-  if (!user) redirect('/login')
+  if (!claims) redirect('/login')
 
   const sp = (await searchParams) ?? {}
   const forceComplianceModal = sp.redo_compliance === '1'
@@ -41,8 +43,8 @@ export default async function DashboardPage({
   // owner dashboard (BUG-029 / BUG-039 follow-up). The previous code derived
   // role from shop_users.role, which papered over the distinction; the JWT
   // role we use now does not, so we have to gate on shopId + !teller instead.
-  const role = user.app_metadata?.role as 'owner' | 'teller' | 'admin' | undefined
-  const shopIdMeta = user.app_metadata?.shop_id as string | undefined
+  const role = claims.appMetadata.role as 'owner' | 'teller' | 'admin' | undefined
+  const shopIdMeta = claims.appMetadata.shop_id as string | undefined
   const isOwnerUI = !!shopIdMeta && role !== 'teller'
 
   type Shop = {
@@ -89,7 +91,7 @@ export default async function DashboardPage({
             .select(
               'nationality_type, food_safety_training_completed, food_safety_training_date, food_safety_training_provider, visa_type, visa_expiry_date, naturalised_pre_1994',
             )
-            .eq('user_id', user.id)
+            .eq('user_id', claims.id)
             .maybeSingle()
         : Promise.resolve({ data: null }),
     ])
@@ -219,7 +221,7 @@ export default async function DashboardPage({
           null for non-owners and for shops without journey state. */}
       {isOwnerUI && shop?.id && (
         <Suspense fallback={<Skeleton className="h-24 rounded-2xl mb-4" />}>
-          <JourneyProgressCard shopId={shop.id} userId={user.id} locale={locale} />
+          <JourneyProgressCard shopId={shop.id} userId={claims.id} locale={locale} />
         </Suspense>
       )}
 

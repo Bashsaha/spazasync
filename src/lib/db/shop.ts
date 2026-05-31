@@ -54,11 +54,20 @@ export type DedupShop = Partial<Shop> & { id: string }
 export const getShopForRequest = cache(
   async (shopId: string, client?: SupabaseClient): Promise<DedupShop | null> => {
     const supabase = client ?? (await createClient())
-    const { data } = await supabase
-      .from('shops')
-      .select(SHOP_DEDUP_COLUMNS)
-      .eq('id', shopId)
-      .maybeSingle()
-    return (data as DedupShop | null) ?? null
+    try {
+      const { data } = await supabase
+        .from('shops')
+        .select(SHOP_DEDUP_COLUMNS)
+        .eq('id', shopId)
+        .maybeSingle()
+      return (data as DedupShop | null) ?? null
+    } catch {
+      // A raw network failure (e.g. resuming on a still-suspended Android radio)
+      // rejects the query. Degrade to null so the whole dashboard render — which
+      // memoises this via React.cache and reads it from several components —
+      // paints the shell instead of crashing into the (app) error boundary. The
+      // client refreshes on RESUME_READY once the connection is back. (BUG-049)
+      return null
+    }
   },
 )

@@ -30,6 +30,11 @@ const INTRO_SEEN_KEY = 'mvs_checklist_intro_seen'
 export function ChecklistReminderFab({ initialVisible }: { initialVisible: boolean }) {
   const [visible, setVisible] = useState(initialVisible)
   const [showIntro, setShowIntro] = useState(false)
+  // null = not yet known. Authoritative server fact: has the shop EVER completed
+  // a checklist. The intro explainer fires ONLY before the first one. Keying off
+  // this (not localStorage, which Android evicts) fixes the "intro fires at
+  // random" bug for established shops. (Phase 44c)
+  const [everCompleted, setEverCompleted] = useState<boolean | null>(null)
   const pathname = usePathname()
   const router = useRouter()
   const { t } = useTranslation('checklist')
@@ -38,8 +43,12 @@ export function ChecklistReminderFab({ initialVisible }: { initialVisible: boole
     try {
       const res = await fetch('/api/daily-checklist/status')
       if (res.ok) {
-        const { completed } = await res.json() as { completed: boolean }
+        const { completed, everCompleted: ever } = await res.json() as {
+          completed: boolean
+          everCompleted?: boolean
+        }
         setVisible(!completed)
+        if (typeof ever === 'boolean') setEverCompleted(ever)
       }
     } catch {
       // silently ignore — keep current visibility until next check succeeds
@@ -57,6 +66,15 @@ export function ChecklistReminderFab({ initialVisible }: { initialVisible: boole
 
   const handleClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
+    // Once the shop has completed any checklist, never show the intro again —
+    // regardless of localStorage state. This is the authoritative gate.
+    if (everCompleted === true) {
+      router.push('/checklist')
+      return
+    }
+    // Before the first checklist (or while the server fact is still loading),
+    // fall back to the localStorage "seen" flag so a Got-it tap suppresses the
+    // explainer within the same not-yet-completed window.
     let seen = false
     try {
       seen = localStorage.getItem(INTRO_SEEN_KEY) === '1'
@@ -69,7 +87,7 @@ export function ChecklistReminderFab({ initialVisible }: { initialVisible: boole
     } else {
       setShowIntro(true)
     }
-  }, [router])
+  }, [router, everCompleted])
 
   const handleGotIt = useCallback(() => {
     try {

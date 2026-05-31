@@ -6,6 +6,23 @@
 export const DATA_CHANGED = 'movestock:data-changed'
 
 /**
+ * Fired by <ResumeGuard> AFTER the app returns to the foreground, the
+ * connection is confirmed up, and the Supabase session has been refreshed (if
+ * it was near expiry). Passive "refresh on visible" consumers listen for THIS
+ * instead of raw `visibilitychange`/`focus`/`pageshow` — so a `router.refresh()`
+ * (full RSC re-render that re-runs Server Component auth + DB queries) never
+ * fires into a still-suspended radio or an expired token, which was the
+ * resume-from-background crash / "tab won't load" cause (BUG-048/BUG-049).
+ */
+export const RESUME_READY = 'movestock:resume-ready'
+
+/** Broadcast that the app has resumed and the session/connection are ready. */
+export function emitResumeReady() {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new Event(RESUME_READY))
+}
+
+/**
  * sessionStorage marker that survives navigation. A mutation often fires
  * `emitDataChanged()` just before navigating away (e.g. completing a sale on
  * /sale then routing to /sale/complete), so the dashboard isn't mounted yet to

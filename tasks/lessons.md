@@ -102,4 +102,26 @@ Creating files before step 5 is a protocol violation regardless of how confident
 
 ---
 
+## Lesson: Phase 44a shell-mechanism decision (App Shell Architecture spike — approach A over B)
+
+**Decision:** For the instant-open / resume-fix work, chose **approach A** (keep the
+`(app)` layout a Server Component but stop blocking first paint on user data; verify
+auth locally with `getClaims()`; coordinate resume via a single `ResumeGuard` →
+`RESUME_READY` event) over **approach B** (a dedicated fully-client shell route).
+
+**Why A:** Lowest risk, no big-bang rewrite, ships the two crash fixes + cost
+reduction immediately, and crucially does NOT cache any user-specific HTML — so the
+BUG-040 invariant (never cache auth HTML with data baked in) is preserved. The
+full "SW serves a cached data-free shell HTML so cold open is instant" work is
+deferred to **Phase 44b**, done **per screen** and only enabled for a route once
+that route's server render is verified data-free. This keeps each step
+phone-testable and reversible.
+
+**Rule:** When converting a server-rendered authed PWA toward an app-shell model,
+do it incrementally and gate SW HTML caching per-route behind a proven
+"data-free render" — never flip cache-first navigation on globally (that's exactly
+how BUG-040 leaked one user's data to another on a shared phone).
+
+---
+
 _Add new lessons here as they occur._
