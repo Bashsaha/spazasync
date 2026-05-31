@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useCallback, useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { SaleWithDetails, DailySalesTotals } from '@/types'
 import { formatZAR } from '@/lib/utils/currency'
@@ -9,7 +9,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from '@/components/LanguageProvider'
 import { BackButton } from '@/components/BackButton'
 import { PdfDownloadButton } from '@/components/PdfDownloadButton'
-import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
+import { useCachedData } from '@/hooks/useCachedData'
 
 interface ByDateResponse {
   sales: SaleWithDetails[]
@@ -40,32 +40,24 @@ function SalesHistoryContent() {
   const dateParam = searchParams.get('date')
   const date = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : today
 
-  const [data, setData] = useState<ByDateResponse | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [errorKey, setErrorKey] = useState<string | null>(null)
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
 
-  const loadSales = useCallback(() => {
-    setLoading(true)
-    fetch(`/api/sales/by-date?date=${date}`, { cache: 'no-store' })
-      .then(async (r) => {
-        if (!r.ok) throw new Error('load')
+  // Cache-first per date: paint the last-known day instantly, revalidate in the
+  // background, re-fetch on resume / mutation. Key includes the date so each day
+  // caches separately. (Phase 44b)
+  const { data, loading, error } = useCachedData<ByDateResponse>(
+    `sales-by-date:${date}`,
+    () =>
+      fetch(`/api/sales/by-date?date=${date}`, { cache: 'no-store' }).then((r) => {
+        if (!r.ok) throw new Error('load failed')
         return r.json() as Promise<ByDateResponse>
-      })
-      .then((d) => {
-        setData(d)
-        setErrorKey(null)
-      })
-      .catch(() => setErrorKey('error_load'))
-      .finally(() => setLoading(false))
-  }, [date])
+      }),
+  )
 
+  // Collapse expanded rows when switching to a different day.
   useEffect(() => {
-    loadSales()
     setExpanded(new Set())
-  }, [loadSales])
-
-  useRefetchOnVisible(loadSales)
+  }, [date])
 
   function navigateToDate(ymd: string) {
     const params = new URLSearchParams(searchParams.toString())
@@ -155,7 +147,7 @@ function SalesHistoryContent() {
       </div>
 
       {/* Totals strip */}
-      {!loading && !errorKey && totals && (
+      {!loading && !error && totals && (
         <div className={`grid ${profitTrackingOn ? 'grid-cols-3' : 'grid-cols-2'} gap-2 mb-5`}>
           <div className="bg-white border border-gray-100 rounded-2xl p-3 text-center ">
             <p className="text-xl font-bold text-gray-900">{totals.saleCount}</p>
@@ -220,12 +212,12 @@ function SalesHistoryContent() {
       )}
 
       {/* Error */}
-      {errorKey && (
-        <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4 mb-4">{t(errorKey)}</div>
+      {error && (
+        <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4 mb-4">{t('error_load')}</div>
       )}
 
       {/* Empty */}
-      {!loading && !errorKey && sales.length === 0 && (
+      {!loading && !error && sales.length === 0 && (
         <div className="text-center mt-10">
           <p className="text-gray-500 text-sm font-semibold">{t('no_sales')}</p>
           <p className="text-gray-400 text-xs mt-1">{t('no_sales_hint')}</p>
@@ -233,7 +225,7 @@ function SalesHistoryContent() {
       )}
 
       {/* Sales list */}
-      {!loading && !errorKey && sales.length > 0 && (
+      {!loading && !error && sales.length > 0 && (
         <ul className="space-y-2">
           {sales.map((sale) => {
             const isOpen = expanded.has(sale.id)

@@ -1,10 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from '@/components/LanguageProvider'
 import { BackButton } from '@/components/BackButton'
 import type { DailyChecklist, ChecklistStats } from '@/types'
-import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
+import { useCachedData } from '@/hooks/useCachedData'
 
 interface HistoryEntry {
   date: string
@@ -43,27 +43,16 @@ function tempOutOfRange(
 
 export default function ChecklistHistoryPage() {
   const { t, tPlural, locale } = useTranslation('checklist')
-  const [loading, setLoading] = useState(true)
-  const [errorKey, setErrorKey] = useState<string | null>(null)
-  const [data, setData] = useState<HistoryResponse | null>(null)
   const [expanded, setExpanded] = useState<string | null>(null)
 
-  const loadHistory = useCallback(() => {
-    fetch('/api/daily-checklist/history?days=30', { cache: 'no-store' })
-      .then(async (r) => {
-        if (!r.ok) throw new Error('load')
-        return r.json() as Promise<HistoryResponse>
-      })
-      .then((d) => { setData(d); setErrorKey(null) })
-      .catch(() => setErrorKey('msg_load_failed'))
-      .finally(() => setLoading(false))
-  }, [])
-
-  useEffect(() => {
-    loadHistory()
-  }, [loadHistory])
-
-  useRefetchOnVisible(loadHistory)
+  // Cache-first: paint the last-known checklist history instantly, revalidate in
+  // the background, re-fetch on resume / mutation. (Phase 44b)
+  const { data, loading, error } = useCachedData<HistoryResponse>('checklist-history', () =>
+    fetch('/api/daily-checklist/history?days=30', { cache: 'no-store' }).then((r) => {
+      if (!r.ok) throw new Error('load failed')
+      return r.json() as Promise<HistoryResponse>
+    }),
+  )
 
   const localeTag = locale === 'en' ? 'en-ZA' : locale
 
@@ -75,13 +64,13 @@ export default function ChecklistHistoryPage() {
     )
   }
 
-  if (errorKey || !data) {
+  if (error || !data) {
     return (
       <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
         <div className="mb-6">
           <BackButton fallbackHref="/checklist" />
         </div>
-        <p className="text-red-600">{t(errorKey ?? 'msg_load_failed')}</p>
+        <p className="text-red-600">{t('msg_load_failed')}</p>
       </main>
     )
   }

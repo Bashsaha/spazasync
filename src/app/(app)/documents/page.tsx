@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import Link from 'next/link'
 import { useTranslation } from '@/components/LanguageProvider'
 import { Skeleton } from '@/components/Skeleton'
@@ -8,7 +8,9 @@ import { BackButton } from '@/components/BackButton'
 import type { BusinessDocument, DocumentType } from '@/types'
 import { DOCUMENT_TYPES } from '@/lib/validation/schemas'
 import { computeDocumentStatus } from '@/lib/compliance/document-status'
-import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
+import { useCachedData } from '@/hooks/useCachedData'
+
+const EMPTY_DOCS: BusinessDocument[] = []
 
 function todayYmd(): string {
   const d = new Date()
@@ -48,26 +50,16 @@ const HERO_STYLES: Record<PillTone, { wrap: string; text: string }> = {
 
 export default function DocumentsPage() {
   const { t, tPlural } = useTranslation('documents')
-  const [docs, setDocs] = useState<BusinessDocument[]>([])
-  const [loading, setLoading] = useState(true)
-  const [errorKey, setErrorKey] = useState('')
 
-  const loadDocs = useCallback(() => {
-    fetch('/api/business-documents')
-      .then(async (res) => {
-        if (!res.ok) throw new Error()
-        setDocs(await res.json())
-        setErrorKey('')
-      })
-      .catch(() => setErrorKey('error_load'))
-      .finally(() => setLoading(false))
-  }, [])
-
-  useEffect(() => {
-    loadDocs()
-  }, [loadDocs])
-
-  useRefetchOnVisible(loadDocs)
+  // Cache-first: paint the last-known documents list instantly, revalidate in
+  // the background, re-fetch on resume / mutation. (Phase 44b)
+  const { data, loading, error } = useCachedData<BusinessDocument[]>('documents', () =>
+    fetch('/api/business-documents').then((r) => {
+      if (!r.ok) throw new Error('load failed')
+      return r.json()
+    }),
+  )
+  const docs = data ?? EMPTY_DOCS
 
   const today = todayYmd()
   const docByType = useMemo(() => {
@@ -106,7 +98,7 @@ export default function DocumentsPage() {
 
       <p className="text-sm text-gray-500 mb-4">{t('subtitle')}</p>
 
-      {errorKey && <p className="text-red-500 text-sm mb-4">{t(errorKey)}</p>}
+      {error && <p className="text-red-500 text-sm mb-4">{t('error_load')}</p>}
 
       {loading ? (
         <>

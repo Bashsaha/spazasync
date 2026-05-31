@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { useTranslation } from '@/components/LanguageProvider'
 import { BackButton } from '@/components/BackButton'
@@ -8,36 +8,27 @@ import { useToast } from '@/components/Toast'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { Skeleton } from '@/components/Skeleton'
 import type { PestControlLog } from '@/types'
-import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
+import { useCachedData } from '@/hooks/useCachedData'
 import { emitDataChanged } from '@/lib/events'
 
 export default function PestControlListPage() {
   const { t, locale } = useTranslation('waste-pest')
   const { addToast } = useToast()
 
-  const [logs, setLogs] = useState<PestControlLog[]>([])
-  const [loading, setLoading] = useState(true)
-  const [errorKey, setErrorKey] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
 
-  const loadPest = useCallback(() => {
-    fetch('/api/pest-control')
-      .then(async (r) => {
-        if (!r.ok) throw new Error()
-        const json = (await r.json()) as { logs: PestControlLog[] }
-        setLogs(json.logs)
-        setErrorKey(null)
-      })
-      .catch(() => setErrorKey('msg_load_failed'))
-      .finally(() => setLoading(false))
-  }, [])
-
-  useEffect(() => {
-    loadPest()
-  }, [loadPest])
-
-  useRefetchOnVisible(loadPest)
+  // Cache-first: paint the last-known pest-control log instantly, revalidate in
+  // the background, re-fetch on resume / mutation. (Phase 44b)
+  const { data, loading, error } = useCachedData<{ logs: PestControlLog[] }>(
+    'pest-control',
+    () =>
+      fetch('/api/pest-control').then((r) => {
+        if (!r.ok) throw new Error('load failed')
+        return r.json() as Promise<{ logs: PestControlLog[] }>
+      }),
+  )
+  const logs = data?.logs ?? []
 
   async function handleDelete() {
     if (!confirmId) return
@@ -45,7 +36,8 @@ export default function PestControlListPage() {
     try {
       const res = await fetch(`/api/pest-control/${confirmId}`, { method: 'DELETE' })
       if (!res.ok) throw new Error()
-      setLogs((prev) => prev.filter((l) => l.id !== confirmId))
+      // emitDataChanged() triggers the cache-first refresh, which drops the
+      // deleted row from the list + updates the snapshot.
       emitDataChanged()
       addToast(t('msg_visit_deleted'), 'success')
     } catch {
@@ -81,7 +73,7 @@ export default function PestControlListPage() {
         + {t('pest_add_btn')}
       </Link>
 
-      {errorKey && <p className="text-red-500 text-sm mb-4">{t(errorKey)}</p>}
+      {error && <p className="text-red-500 text-sm mb-4">{t('msg_load_failed')}</p>}
 
       {loading ? (
         <div className="space-y-2">
