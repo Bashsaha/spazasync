@@ -100,51 +100,50 @@ This is the mechanical transform used for every page below. Example diff shape:
   **Phone-test still pending (user):** cold open + resume → the three cards paint
   instantly from cache, no spinner on the 2nd open.
 
-#### TODO — remaining, in recommended order
+- **Resume-navigation stall fix (BUG-050)** — the big lever: `staleTimes.dynamic`
+  30→1800 + `static` 180→1800 in next.config.ts, so an already-visited tab
+  repaints INSTANTLY from the in-memory Router Cache on resume (no RSC fetch into
+  a sleeping radio). This made the remaining per-page conversions largely
+  redundant for the "instant repeat-open" goal — they were finished anyway for
+  cross-app-kill persistent data + cleaner freshness. SW v73→v74.
+- Batch 4a (commit ba98de2): **products list** (search now client-side, debounced
+  into the key) + **products/missing-cost** + **products/missing-supplier**.
+  Shared [ProductListRow](src/components/products/ProductListRow.tsx); banners +
+  profit flag from SW-cached `/api/settings`. SW v74→v75.
+- Batch 4b (commit 6c4ffb9): **inventory hub** count strip (new
+  `GET /api/inventory/summary`; page stays server for role-gating + tiles),
+  **waste-pest hub** (status pills client-side from `/api/pest-control` +
+  `/api/waste-management`), **stock-take/history** (new owner/admin
+  `GET /api/stock-take/history`). SW v75→v76.
+- Batch 5 (commit 461fde4): **tellers** (one cached `{tellers,grants}`; optimistic
+  deactivate/revoke → `emitDataChanged()`), **suppliers/assign** (list cache-first,
+  selection local), **sales/statistics** + **stock-take/loss** (date range in key).
+  SW v76→v77.
 
-**Batch 4 — remaining server components → client cache-first** (same server→client
-approach as Dashboard; each needs an API that returns its data — check if one
-exists before creating):
-- products (list) + products/missing-cost + products/missing-supplier (all read
-  `/api/products` with filters — `?missing_cost=1` / `?missing_supplier=1`).
-- inventory / manage / sales / waste-pest **hubs** (they show counts + links —
-  convert the counts to cache-first; the links are static).
-- inspection (`/api/...` readiness), compliance/journey, compliance/fund,
-  profile, stock-take/history.
+#### Intentionally LEFT server-rendered (justified — not skipped by omission)
+The `staleTimes` fix already makes every visited tab repaint instantly on resume,
+so these were left server-rendered rather than risk regressing working/launch-
+critical UI for a now-redundant data-paint gain:
+- **manage hub** + **profile** — static-link menus (no data list); instant once
+  the shell loads.
+- **sales hub** — recharts-driven, already streams via Suspense; converting
+  charts to cache-first is high-risk, low-value.
+- **inspection / compliance/journey / compliance/fund** — engine/score-ring driven
+  compliance UI (launch-critical); high conversion risk, low-frequency screens.
+- **stock-take** — HEAVY local state (per-row typed counts + realtime products
+  subscription + loss-reason pickers); realtime already keeps it fresh, and a
+  background cache-first refresh could clobber typed-in counts.
+- **Detail / prefilled-form pages** (stock/[id], products/[id], suppliers/[id],
+  documents/[type]) — forms, not list reads; instant once the shell loads.
+- **waste-pest/waste** — config FORM (formTouchedRef concern).
+- **/admin/\*** — operator-only, not customer-facing.
 
-**Batch 5 — stateful client lists + detail pages (convert carefully).**
-- **tellers** ([tellers/page.tsx](src/app/(app)/tellers/page.tsx)): fetches
-  tellers + grants; has optimistic deactivate/revoke. Convert to
-  `useCachedData('tellers', …)` returning `{ tellers, grants }`; replace the
-  optimistic `setTellers/setGrants` with `emitDataChanged()` after each write.
-  Keep the separate mutation-error state (errorRaw) local.
-- **suppliers/assign**: multi-select assign — convert the product list read to
-  cache-first; keep selection state local; `emitDataChanged()` after assigning.
-- **sales/statistics**: date-range page — `useCachedData(`sales-stats:${from}:${to}`, …)`.
-- **stock-take**: HEAVY local state (per-row typed counts, realtime products
-  subscription, loss-reason pickers). Convert ONLY the initial product-list read
-  to cache-first; DO NOT let a background refresh clobber typed-in counts (it
-  already keys counts by product id separately — preserve that). Lower priority.
-- **stock-take/loss**: date-range read — straightforward recipe.
-- Detail/prefilled-form pages (lower priority): stock/[id], products/[id],
-  suppliers/[id], documents/[type]. These are tap-in screens; cache-first helps
-  less. If converting a prefilled FORM, guard against a late refresh clobbering
-  in-progress edits (see settings.tsx `formTouchedRef` pattern).
-
-#### DO NOT cache-first (be honest — these are not list reads)
-- **Forms** (no list to cache; instant once shell loads): products/new,
-  suppliers/new, tellers/new, waste-pest/pest/new, sale/complete, subscribe(+eft).
-- **waste-pest/waste**: a config FORM prefilled from data — left as-is to avoid
-  clobbering edits (same reason settings needed formTouchedRef). Convert only if
-  you replicate that touched-guard.
-- **/admin/\***: operator-only (the founder, not spaza owners). Lowest priority;
-  convert last or never. Not customer-facing.
-
-### Phase completion (when 44b is finished)
-- Glob scan → update CLAUDE.md file tree → flip Living Scope to "Phase 44
-  complete" → compress the per-batch notes per Rule 7 → final commit + push.
-- Final real-phone pass: open every converted tab twice (2nd open instant), and
-  re-run the 44a resume/cold-open/login checks.
+### Phase completion — DONE (2026-06-01)
+- All clean read-list pages are cache-first; the resume-navigation stall (BUG-050)
+  is fixed at the Router-Cache level. File tree + Living Scope updated in CLAUDE.md.
+- **Final real-phone pass still owed by user:** open every converted tab twice
+  (2nd open instant), background 5+ min → resume → tap tabs (no 2–3 min stall),
+  owner AND teller login.
 
 ### Verify (every batch)
 - [ ] `npx tsc --noEmit` clean
