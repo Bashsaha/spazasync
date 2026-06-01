@@ -1,15 +1,19 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check } from 'lucide-react'
 import { BackButton } from '@/components/BackButton'
 import { Skeleton } from '@/components/Skeleton'
 import { useTranslation } from '@/components/LanguageProvider'
+import { useCachedData } from '@/hooks/useCachedData'
 import { useToast } from '@/components/Toast'
 import { emitDataChanged } from '@/lib/events'
 import { formatZAR } from '@/lib/utils/currency'
 import type { Product, Supplier } from '@/types'
+
+const EMPTY_PRODUCTS: Product[] = []
+const EMPTY_SUPPLIERS: Supplier[] = []
 
 /**
  * Bulk-assign supplier flow — clears the "products without supplier" backlog
@@ -21,33 +25,30 @@ export default function AssignSupplierPage() {
   const { t, tPlural } = useTranslation('suppliers')
   const { addToast } = useToast()
 
-  const [products, setProducts] = useState<Product[]>([])
-  const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [supplierId, setSupplierId] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    try {
+  // Cache-first (Phase 44b): the missing-supplier product list + supplier
+  // dropdown paint instantly; selection state stays local. A successful assign
+  // emitDataChanged()s, so this (and the products pages) refetch.
+  const { data, loading } = useCachedData<{ products: Product[]; suppliers: Supplier[] }>(
+    'suppliers-assign',
+    async () => {
       const [pRes, sRes] = await Promise.all([
-        fetch('/api/products?missing_supplier=1'),
-        fetch('/api/suppliers'),
+        fetch('/api/products?missing_supplier=1', { cache: 'no-store' }),
+        fetch('/api/suppliers', { cache: 'no-store' }),
       ])
       const pData = pRes.ok ? await pRes.json() : { products: [] }
       const sData = sRes.ok ? await sRes.json() : []
-      const productList: Product[] = pData.products ?? []
-      setProducts(productList)
-      setSuppliers(Array.isArray(sData) ? sData : [])
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    load()
-  }, [load])
+      return {
+        products: (pData.products ?? []) as Product[],
+        suppliers: Array.isArray(sData) ? (sData as Supplier[]) : [],
+      }
+    },
+  )
+  const products = data?.products ?? EMPTY_PRODUCTS
+  const suppliers = data?.suppliers ?? EMPTY_SUPPLIERS
 
   const allSelected = useMemo(
     () => products.length > 0 && selected.size === products.length,

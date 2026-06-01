@@ -1,12 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Download } from 'lucide-react'
 import { formatZAR } from '@/lib/utils/currency'
 import { formatSAST } from '@/lib/utils/date'
 import { BackButton } from '@/components/BackButton'
 import { useTranslation } from '@/components/LanguageProvider'
+import { useCachedData } from '@/hooks/useCachedData'
 import { PdfDownloadButton } from '@/components/PdfDownloadButton'
 
 interface StockLossRow {
@@ -58,9 +59,17 @@ export default function StockLossPage() {
   const [preset, setPreset] = useState<Preset>('30d')
   const [from, setFrom] = useState<string>(shiftDate(today, -29))
   const [to, setTo] = useState<string>(today)
-  const [data, setData] = useState<StockLossResponse | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [errorKey, setErrorKey] = useState<string | null>(null)
+
+  // Cache-first (Phase 44b): the date range is in the key, so each range paints
+  // instantly from its own snapshot and revalidates in the background.
+  const { data, loading, error } = useCachedData<StockLossResponse>(
+    `stock-loss:${from}:${to}`,
+    () =>
+      fetch(`/api/stock-loss?from=${from}&to=${to}`, { cache: 'no-store' }).then((r) => {
+        if (!r.ok) throw new Error('load failed')
+        return r.json() as Promise<StockLossResponse>
+      }),
+  )
 
   function applyPreset(p: Preset) {
     setPreset(p)
@@ -69,25 +78,6 @@ export default function StockLossPage() {
     setFrom(shiftDate(today, -(days - 1)))
     setTo(today)
   }
-
-  const loadLoss = useCallback(() => {
-    setLoading(true)
-    fetch(`/api/stock-loss?from=${from}&to=${to}`, { cache: 'no-store' })
-      .then(async (r) => {
-        if (!r.ok) throw new Error('load')
-        return r.json() as Promise<StockLossResponse>
-      })
-      .then((d) => {
-        setData(d)
-        setErrorKey(null)
-      })
-      .catch(() => setErrorKey('error_load'))
-      .finally(() => setLoading(false))
-  }, [from, to])
-
-  useEffect(() => {
-    loadLoss()
-  }, [loadLoss])
 
   const pdfUrl = useMemo(
     () => `/api/reports/stock-loss-pdf?from=${from}&to=${to}`,
@@ -173,7 +163,7 @@ export default function StockLossPage() {
       </div>
 
       {/* Summary tiles */}
-      {!loading && !errorKey && totals && (
+      {!loading && !error && totals && (
         <div className="grid grid-cols-2 gap-2 mb-4">
           <div className="bg-white border border-gray-100 rounded-2xl p-3 text-center">
             <p className="text-xl font-bold text-gray-900">{totals.total_items}</p>
@@ -220,13 +210,13 @@ export default function StockLossPage() {
       {/* Loading */}
       {loading && <p className="text-center text-gray-400 text-sm mt-6">{t('loading')}</p>}
 
-      {/* Error */}
-      {errorKey && (
-        <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4 mb-4">{t(errorKey)}</div>
+      {/* Error — only when there's nothing cached to show */}
+      {error && (
+        <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4 mb-4">{t('error_load')}</div>
       )}
 
       {/* Empty */}
-      {!loading && !errorKey && rows.length === 0 && (
+      {!loading && !error && rows.length === 0 && (
         <div className="text-center mt-8">
           <p className="text-gray-500 text-sm font-semibold">{t('empty_title')}</p>
           <p className="text-gray-400 text-xs mt-1">{t('empty_hint')}</p>
@@ -234,7 +224,7 @@ export default function StockLossPage() {
       )}
 
       {/* Rows */}
-      {!loading && !errorKey && rows.length > 0 && (
+      {!loading && !error && rows.length > 0 && (
         <ul className="space-y-2">
           {rows.map((r, idx) => (
             <li

@@ -1,14 +1,14 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Download, TrendingUp, TrendingDown, Coins, PackageX } from 'lucide-react'
 import { formatZAR } from '@/lib/utils/currency'
 import { BackButton } from '@/components/BackButton'
 import { useTranslation } from '@/components/LanguageProvider'
+import { useCachedData } from '@/hooks/useCachedData'
 import { PdfDownloadButton } from '@/components/PdfDownloadButton'
 import { WeeklySalesChart } from '@/components/dashboard/WeeklySalesChart'
-import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
 import type { SalesStatistics, ProductMovement, NonMover } from '@/lib/db/sales-statistics'
 
 function todaySAST(): string {
@@ -30,30 +30,17 @@ export default function SalesStatisticsPage() {
   // Default range: last 30 days (inclusive of today).
   const [from, setFrom] = useState<string>(shiftDate(today, -29))
   const [to, setTo] = useState<string>(today)
-  const [data, setData] = useState<SalesStatistics | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [errorKey, setErrorKey] = useState<string | null>(null)
 
-  const loadStats = useCallback(() => {
-    setLoading(true)
-    fetch(`/api/sales/statistics?from=${from}&to=${to}`, { cache: 'no-store' })
-      .then(async (r) => {
-        if (!r.ok) throw new Error('load')
+  // Cache-first (Phase 44b): date range in the key; revalidates on resume +
+  // mutations via the hook (replacing the old loadStats + useRefetchOnVisible).
+  const { data, loading, error } = useCachedData<SalesStatistics>(
+    `sales-stats:${from}:${to}`,
+    () =>
+      fetch(`/api/sales/statistics?from=${from}&to=${to}`, { cache: 'no-store' }).then((r) => {
+        if (!r.ok) throw new Error('load failed')
         return r.json() as Promise<SalesStatistics>
-      })
-      .then((d) => {
-        setData(d)
-        setErrorKey(null)
-      })
-      .catch(() => setErrorKey('error_load'))
-      .finally(() => setLoading(false))
-  }, [from, to])
-
-  useEffect(() => {
-    loadStats()
-  }, [loadStats])
-
-  useRefetchOnVisible(loadStats)
+      }),
+  )
 
   const pdfUrl = useMemo(
     () => `/api/reports/sales-statistics-pdf?from=${from}&to=${to}`,
@@ -112,12 +99,12 @@ export default function SalesStatisticsPage() {
       {/* Loading */}
       {loading && <p className="text-center text-gray-400 text-sm mt-6">{t('loading')}</p>}
 
-      {/* Error */}
-      {errorKey && (
-        <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4 mb-4">{t(errorKey)}</div>
+      {/* Error — only when there's nothing cached to show */}
+      {error && (
+        <div className="bg-red-50 text-red-700 text-sm rounded-xl p-4 mb-4">{t('error_load')}</div>
       )}
 
-      {!loading && !errorKey && data && totals && (
+      {!loading && !error && data && totals && (
         <>
           {/* Summary tiles */}
           <div className={`grid ${profitOn ? 'grid-cols-2' : 'grid-cols-3'} gap-2 mb-4`}>

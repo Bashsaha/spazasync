@@ -1,14 +1,17 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import type { Teller, AccessRequestWithTeller } from '@/types'
 import { Skeleton } from '@/components/Skeleton'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { BackButton } from '@/components/BackButton'
 import { useTranslation } from '@/components/LanguageProvider'
-import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
+import { useCachedData } from '@/hooks/useCachedData'
 import { emitDataChanged } from '@/lib/events'
+
+const EMPTY_TELLERS: Teller[] = []
+const EMPTY_GRANTS: AccessRequestWithTeller[] = []
 
 /** "in 2 hours" / "in 45 min" / "soon" — short relative format. */
 function formatExpiresIn(iso: string | null): string {
@@ -24,54 +27,42 @@ function formatExpiresIn(iso: string | null): string {
 
 export default function TellersPage() {
   const { t } = useTranslation('tellers')
-  const [tellers, setTellers] = useState<Teller[]>([])
-  const [grants, setGrants] = useState<AccessRequestWithTeller[]>([])
-  const [loading, setLoading] = useState(true)
+  // Mutation-error state stays local; the list itself is cache-first.
   const [errorKey, setErrorKey] = useState('')
   const [errorRaw, setErrorRaw] = useState('')
   const [pendingRemove, setPendingRemove] = useState<Teller | null>(null)
   const [removing, setRemoving] = useState(false)
   const [revokingId, setRevokingId] = useState<string | null>(null)
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    try {
-      const [tellersRes, grantsRes] = await Promise.all([
-        fetch('/api/tellers'),
-        fetch('/api/access-requests?status=granted'),
-      ])
-      const tellersData = await tellersRes.json()
-      if (!tellersRes.ok) {
-        if (tellersData.error) setErrorRaw(tellersData.error)
-        else setErrorKey('error_load')
-        return
-      }
-      setTellers(tellersData as Teller[])
-
-      // Grants are best-effort — don't block the tellers list if this 403s.
-      if (grantsRes.ok) {
-        const grantsData = (await grantsRes.json()) as { requests: AccessRequestWithTeller[] }
-        setGrants(grantsData.requests ?? [])
-      }
-      setErrorKey('')
-      setErrorRaw('')
-    } catch {
-      setErrorKey('error_generic')
-    } finally {
-      setLoading(false)
+  // Cache-first (Phase 44b): one snapshot of {tellers, grants}. Mutations below
+  // drop the optimistic local edits and emitDataChanged() instead — the hook
+  // (and the SW's BUG-041 invalidation) re-fetch fresh after each write.
+  const { data, loading, error } = useCachedData<{
+    tellers: Teller[]
+    grants: AccessRequestWithTeller[]
+  }>('tellers', async () => {
+    const [tellersRes, grantsRes] = await Promise.all([
+      fetch('/api/tellers', { cache: 'no-store' }),
+      fetch('/api/access-requests?status=granted', { cache: 'no-store' }),
+    ])
+    if (!tellersRes.ok) throw new Error('load failed')
+    const tellers = (await tellersRes.json()) as Teller[]
+    // Grants are best-effort — don't fail the whole load if this 403s.
+    let grants: AccessRequestWithTeller[] = []
+    if (grantsRes.ok) {
+      const g = (await grantsRes.json()) as { requests: AccessRequestWithTeller[] }
+      grants = g.requests ?? []
     }
-  }, [])
-
-  useEffect(() => { load() }, [load])
-
-  useRefetchOnVisible(load)
+    return { tellers, grants }
+  })
+  const tellers = data?.tellers ?? EMPTY_TELLERS
+  const grants = data?.grants ?? EMPTY_GRANTS
 
   async function confirmDeactivate() {
     if (!pendingRemove) return
     setRemoving(true)
     const res = await fetch(`/api/tellers/${pendingRemove.id}`, { method: 'PATCH' })
     if (res.ok) {
-      setTellers((prev) => prev.filter((t) => t.id !== pendingRemove.id))
       emitDataChanged()
     } else {
       const data = await res.json()
@@ -90,15 +81,14 @@ export default function TellersPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'revoke' }),
       })
-      if (res.ok) {
-        setGrants((prev) => prev.filter((g) => g.id !== id))
-      }
+      if (res.ok) emitDataChanged()
     } finally {
       setRevokingId(null)
     }
   }
 
-  const errorMessage = errorRaw || (errorKey ? t(errorKey) : '')
+  const errorMessage =
+    errorRaw || (errorKey ? t(errorKey) : '') || (error ? t('error_load') : '')
 
   return (
     <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
