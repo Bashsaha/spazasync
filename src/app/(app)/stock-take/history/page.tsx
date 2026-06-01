@@ -1,24 +1,28 @@
-import { redirect } from 'next/navigation'
+'use client'
+
 import { ClipboardList } from 'lucide-react'
-import { getShopAuth } from '@/lib/auth/shop-auth'
-import { getStockTakeHistory } from '@/lib/db/stock-take-history'
-import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
+import { useCachedData } from '@/hooks/useCachedData'
+import { useTranslation } from '@/components/LanguageProvider'
 import { formatSAST } from '@/lib/utils/date'
 import { BackButton } from '@/components/BackButton'
-import { PageHeader, EmptyState } from '@/components/ui'
+import { EmptyState } from '@/components/ui'
+import { Skeleton } from '@/components/Skeleton'
+import type { StockTakeSession } from '@/lib/db/stock-take-history'
 
-export default async function StockCountHistoryPage() {
-  const auth = await getShopAuth()
-  if (!auth) redirect('/login')
+const EMPTY: StockTakeSession[] = []
 
-  // Owner / admin only — tellers do the count, owners review who did what.
-  const role = auth.user.app_metadata?.role as string | undefined
-  if (role !== 'owner' && role !== 'admin') redirect('/sale')
+export default function StockCountHistoryPage() {
+  const { t, tPlural } = useTranslation('stock')
 
-  const locale = await getServerLocale()
-  const { t, tPlural } = await getServerTranslations(locale, ['stock'])
-
-  const sessions = await getStockTakeHistory(auth.shopId)
+  const { data, loading } = useCachedData<{ sessions: StockTakeSession[] }>(
+    'stock-take-history',
+    () =>
+      fetch('/api/stock-take/history', { cache: 'no-store' }).then((r) => {
+        if (!r.ok) throw new Error('load failed')
+        return r.json() as Promise<{ sessions: StockTakeSession[] }>
+      }),
+  )
+  const sessions = data?.sessions ?? EMPTY
 
   return (
     <main className="px-4 pt-8 pb-24 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
@@ -28,7 +32,13 @@ export default async function StockCountHistoryPage() {
       </div>
       <p className="text-gray-500 text-sm mb-6 ml-12">{t('history_subtitle')}</p>
 
-      {sessions.length === 0 ? (
+      {loading ? (
+        <div className="space-y-4">
+          {[0, 1].map((i) => (
+            <Skeleton key={i} className="h-28 rounded-2xl" />
+          ))}
+        </div>
+      ) : sessions.length === 0 ? (
         <EmptyState icon={ClipboardList} title={t('history_empty')} />
       ) : (
         <div className="space-y-4">

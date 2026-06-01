@@ -1,43 +1,51 @@
+'use client'
+
 import Link from 'next/link'
 import { BackButton } from '@/components/BackButton'
-import { getShopAuth } from '@/lib/auth/shop-auth'
-import { redirect } from 'next/navigation'
+import { useCachedData } from '@/hooks/useCachedData'
+import { useTranslation } from '@/components/LanguageProvider'
+import { formatSAST } from '@/lib/utils/date'
 import {
-  getLastPestVisitDate,
-  isPestOverdue,
   daysSince,
-} from '@/lib/db/pest-control'
-import {
-  getWasteManagement,
+  isPestOverdue,
   isWasteConfirmationStale,
-  todaySAST,
-} from '@/lib/db/waste-management'
-import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
+} from '@/lib/compliance/waste-pest-status'
 
-export const dynamic = 'force-dynamic'
+type Tone = 'red' | 'amber' | 'green'
 
-export default async function WastePestHubPage() {
-  const auth = await getShopAuth()
-  if (!auth) redirect('/login')
+const pillStyles: Record<Tone, string> = {
+  red: 'bg-red-50 text-red-700 border-red-100',
+  amber: 'bg-amber-50 text-amber-700 border-amber-100',
+  green: 'bg-green-50 text-green-700 border-green-100',
+}
 
-  const locale = await getServerLocale()
-  const { t } = await getServerTranslations(locale, ['waste-pest'])
-  const today = todaySAST()
+export default function WastePestHubPage() {
+  const { t } = useTranslation('waste-pest')
+  const today = formatSAST(new Date(), 'yyyy-MM-dd')
 
-  const [lastVisit, waste] = await Promise.all([
-    getLastPestVisitDate(),
-    getWasteManagement(),
-  ])
+  const { data: pest } = useCachedData<{ lastVisitDate: string | null }>('pest-control', () =>
+    fetch('/api/pest-control', { cache: 'no-store' }).then((r) => {
+      if (!r.ok) throw new Error('load failed')
+      return r.json() as Promise<{ lastVisitDate: string | null }>
+    }),
+  )
+  const { data: wasteRes } = useCachedData<{ waste: { last_confirmed_date: string | null } | null }>(
+    'waste-management',
+    () =>
+      fetch('/api/waste-management', { cache: 'no-store' }).then((r) => {
+        if (!r.ok) throw new Error('load failed')
+        return r.json() as Promise<{ waste: { last_confirmed_date: string | null } | null }>
+      }),
+  )
 
+  const lastVisit = pest?.lastVisitDate ?? null
   const pestDays = daysSince(lastVisit, today)
-  const pestOverdue = isPestOverdue(lastVisit, today)
-
   let pestStatus: string
-  let pestTone: 'red' | 'amber' | 'green'
+  let pestTone: Tone
   if (lastVisit === null) {
     pestStatus = t('card_pest_status_never')
     pestTone = 'red'
-  } else if (pestOverdue) {
+  } else if (isPestOverdue(lastVisit, today)) {
     pestStatus = t('card_pest_status_overdue', { days: String(pestDays ?? 0) })
     pestTone = 'amber'
   } else {
@@ -45,26 +53,19 @@ export default async function WastePestHubPage() {
     pestTone = 'green'
   }
 
+  const waste = wasteRes?.waste ?? null
   const wasteDays = daysSince(waste?.last_confirmed_date ?? null, today)
-  const wasteStale = isWasteConfirmationStale(waste?.last_confirmed_date ?? null, today)
-
   let wasteStatus: string
-  let wasteTone: 'red' | 'amber' | 'green'
+  let wasteTone: Tone
   if (!waste) {
     wasteStatus = t('card_waste_status_never')
     wasteTone = 'red'
-  } else if (waste.last_confirmed_date === null || wasteStale) {
+  } else if (waste.last_confirmed_date === null || isWasteConfirmationStale(waste.last_confirmed_date, today)) {
     wasteStatus = t('card_waste_status_stale', { days: String(wasteDays ?? 0) })
     wasteTone = 'amber'
   } else {
     wasteStatus = t('card_waste_status_recent', { days: String(wasteDays ?? 0) })
     wasteTone = 'green'
-  }
-
-  const pillStyles: Record<'red' | 'amber' | 'green', string> = {
-    red: 'bg-red-50 text-red-700 border-red-100',
-    amber: 'bg-amber-50 text-amber-700 border-amber-100',
-    green: 'bg-green-50 text-green-700 border-green-100',
   }
 
   return (

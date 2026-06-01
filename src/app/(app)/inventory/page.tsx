@@ -2,19 +2,19 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Package, Tag, ClipboardList, Clock, Truck } from 'lucide-react'
 import { getShopAuth } from '@/lib/auth/shop-auth'
-import { getExpiryStats } from '@/lib/db/batches'
 import { getTellerAccessStatus } from '@/lib/db/access-requests'
 import { TellerAccessRequestPanel } from '@/components/access/TellerAccessRequestPanel'
+import { InventorySummaryStrip } from '@/components/inventory/InventorySummaryStrip'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 
 export default async function InventoryHubPage() {
   const auth = await getShopAuth()
   if (!auth) redirect('/login')
-  const { shopId, supabase } = auth
+  const { supabase } = auth
   const role = auth.user.app_metadata?.role as string | undefined
 
   const locale = await getServerLocale()
-  const { t, tPlural } = await getServerTranslations(locale, ['inventory'])
+  const { t } = await getServerTranslations(locale, ['inventory'])
 
   // Tellers without an active grant see the request-access panel instead
   // of the tile grid. Granted tellers fall through to the normal hub.
@@ -25,24 +25,6 @@ export default async function InventoryHubPage() {
     }
   }
 
-  // Fetch shop threshold + counts in parallel.
-  const [{ data: shop }, { count: totalProducts }, expiryStats] = await Promise.all([
-    supabase.from('shops').select('low_stock_threshold').eq('id', shopId).single(),
-    supabase.from('products').select('id', { count: 'exact', head: true }).eq('shop_id', shopId),
-    getExpiryStats(shopId),
-  ])
-
-  const threshold = (shop?.low_stock_threshold as number | undefined) ?? 5
-  const { count: lowCount } = await supabase
-    .from('products')
-    .select('id', { count: 'exact', head: true })
-    .eq('shop_id', shopId)
-    .lte('stock_qty', threshold)
-
-  const total = totalProducts ?? 0
-  const low = lowCount ?? 0
-  const expiring = expiryStats.expiringProducts + expiryStats.expiredProducts
-
   return (
     <main className="px-4 pt-10 pb-44 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       <div className="mb-5">
@@ -50,39 +32,8 @@ export default async function InventoryHubPage() {
         <p className="text-sm text-gray-400 mt-0.5">{t('hint')}</p>
       </div>
 
-      {/* Summary strip */}
-      <div className="grid grid-cols-3 gap-2 mb-5">
-        <div className="bg-white border border-gray-100 rounded-2xl p-3 text-center ">
-          <p className="text-xl font-bold text-gray-900">{total}</p>
-          <p className="text-xs text-gray-500 mt-0.5 leading-tight">
-            {tPlural('summary_total', total)}
-          </p>
-        </div>
-        <div
-          className={`rounded-2xl p-3 text-center border ${
-            low > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-100'
-          }`}
-        >
-          <p className={`text-xl font-bold ${low > 0 ? 'text-amber-700' : 'text-gray-900'}`}>
-            {low}
-          </p>
-          <p className={`text-xs mt-0.5 leading-tight ${low > 0 ? 'text-amber-700' : 'text-gray-500'}`}>
-            {t('summary_low')}
-          </p>
-        </div>
-        <div
-          className={`rounded-2xl p-3 text-center border ${
-            expiring > 0 ? 'bg-red-50 border-red-200' : 'bg-white border-gray-100'
-          }`}
-        >
-          <p className={`text-xl font-bold ${expiring > 0 ? 'text-red-700' : 'text-gray-900'}`}>
-            {expiring}
-          </p>
-          <p className={`text-xs mt-0.5 leading-tight ${expiring > 0 ? 'text-red-700' : 'text-gray-500'}`}>
-            {t('summary_expiring')}
-          </p>
-        </div>
-      </div>
+      {/* Summary strip — cache-first (Phase 44b) */}
+      <InventorySummaryStrip />
 
       {/* Tile grid. Granted tellers get a single tile — count stock. Owners /
           admins get the full hub. */}
