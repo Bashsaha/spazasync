@@ -2,7 +2,7 @@
   "name": "Movestock",
   "short_name": "Movestock",
   "description": "Sales and stock management for your spaza shop",
-  "start_url": "/sale",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

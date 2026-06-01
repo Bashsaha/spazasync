@@ -81,6 +81,11 @@ export async function proxy(request: NextRequest) {
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon') ||
+    // App Shell entry (Phase 44): `/` is a static, data-free brand splash that
+    // client-routes by local session. Early-return so it renders for BOTH
+    // logged-out and logged-in cold opens — letting the auth logic below run
+    // would bounce it (logged-out → /login, defeating the instant splash).
+    pathname === '/' ||
     pathname === '/manifest.json' ||
     pathname === '/sw.js' ||
     pathname === '/offline.html' ||

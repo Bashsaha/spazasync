@@ -23,7 +23,7 @@
  *                            navigations; cached HTML never was.
  */
 
-const CACHE = 'movestock-v77'
+const CACHE = 'movestock-v78'
 
 // Resources that MUST always be fetched fresh from the network so Chrome's
 // installability checker (and the platform's home-screen icon installer) sees
@@ -65,17 +65,31 @@ const SWR_GET_PATHS = [
   '/api/inventory/summary',
 ]
 
-/** Only /offline.html is safe to precache — it has no per-user data and no
+/** Only /offline.html is safe to precache atomically — no per-user data, no
  *  build-specific chunk references. Authenticated routes are NEVER precached
- *  (BUG-040). */
+ *  (BUG-040). The App Shell splash `/` is ALSO data-free + safe to cache (Phase
+ *  44) but is precached best-effort below so a transient non-200 can't fail the
+ *  whole install. */
 const PRECACHE_URLS = ['/offline.html']
+
+// The static, data-free App Shell entry. Precached + served cache-first so a
+// cold open (manifest start_url) paints the branded splash instantly.
+const APP_SHELL_DOC = '/'
 
 // ── Lifecycle ──────────────────────────────────────────────────────────────
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE)
-      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then(async (cache) => {
+        await cache.addAll(PRECACHE_URLS)
+        // Best-effort: don't fail install (→ no SW) if the splash momentarily 500s.
+        try {
+          await cache.add(APP_SHELL_DOC)
+        } catch {
+          /* will be cached on first navigation instead */
+        }
+      })
       .then(() => self.skipWaiting()),
   )
 })
@@ -206,6 +220,34 @@ self.addEventListener('fetch', (event) => {
     request.headers.get('RSC') === '1' ||
     request.headers.get('Next-Router-Prefetch') === '1'
   if (!isDocument || isRscPayload) return
+
+  // App Shell entry `/` — the ONLY navigation HTML we cache, because it is
+  // static + data-free (Phase 44). Serve cache-first (instant cold open), then
+  // revalidate in the background. BUG-040-safe: no per-user data, and the CACHE
+  // version bump on every deploy evicts the old copy + its chunk refs.
+  if (url.pathname === APP_SHELL_DOC) {
+    event.respondWith(
+      caches.open(CACHE).then(async (cache) => {
+        const cached = await cache.match(APP_SHELL_DOC)
+        const networkPromise = fetch(request)
+          .then((res) => {
+            if (res.ok) cache.put(APP_SHELL_DOC, res.clone())
+            return res
+          })
+          .catch(() => null)
+        if (cached) {
+          networkPromise // fire-and-forget background refresh
+          return cached
+        }
+        return (
+          (await networkPromise) ??
+          (await cache.match('/offline.html')) ??
+          new Response('', { status: 503, statusText: 'Offline' })
+        )
+      }),
+    )
+    return
+  }
 
   // Page navigation — network-first, /offline.html fallback. We deliberately
   // do NOT cache navigation HTML: it contains per-user data and references
