@@ -1,62 +1,60 @@
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
-import { listProducts } from '@/lib/db/products'
+import { useCachedData } from '@/hooks/useCachedData'
+import { useTranslation } from '@/components/LanguageProvider'
 import { formatZAR } from '@/lib/utils/currency'
 import { CatalogImportSheet } from '@/components/products/CatalogImportSheet'
 import { BackButton } from '@/components/BackButton'
-import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
+import { Skeleton } from '@/components/Skeleton'
+import { ProductListRow, type ProductRow } from '@/components/products/ProductListRow'
 
-export default async function ProductsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ search?: string }>
-}) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+const EMPTY: ProductRow[] = []
 
-  const { search = '' } = await searchParams
+type SettingsResp = {
+  profit_tracking_enabled?: boolean
+  products_missing_cost?: number
+  products_missing_supplier?: number
+  suppliers_count?: number
+}
 
-  const shopId = user.app_metadata?.shop_id as string
+export default function ProductsPage() {
+  const { t } = useTranslation('products')
 
-  const locale = await getServerLocale()
-  const [products, { t }, shopRow] = await Promise.all([
-    listProducts(search || undefined),
-    getServerTranslations(locale, ['products']),
-    supabase
-      .from('shops')
-      .select('profit_tracking_enabled, id')
-      .eq('id', shopId)
-      .single(),
-  ])
+  // Search is now client-side (debounced into the cache key) — instant paint
+  // from the cached default list, no form round-trip.
+  const [search, setSearch] = useState('')
+  const [debounced, setDebounced] = useState('')
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(search.trim()), 250)
+    return () => clearTimeout(id)
+  }, [search])
 
-  const profitTracking = Boolean(shopRow.data?.profit_tracking_enabled)
+  const { data: productsData, loading } = useCachedData<{ products: ProductRow[] }>(
+    `products-list:${debounced}`,
+    () =>
+      fetch(`/api/products${debounced ? `?search=${encodeURIComponent(debounced)}` : ''}`, {
+        cache: 'no-store',
+      }).then((r) => {
+        if (!r.ok) throw new Error('load failed')
+        return r.json() as Promise<{ products: ProductRow[] }>
+      }),
+  )
+  const products = productsData?.products ?? EMPTY
 
-  // Banner counts for the gateway cards into the dedicated filtered routes.
-  const [missingCostRes, missingSupplierRes, suppliersRes] = await Promise.all([
-    profitTracking
-      ? supabase
-          .from('products')
-          .select('id', { count: 'exact', head: true })
-          .eq('shop_id', shopId)
-          .is('cost_price', null)
-      : Promise.resolve({ count: 0 } as { count: number | null }),
-    supabase
-      .from('products')
-      .select('id', { count: 'exact', head: true })
-      .eq('shop_id', shopId)
-      .is('supplier_id', null),
-    supabase
-      .from('suppliers')
-      .select('id', { count: 'exact', head: true })
-      .eq('shop_id', shopId),
-  ])
-  const missingCostCount = missingCostRes.count ?? 0
-  const missingSupplierCount = missingSupplierRes.count ?? 0
-  const suppliersCount = suppliersRes.count ?? 0
+  // Banner counts + profit flag come from /api/settings (SW-cached, and it
+  // already returns all three counts — see the settings route).
+  const { data: settings } = useCachedData<SettingsResp>('settings', () =>
+    fetch('/api/settings', { cache: 'no-store' }).then((r) => {
+      if (!r.ok) throw new Error('load failed')
+      return r.json() as Promise<SettingsResp>
+    }),
+  )
+  const profitTracking = Boolean(settings?.profit_tracking_enabled)
+  const missingCostCount = settings?.products_missing_cost ?? 0
+  const missingSupplierCount = settings?.products_missing_supplier ?? 0
+  const suppliersCount = settings?.suppliers_count ?? 0
 
   return (
     <main className="px-4 pt-10 pb-36 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
@@ -108,54 +106,39 @@ export default async function ProductsPage({
         </Link>
       ) : null}
 
-      <form method="GET" className="mb-4">
+      <div className="mb-4">
         <input
           name="search"
-          defaultValue={search}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder={t('search_placeholder')}
           className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
         />
-      </form>
+      </div>
 
-      {products.length === 0 ? (
+      {loading ? (
+        <ul className="space-y-2">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <li key={i}>
+              <Skeleton className="h-[68px] rounded-2xl" />
+            </li>
+          ))}
+        </ul>
+      ) : products.length === 0 ? (
         <p className="text-center text-gray-400 text-sm mt-12">
-          {search ? t('empty_search') : t('empty_no_search')}
+          {debounced ? t('empty_search') : t('empty_no_search')}
         </p>
       ) : (
         <ul className="space-y-2">
-          {products.map((p) => {
-            const missingCost = profitTracking && p.cost_price == null
-            return (
-              <li key={p.id}>
-                <Link
-                  href={`/products/${p.id}`}
-                  className="flex items-center justify-between bg-white rounded-2xl p-4 border border-gray-100 active:bg-gray-50"
-                >
-                  <div className="min-w-0">
-                    <p className="font-semibold text-gray-900 truncate">{p.name}</p>
-                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      <p className="text-xs text-gray-400 font-mono">{p.barcode || t('no_barcode')}</p>
-                      {missingCost && (
-                        <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
-                          {t('missing_cost_pill')}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-right ml-4 shrink-0">
-                    <p className="font-bold text-gray-900">{formatZAR(p.price)}</p>
-                    <p
-                      className={`text-xs mt-0.5 ${
-                        p.stock_qty <= 5 ? 'text-red-500 font-semibold' : 'text-gray-400'
-                      }`}
-                    >
-                      {p.stock_qty} {t('in_stock')}
-                    </p>
-                  </div>
-                </Link>
-              </li>
-            )
-          })}
+          {products.map((p) => (
+            <li key={p.id}>
+              <ProductListRow
+                product={p}
+                href={`/products/${p.id}`}
+                showCostPill={profitTracking && p.cost_price == null}
+              />
+            </li>
+          ))}
         </ul>
       )}
     </main>

@@ -1,33 +1,38 @@
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
-import { listProducts } from '@/lib/db/products'
-import { formatZAR } from '@/lib/utils/currency'
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useCachedData } from '@/hooks/useCachedData'
+import { useTranslation } from '@/components/LanguageProvider'
 import { BackButton } from '@/components/BackButton'
-import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
+import { Skeleton } from '@/components/Skeleton'
+import { ProductListRow, type ProductRow } from '@/components/products/ProductListRow'
 
-export default async function ProductsMissingCostPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+const EMPTY: ProductRow[] = []
 
-  const shopId = user.app_metadata?.shop_id as string
+export default function ProductsMissingCostPage() {
+  const { t } = useTranslation('products')
+  const router = useRouter()
 
-  const locale = await getServerLocale()
-  const [products, { t }, shopRow] = await Promise.all([
-    listProducts(undefined, { missingCost: true }),
-    getServerTranslations(locale, ['products']),
-    supabase
-      .from('shops')
-      .select('profit_tracking_enabled')
-      .eq('id', shopId)
-      .single(),
-  ])
+  const { data, loading } = useCachedData<{ products: ProductRow[] }>('products:missing-cost', () =>
+    fetch('/api/products?missing_cost=1', { cache: 'no-store' }).then((r) => {
+      if (!r.ok) throw new Error('load failed')
+      return r.json() as Promise<{ products: ProductRow[] }>
+    }),
+  )
+  const products = data?.products ?? EMPTY
 
-  const profitTracking = Boolean(shopRow.data?.profit_tracking_enabled)
-  if (!profitTracking) redirect('/products')
+  // Profit-tracking guard: this page is only meaningful when profit tracking is
+  // on. Settings is SW-cached + returns the flag; redirect once we know it's off.
+  const { data: settings } = useCachedData<{ profit_tracking_enabled?: boolean }>('settings', () =>
+    fetch('/api/settings', { cache: 'no-store' }).then((r) => {
+      if (!r.ok) throw new Error('load failed')
+      return r.json() as Promise<{ profit_tracking_enabled?: boolean }>
+    }),
+  )
+  useEffect(() => {
+    if (settings && !settings.profit_tracking_enabled) router.replace('/products')
+  }, [settings, router])
 
   return (
     <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
@@ -36,7 +41,15 @@ export default async function ProductsMissingCostPage() {
         <h1 className="text-2xl font-bold text-gray-900">{t('missing_cost_page_title')}</h1>
       </div>
 
-      {products.length === 0 ? (
+      {loading ? (
+        <ul className="space-y-2">
+          {[0, 1, 2].map((i) => (
+            <li key={i}>
+              <Skeleton className="h-[68px] rounded-2xl" />
+            </li>
+          ))}
+        </ul>
+      ) : products.length === 0 ? (
         <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-4">
           <p className="text-sm font-semibold text-green-800">{t('missing_cost_all_done')}</p>
         </div>
@@ -50,30 +63,11 @@ export default async function ProductsMissingCostPage() {
           <ul className="space-y-2">
             {products.map((p) => (
               <li key={p.id}>
-                <Link
+                <ProductListRow
+                  product={p}
                   href={`/products/${p.id}?return=missing_cost`}
-                  className="flex items-center justify-between bg-white rounded-2xl p-4 border border-gray-100 active:bg-gray-50"
-                >
-                  <div className="min-w-0">
-                    <p className="font-semibold text-gray-900 truncate">{p.name}</p>
-                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      <p className="text-xs text-gray-400 font-mono">{p.barcode || t('no_barcode')}</p>
-                      <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
-                        {t('missing_cost_pill')}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="text-right ml-4 shrink-0">
-                    <p className="font-bold text-gray-900">{formatZAR(p.price)}</p>
-                    <p
-                      className={`text-xs mt-0.5 ${
-                        p.stock_qty <= 5 ? 'text-red-500 font-semibold' : 'text-gray-400'
-                      }`}
-                    >
-                      {p.stock_qty} {t('in_stock')}
-                    </p>
-                  </div>
-                </Link>
+                  showCostPill
+                />
               </li>
             ))}
           </ul>

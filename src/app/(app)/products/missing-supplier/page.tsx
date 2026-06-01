@@ -1,23 +1,26 @@
-import { redirect } from 'next/navigation'
+'use client'
+
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
-import { listProducts } from '@/lib/db/products'
-import { formatZAR } from '@/lib/utils/currency'
+import { useCachedData } from '@/hooks/useCachedData'
+import { useTranslation } from '@/components/LanguageProvider'
 import { BackButton } from '@/components/BackButton'
-import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
+import { Skeleton } from '@/components/Skeleton'
+import { ProductListRow, type ProductRow } from '@/components/products/ProductListRow'
 
-export default async function ProductsMissingSupplierPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+const EMPTY: ProductRow[] = []
 
-  const locale = await getServerLocale()
-  const [products, { t }] = await Promise.all([
-    listProducts(undefined, { missingSupplier: true }),
-    getServerTranslations(locale, ['products']),
-  ])
+export default function ProductsMissingSupplierPage() {
+  const { t } = useTranslation('products')
+
+  const { data, loading } = useCachedData<{ products: ProductRow[] }>(
+    'products:missing-supplier',
+    () =>
+      fetch('/api/products?missing_supplier=1', { cache: 'no-store' }).then((r) => {
+        if (!r.ok) throw new Error('load failed')
+        return r.json() as Promise<{ products: ProductRow[] }>
+      }),
+  )
+  const products = data?.products ?? EMPTY
 
   return (
     <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
@@ -26,7 +29,15 @@ export default async function ProductsMissingSupplierPage() {
         <h1 className="text-2xl font-bold text-gray-900">{t('missing_supplier_page_title')}</h1>
       </div>
 
-      {products.length === 0 ? (
+      {loading ? (
+        <ul className="space-y-2">
+          {[0, 1, 2].map((i) => (
+            <li key={i}>
+              <Skeleton className="h-[68px] rounded-2xl" />
+            </li>
+          ))}
+        </ul>
+      ) : products.length === 0 ? (
         <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-4">
           <p className="text-sm font-semibold text-green-800">{t('missing_supplier_all_done')}</p>
         </div>
@@ -46,25 +57,10 @@ export default async function ProductsMissingSupplierPage() {
           <ul className="space-y-2">
             {products.map((p) => (
               <li key={p.id}>
-                <Link
+                <ProductListRow
+                  product={p}
                   href={`/products/${p.id}?return=missing_supplier`}
-                  className="flex items-center justify-between bg-white rounded-2xl p-4 border border-gray-100 active:bg-gray-50"
-                >
-                  <div className="min-w-0">
-                    <p className="font-semibold text-gray-900 truncate">{p.name}</p>
-                    <p className="text-xs text-gray-400 font-mono mt-0.5">{p.barcode || t('no_barcode')}</p>
-                  </div>
-                  <div className="text-right ml-4 shrink-0">
-                    <p className="font-bold text-gray-900">{formatZAR(p.price)}</p>
-                    <p
-                      className={`text-xs mt-0.5 ${
-                        p.stock_qty <= 5 ? 'text-red-500 font-semibold' : 'text-gray-400'
-                      }`}
-                    >
-                      {p.stock_qty} {t('in_stock')}
-                    </p>
-                  </div>
-                </Link>
+                />
               </li>
             ))}
           </ul>
