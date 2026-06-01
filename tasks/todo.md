@@ -86,26 +86,21 @@ This is the mechanical transform used for every page below. Example diff shape:
 - Batch 1 (commit fad7a73): **stock**, **expiry**, **suppliers**.
 - Batch 2 (commit cc4fb1e): **documents**, **checklist/history**,
   **sales/history** (date in key), **waste-pest/pest** (delete via emitDataChanged).
+- Batch 3 (dashboard summary): **dashboard Today + Low-stock + Expiring cards**.
+  New client `DashboardSummaryCards` reads one cached snapshot of
+  `GET /api/summary/daily` (`'dashboard-summary'` key) and renders all three cards
+  — replaced three Suspense-wrapped server components, one fetch not three. The
+  Today card JSX was extracted into a shared presentational client view
+  [TodaySummaryView](src/components/dashboard/TodaySummaryView.tsx) so the
+  /sales hub (still server-streamed via [TodaySummary](src/components/dashboard/TodaySummary.tsx))
+  and the cache-first dashboard share one markup. Deleted the now-dead
+  LowStockAlert + ExpiringAlert server components. ComplianceCard,
+  JourneyProgressCard, LatestSales, the onboarding modal, the subscription
+  banner, and the DashboardAutoRefresh realtime path are untouched. SW v72→v73.
+  **Phone-test still pending (user):** cold open + resume → the three cards paint
+  instantly from cache, no spinner on the 2nd open.
 
 #### TODO — remaining, in recommended order
-
-**Batch 3 — Dashboard (DO NEXT; biggest felt win; server→client).**
-[dashboard/page.tsx](src/app/(app)/dashboard/page.tsx) is a server component that
-batch-queries shop + docs + owner_profile and streams server-component cards
-(ComplianceCard, JourneyProgressCard, TodaySummary, LowStockAlert, ExpiringAlert,
-LatestSales) via Suspense. To make it cache-first:
-- Recommended: keep the page mostly as-is BUT make the top-of-page numbers paint
-  cache-first. Simplest high-value move: the "today's summary" is the felt-slow
-  part — there is already `GET /api/summary/daily`. Convert TodaySummary (or add a
-  thin client wrapper) to `useCachedData('dashboard-summary', …)`.
-- Fuller option (more work): add a `GET /api/dashboard` that returns the shop
-  header fields + the card datasets in one payload, make the page `'use client'`,
-  drive it with `useCachedData('dashboard', …)`, and convert the server-component
-  cards to client components reading from that payload. Move `getServerTranslations`
-  → `useTranslation`, `getServerLocale` → `useTranslation().locale`.
-- DO NOT break the compliance onboarding modal, subscription banner, or the
-  `DashboardAutoRefresh` realtime path. Keep RLS on the API route.
-- Phone-test: cold open + resume → dashboard numbers show instantly from cache.
 
 **Batch 4 — remaining server components → client cache-first** (same server→client
 approach as Dashboard; each needs an API that returns its data — check if one

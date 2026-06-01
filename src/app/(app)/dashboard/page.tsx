@@ -3,9 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getAuthClaims } from '@/lib/auth/claims'
 import { redirect } from 'next/navigation'
 import { Skeleton } from '@/components/Skeleton'
-import { TodaySummary } from '@/components/dashboard/TodaySummary'
-import { LowStockAlert } from '@/components/dashboard/LowStockAlert'
-import { ExpiringAlert } from '@/components/dashboard/ExpiringAlert'
+import { DashboardSummaryCards } from '@/components/dashboard/DashboardSummaryCards'
 import { LatestSales } from '@/components/dashboard/LatestSales'
 import { DashboardAutoRefresh } from '@/components/dashboard/DashboardAutoRefresh'
 import { ComplianceCard } from '@/components/dashboard/ComplianceCard'
@@ -225,30 +223,10 @@ export default async function DashboardPage({
         </Suspense>
       )}
 
-      {/* Today's summary — streams in */}
-      {shop?.id && (
-        <Suspense fallback={<Skeleton className="h-24 rounded-2xl mb-4" />}>
-          <TodaySummary
-            shopId={shop.id}
-            locale={locale}
-            profitTrackingEnabled={Boolean(shop.profit_tracking_enabled)}
-          />
-        </Suspense>
-      )}
-
-      {/* Low stock alert — streams in, returns null when nothing's low */}
-      {shop?.id && (
-        <Suspense fallback={null}>
-          <LowStockAlert shopId={shop.id} threshold={shop.low_stock_threshold} locale={locale} />
-        </Suspense>
-      )}
-
-      {/* Expiring products alert — streams in, returns null when nothing's expiring */}
-      {shop?.id && (
-        <Suspense fallback={null}>
-          <ExpiringAlert shopId={shop.id} locale={locale} />
-        </Suspense>
-      )}
+      {/* Today's summary + low-stock + expiring alerts — cache-first (Phase 44b).
+          One cached snapshot of /api/summary/daily paints all three instantly on
+          a repeat open / resume, then revalidates in the background. */}
+      {shop?.id && <DashboardSummaryCards />}
 
       {/* Latest sales (with "See all →" link to /sales/history) */}
       {shop?.id && (
