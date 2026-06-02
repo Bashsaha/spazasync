@@ -75,6 +75,13 @@ export default async function DashboardPage({
   if (shopIdMeta) {
     // getShopForRequest is React.cache-memoised at the layout call site —
     // this hit reuses that result for free (zero DB call).
+    // Degrade-don't-crash on a resume-from-background network blip: a raw fetch
+    // rejection (sleeping radio / expired token) would otherwise reject the
+    // Promise.all and throw the whole page into the (app) error boundary — the
+    // "something went wrong" on the dashboard after backgrounding. getShopForRequest
+    // already catches internally; mirror that for the other two reads so the
+    // worst case is an empty card that DashboardAutoRefresh revalidates once
+    // RESUME_READY confirms the connection is back. (BUG-051)
     const [shopRow, docsRes, profileRes] = await Promise.all([
       getShopForRequest(shopIdMeta, supabase),
       isOwnerUI
@@ -82,6 +89,7 @@ export default async function DashboardPage({
             .from('business_documents')
             .select('document_type, status')
             .in('document_type', ['municipal_registration', 'coa', 'cipc', 'sars_tax', 'uif'])
+            .then((r) => r, () => ({ data: null }))
         : Promise.resolve({ data: null }),
       isOwnerUI
         ? supabase
@@ -91,6 +99,7 @@ export default async function DashboardPage({
             )
             .eq('user_id', claims.id)
             .maybeSingle()
+            .then((r) => r, () => ({ data: null }))
         : Promise.resolve({ data: null }),
     ])
 
@@ -133,6 +142,7 @@ export default async function DashboardPage({
           .select('id, name')
           .eq('id', shop.municipality_id)
           .maybeSingle()
+          .then((r) => r, () => ({ data: null }))
         if (m) preFilledMunicipality = { id: m.id as string, name: m.name as string }
       }
     }
