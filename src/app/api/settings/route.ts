@@ -14,7 +14,7 @@ export async function GET() {
 
   const { data: shop, error } = await auth.supabase
     .from('shops')
-    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, language, profit_tracking_enabled, has_fridge, has_freezer, subscription_status, trial_ends_at, subscription_ends_at, fund_interest')
+    .select('id, name, code, whatsapp_number, low_stock_threshold, registration_number, location, language, profit_tracking_enabled, has_fridge, has_freezer, subscription_status, trial_ends_at, subscription_ends_at, fund_interest, access_granted')
     .eq('id', auth.shopId)
     .single()
 

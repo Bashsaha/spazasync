@@ -2,17 +2,9 @@ import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthClaims } from '@/lib/auth/claims'
-import { OfflineSyncProvider } from '@/components/OfflineSyncProvider'
 import { ToastProvider } from '@/components/Toast'
 import { LanguageProvider } from '@/components/LanguageProvider'
-import { BottomNav } from '@/components/BottomNav'
-import { TopAppBar } from '@/components/TopAppBar'
-import DailySummaryAlert from '@/components/DailySummaryAlert'
-import { InstallPwaButton } from '@/components/InstallPwaButton'
-import { ChecklistReminderFab } from '@/components/ChecklistReminderFab'
-import { SaleDataWarmup } from '@/components/SaleDataWarmup'
-import { ResumeGuard } from '@/components/ResumeGuard'
-import { getTodayChecklist, todaySAST } from '@/lib/db/daily-checklist'
+import { AppChrome } from '@/components/AppChrome'
 import { getShopForRequest } from '@/lib/db/shop'
 import { isSubscriptionExpired, subscriptionEndDate } from '@/lib/subscription/expiry'
 import type { SupportedLocale, TranslationNamespace } from '@/lib/i18n/types'
@@ -28,25 +20,32 @@ const APP_SHELL_NAMESPACES: TranslationNamespace[] = [
   'compliance-reminders', 'sales-statistics',
 ]
 
+/**
+ * (app) shell layout — Phase 44 App Shell (Stage 2).
+ *
+ * The rendered HTML is now DATA-FREE per locale: it carries NO per-shop / per-
+ * user data (shop name, person name, role-specific nav all moved to the client
+ * <AppChrome>). That's what lets the service worker cache + serve `/sale` (and
+ * future shell routes) instantly on a cold open without leaking one shop's data
+ * to another (BUG-040). The only thing that varies the HTML is the LOCALE (the
+ * baked translation namespaces) — the SW caches shell docs PER-LOCALE keyed off
+ * the mvs_locale cookie, so each language still gets its correct copy with no
+ * flash.
+ *
+ * The authoritative SECURITY remains SERVER-SIDE here (the network path): the
+ * auth gate + the teller-lockout redirect. <AppChrome> re-checks both client-
+ * side purely as a safety net for the SW-cached-serve path (where this never
+ * runs). RLS is the real data boundary throughout.
+ */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
 
-  // Resolve locale BEFORE any awaits: cookie is synchronous, so we can fire
-  // i18n in parallel with the auth + shop queries below. Falls back to the
-  // shop's stored language after the parallel batch lands if the cookie is
-  // missing (one extra cheap reconcile load for users who haven't picked a
-  // language yet — the LanguageProvider then writes the cookie client-side
-  // so subsequent loads stay on the fast path).
   const cookieStore = await cookies()
   const cookieLocale = parseLocale(cookieStore.get(LOCALE_COOKIE)?.value)
   const speculativeLocale: SupportedLocale = cookieLocale ?? DEFAULT_LOCALE
 
-  // Fire EVERYTHING in parallel from the start. getAuthClaims verifies the JWT
-  // LOCALLY (no network) once asymmetric signing keys are enabled — so a valid
-  // token renders the shell instantly even when the radio is still waking on
-  // resume, instead of hanging/throwing like the old auth.getUser() network
-  // call did. Translations only depend on locale, so they run in parallel.
-  // (BUG-049 — see lib/auth/claims.ts.)
+  // Local JWT verify (no network once asymmetric keys are on) in parallel with
+  // i18n (local files). (BUG-049)
   const [claims, initialNsMap] = await Promise.all([
     getAuthClaims(supabase),
     loadNamespacedTranslations(speculativeLocale, APP_SHELL_NAMESPACES),
@@ -58,42 +57,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const shopId = claims.appMetadata.shop_id as string | undefined
 
   let initialLocale: SupportedLocale = speculativeLocale
-  let shopName = 'Movestock'
-  let personName: string | null = null
-  let showChecklistReminder = false
 
   if (shopId) {
-    const needsChecklist = role === 'owner' || role === 'admin'
-    // getShopForRequest is React.cache-memoised so this read is reused by
-    // every server component below (dashboard page, JourneyProgressCard,
-    // reminders composite reader) — one DB call serves the whole render.
-    const [shopRow, tellerRes, checklistRes] = await Promise.all([
-      getShopForRequest(shopId, supabase),
-      supabase
-        .from('tellers')
-        .select('name')
-        .eq('user_id', claims.id)
-        .eq('shop_id', shopId)
-        .maybeSingle()
-        // Degrade to a nameless shell on a transient network failure rather
-        // than crashing the whole (app) render on resume. (BUG-049)
-        .then((r) => r, () => ({ data: null as { name?: string } | null })),
-      needsChecklist
-        ? getTodayChecklist(shopId, todaySAST()).catch(() => null)
-        : Promise.resolve(null),
-    ])
+    // React.cache-memoised — reused by the dashboard readers downstream.
+    const shopRow = await getShopForRequest(shopId, supabase)
 
-    if (shopRow?.name) shopName = shopRow.name
-    personName = (tellerRes.data?.name as string | undefined) ?? null
-    if (needsChecklist) showChecklistReminder = checklistRes === null
-
-    // Teller lockout for an expired shop. A teller's JWT doesn't carry the
-    // shop's subscription state, so we decide from the LIVE shop row (read
-    // for free via the React.cache'd getShopForRequest above — no extra
-    // query) using the SAME helper the owner gate uses. /shop-suspended sits
-    // OUTSIDE this (app) route group, so redirecting there does NOT re-enter
-    // this layout — no loop (BUG-047). Fail open if the row is missing so a
-    // transient read can't lock out a paid teller; /shop-suspended re-checks.
+    // Teller lockout for an expired shop (authoritative, server/network path).
+    // Decided from the LIVE shop row (a teller's JWT can't be trusted for sub
+    // state). /shop-suspended sits OUTSIDE this group → no redirect loop
+    // (BUG-047). Fail open if the row is missing. <AppChrome> mirrors this
+    // client-side for the SW-cached-serve path. This is a redirect DECISION —
+    // it bakes NO data into the HTML, so the shell stays cacheable.
     if (role === 'teller' && shopRow) {
       const expired = isSubscriptionExpired({
         status: shopRow.subscription_status,
@@ -107,28 +81,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       if (expired) redirect('/shop-suspended')
     }
 
-    // Reconcile speculative locale against the shop's stored language. If the
-    // cookie was missing or didn't match, do a second fast i18n load for the
-    // real locale. For users with the cookie set (the steady state), this is
-    // a no-op — speculativeLocale already equals shop.language.
     const resolvedShopLocale = parseLocale(shopRow?.language ?? undefined)
     if (resolvedShopLocale && resolvedShopLocale !== speculativeLocale) {
       initialLocale = resolvedShopLocale
     }
   }
 
-  // Second-pass i18n load ONLY if the speculative locale was wrong. The
-  // loader's per-(locale,ns) memoisation makes this cheap on subsequent
-  // requests after the first cold start.
   const finalNsMap =
     initialLocale === speculativeLocale
       ? initialNsMap
       : await loadNamespacedTranslations(initialLocale, APP_SHELL_NAMESPACES)
 
-  const initialChar = (personName ?? shopName).trim().charAt(0).toUpperCase()
-  const initial = initialChar || 'M'
-
-  // Sanity check: only emit a supported locale to the client.
   const safeLocale: SupportedLocale = SUPPORTED_LOCALES.includes(initialLocale)
     ? initialLocale
     : DEFAULT_LOCALE
@@ -141,26 +104,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         initialNsMap={finalNsMap}
       >
         <ToastProvider>
-          {/* Refreshes the session + confirms connectivity on resume BEFORE any
-              passive data refresh fires — kills the resume-from-background crash
-              / "tab won't load" (BUG-049). Mounted for every app user. */}
-          <ResumeGuard />
-          <TopAppBar
-            title={shopName}
-            subtitle={personName ?? undefined}
-            initial={initial}
-            bellShopId={role === 'owner' || role === 'admin' ? shopId : undefined}
-          />
-          <InstallPwaButton />
-          {role !== 'teller' && <DailySummaryAlert />}
-          <OfflineSyncProvider>
-            {children}
-          </OfflineSyncProvider>
-          <BottomNav role={role} hasShop={!!shopId} />
-          {(role === 'owner' || role === 'admin') && shopId && (
-            <ChecklistReminderFab initialVisible={showChecklistReminder} />
-          )}
-          {shopId && <SaleDataWarmup />}
+          <AppChrome>{children}</AppChrome>
         </ToastProvider>
       </LanguageProvider>
     </div>

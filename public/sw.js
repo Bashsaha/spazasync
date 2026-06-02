@@ -23,7 +23,7 @@
  *                            navigations; cached HTML never was.
  */
 
-const CACHE = 'movestock-v78'
+const CACHE = 'movestock-v79'
 
 // Resources that MUST always be fetched fresh from the network so Chrome's
 // installability checker (and the platform's home-screen icon installer) sees
@@ -54,6 +54,7 @@ const SWR_GET_PATHS = [
   '/api/products/popular',
   '/api/settings',
   '/api/tellers',
+  '/api/tellers/me',
   '/api/suppliers',
   '/api/business-documents',
   '/api/compliance-score',
@@ -75,6 +76,48 @@ const PRECACHE_URLS = ['/offline.html']
 // The static, data-free App Shell entry. Precached + served cache-first so a
 // cold open (manifest start_url) paints the branded splash instantly.
 const APP_SHELL_DOC = '/'
+
+// Authenticated routes whose HTML is now DATA-FREE per locale (Phase 44 Stage 2
+// — the (app) layout bakes no per-shop data; chrome renders client-side). Safe
+// to SW-cache + serve instantly on cold open. Cached PER-LOCALE (keyed off the
+// mvs_locale cookie) so each language gets its correct copy with no flash.
+// ONLY add a route here once it renders NO per-user server data (BUG-040).
+const SHELL_DOC_LOCALE_PATHS = ['/sale']
+const SUPPORTED_LOCALES = ['en', 'so', 'am', 'zu', 'ur']
+
+/** Locale from the request's mvs_locale cookie (default 'en'). Lets us cache a
+ *  separate shell copy per language. */
+function localeFromRequest(request) {
+  const cookie = request.headers.get('cookie') || ''
+  const m = cookie.match(/(?:^|;\s*)mvs_locale=([a-zA-Z]{2})/)
+  const loc = m ? m[1].toLowerCase() : 'en'
+  return SUPPORTED_LOCALES.indexOf(loc) !== -1 ? loc : 'en'
+}
+
+/** Cache-first read of a stored response, with background revalidate. Shared by
+ *  the App Shell document branches. `key` may be a synthetic string. */
+function shellCacheFirst(event, request, key) {
+  event.respondWith(
+    caches.open(CACHE).then(async (cache) => {
+      const cached = await cache.match(key)
+      const networkPromise = fetch(request)
+        .then((res) => {
+          if (res.ok) cache.put(key, res.clone())
+          return res
+        })
+        .catch(() => null)
+      if (cached) {
+        networkPromise // fire-and-forget background refresh
+        return cached
+      }
+      return (
+        (await networkPromise) ??
+        (await cache.match('/offline.html')) ??
+        new Response('', { status: 503, statusText: 'Offline' })
+      )
+    }),
+  )
+}
 
 // ── Lifecycle ──────────────────────────────────────────────────────────────
 
@@ -221,31 +264,23 @@ self.addEventListener('fetch', (event) => {
     request.headers.get('Next-Router-Prefetch') === '1'
   if (!isDocument || isRscPayload) return
 
-  // App Shell entry `/` — the ONLY navigation HTML we cache, because it is
-  // static + data-free (Phase 44). Serve cache-first (instant cold open), then
-  // revalidate in the background. BUG-040-safe: no per-user data, and the CACHE
-  // version bump on every deploy evicts the old copy + its chunk refs.
+  // App Shell entry `/` — static + data-free splash (Phase 44 Stage 1). Serve
+  // cache-first (instant cold open). BUG-040-safe: no per-user data; the CACHE
+  // version bump on every deploy evicts the old copy + its chunk refs. No
+  // translated text on the splash, so a single (locale-agnostic) copy is fine.
   if (url.pathname === APP_SHELL_DOC) {
-    event.respondWith(
-      caches.open(CACHE).then(async (cache) => {
-        const cached = await cache.match(APP_SHELL_DOC)
-        const networkPromise = fetch(request)
-          .then((res) => {
-            if (res.ok) cache.put(APP_SHELL_DOC, res.clone())
-            return res
-          })
-          .catch(() => null)
-        if (cached) {
-          networkPromise // fire-and-forget background refresh
-          return cached
-        }
-        return (
-          (await networkPromise) ??
-          (await cache.match('/offline.html')) ??
-          new Response('', { status: 503, statusText: 'Offline' })
-        )
-      }),
-    )
+    shellCacheFirst(event, request, APP_SHELL_DOC)
+    return
+  }
+
+  // Data-free authenticated shell routes (Phase 44 Stage 2, e.g. /sale). The
+  // (app) layout bakes NO per-shop data; the chrome renders client-side, so the
+  // HTML is identical for everyone on a given LOCALE. Cache + serve cache-first
+  // keyed PER-LOCALE (mvs_locale cookie) so languages don't bleed into each
+  // other. BUG-040-safe ONLY because these routes are verified data-free.
+  if (SHELL_DOC_LOCALE_PATHS.indexOf(url.pathname) !== -1) {
+    const locale = localeFromRequest(request)
+    shellCacheFirst(event, request, `shell:${url.pathname}::${locale}`)
     return
   }
 
