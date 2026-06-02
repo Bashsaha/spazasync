@@ -23,7 +23,7 @@
  *                            navigations; cached HTML never was.
  */
 
-const CACHE = 'movestock-v80'
+const CACHE = 'movestock-v81'
 
 // Resources that MUST always be fetched fresh from the network so Chrome's
 // installability checker (and the platform's home-screen icon installer) sees
@@ -64,6 +64,7 @@ const SWR_GET_PATHS = [
   '/api/pest-control',
   '/api/waste-management',
   '/api/inventory/summary',
+  '/api/dashboard',
 ]
 
 /** Only /offline.html is safe to precache atomically — no per-user data, no
@@ -82,7 +83,7 @@ const APP_SHELL_DOC = '/'
 // to SW-cache + serve instantly on cold open. Cached PER-LOCALE (keyed off the
 // mvs_locale cookie) so each language gets its correct copy with no flash.
 // ONLY add a route here once it renders NO per-user server data (BUG-040).
-const SHELL_DOC_LOCALE_PATHS = ['/sale']
+const SHELL_DOC_LOCALE_PATHS = ['/sale', '/dashboard']
 const SUPPORTED_LOCALES = ['en', 'so', 'am', 'zu', 'ur']
 
 /** Locale from the request's mvs_locale cookie (default 'en'). Lets us cache a
@@ -102,7 +103,12 @@ function shellCacheFirst(event, request, key) {
       const cached = await cache.match(key)
       const networkPromise = fetch(request)
         .then((res) => {
-          if (res.ok) cache.put(key, res.clone())
+          // Only cache a clean, same-URL 200. A redirected response (e.g. an
+          // expired owner's /dashboard → /subscribe, or a teller's /sale →
+          // /shop-suspended) must NOT be cached under the original key, or we'd
+          // serve the wrong page next cold open. The client gates in AppChrome
+          // re-enforce these redirects on the cached-serve path anyway.
+          if (res.ok && !res.redirected) cache.put(key, res.clone())
           return res
         })
         .catch(() => null)

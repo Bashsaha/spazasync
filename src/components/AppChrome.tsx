@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { OfflineSyncProvider } from '@/components/OfflineSyncProvider'
 import { BottomNav } from '@/components/BottomNav'
 import { TopAppBar } from '@/components/TopAppBar'
@@ -12,6 +12,7 @@ import { SaleDataWarmup } from '@/components/SaleDataWarmup'
 import { ResumeGuard } from '@/components/ResumeGuard'
 import { createClient } from '@/lib/supabase/client'
 import { isSubscriptionExpired, subscriptionEndDate } from '@/lib/subscription/expiry'
+import { SUBSCRIPTION_EXEMPT } from '@/lib/auth/route-access'
 
 /**
  * Client-rendered app chrome (Phase 44 App Shell, Stage 2).
@@ -63,6 +64,7 @@ function writeMirror(v: ShellIdentity): void {
 
 export function AppChrome({ children }: { children: React.ReactNode }) {
   const router = useRouter()
+  const pathname = usePathname()
   // Synchronous mirror read → chrome paints correctly on the very first frame
   // for returning users (no flash of wrong name / missing nav).
   const [id, setId] = useState<ShellIdentity>(() => readMirror())
@@ -88,6 +90,23 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
 
         const role = (session.user.app_metadata?.role as ShellRole) ?? null
         const shopId = (session.user.app_metadata?.shop_id as string | undefined) ?? null
+
+        // Owner subscription gate — mirrors the middleware gate (proxy.ts) for
+        // the SW-cached-serve path (where middleware never ran). JWT-only, so no
+        // fetch. Exempt paths (/subscribe, /settings, …) are skipped → no loop.
+        // Tellers are handled by the lockout below; admins skip (like middleware).
+        if (
+          role === 'owner' &&
+          !SUBSCRIPTION_EXEMPT.some((r) => pathname.startsWith(r)) &&
+          isSubscriptionExpired({
+            status: session.user.app_metadata?.sub_status as string | undefined,
+            subUntil: session.user.app_metadata?.sub_until as string | undefined,
+            accessGranted: session.user.app_metadata?.access_granted as boolean | undefined,
+          })
+        ) {
+          router.replace('/subscribe')
+          return
+        }
 
         const [settings, me] = await Promise.all([
           fetch('/api/settings', { cache: 'no-store' })

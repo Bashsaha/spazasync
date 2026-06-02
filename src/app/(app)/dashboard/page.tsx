@@ -1,164 +1,112 @@
-import { Suspense } from 'react'
-import { createClient } from '@/lib/supabase/server'
-import { getAuthClaims } from '@/lib/auth/claims'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useCachedData } from '@/hooks/useCachedData'
+import { useTranslation } from '@/components/LanguageProvider'
+import { createClient } from '@/lib/supabase/client'
 import { Skeleton } from '@/components/Skeleton'
 import { DashboardSummaryCards } from '@/components/dashboard/DashboardSummaryCards'
-import { LatestSales } from '@/components/dashboard/LatestSales'
-import { DashboardAutoRefresh } from '@/components/dashboard/DashboardAutoRefresh'
-import { ComplianceCard } from '@/components/dashboard/ComplianceCard'
-import { JourneyProgressCard } from '@/components/dashboard/JourneyProgressCard'
+import { DashboardRealtime } from '@/components/dashboard/DashboardRealtime'
+import { ComplianceCardView, type ComplianceCardData } from '@/components/dashboard/ComplianceCardView'
+import { JourneyProgressCardView, type JourneyCardData } from '@/components/dashboard/JourneyProgressCardView'
+import { LatestSalesView } from '@/components/dashboard/LatestSalesView'
 import { DashboardComplianceOnboarding } from '@/components/compliance-onboarding/DashboardComplianceOnboarding'
-import { getShopForRequest } from '@/lib/db/shop'
-import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
-import type { DocumentStatus, NationalityType, OnboardingDocumentType } from '@/types'
+import type {
+  RecentSale,
+  DocumentStatus,
+  NationalityType,
+  OnboardingDocumentType,
+  VisaType,
+} from '@/types'
 
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams?: Promise<{ redo_compliance?: string }>
-}) {
-  const supabase = await createClient()
-  // Local JWT verification (no network round-trip on the resume/refresh path
-  // once asymmetric keys are enabled) instead of auth.getUser(). RLS + the
-  // per-query scoping below remain the security boundary. (BUG-049)
-  const claims = await getAuthClaims(supabase)
+/**
+ * Owner dashboard — Phase 44 App Shell. Fully DATA-FREE + client cache-first:
+ * the whole page reads one cached `/api/dashboard` snapshot, so its HTML is
+ * SW-cacheable (instant cold open like /sale) and it never server-renders into a
+ * sleeping radio on resume (the proper fix for BUG-051). Owner/admin only —
+ * middleware bounces tellers to /sale.
+ */
 
-  if (!claims) redirect('/login')
+const EMPTY_SALES: RecentSale[] = []
 
-  const sp = (await searchParams) ?? {}
-  const forceComplianceModal = sp.redo_compliance === '1'
-
-  // Trust the role + shop_id baked into the JWT by the middleware — saves a
-  // shop_users round trip. Then fire shop + owner-profile data in parallel.
-  // Previously: shop_users query (blocks) → 3 parallel queries = 2 sequential RTTs.
-  // Now: shop + docs + profile in one parallel batch = 1 RTT (then optional
-  // municipality lookup if the shop has one set).
-  //
-  // `isOwnerUI` deliberately treats dual-role admins (admins promoted from
-  // owners via scripts/set-admin.ts) the same as regular owners: they keep
-  // shop_id + their shop_users row with role='owner', so they expect the full
-  // owner dashboard (BUG-029 / BUG-039 follow-up). The previous code derived
-  // role from shop_users.role, which papered over the distinction; the JWT
-  // role we use now does not, so we have to gate on shopId + !teller instead.
-  const role = claims.appMetadata.role as 'owner' | 'teller' | 'admin' | undefined
-  const shopIdMeta = claims.appMetadata.shop_id as string | undefined
-  const isOwnerUI = !!shopIdMeta && role !== 'teller'
-
-  type Shop = {
-    id: string
-    name: string
+type DashboardPayload = {
+  shop: {
+    name: string | null
     code: string
-    low_stock_threshold: number
-    subscription_status: string
+    subscription_status: string | null
     trial_ends_at: string | null
     subscription_ends_at: string | null
     profit_tracking_enabled: boolean
-    municipality_id: string | null
     onboarding_compliance_completed: boolean
     onboarding_compliance_dismissed_at: string | null
     onboarding_compliance_dismiss_count: number
+  } | null
+  compliance: ComplianceCardData | null
+  journey: JourneyCardData | null
+  latestSales: RecentSale[]
+  onboarding: {
+    docs: { document_type: OnboardingDocumentType; status: DocumentStatus }[]
+    nationality: NationalityType | null
+    foodSafety: { completed: boolean; date: string | null; provider: string | null } | null
+    visa: { type: VisaType | null; expiryDate: string | null } | null
+    naturalised: boolean | null
+    municipality: { id: string; name: string } | null
   }
+}
 
-  let shop: Shop | null = null
-  let existingDocs: { document_type: OnboardingDocumentType; status: DocumentStatus }[] = []
-  let existingNationality: NationalityType | null = null
-  let existingFoodSafety:
-    | { completed: boolean; date: string | null; provider: string | null }
-    | null = null
-  let existingVisa:
-    | { type: import('@/types').VisaType | null; expiryDate: string | null }
-    | null = null
-  let existingNaturalisedPre1994: boolean | null = null
-  let preFilledMunicipality: { id: string; name: string } | null = null
+export default function DashboardPage() {
+  const { t, tPlural } = useTranslation('dashboard')
+  const searchParams = useSearchParams()
+  const forceComplianceModal = searchParams.get('redo_compliance') === '1'
 
-  if (shopIdMeta) {
-    // getShopForRequest is React.cache-memoised at the layout call site —
-    // this hit reuses that result for free (zero DB call).
-    // Degrade-don't-crash on a resume-from-background network blip: a raw fetch
-    // rejection (sleeping radio / expired token) would otherwise reject the
-    // Promise.all and throw the whole page into the (app) error boundary — the
-    // "something went wrong" on the dashboard after backgrounding. getShopForRequest
-    // already catches internally; mirror that for the other two reads so the
-    // worst case is an empty card that DashboardAutoRefresh revalidates once
-    // RESUME_READY confirms the connection is back. (BUG-051)
-    const [shopRow, docsRes, profileRes] = await Promise.all([
-      getShopForRequest(shopIdMeta, supabase),
-      isOwnerUI
-        ? supabase
-            .from('business_documents')
-            .select('document_type, status')
-            .in('document_type', ['municipal_registration', 'coa', 'cipc', 'sars_tax', 'uif'])
-            .then((r) => r, () => ({ data: null }))
-        : Promise.resolve({ data: null }),
-      isOwnerUI
-        ? supabase
-            .from('owner_profiles')
-            .select(
-              'nationality_type, food_safety_training_completed, food_safety_training_date, food_safety_training_provider, visa_type, visa_expiry_date, naturalised_pre_1994',
-            )
-            .eq('user_id', claims.id)
-            .maybeSingle()
-            .then((r) => r, () => ({ data: null }))
-        : Promise.resolve({ data: null }),
-    ])
-
-    shop = (shopRow as Shop | null) ?? null
-
-    if (isOwnerUI) {
-      existingDocs = (docsRes.data ?? []) as typeof existingDocs
-
-      const profile = profileRes.data as
-        | {
-            nationality_type: NationalityType | null
-            food_safety_training_completed: boolean | null
-            food_safety_training_date: string | null
-            food_safety_training_provider: string | null
-            visa_type: import('@/types').VisaType | null
-            visa_expiry_date: string | null
-            naturalised_pre_1994: boolean | null
-          }
-        | null
-      if (profile) {
-        existingNationality = profile.nationality_type ?? null
-        existingFoodSafety = {
-          completed: Boolean(profile.food_safety_training_completed),
-          date: profile.food_safety_training_date,
-          provider: profile.food_safety_training_provider,
+  // shopId for the realtime cross-device refresh (local JWT read, no network).
+  const [shopId, setShopId] = useState<string | undefined>(undefined)
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const { data } = await createClient().auth.getSession()
+        if (!cancelled) {
+          setShopId((data.session?.user.app_metadata?.shop_id as string | undefined) ?? undefined)
         }
-        existingVisa = {
-          type: profile.visa_type ?? null,
-          expiryDate: profile.visa_expiry_date ?? null,
-        }
-        existingNaturalisedPre1994 = profile.naturalised_pre_1994 ?? null
+      } catch {
+        /* ignore — realtime just won't subscribe */
       }
-
-      // Only the municipality name depends on shop.municipality_id, so we
-      // wait until after the parallel batch resolves to fire it (and skip
-      // entirely if no municipality is set).
-      if (shop?.municipality_id) {
-        const { data: m } = await supabase
-          .from('municipalities')
-          .select('id, name')
-          .eq('id', shop.municipality_id)
-          .maybeSingle()
-          .then((r) => r, () => ({ data: null }))
-        if (m) preFilledMunicipality = { id: m.id as string, name: m.name as string }
-      }
+    })()
+    return () => {
+      cancelled = true
     }
-  }
+  }, [])
 
-  const shopName = shop?.name ?? 'Your Shop'
+  const { data, loading } = useCachedData<DashboardPayload>('dashboard', () =>
+    fetch('/api/dashboard', { cache: 'no-store' }).then((r) => {
+      if (!r.ok) throw new Error('load failed')
+      return r.json() as Promise<DashboardPayload>
+    }),
+  )
+
+  const shop = data?.shop ?? null
+  const shopName = shop?.name || 'Your Shop'
   const shopCode = shop?.code ?? ''
 
-  const locale = await getServerLocale()
-  const { t, tPlural } = await getServerTranslations(locale, ['dashboard'])
+  // Subscription warning banner (≤3 days left on a trial / cancelled sub).
+  const endDate =
+    shop?.subscription_status === 'trialing'
+      ? shop?.trial_ends_at
+      : shop?.subscription_status === 'cancelled'
+        ? shop?.subscription_ends_at
+        : null
+  const daysLeft = endDate
+    ? Math.max(0, Math.ceil((new Date(endDate).getTime() - Date.now()) / (24 * 60 * 60 * 1000)))
+    : null
+  const showSubBanner = daysLeft !== null && daysLeft <= 3
+  const subLabel = t(shop?.subscription_status === 'trialing' ? 'sub_free_trial' : 'sub_subscription')
 
   return (
     <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
-      {/* Re-pulls server data after a sale (or any mutation) without a reload;
-          also live-refreshes when a sale is recorded on another device. */}
-      <DashboardAutoRefresh shopId={shopIdMeta} />
+      {/* Cross-device live refresh (a teller's sale on another device). */}
+      <DashboardRealtime shopId={shopId} />
 
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">{shopName}</h1>
@@ -169,80 +117,48 @@ export default async function DashboardPage({
         </p>
       </div>
 
-      {/* Subscription warning banner */}
-      {(() => {
-        const endDate = shop?.subscription_status === 'trialing'
-          ? shop?.trial_ends_at
-          : shop?.subscription_status === 'cancelled'
-            ? shop?.subscription_ends_at
-            : null
-        if (!endDate) return null
-        const daysLeft = Math.max(0, Math.ceil((new Date(endDate).getTime() - Date.now()) / (24 * 60 * 60 * 1000)))
-        if (daysLeft > 3) return null
-        const labelKey = shop?.subscription_status === 'trialing' ? 'sub_free_trial' : 'sub_subscription'
-        const label = t(labelKey)
-        return (
-          <a
-            href="/subscribe"
-            className="block bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4"
-          >
-            <p className="text-sm font-semibold text-amber-800">
-              {daysLeft === 0
-                ? t('sub_ended', { label })
-                : tPlural('sub_ending', daysLeft, { label, count: daysLeft })}
-            </p>
-            <p className="text-xs text-amber-600 mt-1">
-              {t('sub_tap_subscribe')}
-            </p>
-          </a>
-        )
-      })()}
+      {showSubBanner && (
+        <a href="/subscribe" className="block bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4">
+          <p className="text-sm font-semibold text-amber-800">
+            {daysLeft === 0
+              ? t('sub_ended', { label: subLabel })
+              : tPlural('sub_ending', daysLeft as number, { label: subLabel, count: daysLeft as number })}
+          </p>
+          <p className="text-xs text-amber-600 mt-1">{t('sub_tap_subscribe')}</p>
+        </a>
+      )}
 
-      {/* Compliance onboarding banner + modal (owners only, Phase 37b). */}
-      {/* Phase 37g smart reminders moved to the notification bell — see
-          NotificationBell.tsx for the full list rendered there. */}
-      {isOwnerUI && shop?.id && (
+      {/* Compliance onboarding banner + modal (owners). */}
+      {shop && (
         <DashboardComplianceOnboarding
           shop={{
             onboarding_compliance_completed: shop.onboarding_compliance_completed,
             onboarding_compliance_dismissed_at: shop.onboarding_compliance_dismissed_at,
             onboarding_compliance_dismiss_count: shop.onboarding_compliance_dismiss_count,
           }}
-          preFilledMunicipality={preFilledMunicipality}
-          existingDocs={existingDocs}
-          existingNationality={existingNationality}
-          existingFoodSafety={existingFoodSafety}
-          existingVisa={existingVisa}
-          existingNaturalisedPre1994={existingNaturalisedPre1994}
+          preFilledMunicipality={data?.onboarding.municipality ?? null}
+          existingDocs={data?.onboarding.docs ?? []}
+          existingNationality={data?.onboarding.nationality ?? null}
+          existingFoodSafety={data?.onboarding.foodSafety ?? null}
+          existingVisa={data?.onboarding.visa ?? null}
+          existingNaturalisedPre1994={data?.onboarding.naturalised ?? null}
           forceOpen={forceComplianceModal}
         />
       )}
 
-      {/* Unified compliance card — score + alerts OR all-clear with PDF link. Always present. */}
-      {shop?.id && (
-        <Suspense fallback={<Skeleton className="h-24 rounded-2xl mb-4" />}>
-          <ComplianceCard shopId={shop.id} locale={locale} />
-        </Suspense>
-      )}
-
-      {/* Phase 37c — Journey progress card. Owners only; the JourneyProgressCard returns
-          null for non-owners and for shops without journey state. */}
-      {isOwnerUI && shop?.id && (
-        <Suspense fallback={<Skeleton className="h-24 rounded-2xl mb-4" />}>
-          <JourneyProgressCard shopId={shop.id} userId={claims.id} locale={locale} />
-        </Suspense>
-      )}
-
-      {/* Today's summary + low-stock + expiring alerts — cache-first (Phase 44b).
-          One cached snapshot of /api/summary/daily paints all three instantly on
-          a repeat open / resume, then revalidates in the background. */}
-      {shop?.id && <DashboardSummaryCards />}
-
-      {/* Latest sales (with "See all →" link to /sales/history) */}
-      {shop?.id && (
-        <Suspense fallback={<Skeleton className="h-40 rounded-2xl mb-4" />}>
-          <LatestSales shopId={shop.id} locale={locale} />
-        </Suspense>
+      {/* First-ever load with no snapshot: a couple of card skeletons. */}
+      {loading && !data ? (
+        <div className="space-y-4">
+          <Skeleton className="h-24 rounded-2xl" />
+          <Skeleton className="h-24 rounded-2xl" />
+        </div>
+      ) : (
+        <>
+          {data?.compliance && <ComplianceCardView data={data.compliance} />}
+          {data?.journey && <JourneyProgressCardView data={data.journey} />}
+          <DashboardSummaryCards />
+          <LatestSalesView sales={data?.latestSales ?? EMPTY_SALES} />
+        </>
       )}
     </main>
   )
