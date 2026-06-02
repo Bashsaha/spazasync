@@ -241,9 +241,10 @@ The file tree below is ground truth. After every phase: Glob scan, diff against 
 
 Phases 1–36c + 37a–37g + 38 + 39 + 40 + 41a + 41b + 41c + 41d + 41e + 42 + 43 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
 
-**Phase 44 — App Shell Architecture / instant-open PWA — COMPLETE (2026-06-01).** 44a (resume-crash fix foundation) DONE + phone-verified; 44b (per-screen cache-first rollout + the resume-navigation stall fix) DONE. **The remaining "instant cold-START / app-kill" case is NOT solved by Phase 44 — that needs a static SW-served App Shell, a separate future phase.** [tasks/todo.md](tasks/todo.md) has the full per-page breakdown + the honest "intentionally left server-rendered" list. Final real-phone pass still owed by the user.
+**Phase 44 — App Shell Architecture / instant-open PWA — COMPLETE (2026-06-02), incl. the static App Shell + phone-verified.** 44a (resume-crash foundation), 44b (per-screen cache-first + the BUG-050 staleTimes resume-nav fix), AND the static **App Shell** (Stage 1 splash + Stage 2 data-free `(app)` shell + the dashboard increment) are all DONE and confirmed working on a real phone. **Cold START / app-kill is now solved:** `/`, `/sale`, `/dashboard` paint instantly from the SW cache on a cold open, with data hydrating cache-first. See the App Shell entry in "Most recent" for how it works.
 
 Most recent:
+- Phase 44 App Shell — static instant cold-open (2026-06-02) — the namesake of the phase: the app now opens instantly even on a true COLD START (Android killed the WebView), not just on resume. **Phone-verified working (owner + teller).** **How it works:** (1) **Stage 1** — the manifest `start_url` is now `/`, a static **data-free brand splash** ([src/app/page.tsx](src/app/page.tsx) + [LaunchRouter](src/components/LaunchRouter.tsx)) the SW precaches + serves cache-first, so the icon-tap paints instantly; LaunchRouter reads the LOCAL session (no network) and **HARD-navigates** (`window.location.assign`, NOT a soft/RSC nav — a document load is what the SW serves from cache) to `/dashboard` | `/sale` | `/onboarding` | `/login`. (2) **Stage 2** — the `(app)` layout HTML is now **DATA-FREE per locale**: the per-shop chrome (shop name, person name, role nav/bell/FAB) moved out of the server HTML into a client [AppChrome](src/components/AppChrome.tsx) (painted instantly from a `localStorage` mirror); the layout keeps the auth gate + teller-lockout + locale **server-side** (redirect/locale decisions bake no data). (3) **Dashboard increment** — `/dashboard` is now fully data-free + client cache-first via a consolidated [GET /api/dashboard](src/app/api/dashboard/route.ts) payload + presentational client card views ([ComplianceCardView](src/components/dashboard/ComplianceCardView.tsx), [JourneyProgressCardView](src/components/dashboard/JourneyProgressCardView.tsx), [LatestSalesView](src/components/dashboard/LatestSalesView.tsx)); the server `ComplianceCard`/`JourneyProgressCard`/`DashboardAutoRefresh` were deleted, server `LatestSales` now renders `LatestSalesView` (still used by the /sales hub), and [DashboardRealtime](src/components/dashboard/DashboardRealtime.tsx) fires `emitDataChanged()` on a cross-device sale. This **also structurally fixes BUG-051** (dashboard never server-renders → can't throw into the error boundary on resume). **The SW** ([public/sw.js](public/sw.js)) caches `/` + the per-locale shell docs `SHELL_DOC_LOCALE_PATHS=['/sale','/dashboard']` (keyed off the `mvs_locale` cookie so languages don't bleed). **Correctness guards** (caching authed docs bypasses middleware): AppChrome mirrors BOTH the middleware **owner subscription gate** (JWT-only, exempt-aware → expired owner still goes to `/subscribe`) and the **teller lockout** (live `/api/settings` → `/shop-suspended`); `shellCacheFirst` refuses to cache **redirected** responses so a `/subscribe`//shop-suspended redirect can't be cached under `/dashboard`//sale. `/api/settings` GET now returns `access_granted`; `/api/tellers/me` + `/api/dashboard` added to the SW SWR list. **Honest limit:** already-installed PWAs keep the old `start_url` until reinstall. SW v77→v81. No DB migration, no new i18n. 780/780 tests; tsc + build clean. **Intentionally still server-rendered** (instant via staleTimes on resume; converting was redundant/risky): manage+profile menus, sales hub, inspection/journey/fund engines, stock-take, detail/edit forms, /admin/*.
 - Phase 44b finish + BUG-050 (2026-06-01) — completed the cache-first rollout and fixed the **resume-from-background navigation stall** at its root. **The key fix (BUG-050):** tapping a bottom-nav tab after a long background froze 2–3 min with no spinner — a tab tap issues an RSC fetch with no timeout that bypasses the SW; with `staleTimes.dynamic=30` every tab went stale within seconds of backgrounding, so each resume tap re-fetched into a still-asleep radio and the navigation never committed. Raised `staleTimes.dynamic 30→1800` + `static 180→1800` in [next.config.ts](next.config.ts) so an already-visited tab repaints INSTANTLY from the in-memory Router Cache on resume; freshness stays correct via cache-first revalidation + `DATA_CHANGED` + realtime + `useRefetchOnVisible`'s background refresh. This made the remaining per-page conversions largely redundant for "instant repeat-open" (finished anyway for cross-app-kill persistent data). **Cache-first conversions:** dashboard Today/Low-stock/Expiring (new [DashboardSummaryCards](src/components/dashboard/DashboardSummaryCards.tsx) reading one `/api/summary/daily` snapshot; Today card extracted to shared [TodaySummaryView](src/components/dashboard/TodaySummaryView.tsx), also used by the server-streamed /sales hub; deleted `LowStockAlert`+`ExpiringAlert`); **products list** (client-side debounced search) + missing-cost + missing-supplier (shared [ProductListRow](src/components/products/ProductListRow.tsx); banners from SW-cached `/api/settings`); **inventory hub** count strip (new `GET /api/inventory/summary`; page stays server for role-gating); **waste-pest hub** status pills; **stock-take/history** (new owner/admin `GET /api/stock-take/history`); **tellers** (cached `{tellers,grants}`, optimistic mutations → `emitDataChanged()`); **suppliers/assign**; **sales/statistics** + **stock-take/loss** (date in key). **Intentionally left server-rendered** (staleTimes makes them instant on resume; converting risks launch-critical UI): manage+profile menus, sales-hub charts, inspection/compliance-journey/compliance-fund engines, stock-take (realtime + typed counts), detail/edit forms, waste-pest/waste config form, /admin/*. New SW SWR paths: `/api/waste-management`, `/api/inventory/summary`. SW v72→v77. 780/780 tests; tsc + build clean. BUG-050 logged. **Real-phone pass still owed:** open each converted tab twice (2nd instant), background 5+ min → resume → tap tabs (no stall), owner + teller login.
 - Phase 44b (in progress) — cache-first instant paint, batch 1 (2026-05-31) — the "opens instantly" work, rolled out per screen. New reusable engine [src/hooks/useCachedData.ts](src/hooks/useCachedData.ts): paints a screen INSTANTLY from the last snapshot saved in `localStorage` (synchronous read → no spinner on repeat visits), revalidates in the background, and re-fetches on `RESUME_READY` (post session-refresh, from 44a's ResumeGuard) + `DATA_CHANGED`. `error` surfaces only when there's NOTHING cached (a failed background refresh never replaces good cached data with an error banner). **Converted so far** (client read-list pages → cache-first; each drops its bespoke `loadX`/`useRefetchOnVisible`/`errorKey` state for the hook): batch 1 = [stock](src/app/(app)/stock/page.tsx), [expiry](src/app/(app)/expiry/page.tsx), [suppliers](src/app/(app)/suppliers/page.tsx); batch 2 = [documents](src/app/(app)/documents/page.tsx), [checklist/history](src/app/(app)/checklist/history/page.tsx), [sales/history](src/app/(app)/sales/history/page.tsx) (key includes the date), [waste-pest/pest](src/app/(app)/waste-pest/pest/page.tsx) (delete now relies on `emitDataChanged()` → hook refresh, dropping the optimistic local filter). No DB migration, no new i18n. SW cache v70 → v72. 780/780 tests; tsc + build clean.
 
@@ -305,7 +306,7 @@ When starting a new phase, append it here and update the file tree.
 
 ## Current File Tree
 
-_Last updated: Phase 44 COMPLETE — cache-first rollout + resume-nav fix (2026-06-01)_
+_Last updated: Phase 44 App Shell COMPLETE — static instant cold-open (2026-06-02)_
 
 ```
 spaza shop/
@@ -324,16 +325,17 @@ spaza shop/
 ├── src/
 │   ├── proxy.ts                           # Auth guard + role-based routing
 │   ├── app/
-│   │   ├── layout.tsx, error.tsx, not-found.tsx, page.tsx, globals.css, favicon.ico
+│   │   ├── layout.tsx, error.tsx, not-found.tsx, globals.css, favicon.ico
+│   │   ├── page.tsx                       # App Shell — static DATA-FREE splash (start_url=/) + <LaunchRouter>; SW-precached
 │   │   ├── auth/callback/route.ts
 │   │   ├── (auth)/
 │   │   │   ├── layout.tsx                 # Wraps in LanguageProvider
 │   │   │   ├── login/page.tsx             # Owner + Teller tabs
 │   │   │   └── onboarding/page.tsx        # Language → Account → Shop
 │   │   ├── (app)/
-│   │   │   ├── layout.tsx                 # LanguageProvider + ToastProvider + BottomNav + DailySummaryAlert
+│   │   │   ├── layout.tsx                 # App Shell — DATA-FREE per locale; auth/lockout/locale server-side; chrome via <AppChrome>
 │   │   │   ├── error.tsx
-│   │   │   ├── dashboard/{page.tsx, loading.tsx}     # Streaming with Suspense
+│   │   │   ├── dashboard/{page.tsx, loading.tsx}     # App Shell — 'use client' cache-first (GET /api/dashboard); data-free + SW-cached
 │   │   │   ├── settings/page.tsx
 │   │   │   ├── subscribe/page.tsx
 │   │   │   ├── sale/{page.tsx, complete/page.tsx}
@@ -377,6 +379,7 @@ spaza shop/
 │   │       ├── subscribe/{checkout/route.ts, notify/route.ts, status/route.ts}
 │   │       ├── cron/{expire-subscriptions,prune-reminders}/route.ts   # prune = 2026-05-24 cost pass
 │   │       ├── summary/daily/route.ts
+│   │       ├── dashboard/route.ts                           # App Shell — consolidated owner dashboard payload
 │   │       ├── admin/
 │   │       │   ├── overview/route.ts
 │   │       │   ├── catalog/{route.ts, [id]/route.ts}
@@ -425,9 +428,11 @@ spaza shop/
 │   │   │   ├── DashboardSummaryCards.tsx    # Phase 44b — cache-first Today/Low/Expiring (one /api/summary/daily snapshot)
 │   │   │   ├── TodaySummary.tsx             # server-streamed Today card (/sales hub) → shares TodaySummaryView
 │   │   │   ├── TodaySummaryView.tsx         # Phase 44b — shared presentational Today card
-│   │   │   ├── ComplianceCard.tsx          # Unified score + alerts
-│   │   │   ├── JourneyProgressCard.tsx     # Phase 37c — journey % + Continue CTA
-│   │   │   └── TopProducts.tsx, LatestSales.tsx
+│   │   │   ├── ComplianceCardView.tsx       # App Shell — presentational compliance card (from /api/dashboard)
+│   │   │   ├── JourneyProgressCardView.tsx  # App Shell — presentational journey card
+│   │   │   ├── LatestSalesView.tsx          # App Shell — shared presentational latest-sales list
+│   │   │   ├── DashboardRealtime.tsx        # App Shell — cross-device sale → emitDataChanged() (replaces DashboardAutoRefresh)
+│   │   │   └── TopProducts.tsx, LatestSales.tsx   # LatestSales = server fetcher → LatestSalesView (used by /sales hub)
 │   │   ├── inventory/InventorySummaryStrip.tsx   # Phase 44b — cache-first hub count strip
 │   │   ├── access/TellerAccessRequestPanel.tsx
 │   │   ├── compliance-onboarding/                        # Phase 37b (+ 37f VisaScreen)
@@ -464,6 +469,8 @@ spaza shop/
 │   │   ├── DailySummaryAlert.tsx
 │   │   ├── NewSupplierModal.tsx
 │   │   ├── ResumeGuard.tsx                  # Phase 44a — refresh session + probe on resume, then emit RESUME_READY
+│   │   ├── LaunchRouter.tsx                 # App Shell — splash brain: local session → hard-nav to dest
+│   │   ├── AppChrome.tsx                    # App Shell — client chrome + owner-gate/teller-lockout nets (data-free layout)
 │   │   ├── LegalFooter.tsx                  # 'use client' — Terms/Privacy links under login + onboarding
 │   │   └── ui/                              # Design-system primitives (2026-05-19)
 │   │       ├── Button.tsx, Card.tsx, PageHeader.tsx, SectionHeader.tsx
