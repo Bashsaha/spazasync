@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getOverviewStats } from '@/lib/db/admin'
 import { ComplianceVerificationWidget } from '@/components/admin/ComplianceVerificationWidget'
+import { DbSizeWidget } from '@/components/admin/DbSizeWidget'
 
 const statCards = [
   { key: 'totalShops', label: 'Total Shops', color: 'bg-gray-50 border-gray-200 text-gray-900' },
@@ -46,8 +47,15 @@ export default async function AdminOverviewPage() {
       {/* Phase 41e — compliance verification cadence (every 30 days). Audit
           work itself happens via Claude in the codebase; this widget tracks
           when it was last done + alerts when overdue. */}
-      <div className="mb-8">
+      <div className="mb-4">
         <ComplianceVerificationWidget />
+      </div>
+
+      {/* Phase 45f — DB size monitoring: see transactional-data growth coming
+          before any storage ceiling. The sales cold-archive cron keeps the hot
+          tables small once history accumulates. */}
+      <div className="mb-8">
+        <DbSizeWidget />
       </div>
 
       <Link
