@@ -1,19 +1,20 @@
 /**
- * Phase 42 — Sales Statistics.
+ * Phase 42 — Sales Statistics. Phase 45b — aggregation pushed into SQL.
  *
  * A period overview for owners: a revenue trend graph, the products that sold
  * the most / least, the products that made the most profit, and the
  * "non-movers" — products that have stock on hand but sold nothing in the
- * window. Everything is derived from `sales` + `sale_items` + `products`; there
- * is no new table.
+ * window. Everything is derived from `sales` + `sale_items` + `products`.
  *
- * Profit is only meaningful when the shop has cost prices: it is the sum of
- * `(unit_price - unit_cost) * quantity` over items whose `unit_cost` snapshot is
- * present. Products with no cost price are excluded from the profit ranking and
- * counted in `products_missing_cost` so the UI can nudge the owner.
+ * SCALE: the heavy aggregation (per-product sums, per-day revenue, non-mover
+ * detection) is done in the `shop_sales_statistics` SQL function via GROUP BY,
+ * so the number of rows returned to the app is bounded by (distinct products) +
+ * (days in range), NOT by the number of sales. This removes the old 20,000-sale
+ * cap that silently truncated an established shop's totals.
  *
- * The shaping function is pure (no DB, no clock) so it can be unit-tested. The
- * fetcher resolves SAST day bounds → UTC timestamps and feeds it raw rows.
+ * `shapeSalesStatistics` stays pure (no DB, no clock) and only does the cheap,
+ * well-tested parts: ranking (sort/slice over the bounded per-product list) and
+ * trend bucketing (daily vs weekly over the bounded per-day list).
  */
 
 import { createClient } from '@/lib/supabase/server'
@@ -66,26 +67,31 @@ export interface SalesStatistics {
   non_movers: NonMover[]
 }
 
-export interface RawStatSale {
-  completed_at: string
-  total: number
-}
+// ── Aggregate inputs (shapes returned by the shop_sales_statistics SQL fn) ────
 
-export interface RawStatItem {
+export interface AggProduct {
   product_id: string
-  quantity: number
-  unit_price: number
-  unit_cost: number | null
-  product_name: string
+  name: string
+  units_sold: number
+  revenue: number
+  has_cost: boolean
+  /** Summed profit; meaningful only when has_cost. */
+  profit: number | null
 }
 
-export interface RawStatProduct {
-  id: string
-  name: string
-  stock_qty: number
-  price: number
-  cost_price: number | null
-  created_at: string
+export interface AggDay {
+  /** SAST day, YYYY-MM-DD. */
+  day: string
+  revenue: number
+  sales_count: number
+}
+
+export interface AggTotals {
+  sales_count: number
+  units_sold: number
+  revenue: number
+  total_profit: number | null
+  products_missing_cost: number
 }
 
 const LIST_LIMIT = 10
@@ -115,60 +121,25 @@ function dayLabel(ymd: string): string {
 }
 
 /**
- * Pure shaping function. Collapses raw rows into the full statistics payload.
- * `fromYmd`/`toYmd` are SAST day strings (YYYY-MM-DD); `sales[].completed_at`
- * are ISO timestamps.
+ * Pure shaping function. Turns the SQL aggregates into the full statistics
+ * payload: rankings (sort/slice) + trend bucketing. No DB, no clock.
  */
 export function shapeSalesStatistics(
-  sales: RawStatSale[],
-  items: RawStatItem[],
-  products: RawStatProduct[],
+  perProduct: AggProduct[],
+  perDay: AggDay[],
+  nonMovers: NonMover[],
+  rawTotals: AggTotals,
   fromYmd: string,
   toYmd: string,
   profitTrackingEnabled: boolean,
 ): SalesStatistics {
-  // ── Per-product aggregation from sale items ──────────────────────────────
-  interface Agg {
-    name: string
-    units: number
-    revenue: number
-    profit: number
-    hasCost: boolean
-  }
-  const byProduct = new Map<string, Agg>()
-  let totalUnits = 0
-  let totalProfit = 0
-
-  for (const it of items) {
-    const existing = byProduct.get(it.product_id)
-    const lineRevenue = it.unit_price * it.quantity
-    const hasCost = it.unit_cost !== null && it.unit_cost !== undefined
-    const lineProfit = hasCost ? (it.unit_price - (it.unit_cost as number)) * it.quantity : 0
-    totalUnits += it.quantity
-    if (hasCost) totalProfit += lineProfit
-    if (existing) {
-      existing.units += it.quantity
-      existing.revenue += lineRevenue
-      existing.profit += lineProfit
-      existing.hasCost = existing.hasCost || hasCost
-      if (!existing.name && it.product_name) existing.name = it.product_name
-    } else {
-      byProduct.set(it.product_id, {
-        name: it.product_name || '—',
-        units: it.quantity,
-        revenue: lineRevenue,
-        profit: lineProfit,
-        hasCost,
-      })
-    }
-  }
-
-  const movements: ProductMovement[] = [...byProduct.entries()].map(([product_id, a]) => ({
-    product_id,
-    name: a.name,
-    units_sold: a.units,
-    revenue: round2(a.revenue),
-    profit: a.hasCost ? round2(a.profit) : null,
+  // ── Movements (already per-product aggregated in SQL) ─────────────────────
+  const movements: ProductMovement[] = perProduct.map((p) => ({
+    product_id: p.product_id,
+    name: p.name || '—',
+    units_sold: p.units_sold,
+    revenue: round2(p.revenue),
+    profit: p.has_cost ? round2(p.profit ?? 0) : null,
   }))
 
   // ── Top / lowest sellers (by units sold) ─────────────────────────────────
@@ -189,24 +160,15 @@ export function shapeSalesStatistics(
         .slice(0, LIST_LIMIT)
     : []
 
-  // ── Non-movers: in stock, zero units sold, and existed by the range end ──
-  const soldIds = new Set(byProduct.keys())
-  const rangeEndMs = new Date(`${toYmd}T23:59:59.999+02:00`).getTime()
-  const non_movers: NonMover[] = products
-    .filter(
-      (p) =>
-        p.stock_qty > 0 &&
-        !soldIds.has(p.id) &&
-        new Date(p.created_at).getTime() <= rangeEndMs,
-    )
-    .map((p) => ({ product_id: p.id, name: p.name, stock_qty: p.stock_qty, price: round2(p.price) }))
+  // ── Non-movers (SQL already filtered: in stock, unsold, created ≤ range end)
+  const non_movers: NonMover[] = [...nonMovers]
+    .map((n) => ({ ...n, price: round2(n.price) }))
     .sort((a, b) => b.stock_qty - a.stock_qty || a.name.localeCompare(b.name))
 
   // ── Revenue trend (adaptive daily vs weekly buckets) ─────────────────────
   const days = enumerateDays(fromYmd, toYmd)
   const granularity: Granularity = days.length <= DAILY_GRANULARITY_MAX_DAYS ? 'daily' : 'weekly'
 
-  // Map each SAST day to its bucket start day.
   const dayToBucketStart = new Map<string, string>()
   for (let i = 0; i < days.length; i++) {
     const bucketStart = granularity === 'daily' ? days[i] : days[Math.floor(i / 7) * 7]
@@ -223,40 +185,32 @@ export function shapeSalesStatistics(
     }
   }
 
-  let totalRevenue = 0
-  for (const s of sales) {
-    totalRevenue += s.total
-    const sast = formatInTimeZone(new Date(s.completed_at), SAST_TZ, 'yyyy-MM-dd')
-    const start = dayToBucketStart.get(sast)
-    if (!start) continue // outside the enumerated range (shouldn't happen)
+  const perDayMap = new Map(perDay.map((d) => [d.day, d]))
+  for (const day of days) {
+    const agg = perDayMap.get(day)
+    if (!agg) continue
+    const start = dayToBucketStart.get(day) as string
     const b = buckets.get(start)!
-    b.revenue += s.total
-    b.salesCount += 1
+    b.revenue += agg.revenue
+    b.salesCount += agg.sales_count
   }
 
   const trend: WeeklyDataPoint[] = bucketOrder.map((start) => {
     const b = buckets.get(start)!
-    return {
-      label: dayLabel(start),
-      date: start,
-      revenue: round2(b.revenue),
-      salesCount: b.salesCount,
-    }
+    return { label: dayLabel(start), date: start, revenue: round2(b.revenue), salesCount: b.salesCount }
   })
 
   // ── Totals ───────────────────────────────────────────────────────────────
-  const salesCount = sales.length
-  const revenue = round2(totalRevenue)
-  const productsMissingCost = [...byProduct.values()].filter((a) => !a.hasCost).length
-
+  const salesCount = rawTotals.sales_count
+  const revenue = round2(rawTotals.revenue)
   const totals: SalesStatsTotals = {
     sales_count: salesCount,
-    units_sold: totalUnits,
+    units_sold: rawTotals.units_sold,
     revenue,
     avg_sale_value: salesCount > 0 ? round2(revenue / salesCount) : 0,
-    profit: profitTrackingEnabled ? round2(totalProfit) : null,
+    profit: profitTrackingEnabled ? round2(rawTotals.total_profit ?? 0) : null,
     profit_tracking_enabled: profitTrackingEnabled,
-    products_missing_cost: productsMissingCost,
+    products_missing_cost: rawTotals.products_missing_cost,
   }
 
   return {
@@ -280,26 +234,10 @@ function sastDayToUtc(ymd: string, end: boolean): string {
   return new Date(utc).toISOString()
 }
 
-function normaliseName(raw: unknown): string {
-  if (!raw) return '—'
-  const obj = Array.isArray(raw) ? raw[0] : raw
-  if (!obj || typeof obj !== 'object') return '—'
-  const o = obj as { name?: unknown }
-  return typeof o.name === 'string' ? o.name : '—'
-}
-
-/**
- * Hard ceilings to protect Supabase egress + Vercel function duration when an
- * owner picks a long date range. A typical shop won't approach these — the
- * cap is purely a guardrail against pathological queries.
- */
-const SALES_QUERY_LIMIT = 20_000
-const PRODUCTS_QUERY_LIMIT = 5_000
-
 /**
  * Fetch + shape sales statistics for a shop over an inclusive SAST day range.
- * Uses the request-scoped client (owner-authenticated; RLS does the row-level
- * filtering, and shop_id is also explicitly bound).
+ * The shop_sales_statistics SQL function (SECURITY INVOKER → RLS applies) does
+ * all aggregation server-side; shop_id is also explicitly bound.
  */
 export async function getSalesStatistics(
   shopId: string,
@@ -311,54 +249,35 @@ export async function getSalesStatistics(
   const fromIso = sastDayToUtc(fromYmd, false)
   const toIso = sastDayToUtc(toYmd, true)
 
-  const [salesRes, productsRes] = await Promise.all([
-    supabase
-      .from('sales')
-      .select('id, total, completed_at')
-      .eq('shop_id', shopId)
-      .gte('completed_at', fromIso)
-      .lte('completed_at', toIso)
-      .limit(SALES_QUERY_LIMIT),
-    supabase
-      .from('products')
-      .select('id, name, stock_qty, price, cost_price, created_at')
-      .eq('shop_id', shopId)
-      .limit(PRODUCTS_QUERY_LIMIT),
-  ])
+  const { data, error } = await supabase.rpc('shop_sales_statistics', {
+    p_shop_id: shopId,
+    p_start: fromIso,
+    p_end: toIso,
+    p_range_end: toIso,
+  })
+  if (error) throw error
 
-  if (salesRes.error) throw salesRes.error
-  if (productsRes.error) throw productsRes.error
-
-  const rawSales = (salesRes.data ?? []).map((s) => ({
-    completed_at: s.completed_at as string,
-    total: Number(s.total),
-  }))
-
-  let items: RawStatItem[] = []
-  const saleIds = (salesRes.data ?? []).map((s) => s.id as string)
-  if (saleIds.length > 0) {
-    const { data: itemRows, error: itemsError } = await supabase
-      .from('sale_items')
-      .select('product_id, quantity, unit_price, unit_cost, products(name)')
-      .in('sale_id', saleIds)
-    if (itemsError) throw itemsError
-    items = (itemRows ?? []).map((r) => ({
-      product_id: r.product_id as string,
-      quantity: Number(r.quantity),
-      unit_price: Number(r.unit_price),
-      unit_cost: r.unit_cost === null || r.unit_cost === undefined ? null : Number(r.unit_cost),
-      product_name: normaliseName(r.products),
-    }))
+  const payload = (data ?? {}) as {
+    per_product?: AggProduct[]
+    per_day?: AggDay[]
+    non_movers?: NonMover[]
+    totals?: AggTotals
+  }
+  const rawTotals: AggTotals = payload.totals ?? {
+    sales_count: 0,
+    units_sold: 0,
+    revenue: 0,
+    total_profit: 0,
+    products_missing_cost: 0,
   }
 
-  const products: RawStatProduct[] = (productsRes.data ?? []).map((p) => ({
-    id: p.id as string,
-    name: p.name as string,
-    stock_qty: Number(p.stock_qty),
-    price: Number(p.price),
-    cost_price: p.cost_price === null || p.cost_price === undefined ? null : Number(p.cost_price),
-    created_at: p.created_at as string,
-  }))
-
-  return shapeSalesStatistics(rawSales, items, products, fromYmd, toYmd, profitTrackingEnabled)
+  return shapeSalesStatistics(
+    payload.per_product ?? [],
+    payload.per_day ?? [],
+    payload.non_movers ?? [],
+    rawTotals,
+    fromYmd,
+    toYmd,
+    profitTrackingEnabled,
+  )
 }

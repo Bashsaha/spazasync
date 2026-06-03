@@ -9,42 +9,21 @@ import { getShopAuth } from '@/lib/auth/shop-auth'
 export async function GET() {
   const auth = await getShopAuth()
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { supabase } = auth
+  const { supabase, shopId } = auth
 
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 
-  // Get sales IDs for this shop in the last 30 days (RLS scopes to user's shop)
-  const { data: sales, error: salesError } = await supabase
-    .from('sales')
-    .select('id')
-    .gte('completed_at', thirtyDaysAgo)
+  // Phase 45b — aggregate top sellers in SQL (shop_popular_products, SECURITY
+  // INVOKER → RLS applies) instead of pulling 30 days of sales + every sale_item
+  // and summing in JS (which was unbounded and ran on every product-picker open).
+  const { data, error } = await supabase.rpc('shop_popular_products', {
+    p_shop_id: shopId,
+    p_since: since,
+    p_limit: 10,
+  })
 
-  if (salesError) return NextResponse.json({ error: salesError.message }, { status: 500 })
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  const saleIds = (sales ?? []).map((s) => s.id)
-  if (saleIds.length === 0) return NextResponse.json({ popular: [] })
-
-  // Get all sale items for those sales (RLS: sale_items via sale_id)
-  const { data: items, error: itemsError } = await supabase
-    .from('sale_items')
-    .select('product_id, quantity')
-    .in('sale_id', saleIds)
-
-  if (itemsError) return NextResponse.json({ error: itemsError.message }, { status: 500 })
-
-  if (!items?.length) return NextResponse.json({ popular: [] })
-
-  // Aggregate quantity sold per product
-  const totals = new Map<string, number>()
-  for (const item of items) {
-    totals.set(item.product_id, (totals.get(item.product_id) ?? 0) + item.quantity)
-  }
-
-  // Return top 10 by total quantity, most sold first
-  const popular = [...totals.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10)
-    .map(([id]) => id)
-
+  const popular = ((data ?? []) as { product_id: string }[]).map((r) => r.product_id)
   return NextResponse.json({ popular })
 }

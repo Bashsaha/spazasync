@@ -47,59 +47,24 @@ export async function getDailySalesForShop(
   const supabase = await resolveClient(client, false)
   const { start, end } = getSASTDayBounds(date)
 
-  const { data: sales, error: salesError } = await supabase
-    .from('sales')
-    .select('id, total, teller_id')
-    .eq('shop_id', shopId)
-    .gte('completed_at', start)
-    .lte('completed_at', end)
+  // Phase 45b — aggregation done in one SQL round-trip (shop_daily_summary,
+  // SECURITY INVOKER → RLS applies; shop_id also explicitly bound) instead of
+  // pulling the day's sales + every sale_item and summing in JS.
+  const { data, error } = await supabase.rpc('shop_daily_summary', {
+    p_shop_id: shopId,
+    p_start: start,
+    p_end: end,
+  })
+  if (error) throw error
 
-  if (salesError) throw salesError
-
-  if (!sales || sales.length === 0) {
-    return { salesCount: 0, totalRevenue: 0, totalProfit: 0, hasProfitData: false, topItems: [], tellerCount: 0 }
-  }
-
-  const saleIds = sales.map((s) => s.id)
-  const totalRevenue = sales.reduce((acc, s) => acc + Number(s.total), 0)
-  const tellerCount = new Set(sales.map((s) => s.teller_id).filter(Boolean)).size
-
-  const { data: saleItems, error: itemsError } = await supabase
-    .from('sale_items')
-    .select('quantity, product_id, unit_price, unit_cost, products(name)')
-    .in('sale_id', saleIds)
-
-  if (itemsError) throw itemsError
-
-  const itemMap = new Map<string, { name: string; totalQty: number }>()
-  let totalProfit = 0
-  let hasProfitData = false
-  for (const item of saleItems ?? []) {
-    const productRaw = item.products as unknown as { name: string } | null
-    const productName = productRaw?.name ?? 'Unknown product'
-    const existing = itemMap.get(item.product_id)
-    if (existing) {
-      existing.totalQty += item.quantity
-    } else {
-      itemMap.set(item.product_id, { name: productName, totalQty: item.quantity })
-    }
-    if (item.unit_cost !== null && item.unit_cost !== undefined) {
-      hasProfitData = true
-      totalProfit += (Number(item.unit_price) - Number(item.unit_cost)) * item.quantity
-    }
-  }
-
-  const topItems = [...itemMap.values()]
-    .sort((a, b) => b.totalQty - a.totalQty)
-    .slice(0, 5)
-
+  const d = (data ?? {}) as Partial<DailySummaryData>
   return {
-    salesCount: sales.length,
-    totalRevenue: Math.round(totalRevenue * 100) / 100,
-    totalProfit: Math.round(totalProfit * 100) / 100,
-    hasProfitData,
-    topItems,
-    tellerCount,
+    salesCount: d.salesCount ?? 0,
+    totalRevenue: d.totalRevenue ?? 0,
+    totalProfit: d.totalProfit ?? 0,
+    hasProfitData: d.hasProfitData ?? false,
+    topItems: d.topItems ?? [],
+    tellerCount: d.tellerCount ?? 0,
   }
 }
 

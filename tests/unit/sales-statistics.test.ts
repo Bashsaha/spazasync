@@ -1,52 +1,54 @@
 import { describe, it, expect } from 'vitest'
 import {
   shapeSalesStatistics,
-  type RawStatSale,
-  type RawStatItem,
-  type RawStatProduct,
+  type AggProduct,
+  type AggDay,
+  type AggTotals,
+  type NonMover,
 } from '@/lib/db/sales-statistics'
 
-// Convenience builders ────────────────────────────────────────────────────
-function sale(completed_at: string, total: number): RawStatSale {
-  return { completed_at, total }
-}
-function item(
-  product_id: string,
-  product_name: string,
-  quantity: number,
-  unit_price: number,
-  unit_cost: number | null,
-): RawStatItem {
-  return { product_id, product_name, quantity, unit_price, unit_cost }
-}
-function product(
-  id: string,
-  name: string,
-  stock_qty: number,
-  price: number,
-  cost_price: number | null,
-  created_at: string,
-): RawStatProduct {
-  return { id, name, stock_qty, price, cost_price, created_at }
-}
+// Phase 45b: aggregation now happens in the shop_sales_statistics SQL function.
+// These tests cover the pure shaping logic that remains in JS — ranking,
+// trend bucketing, rounding — fed the per-product / per-day aggregates the SQL
+// function returns. (SQL-side aggregation correctness is verified live via RPC.)
 
-const CREATED_EARLY = '2026-04-01T00:00:00Z'
+// Convenience builders ────────────────────────────────────────────────────
+function agg(
+  product_id: string,
+  name: string,
+  units_sold: number,
+  revenue: number,
+  profit: number | null,
+): AggProduct {
+  return { product_id, name, units_sold, revenue, has_cost: profit !== null, profit }
+}
+function day(d: string, revenue: number, sales_count: number): AggDay {
+  return { day: d, revenue, sales_count }
+}
+function nonMover(product_id: string, name: string, stock_qty: number, price: number): NonMover {
+  return { product_id, name, stock_qty, price }
+}
+function totals(
+  sales_count: number,
+  units_sold: number,
+  revenue: number,
+  total_profit: number | null,
+  products_missing_cost: number,
+): AggTotals {
+  return { sales_count, units_sold, revenue, total_profit, products_missing_cost }
+}
 
 describe('shapeSalesStatistics — rankings', () => {
-  const sales = [sale('2026-05-02T08:00:00+02:00', 50), sale('2026-05-04T10:00:00+02:00', 40)]
-  const items = [
-    item('P1', 'Bread', 5, 10, 5), // revenue 50, profit (10-5)*5 = 25
-    item('P2', 'Milk', 2, 20, null), // revenue 40, profit null (no cost)
+  const perProduct = [
+    agg('P1', 'Bread', 5, 50, 25), // units 5, revenue 50, profit 25
+    agg('P2', 'Milk', 2, 40, null), // units 2, revenue 40, no cost
   ]
-  const products = [
-    product('P1', 'Bread', 3, 10, 5, CREATED_EARLY),
-    product('P2', 'Milk', 0, 20, null, CREATED_EARLY),
-    product('P3', 'Sugar', 10, 8, 4, CREATED_EARLY), // unsold, in stock → non-mover
-    product('P4', 'New item', 5, 15, null, '2026-06-01T00:00:00Z'), // created after range → not a non-mover
-    product('P5', 'Empty', 0, 30, 10, CREATED_EARLY), // unsold but no stock → not a non-mover
-  ]
+  const perDay = [day('2026-05-02', 50, 1), day('2026-05-04', 40, 1)]
+  // SQL already excludes after-range + zero-stock products; only true non-movers arrive.
+  const nonMovers = [nonMover('P3', 'Sugar', 10, 8)]
+  const rawTotals = totals(2, 7, 90, 25, 1)
 
-  const stats = shapeSalesStatistics(sales, items, products, '2026-05-01', '2026-05-07', true)
+  const stats = shapeSalesStatistics(perProduct, perDay, nonMovers, rawTotals, '2026-05-01', '2026-05-07', true)
 
   it('ranks top sellers by units sold (desc)', () => {
     expect(stats.top_sellers.map((p) => p.product_id)).toEqual(['P1', 'P2'])
@@ -56,7 +58,6 @@ describe('shapeSalesStatistics — rankings', () => {
 
   it('ranks lowest sellers by units sold (asc), only products that sold', () => {
     expect(stats.lowest_sellers.map((p) => p.product_id)).toEqual(['P2', 'P1'])
-    // P3 never sold — must not appear in lowest sellers
     expect(stats.lowest_sellers.some((p) => p.product_id === 'P3')).toBe(false)
   })
 
@@ -65,12 +66,12 @@ describe('shapeSalesStatistics — rankings', () => {
     expect(stats.top_profit[0].profit).toBe(25)
   })
 
-  it('detects non-movers: in stock, unsold, created on/before range end', () => {
+  it('sorts non-movers by stock on hand (desc)', () => {
     expect(stats.non_movers.map((n) => n.product_id)).toEqual(['P3'])
     expect(stats.non_movers[0].stock_qty).toBe(10)
   })
 
-  it('counts sold products missing a cost price', () => {
+  it('surfaces the SQL count of sold products missing a cost price', () => {
     expect(stats.totals.products_missing_cost).toBe(1)
   })
 
@@ -86,9 +87,10 @@ describe('shapeSalesStatistics — rankings', () => {
 
 describe('shapeSalesStatistics — profit tracking off', () => {
   const stats = shapeSalesStatistics(
-    [sale('2026-05-02T08:00:00+02:00', 50)],
-    [item('P1', 'Bread', 5, 10, 5)],
-    [product('P1', 'Bread', 3, 10, 5, CREATED_EARLY)],
+    [agg('P1', 'Bread', 5, 50, 25)],
+    [day('2026-05-02', 50, 1)],
+    [],
+    totals(1, 5, 50, 25, 0),
     '2026-05-01',
     '2026-05-07',
     false,
@@ -102,13 +104,12 @@ describe('shapeSalesStatistics — profit tracking off', () => {
 })
 
 describe('shapeSalesStatistics — trend granularity', () => {
-  const products = [product('P3', 'Sugar', 10, 8, 4, CREATED_EARLY)]
-
   it('uses daily buckets for a 7-day range and fills zero days', () => {
     const stats = shapeSalesStatistics(
-      [sale('2026-05-02T08:00:00+02:00', 50), sale('2026-05-04T10:00:00+02:00', 40)],
       [],
-      products,
+      [day('2026-05-02', 50, 1), day('2026-05-04', 40, 1)],
+      [],
+      totals(2, 0, 90, 0, 0),
       '2026-05-01',
       '2026-05-07',
       true,
@@ -121,15 +122,14 @@ describe('shapeSalesStatistics — trend granularity', () => {
   })
 
   it('uses daily buckets at exactly 31 days', () => {
-    const stats = shapeSalesStatistics([], [], products, '2026-01-01', '2026-01-31', true)
+    const stats = shapeSalesStatistics([], [], [], totals(0, 0, 0, 0, 0), '2026-01-01', '2026-01-31', true)
     expect(stats.granularity).toBe('daily')
     expect(stats.trend).toHaveLength(31)
   })
 
   it('switches to weekly buckets past 31 days', () => {
-    const stats = shapeSalesStatistics([], [], products, '2026-01-01', '2026-02-01', true)
+    const stats = shapeSalesStatistics([], [], [], totals(0, 0, 0, 0, 0), '2026-01-01', '2026-02-01', true)
     expect(stats.granularity).toBe('weekly')
-    // 32 days → ceil(32/7) = 5 weekly buckets, each labelled by its start day
     expect(stats.trend).toHaveLength(5)
     expect(stats.trend.map((b) => b.date)).toEqual([
       '2026-01-01',
@@ -140,15 +140,12 @@ describe('shapeSalesStatistics — trend granularity', () => {
     ])
   })
 
-  it('sums sales into the correct weekly bucket', () => {
+  it('sums per-day revenue into the correct weekly bucket', () => {
     const stats = shapeSalesStatistics(
-      [
-        sale('2026-01-03T08:00:00+02:00', 100), // week 0
-        sale('2026-01-10T08:00:00+02:00', 200), // week 1
-        sale('2026-01-11T08:00:00+02:00', 50), // week 1
-      ],
       [],
-      products,
+      [day('2026-01-03', 100, 1), day('2026-01-10', 200, 1), day('2026-01-11', 50, 1)],
+      [],
+      totals(3, 0, 350, 0, 0),
       '2026-01-01',
       '2026-02-01',
       true,
@@ -161,9 +158,10 @@ describe('shapeSalesStatistics — trend granularity', () => {
 describe('shapeSalesStatistics — rounding', () => {
   it('rounds revenue and profit to 2 decimals', () => {
     const stats = shapeSalesStatistics(
-      [sale('2026-05-02T08:00:00+02:00', 9.99)],
-      [item('P1', 'Thing', 3, 3.33, 1.11)], // revenue 9.99, profit (3.33-1.11)*3 = 6.66
-      [product('P1', 'Thing', 1, 3.33, 1.11, CREATED_EARLY)],
+      [agg('P1', 'Thing', 3, 9.99, 6.66)],
+      [day('2026-05-02', 9.99, 1)],
+      [],
+      totals(1, 3, 9.99, 6.66, 0),
       '2026-05-01',
       '2026-05-07',
       true,
