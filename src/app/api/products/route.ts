@@ -1,16 +1,20 @@
 import { NextResponse } from 'next/server'
-import { getShopAuth } from '@/lib/auth/shop-auth'
+import { getShopAuth, getShopAuthFast } from '@/lib/auth/shop-auth'
+import { checkRateLimit } from '@/lib/utils/rateLimit'
 import { parseBody, STABLE_READ_CACHE } from '@/lib/utils/api'
 import { createProductSchema } from '@/lib/validation/schemas'
 import { getCatalogEntry } from '@/lib/db/catalog'
 import { barcodeCandidates } from '@/lib/utils/barcode'
 
 export async function GET(request: Request) {
+  const { limited } = await checkRateLimit(request, { limit: 120, windowSecs: 60 })
+  if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+
   const { searchParams } = new URL(request.url)
   const search = searchParams.get('search') ?? ''
   const barcode = searchParams.get('barcode') ?? ''
 
-  const auth = await getShopAuth()
+  const auth = await getShopAuthFast()
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { supabase } = auth
 

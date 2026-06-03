@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getShopAuth } from '@/lib/auth/shop-auth'
+import { getShopAuthFast } from '@/lib/auth/shop-auth'
+import { checkRateLimit } from '@/lib/utils/rateLimit'
 import { STABLE_READ_CACHE } from '@/lib/utils/api'
 import { getComplianceScore } from '@/lib/db/compliance-score'
 import { getTodayChecklist, todaySAST } from '@/lib/db/daily-checklist'
@@ -24,8 +25,11 @@ const ONBOARDING_DOC_TYPES: OnboardingDocumentType[] = [
   'municipal_registration', 'coa', 'cipc', 'sars_tax', 'uif',
 ]
 
-export async function GET() {
-  const auth = await getShopAuth()
+export async function GET(request: Request) {
+  const { limited } = await checkRateLimit(request, { limit: 120, windowSecs: 60 })
+  if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+
+  const auth = await getShopAuthFast()
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const role = auth.user.app_metadata?.role as string | undefined

@@ -125,17 +125,19 @@ export async function updateShopUsersSubscription(
 
   if (!shopUsers) return
 
-  for (const su of shopUsers) {
-    try {
-      const metadata: Record<string, unknown> = { sub_status: subStatus, sub_until: subUntil }
-      if (accessGranted !== undefined) {
-        metadata.access_granted = accessGranted
-      }
-      await admin.auth.admin.updateUserById(su.user_id, {
-        app_metadata: metadata,
-      })
-    } catch (err) {
-      console.error(`Failed to update subscription metadata for user ${su.user_id}:`, err)
+  const metadata: Record<string, unknown> = { sub_status: subStatus, sub_until: subUntil }
+  if (accessGranted !== undefined) {
+    metadata.access_granted = accessGranted
+  }
+
+  // Update all of the shop's users in parallel (was a serial await-in-loop).
+  // allSettled so one failed user doesn't abort the rest.
+  const results = await Promise.allSettled(
+    shopUsers.map((su) => admin.auth.admin.updateUserById(su.user_id, { app_metadata: metadata })),
+  )
+  for (const r of results) {
+    if (r.status === 'rejected') {
+      console.error('Failed to update subscription metadata for a user:', r.reason)
     }
   }
 }
