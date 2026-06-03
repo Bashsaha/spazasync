@@ -11,6 +11,7 @@ import { FullScreenSpinner } from '@/components/Spinner'
 import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
 import { useUserRole } from '@/hooks/useUserRole'
 import { createClient } from '@/lib/supabase/client'
+import { subscribeShopBroadcast, type ShopChannel } from '@/lib/realtime/shop-channel'
 import { STOCK_TAKE_LOSS_REASONS, type StockTakeLossReason } from '@/lib/validation/schemas'
 import { emitDataChanged } from '@/lib/events'
 
@@ -102,26 +103,23 @@ export default function StockTakePage() {
   // kept (they're keyed by product id, separate from the products array), so a
   // refresh mid-count never wipes what the user has entered. Debounced.
   const rtDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const stockChannelRef = useRef<ShopChannel | null>(null)
   useEffect(() => {
     if (!shopId) return
-    const supabase = createClient()
-    const channel = supabase
-      .channel(`stocktake-products:${shopId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'products', filter: `shop_id=eq.${shopId}` },
-        () => {
-          if (rtDebounce.current) clearTimeout(rtDebounce.current)
-          // Short debounce just to coalesce the burst of product UPDATEs from
-          // one save; force a cache-busting (fresh) fetch so the new numbers
-          // show at once, not after the SW's background revalidate.
-          rtDebounce.current = setTimeout(() => loadStockTake(true), 250)
-        },
-      )
-      .subscribe()
+    // Phase 45d: peers are notified via a CLIENT Broadcast sent on save (see
+    // handleSubmit) rather than a postgres_changes socket on `products` — the
+    // latter fired on every sale's stock decrement, taxing the hot sale path.
+    const channel = subscribeShopBroadcast(shopId, 'products', () => {
+      if (rtDebounce.current) clearTimeout(rtDebounce.current)
+      // Coalesce a burst; force a cache-busting (fresh) fetch so the new numbers
+      // show at once, not after the SW's background revalidate.
+      rtDebounce.current = setTimeout(() => loadStockTake(true), 250)
+    })
+    stockChannelRef.current = channel
     return () => {
       if (rtDebounce.current) clearTimeout(rtDebounce.current)
-      supabase.removeChannel(channel)
+      channel.close()
+      stockChannelRef.current = null
     }
   }, [shopId, loadStockTake])
 
@@ -210,6 +208,8 @@ export default function StockTakePage() {
       }
       setSavedCount(entries.length)
       emitDataChanged()
+      // Notify other devices on the stock-take screen to refetch the live counts.
+      stockChannelRef.current?.send()
     } catch {
       setErrorKey('stock_take_error_network')
     } finally {

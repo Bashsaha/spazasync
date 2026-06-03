@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { subscribeShopBroadcast } from '@/lib/realtime/shop-channel'
+import { useRefetchOnVisible } from '@/hooks/useRefetchOnVisible'
 import { useTranslation } from '@/components/LanguageProvider'
 import type { AccessRequestWithTeller, Reminder } from '@/types'
 
@@ -64,31 +65,23 @@ export function NotificationBell({ shopId }: { shopId: string }) {
     }
   }, [])
 
+  // Phase 45d: live updates via the shop's `access_requests` Broadcast topic
+  // (an AFTER trigger pushes new/changed requests) instead of an always-on
+  // postgres_changes socket per owner — the lowest-ceiling cost at scale.
   useEffect(() => {
     refetchAccess()
     refetchReminders()
-
-    const supabase = createClient()
-    const channel = supabase
-      .channel(`access_requests:${shopId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'access_requests',
-          filter: `shop_id=eq.${shopId}`,
-        },
-        () => {
-          refetchAccess()
-        },
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
+    const channel = subscribeShopBroadcast(shopId, 'access_requests', refetchAccess)
+    return () => channel.close()
   }, [shopId, refetchAccess, refetchReminders])
+
+  // Graceful fallback: also refresh on resume/mutation, so a missed broadcast
+  // degrades to "updates on refocus" rather than going stale.
+  const refetchAll = useCallback(() => {
+    refetchAccess()
+    refetchReminders()
+  }, [refetchAccess, refetchReminders])
+  useRefetchOnVisible(refetchAll)
 
   // Lock body scroll while the sheet is open (full-screen sheet semantics).
   useEffect(() => {
