@@ -23,7 +23,7 @@
  *                            navigations; cached HTML never was.
  */
 
-const CACHE = 'movestock-v85'
+const CACHE = 'movestock-v86'
 
 // Resources that MUST always be fetched fresh from the network so Chrome's
 // installability checker (and the platform's home-screen icon installer) sees
@@ -65,6 +65,7 @@ const SWR_GET_PATHS = [
   '/api/waste-management',
   '/api/inventory/summary',
   '/api/dashboard',
+  '/api/sales/hub',
 ]
 
 /** Only /offline.html is safe to precache atomically — no per-user data, no

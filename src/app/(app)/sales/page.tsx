@@ -1,32 +1,41 @@
-import { Suspense } from 'react'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useCallback } from 'react'
 import Link from 'next/link'
 import { ShoppingCart, Calendar, BarChart3 } from 'lucide-react'
-import { getShopAuthFast } from '@/lib/auth/shop-auth'
+import { useTranslation } from '@/components/LanguageProvider'
+import { useCachedData } from '@/hooks/useCachedData'
 import { Skeleton } from '@/components/Skeleton'
-import { TodaySummary } from '@/components/dashboard/TodaySummary'
-import { WeeklyChartSection } from '@/components/dashboard/WeeklyChartSection'
-import { TopProducts } from '@/components/dashboard/TopProducts'
-import { LatestSales } from '@/components/dashboard/LatestSales'
-import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
+import { TodaySummaryView } from '@/components/dashboard/TodaySummaryView'
+import { WeeklySalesChart } from '@/components/dashboard/WeeklySalesChart'
+import { LatestSalesView } from '@/components/dashboard/LatestSalesView'
+import type { DailySummaryData, WeeklyDataPoint, RecentSale } from '@/types'
 
-export default async function SalesHubPage() {
-  // Fast read-side auth: local JWT verify (no network round-trip). On resume
-  // from background this no longer blocks on a sleeping radio, and it shaves an
-  // auth RTT off first paint. RLS remains the data boundary (Phase 45e pattern).
-  const auth = await getShopAuthFast()
-  if (!auth) redirect('/login')
-  const { shopId, supabase } = auth
+/**
+ * /sales hub — client cache-first (paints the last snapshot instantly, then
+ * revalidates) so it opens immediately on repeat visits and never server-renders
+ * into a sleeping radio on resume (the old slow + "error, try again" behaviour).
+ * Data comes from the consolidated GET /api/sales/hub. Owner/admin only —
+ * tellers are locked to /sale by proxy.ts and the endpoint 403s them.
+ */
+interface SalesHubPayload {
+  profitTrackingEnabled: boolean
+  summary: DailySummaryData
+  weekly: WeeklyDataPoint[]
+  topProducts: { name: string; totalQty: number }[]
+  recentSales: RecentSale[]
+}
 
-  const { data: shop } = await supabase
-    .from('shops')
-    .select('profit_tracking_enabled')
-    .eq('id', shopId)
-    .single()
-  const profitTrackingEnabled = Boolean(shop?.profit_tracking_enabled)
+export default function SalesHubPage() {
+  const { t } = useTranslation('sales')
 
-  const locale = await getServerLocale()
-  const { t } = await getServerTranslations(locale, ['sales'])
+  const fetcher = useCallback(async (): Promise<SalesHubPayload> => {
+    const res = await fetch('/api/sales/hub')
+    if (!res.ok) throw new Error('hub')
+    return res.json() as Promise<SalesHubPayload>
+  }, [])
+
+  const { data, loading } = useCachedData<SalesHubPayload>('sales-hub', fetcher)
 
   return (
     <main className="px-4 pt-10 pb-44 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
@@ -35,7 +44,7 @@ export default async function SalesHubPage() {
         <p className="text-sm text-gray-400 mt-0.5">{t('hint')}</p>
       </div>
 
-      {/* Big primary CTA — Start a Sale */}
+      {/* Big primary CTA — Start a Sale (always visible, no data dependency) */}
       <Link
         href="/sale"
         className="flex items-center justify-between bg-brand text-white rounded-full p-5 mb-4 active:bg-brand-hover"
@@ -47,29 +56,57 @@ export default async function SalesHubPage() {
         <ShoppingCart className="w-7 h-7" strokeWidth={2} />
       </Link>
 
-      {/* Today's totals — streams in */}
-      <Suspense fallback={<Skeleton className="h-24 rounded-2xl mb-4" />}>
-        <TodaySummary
-          shopId={shopId}
-          locale={locale}
-          profitTrackingEnabled={profitTrackingEnabled}
-        />
-      </Suspense>
+      {loading || !data ? (
+        <>
+          <Skeleton className="h-24 rounded-2xl mb-4" />
+          <Skeleton className="h-48 rounded-2xl mb-4" />
+          <Skeleton className="h-40 rounded-2xl mb-4" />
+        </>
+      ) : (
+        <>
+          <TodaySummaryView
+            summary={data.summary}
+            profitTrackingEnabled={data.profitTrackingEnabled}
+          />
 
-      {/* This week chart — streams in */}
-      <Suspense fallback={<Skeleton className="h-48 rounded-2xl mb-4" />}>
-        <WeeklyChartSection shopId={shopId} locale={locale} />
-      </Suspense>
+          <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
+              {t('weekly_title')}
+            </p>
+            <WeeklySalesChart
+              data={data.weekly}
+              labels={{
+                noData: t('weekly_no_data'),
+                saleOne: t('weekly_sale_one'),
+                saleOther: t('weekly_sale_other'),
+              }}
+            />
+          </div>
 
-      {/* Top products this week — streams in */}
-      <Suspense fallback={<Skeleton className="h-32 rounded-2xl mb-4" />}>
-        <TopProducts shopId={shopId} locale={locale} />
-      </Suspense>
+          {data.topProducts.length > 0 && (
+            <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
+                {t('top_products_title')}
+              </p>
+              <ol className="space-y-2">
+                {data.topProducts.map((p, i) => (
+                  <li key={p.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-300 w-4">{i + 1}.</span>
+                      <span className="text-sm text-gray-800">{p.name}</span>
+                    </div>
+                    <span className="text-xs text-gray-400">
+                      {p.totalQty} {t('top_products_sold')}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
 
-      {/* Latest sales (also has its own "See all" link → /sales/history) */}
-      <Suspense fallback={<Skeleton className="h-40 rounded-2xl mb-4" />}>
-        <LatestSales shopId={shopId} locale={locale} />
-      </Suspense>
+          <LatestSalesView sales={data.recentSales} />
+        </>
+      )}
 
       {/* View by date — drill-down link */}
       <Link
