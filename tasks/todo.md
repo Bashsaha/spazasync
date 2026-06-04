@@ -1,5 +1,103 @@
 # Movestock — Task Tracking
 
+## CURRENT WORK — Post-Phase-45 scale + security hardening (2026-06-04)
+
+> **New-chat: read this whole section first.** Source of truth for the in-flight
+> work. Driven by the owner asking whether converting the rest of the app to
+> client cache-first helps scale to ~100k users, what it costs on Vercel/Supabase,
+> and whether any of it creates security holes. A 3-agent research pass (Vercel
+> economics, Supabase economics/scaling, codebase rendering inventory) produced
+> the verdict + plan below. Already shipped separately: **BUG-052** cluster
+> (notification portal, per-user chrome mirror, checklist timeout/per-day key,
+> `/sales` → `getShopAuthFast`) — committed `46dcf43`, SW v84.
+
+### Research verdict (why we are NOT converting everything)
+- **Client cache-first is a UX + repeat-read + egress optimization, NOT the lever
+  that decides whether 100k users works.** On Vercel it saves nothing on a cold
+  first load (extra `/api` + `_rsc` round-trip ≈ same/one-more invocation); the
+  ONLY win is the service worker serving REPEAT opens off-device (also skipping
+  `proxy.ts`, which Next 16 bills as a full Node function). On Supabase it removes
+  ~50–80% of repeat-read COUNT + some egress, but only ~10–20% of the PEAK CPU
+  that actually sets the compute tier.
+- **The real 100k ceiling = Supabase compute CPU at peak (writes+RLS+aggregates)
+  + connection discipline + realtime.** The biggest wins are already done (Phase
+  45: Broadcast realtime, set-membership RLS, atomic `complete_sale`, `getClaims`
+  local JWT, composite indexes, cold-archive). Cache-first ranks BELOW all of it.
+- **Decision: targeted cache-first (just `/sales`), not blanket.** Do NOT convert
+  detail/edit forms, `/admin/*`, `compliance/*` composites, or `stock-take`
+  (realtime). Spend the rest of the effort on the actually-missing DB levers.
+
+### Security finding (must fix — already present today)
+**SECURITY-001 — cross-shop data exposure on shared devices via un-scoped client
+caches that survive logout.** `useCachedData` writes `localStorage` snapshots
+under `mvs_cache:<endpoint>` (NOT keyed by user); the SW caches `/api/*` GETs
+under user-less URLs; IndexedDB caches products/settings/tellers/cart — and
+**none are cleared on logout**. On a shared phone (owner+teller — the spaza norm),
+the next user briefly sees the previous user/shop's cached data before
+revalidation. RLS still prevents fetching NEW cross-shop data (no server breach),
+but it's a real POPIA confidentiality issue at scale and the same root cause as
+the BUG-052 "profile shows the teller" symptom. Converting more pages widens it.
+Verified safe (no IDOR): the `?u=`/`?d=` params I added are ignored server-side.
+`getShopAuthFast` on reads = ≤1h revocation latency on the user's OWN data (writes
+use getUser; RLS blocks cross-shop) — accepted Phase 45e posture, not new.
+
+### Plan — execution order (each commit pushed to master per always-push)
+
+**[SECURITY-001] Logout/switch cache purge — FIRST (present issue, prereq for WS1)**
+- [ ] New `clearShopDataCaches()` in `src/lib/offline/db.ts` — clears IndexedDB
+      stores `products`, `cart`, `settings`, `tellers`. **MUST NOT touch
+      `pending_sales`** (unsynced offline sales → data loss + cross-user sync risk).
+- [ ] New `src/lib/offline/clear-session-cache.ts` `clearSessionCaches()` (async):
+      (a) remove all `localStorage` keys with `mvs_cache:` prefix + `mvs_shell_identity`
+          + `spaza_shop_settings` + the active-teller/teller-me keys; KEEP `mvs_locale`
+          (pref, not data) + recent-users (switch-user feature);
+      (b) `await clearShopDataCaches()`;
+      (c) delete every cached `/api/*` entry across all Cache Storage caches
+          (iterate `caches.keys()` → keep shell docs + static chunks).
+- [ ] Call `clearSessionCaches()` in LogoutButton + SwitchUserButton (before redirect).
+- [ ] Also call it in AppChrome.resolve() on the userId-mismatch branch (covers the
+      silent token-swap path, not just explicit logout). Best-effort, non-blocking.
+- [ ] Verify: tsc, tests, build. SW cache bump. Commit + push. Log in bugs.md as SECURITY-001.
+
+**[WS1] `/sales` hub → client cache-first (the one slow/error page worth converting)**
+- [ ] New `GET /api/sales/hub` composite (getShopAuthFast) returning: today summary,
+      weekly chart series, top products, latest sales, profit flag. Reuse existing
+      readers (reports.ts / summary / popular / latest).
+- [ ] Convert `src/app/(app)/sales/page.tsx` to 'use client' + `useCachedData('sales-hub', …)`,
+      rendering existing presentational views (TodaySummaryView, WeeklySalesChart,
+      TopProducts view, LatestSalesView). Keep owner/admin gating (proxy blocks tellers
+      from /sales; endpoint requires auth). Data-free HTML.
+- [ ] Verify gating: teller cannot reach /sales (proxy), endpoint 401s unauthed.
+      tsc/tests/build. SW bump. Commit + push.
+
+**[WS2] Missing DB scaling levers — migration 036 + dashboard actions (highest scale ROI)**
+- [ ] `supabase/migrations/036_scaling_levers.sql` (output raw SQL for user to run):
+      `ALTER ROLE authenticated SET statement_timeout='8s'; ALTER ROLE anon SET statement_timeout='5s';`
+      (DO NOT touch service_role — crons/archive need long runs);
+      `CREATE INDEX IF NOT EXISTS idx_shop_users_user_id_shop ON shop_users(user_id) INCLUDE (shop_id);`
+      (RLS set-membership subquery → index-only scan). Verify shop_users existing indexes first.
+- [ ] Audit: grep for any direct `pg`/postgres connection (prepared-statement risk in
+      transaction-mode pooling). App is supabase-js/PostgREST → expected clean; confirm.
+- [ ] Document (chat, not code): enable Supabase usage/spend alerts (egress, Realtime
+      msgs, compute) + Vercel Observability; right-size compute (Large/XL) before launch
+      spike; defer read replicas; autovacuum health query on sales/sale_items.
+
+**[WS3] Vercel cost hygiene — careful, low headroom (last, minor)**
+- [ ] Review `proxy.ts` matcher: ONLY consider additional static/public asset
+      extensions; NEVER exclude app routes or `/api/*`. Re-test access matrix
+      (owner/teller/admin/expired) + PWA install (BUG-021/040 history). If no clearly-safe
+      addition, leave as-is and document.
+- [ ] Set `prefetch={false}` on a few low-value/data-heavy `<Link>`s if any obvious ones
+      exist (RSC prefetch `_rsc` hits bypass CDN). Skip if risk > reward.
+
+### Done-criteria
+tsc clean, tests green, `next build` clean before each push; SW cache bumped on any
+client change; bugs.md updated for SECURITY-001; CLAUDE.md "Most recent" bullet added
+at the end. Browser/2-device verification owed by owner (auth render + shared-device
+logout purge can't be unit-tested).
+
+---
+
 ## Phase 44 — App Shell Architecture / instant-open PWA (IN PROGRESS)
 
 > **New-chat: read this whole section before continuing.** It is the source of

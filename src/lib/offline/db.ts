@@ -213,6 +213,25 @@ export async function getCachedTellers(): Promise<Teller[]> {
   return db.getAll('tellers')
 }
 
+// ── Sign-out purge ─────────────────────────────────────────────────────────
+
+/**
+ * Clear every store that holds SHOP-SCOPED data on sign-out / user-switch, so a
+ * shared device (owner + teller on one phone — the spaza norm) never paints the
+ * previous user's cached products/settings/tellers/cart for the next user
+ * (SECURITY-001). DELIBERATELY does NOT touch `pending_sales`: that store holds
+ * unsynced offline sales — clearing it would lose recorded sales and (worse)
+ * could let them sync under the next user's session. The sync layer drains it
+ * normally; an unsynced queue surviving a switch is a separate, accepted edge.
+ */
+export async function clearShopDataCaches(): Promise<void> {
+  const db = await getDB()
+  const stores = ['products', 'cart', 'settings', 'tellers'] as const
+  const tx = db.transaction(stores, 'readwrite')
+  await Promise.all(stores.map((s) => tx.objectStore(s).clear()))
+  await tx.done
+}
+
 // ── Product cache staleness ──────────────────────────────────────────────────
 
 /** Check if the product cache is older than PRODUCT_CACHE_TTL_MS. */

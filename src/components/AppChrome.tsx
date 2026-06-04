@@ -13,6 +13,7 @@ import { ResumeGuard } from '@/components/ResumeGuard'
 import { createClient } from '@/lib/supabase/client'
 import { isSubscriptionExpired, subscriptionEndDate } from '@/lib/subscription/expiry'
 import { SUBSCRIPTION_EXEMPT } from '@/lib/auth/route-access'
+import { clearSessionCaches } from '@/lib/offline/clear-session-cache'
 
 /**
  * Client-rendered app chrome (Phase 44 App Shell, Stage 2).
@@ -52,16 +53,6 @@ const EMPTY: ShellIdentity = {
   shopId: null,
   shopName: 'Movestock',
   personName: null,
-}
-
-/** Wipe the cached chrome identity. Call on sign-out so the next user never
- *  sees the previous person's name/role flash before resolve() runs. */
-export function clearShellIdentity(): void {
-  try {
-    window.localStorage.removeItem(MIRROR_KEY)
-  } catch {
-    /* private mode / quota — best effort */
-  }
 }
 
 function readMirror(): ShellIdentity {
@@ -113,11 +104,14 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
         const shopId = (session.user.app_metadata?.shop_id as string | undefined) ?? null
 
         // If the cached mirror belongs to a DIFFERENT user (teller→owner switch
-        // on the same device), drop its stale display values NOW so we never
-        // render the previous person's name/role while the fresh fetch is in
-        // flight. shopName is kept only when the shop is unchanged.
+        // on the same device — and especially a SILENT switch where the previous
+        // session expired without an explicit logout), drop the stale display
+        // values now AND purge every shop/user-scoped client cache so the
+        // previous user's data can't leak into this session. (SECURITY-001 — the
+        // belt to the logout-path braces.)
         if (id.userId && id.userId !== userId) {
           setId({ ...EMPTY, userId, role, shopId })
+          await clearSessionCaches()
         }
 
         // Owner subscription gate — mirrors the middleware gate (proxy.ts) for

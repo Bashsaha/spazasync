@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { clearShellIdentity } from '@/components/AppChrome'
+import { clearSessionCaches } from '@/lib/offline/clear-session-cache'
 
 interface Props {
   label: string
@@ -25,7 +25,9 @@ export function LogoutButton({ label, loadingLabel }: Props) {
       const supabase = createClient()
       await supabase.auth.signOut()
     } finally {
-      clearShellIdentity()
+      // Purge all shop/user-scoped client caches before the next user can log in
+      // on this (often shared) device. (SECURITY-001)
+      await clearSessionCaches()
       router.push('/login')
     }
   }
