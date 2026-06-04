@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ShoppingCart, Calendar, BarChart3 } from 'lucide-react'
-import { getShopAuth } from '@/lib/auth/shop-auth'
+import { getShopAuthFast } from '@/lib/auth/shop-auth'
 import { Skeleton } from '@/components/Skeleton'
 import { TodaySummary } from '@/components/dashboard/TodaySummary'
 import { WeeklyChartSection } from '@/components/dashboard/WeeklyChartSection'
@@ -11,7 +11,10 @@ import { LatestSales } from '@/components/dashboard/LatestSales'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 
 export default async function SalesHubPage() {
-  const auth = await getShopAuth()
+  // Fast read-side auth: local JWT verify (no network round-trip). On resume
+  // from background this no longer blocks on a sleeping radio, and it shaves an
+  // auth RTT off first paint. RLS remains the data boundary (Phase 45e pattern).
+  const auth = await getShopAuthFast()
   if (!auth) redirect('/login')
   const { shopId, supabase } = auth
 

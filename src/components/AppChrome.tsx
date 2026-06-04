@@ -35,6 +35,10 @@ import { SUBSCRIPTION_EXEMPT } from '@/lib/auth/route-access'
 type ShellRole = 'owner' | 'teller' | 'admin' | null
 
 interface ShellIdentity {
+  /** Which auth user this mirror belongs to. Lets us discard a previous user's
+   *  cached chrome (e.g. teller→owner switch on the same device) instead of
+   *  showing their name/role until a manual reload. */
+  userId: string | null
   role: ShellRole
   shopId: string | null
   shopName: string
@@ -42,7 +46,23 @@ interface ShellIdentity {
 }
 
 const MIRROR_KEY = 'mvs_shell_identity'
-const EMPTY: ShellIdentity = { role: null, shopId: null, shopName: 'Movestock', personName: null }
+const EMPTY: ShellIdentity = {
+  userId: null,
+  role: null,
+  shopId: null,
+  shopName: 'Movestock',
+  personName: null,
+}
+
+/** Wipe the cached chrome identity. Call on sign-out so the next user never
+ *  sees the previous person's name/role flash before resolve() runs. */
+export function clearShellIdentity(): void {
+  try {
+    window.localStorage.removeItem(MIRROR_KEY)
+  } catch {
+    /* private mode / quota — best effort */
+  }
+}
 
 function readMirror(): ShellIdentity {
   if (typeof window === 'undefined') return EMPTY
@@ -88,8 +108,17 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
         // logged-out users to /login. RLS protects all data regardless.
         if (!session) return
 
+        const userId = session.user.id
         const role = (session.user.app_metadata?.role as ShellRole) ?? null
         const shopId = (session.user.app_metadata?.shop_id as string | undefined) ?? null
+
+        // If the cached mirror belongs to a DIFFERENT user (teller→owner switch
+        // on the same device), drop its stale display values NOW so we never
+        // render the previous person's name/role while the fresh fetch is in
+        // flight. shopName is kept only when the shop is unchanged.
+        if (id.userId && id.userId !== userId) {
+          setId({ ...EMPTY, userId, role, shopId })
+        }
 
         // Owner subscription gate — mirrors the middleware gate (proxy.ts) for
         // the SW-cached-serve path (where middleware never ran). JWT-only, so no
@@ -108,11 +137,16 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
           return
         }
 
+        // `/api/tellers/me` is SWR-cached by the service worker under a
+        // user-less URL, so after a user switch the SW would serve the previous
+        // person's cached row. Scoping the URL by userId gives each user their
+        // own cache entry — no cross-user leak (the "owner shows the teller's
+        // name" bug). The endpoint ignores the extra param.
         const [settings, me] = await Promise.all([
           fetch('/api/settings', { cache: 'no-store' })
             .then((r) => (r.ok ? r.json() : null))
             .catch(() => null),
-          fetch('/api/tellers/me', { cache: 'no-store' })
+          fetch(`/api/tellers/me?u=${encodeURIComponent(userId)}`, { cache: 'no-store' })
             .then((r) => (r.ok ? r.json() : null))
             .catch(() => null),
         ])
@@ -138,6 +172,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
         }
 
         const next: ShellIdentity = {
+          userId,
           role,
           shopId,
           shopName: (settings?.name as string | undefined) ?? id.shopName ?? 'Movestock',

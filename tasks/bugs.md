@@ -5,6 +5,35 @@ Claude must read this file at session start and reference it before touching aut
 
 ---
 
+## BUG-052: Post-App-Shell cluster — notification sheet traps nav, owner shows teller's name, checklist buzzer hangs + double-completion
+**Symptoms (4, reported together after the App Shell rollout):**
+1. Opening the notification bell, then tapping a bottom-nav tab, "stays in notifications" — the only way out is the sheet's back button.
+2. Log in as teller → request access → log in as owner → grant: the chrome (name/role area) shows the **teller's** profile until a manual reload.
+3. Tapping the daily-checklist buzzer "endlessly loads until you reload manually".
+4. The app made the owner "complete the daily checklist twice today".
+
+**Root causes:**
+1. **Stacking context.** The `NotificationBell` sheet is `fixed inset-0 z-[70]` but it renders *inside* `TopAppBar` (`sticky top-0 z-30` → its own stacking context). So `z-[70]` is scoped under TopAppBar's z-30, and `BottomNav` (root-level `z-40`) paints **over** the sheet — its tabs stay tappable. Navigating left `isOpen` true (the layout/TopAppBar persists across in-app navs), so the sheet lingered over the new page.
+2. **User-less caches.** The `mvs_shell_identity` localStorage mirror wasn't tied to a user, and `/api/tellers/me` is SW-cached (SWR) under a user-less URL. After a teller→owner switch the chrome painted from the teller mirror AND the owner's `/api/tellers/me` fetch was served the teller's stale cached row. Only a reload (eventually) revalidated it.
+3. **No fetch timeout.** The checklist page's `fetch('/api/daily-checklist')` had no timeout; on a half-awake radio it hangs and `loading` never clears → infinite spinner.
+4. **Date-less SWR key.** `/api/daily-checklist` is in the SW's `SWR_GET_PATHS`, but its payload is date-specific and the cache key had no date — so on a new day the SW could serve yesterday's "empty form" snapshot, prompting a re-fill (the felt "completed twice"; the DB upsert keeps a single row).
+
+**Fix (2026-06-04, SW v83 → v84):**
+1. Render the sheet through `createPortal(…, document.body)` so it escapes TopAppBar's stacking context and truly covers the bottom nav (tabs no longer visible/tappable — back button only, as requested). Plus an auto-close on `pathname` change as defence in depth.
+2. Tag `ShellIdentity` with `userId`; on resolve, reset the mirror when `session.user.id` differs (teller→owner switch) so the previous person's name/role never lingers. Fetch `/api/tellers/me?u=<userId>` so the SW caches per-user (no cross-user leak). Clear the mirror on sign-out (`clearShellIdentity()` in LogoutButton + SwitchUserButton).
+3. Time the checklist fetch out (`AbortController`, 12s) → falls to the existing retry screen instead of spinning forever.
+4. Key the checklist fetch URL by today's SAST date (`?d=<date>`) so each day gets a fresh SW entry while same-day reopens stay instant. The SW caching design is untouched (no path removed from `SWR_GET_PATHS`).
+
+Also (same pass, #5 of the report — slow + "error, try again" flash on `/sales`): the sales hub was the one read page still on the network auth guard `getShopAuth()` (a blocking `getUser()` RTT that throws on a sleeping radio). Switched to the Phase 45e read pattern `getShopAuthFast()` (local JWT verify, no network) — faster first paint + one fewer resume-throw point; RLS still the data boundary. **Honest scope:** the streamed Suspense cards still need the radio, so a transient resume error can still hit the auto-recovering `(app)` error boundary; the complete cure is converting the sales hub to client cache-first (deferred — launch-critical UI, its own focused phase).
+
+**Prevention rules:**
+- A full-screen overlay must not be rendered inside a `sticky`/`fixed` ancestor that has its own `z-index` (a stacking context) — its z-index can't beat siblings of that ancestor. Portal overlays to `document.body`, or hoist them above all fixed chrome.
+- Any client cache (localStorage mirror OR a SW-cached user-scoped endpoint) that can outlive a user switch MUST be keyed/scoped by `userId` (or cleared on sign-out) — otherwise the next user sees the previous user's data until a reload.
+- Every client `fetch` that gates a `loading` state needs a timeout; on mobile a suspended radio makes an un-timed fetch hang forever.
+- Never SW-cache a date-(or otherwise context-)specific payload under a key that omits that context — bake the discriminator into the URL.
+
+---
+
 ## BUG-051: Dashboard "something went wrong" on resume-from-background (App Shell Stage 2 follow-up)
 **Symptom:** After the App Shell Stage 2 work, the app is fast and resume is smooth — EXCEPT navigating to the **dashboard** after a long background (e.g. switching back from YouTube) shows "something went wrong / app hit an unexpected error". Other tabs (e.g. Sales) work fine.
 **Root cause:** Stage 2 made `/sale` (and `/`) data-free + SW-cached, so they paint from cache with no server render on resume. The **dashboard is the one remaining route still server-rendered with the owner's data**, so navigating to it (or `DashboardAutoRefresh`'s `router.refresh()`) re-runs Server Component queries. On a resume the radio is still waking / the token just expired, so a **raw fetch rejection** from the page-level `business_documents` + `owner_profiles` (+ `municipalities`) reads rejected the `Promise.all` and threw the whole page into the `(app)` error boundary. `getShopForRequest` already caught its own rejection; these three did not. (The Suspense cards — ComplianceCard / JourneyProgressCard / LatestSales / TodaySummary — already `try/catch → null`, so they weren't the culprit.)

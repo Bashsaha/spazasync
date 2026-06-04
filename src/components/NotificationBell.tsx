@@ -1,6 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { subscribeShopBroadcast } from '@/lib/realtime/shop-channel'
@@ -38,6 +40,17 @@ export function NotificationBell({ shopId }: { shopId: string }) {
   const [reminders, setReminders] = useState<Reminder[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [pendingActionId, setPendingActionId] = useState<string | null>(null)
+  // Portal target only exists after mount (no document.body during SSR).
+  const [mounted, setMounted] = useState(false)
+  const pathname = usePathname()
+  useEffect(() => setMounted(true), [])
+
+  // Close the sheet whenever the route changes. The portal covers the bottom
+  // nav so tabs aren't tappable while it's open, but this is a belt-and-braces
+  // guard so the sheet can never linger over a different page.
+  useEffect(() => {
+    setIsOpen(false)
+  }, [pathname])
 
   // Both endpoints are in the service worker's SWR_GET_PATHS — repeat calls
   // hit the cache instantly and revalidate in the background, and the SW's
@@ -150,8 +163,14 @@ export function NotificationBell({ shopId }: { shopId: string }) {
         )}
       </button>
 
-      {isOpen && (
-        <div className="fixed inset-0 z-[70] bg-chat-canvas flex flex-col">
+      {mounted &&
+        isOpen &&
+        createPortal(
+          // Rendered into <body> (NOT inside the sticky TopAppBar, which is its
+          // own z-30 stacking context) so this full-screen sheet truly sits
+          // above the bottom nav (root z-40). Otherwise the nav tabs render over
+          // the sheet and stay tappable — the "stuck in notifications" bug.
+          <div className="fixed inset-0 z-[70] bg-chat-canvas flex flex-col">
           {/* Sticky WhatsApp-style teal header */}
           <header
             className="sticky top-0 bg-brand text-white shadow-sm"
@@ -306,8 +325,9 @@ export function NotificationBell({ shopId }: { shopId: string }) {
               </>
             )}
           </div>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </>
   )
 }

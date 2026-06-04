@@ -91,12 +91,25 @@ export default function ChecklistPage() {
   const [expiredAction, setExpiredAction] = useState<ExpiredItemsAction | null>(null)
 
   useEffect(() => {
-    fetch('/api/daily-checklist')
+    let cancelled = false
+    // Per-day cache key: this endpoint is in the service worker's SWR list, but
+    // its payload is date-specific. Keying the URL by today's SAST date gives a
+    // fresh entry each day (no stale "empty form" served from yesterday's cache,
+    // which made owners fill it in twice) while same-day reopens still hit the
+    // cache instantly. SA has no DST, so UTC+2 is exact.
+    const sastToday = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    // Time the request out so a half-awake radio can't leave the page spinning
+    // forever (the "buzzer endlessly loads until I reload" report).
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 12000)
+
+    fetch(`/api/daily-checklist?d=${sastToday}`, { signal: ctrl.signal })
       .then(async (r) => {
         if (!r.ok) throw new Error('load')
         return r.json() as Promise<ChecklistResponse>
       })
       .then((json) => {
+        if (cancelled) return
         setData(json)
         const c = json.checklist
         if (c) {
@@ -126,8 +139,19 @@ export default function ChecklistPage() {
           }
         }
       })
-      .catch(() => setErrorKey('msg_load_failed'))
-      .finally(() => setLoading(false))
+      .catch(() => {
+        if (!cancelled) setErrorKey('msg_load_failed')
+      })
+      .finally(() => {
+        clearTimeout(timer)
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+      ctrl.abort()
+    }
   }, [])
 
   async function handleSave() {

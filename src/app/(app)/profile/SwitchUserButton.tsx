@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Repeat } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { clearShellIdentity } from '@/components/AppChrome'
 
 interface Props {
   label: string
@@ -24,6 +25,7 @@ export function SwitchUserButton({ label, loadingLabel }: Props) {
       const supabase = createClient()
       await supabase.auth.signOut()
     } finally {
+      clearShellIdentity()
       router.push('/login')
     }
   }
