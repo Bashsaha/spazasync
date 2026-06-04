@@ -96,6 +96,14 @@ client change; bugs.md updated for SECURITY-001; CLAUDE.md "Most recent" bullet 
 at the end. Browser/2-device verification owed by owner (auth render + shared-device
 logout purge can't be unit-tested).
 
+### STATUS — ALL SHIPPED (2026-06-04)
+- **SECURITY-001** — committed `ffb0b40`, SW v85. clearSessionCaches() on logout/switch/silent-switch.
+- **WS1** `/sales` cache-first — committed `15f45b5`, SW v86. New `/api/sales/hub`; 4 server wrappers deleted.
+- **WS2** migration 036 — committed `e6122bb`. **ACTION: owner must run `036_scaling_levers.sql` in Supabase SQL Editor** (statement_timeout + RLS index). Pooler/prepare audit = CLEAN (zero raw pg connections).
+- **WS3** — deliberate NO-OP. Matcher already excludes all static assets; `/` + `/legal` reach the fn only for the CSP nonce (cheap, pre-getSession); BottomNav prefetch is load-bearing (BUG-050). No safe change.
+- **Owner dashboard actions (not code):** enable Supabase usage/spend alerts (egress, Realtime msgs, compute) + Vercel Observability; right-size Supabase compute (Large/XL) before launch spike; defer read replicas; keep an eye on autovacuum on sales/sale_items.
+- **Owner verification owed (Vercel preview):** 2-device shared-phone test — owner uses app, logs out, teller logs in → teller must NOT briefly see owner's cached data; teller→owner switch shows correct profile (no reload); `/sales` opens instantly on 2nd visit + no error after backgrounding.
+
 ---
 
 ## Phase 44 — App Shell Architecture / instant-open PWA (IN PROGRESS)
