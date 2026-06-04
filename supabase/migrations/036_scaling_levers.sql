@@ -25,8 +25,12 @@ ALTER ROLE anon SET statement_timeout = '5s';
 --    A covering index on (user_id) INCLUDE (shop_id) makes that an index-only
 --    scan instead of touching the heap on every policy evaluation.
 --
---    NOTE: if shop_users already has a unique/PK index that LEADS with user_id
---    (e.g. UNIQUE(user_id, shop_id)), this is redundant — check first and skip:
---        SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'shop_users';
+--    Confirmed against the schema (migration 001): shop_users has a PK on `id`,
+--    a UNIQUE(shop_id, user_id) (leads with shop_id → does NOT serve the
+--    user_id lookup), and a plain `idx_shop_users_user_id` ON (user_id). The
+--    covering index below strictly supersedes that plain index, so we create it
+--    and drop the plain one. Both statements are idempotent/safe to re-run.
 CREATE INDEX IF NOT EXISTS idx_shop_users_user_id_covering
   ON shop_users (user_id) INCLUDE (shop_id);
+
+DROP INDEX IF EXISTS idx_shop_users_user_id;
