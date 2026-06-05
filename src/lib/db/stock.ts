@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { sanitizeSearch } from '@/lib/utils/search'
 import type { Product } from '@/types'
 
 export type ProductWithStock = Product & { low_stock: boolean }
@@ -32,8 +33,9 @@ export async function listProductsWithStock(
 
   // Fetch products ordered by stock_qty ascending (lowest first)
   const base = supabase.from('products').select('*').order('stock_qty', { ascending: true })
-  const { data } = search?.trim()
-    ? await base.or(`name.ilike.%${search.trim()}%,barcode.ilike.%${search.trim()}%`)
+  const s = search?.trim() ? sanitizeSearch(search) : ''
+  const { data } = s
+    ? await base.or(`name.ilike.%${s}%,barcode.ilike.%${s}%`)
     : await base
 
   const products: ProductWithStock[] = ((data as Product[]) ?? []).map((p) => ({

@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { barcodeCandidates } from '@/lib/utils/barcode'
+import { sanitizeSearch } from '@/lib/utils/search'
 import type { BarcodeCatalogEntry } from '@/types'
 
 /**
@@ -42,7 +43,8 @@ export async function listCatalogEntries(opts: {
     .order('name', { ascending: true })
 
   if (opts.search) {
-    query = query.or(`barcode.ilike.%${opts.search}%,name.ilike.%${opts.search}%`)
+    const s = sanitizeSearch(opts.search)
+    query = query.or(`barcode.ilike.%${s}%,name.ilike.%${s}%`)
   }
 
   const from = (opts.page - 1) * opts.limit

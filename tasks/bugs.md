@@ -25,6 +25,19 @@ Claude must read this file at session start and reference it before touching aut
 
 ---
 
+## SECURITY-003: defense-in-depth hardening batch (audit follow-up)
+**Symptom:** None — latent gaps from the security audit, no live exploit. Closed as a batch (D1–D6).
+**Fixes (2026-06-05, no SW bump — all server/middleware/SQL, zero client code):**
+- **D1** — `(app)/admin/layout.tsx` now re-checks the server-validated `role === 'admin'` and bounces a definitive non-admin (deferring on a transient error so a real admin is never bounced; `redirect()` sits OUTSIDE the try/catch so `NEXT_REDIRECT` isn't swallowed). Was relying solely on `proxy.ts`, which gates on a locally-decoded, cookie-trusted JWT.
+- **D2** — external-API key + `CRON_SECRET` now compared constant-time via `safeEqual`/`bearerMatches` ([timing-safe.ts](src/lib/utils/timing-safe.ts)). Was `!==` — a timing oracle, and the external key reads EVERY shop's data.
+- **D3** — `import 'server-only'` on `supabase/admin.ts`, `payfast/index.ts`, `external-api-guard.ts`, `db/eft-reconcile.ts`, `db/admin.ts`. A future accidental client import is now a build error, not a silent service-role-key leak. (vitest aliases `server-only` → a no-op stub, [tests/server-only-stub.ts](tests/server-only-stub.ts), so server modules stay unit-testable.)
+- **D4** — `sanitizeSearch()` ([search.ts](src/lib/utils/search.ts)) on the 5 `.or(...ilike...)` sites (products route + `db/products`/`stock`/`catalog`/`admin`) — strips `,` `(` `)` so a search term can't break out of the `ilike` and inject predicates. RLS already contained it cross-shop; this closes the within-shop filter break-out.
+- **D5** — `proxy.ts` public/admin/subscription-exempt list checks now use boundary-safe `pathMatches()` (was raw `startsWith` — `/settings-foo` would have matched the SUBSCRIPTION_EXEMPT list, the dangerous direction).
+- **D6** — migration **037** pins `search_path = public, pg_temp` on all security-relevant SQL functions (the RLS helpers + live Phase-45 DEFINER objects). **Owner must apply in Supabase SQL Editor.** The `WITH CHECK` / `(SELECT auth.uid())` policy tweaks were deferred — they need the live-policy dump first (Phase 45a rewrote those live, not in-repo).
+**Prevention rules:** compare secrets constant-time; guard every secret-bearing module with `import 'server-only'`; sanitize any user input interpolated into a PostgREST filter string; use boundary-safe matching (`pathMatches`) for route allow/deny lists; never let a `redirect()` sit inside a try/catch that could swallow `NEXT_REDIRECT`.
+
+---
+
 ## BUG-052: Post-App-Shell cluster — notification sheet traps nav, owner shows teller's name, checklist buzzer hangs + double-completion
 **Symptoms (4, reported together after the App Shell rollout):**
 1. Opening the notification bell, then tapping a bottom-nav tab, "stays in notifications" — the only way out is the sheet's back button.

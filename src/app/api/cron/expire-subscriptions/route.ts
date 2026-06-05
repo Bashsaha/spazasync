@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { bearerMatches } from '@/lib/utils/timing-safe'
 
 /**
  * GET /api/cron/expire-subscriptions
@@ -17,8 +18,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
  * never reprocesses, and a partial sync never leaves an expired shop reachable.
  */
 export async function GET(request: Request) {
-  const auth = request.headers.get('authorization')
-  if (!process.env.CRON_SECRET || auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!bearerMatches(request.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

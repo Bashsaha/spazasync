@@ -12,6 +12,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // `server-only` throws on import outside a React Server bundler condition
+      // (vitest's node env is not one). Stub it to a no-op so server modules
+      // that guard themselves with `import 'server-only'` stay unit-testable.
+      'server-only': path.resolve(__dirname, './tests/server-only-stub.ts'),
     },
   },
 })

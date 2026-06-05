@@ -5,6 +5,7 @@ import { parseBody, STABLE_READ_CACHE } from '@/lib/utils/api'
 import { createProductSchema } from '@/lib/validation/schemas'
 import { getCatalogEntry } from '@/lib/db/catalog'
 import { barcodeCandidates } from '@/lib/utils/barcode'
+import { sanitizeSearch } from '@/lib/utils/search'
 
 export async function GET(request: Request) {
   const { limited } = await checkRateLimit(request, { limit: 120, windowSecs: 60 })
@@ -54,7 +55,8 @@ export async function GET(request: Request) {
 
   let q = supabase.from('products').select('*').order('name').limit(5000)
   if (search) {
-    q = q.or(`name.ilike.%${search}%,barcode.ilike.%${search}%`)
+    const s = sanitizeSearch(search)
+    q = q.or(`name.ilike.%${s}%,barcode.ilike.%${s}%`)
   }
   if (missingSupplier) q = q.is('supplier_id', null)
   if (missingCost) q = q.is('cost_price', null)

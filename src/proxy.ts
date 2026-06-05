@@ -150,7 +150,7 @@ export async function proxy(request: NextRequest) {
   const user = session?.user ?? null
 
   // ── Public routes ──────────────────────────────────────────
-  const isPublic = PUBLIC_ROUTES.some((route) => pathname.startsWith(route))
+  const isPublic = PUBLIC_ROUTES.some((route) => pathMatches(pathname, route))
 
   if (!user) {
     if (isPublic) return supabaseResponse
@@ -207,7 +207,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // ── Admin route enforcement ──────────────────────────────
-  const isAdminRoute = ADMIN_ROUTES.some((r) => pathname.startsWith(r))
+  const isAdminRoute = ADMIN_ROUTES.some((r) => pathMatches(pathname, r))
   if (isAdminRoute && role !== 'admin') {
     const dashUrl = request.nextUrl.clone()
     dashUrl.pathname = role === 'teller' ? '/sale' : '/dashboard'
@@ -239,7 +239,7 @@ export async function proxy(request: NextRequest) {
   // can't be trusted for sub state), redirecting to /shop-suspended — a path
   // teller enforcement DOES allow. Both gates share isSubscriptionExpired() so
   // they can never drift.
-  const isExempt = SUBSCRIPTION_EXEMPT.some((r) => pathname.startsWith(r))
+  const isExempt = SUBSCRIPTION_EXEMPT.some((r) => pathMatches(pathname, r))
   if (role === 'owner' && !isExempt) {
     const expired = isSubscriptionExpired({
       status: user.app_metadata?.sub_status as string | undefined,

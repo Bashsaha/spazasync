@@ -1,3 +1,5 @@
+import 'server-only'
+
 /**
  * PayFast integration helpers.
  *

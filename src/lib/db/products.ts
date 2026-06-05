@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { sanitizeSearch } from '@/lib/utils/search'
 import type { Product } from '@/types'
 
 /** List all products for the current user's shop, optionally filtered by name or barcode. */
@@ -9,7 +10,8 @@ export async function listProducts(
   const supabase = await createClient()
   let query = supabase.from('products').select('*').order('name').limit(5000)
   if (search?.trim()) {
-    query = query.or(`name.ilike.%${search.trim()}%,barcode.ilike.%${search.trim()}%`)
+    const s = sanitizeSearch(search)
+    query = query.or(`name.ilike.%${s}%,barcode.ilike.%${s}%`)
   }
   if (opts?.missingCost) {
     query = query.is('cost_price', null)

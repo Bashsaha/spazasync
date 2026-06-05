@@ -1,5 +1,7 @@
+import 'server-only'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { updateShopUsersSubscription } from '@/lib/auth/teller'
+import { sanitizeSearch } from '@/lib/utils/search'
 import type { AdminOverviewStats, AdminShopListItem, AdminPayment, SubscriptionStatus } from '@/types'
 
 /**
@@ -46,7 +48,8 @@ export async function listShops(opts: {
     .order('created_at', { ascending: false })
 
   if (opts.search) {
-    query = query.or(`name.ilike.%${opts.search}%,code.ilike.%${opts.search}%`)
+    const s = sanitizeSearch(opts.search)
+    query = query.or(`name.ilike.%${s}%,code.ilike.%${s}%`)
   }
   if (opts.status) {
     query = query.eq('subscription_status', opts.status)

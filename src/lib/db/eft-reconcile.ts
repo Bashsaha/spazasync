@@ -1,3 +1,5 @@
+import 'server-only'
+
 /**
  * EFT reconciliation DB layer (service-role / admin only).
  *

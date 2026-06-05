@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { bearerMatches } from '@/lib/utils/timing-safe'
 
 /**
  * GET /api/cron/archive-old-sales
@@ -22,8 +23,7 @@ const BATCH = 1000
 const MAX_BATCHES_PER_RUN = 50 // bounded so one invocation never runs away
 
 export async function GET(request: Request) {
-  const auth = request.headers.get('authorization')
-  if (!process.env.CRON_SECRET || auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!bearerMatches(request.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
