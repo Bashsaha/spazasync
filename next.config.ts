@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
+  // Drop the `X-Powered-By: Next.js` response header — minor framework
+  // disclosure a pentest flags; nothing relies on it.
+  poweredByHeader: false,
   turbopack: {
     root: path.resolve(__dirname),
   },
