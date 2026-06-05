@@ -79,6 +79,12 @@ export async function proxy(request: NextRequest) {
   // We still forward the nonce + apply the CSP so HTML served from these
   // early-returns (the public legal pages) gets a working policy.
   if (
+    // Vercel Cron endpoints self-authenticate via CRON_SECRET (Bearer) and carry
+    // NO session cookie — without this early-return the auth logic below would
+    // 307-redirect them to /login BEFORE the handler validates the secret, so the
+    // cron body never runs. Each /api/cron/* route checks the secret itself, so
+    // bypassing routing-only middleware here weakens nothing.
+    pathname.startsWith('/api/cron') ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon') ||
     // App Shell entry (Phase 44): `/` is a static, data-free brand splash that
