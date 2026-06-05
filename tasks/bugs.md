@@ -16,6 +16,15 @@ Claude must read this file at session start and reference it before touching aut
 
 ---
 
+## SECURITY-002: teller PIN brute-forceable — sign-in ran client-side, bypassing the rate limiter
+**Symptom:** None user-visible — found in a security audit. `/api/auth/teller-login` is rate-limited (10/min per IP) but only returned the teller's synthetic email; the actual `supabase.auth.signInWithPassword({ email, password: pin })` ran CLIENT-SIDE ([login/page.tsx](src/app/(auth)/login/page.tsx)), hitting Supabase Auth's token endpoint directly. So the app limiter never saw a PIN attempt.
+**Root cause:** A 6-digit teller PIN is only 1,000,000 combinations. An attacker who knows a shop code + teller display name (both low-entropy, shared with staff) could script `signInWithPassword` straight against Supabase Auth, never touching the 10/min route limiter. Only Supabase Auth's own (looser, IP/global) limits applied.
+**Severity:** Moderate-High — a guessable credential on a payments-adjacent app, with the app's own throttle bypassed.
+**Fix (2026-06-05, SW v87 → v88):** Moved the PIN sign-in SERVER-SIDE into the rate-limited route. The route now takes `{ shopCode, tellerName, pin }`, validates the teller (admin client), then calls `signInWithPassword` via the `@supabase/ssr` server client — which sets the session cookies on the response (same proven pattern as `/auth/callback`) — and returns `{ ok: true }` (or `401` "Incorrect PIN"). The 10/min limiter now actually gates PIN guesses. The client drops its `signInWithPassword` call and just hard-navigates to `/sale` on success. Per BUG-043 this is STRICTLY SAFER: the session is established server-side BEFORE the hard nav, so it can't race the cookie write.
+**Prevention rule:** Never perform a credential check (password/PIN) client-side when the security control is a server-side rate limit — the limiter must sit in front of the actual `signInWithPassword`/verification call, or it's decorative. For any "owner sets a credential for someone else" flow, the verification belongs in a rate-limited server route. **Residual / future:** the limiter is keyed per-IP; a distributed brute force could still spread attempts — a per-`(shop_id, teller_name)` failed-attempt counter (server-tracked lockout) would close that, and lengthening PINs past 6 digits raises the keyspace. Logged as a follow-up, not done this pass. **Needs preview-deploy verification** (build/unit don't exercise the authenticated login path): teller login with correct PIN → lands on `/sale` (no spinner hang, BUG-043); wrong PIN → "Incorrect PIN"; active + expired-shop teller per BUG-047.
+
+---
+
 ## BUG-052: Post-App-Shell cluster — notification sheet traps nav, owner shows teller's name, checklist buzzer hangs + double-completion
 **Symptoms (4, reported together after the App Shell rollout):**
 1. Opening the notification bell, then tapping a bottom-nav tab, "stays in notifications" — the only way out is the sheet's back button.

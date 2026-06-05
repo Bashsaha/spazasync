@@ -326,30 +326,24 @@ function TellerLoginForm({
     setLoading(true)
 
     try {
-      // Step 1: Validate that this teller exists in this shop
+      // The PIN sign-in now happens SERVER-SIDE in the rate-limited route (so a
+      // 6-digit PIN can't be brute-forced straight against Supabase Auth). On
+      // success the route has already set the session cookies on this response,
+      // so the hard nav in onSuccess (BUG-043) carries a valid session.
       const res = await fetch('/api/auth/teller-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ shopCode: shopCode.toUpperCase(), tellerName: name }),
+        body: JSON.stringify({ shopCode: shopCode.toUpperCase(), tellerName: name, pin: password }),
       })
 
       if (!res.ok) {
-        const { error: msg } = await res.json()
-        setError(msg ?? t('teller_error_not_found'))
-        setLoading(false)
-        return
-      }
-
-      // Step 2: Sign in with the synthetic email + their password
-      const { syntheticEmail } = await res.json()
-      const supabase = createClient()
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: syntheticEmail,
-        password,
-      })
-
-      if (authError) {
-        setError(t('teller_error_wrong_pin'))
+        // 401 = wrong PIN; 404/400 = shop/name lookup failed; 429 = throttled.
+        if (res.status === 401) {
+          setError(t('teller_error_wrong_pin'))
+        } else {
+          const { error: msg } = await res.json().catch(() => ({ error: undefined }))
+          setError(msg ?? t('teller_error_not_found'))
+        }
         setLoading(false)
         return
       }

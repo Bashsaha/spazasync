@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { buildTellerEmail } from '@/lib/auth/teller'
 import { checkRateLimit } from '@/lib/utils/rateLimit'
 import { LOCALE_COOKIE, localeCookieOptions, parseLocale } from '@/lib/i18n/locale-cookie'
@@ -8,17 +10,24 @@ import { z } from 'zod'
 const schema = z.object({
   shopCode: z.string().min(1).max(10).transform((s) => s.toUpperCase()),
   tellerName: z.string().min(1).max(100),
+  pin: z.string().min(1).max(100),
 })
 
 /**
  * POST /api/auth/teller-login
- * Body: { shopCode, tellerName }
+ * Body: { shopCode, tellerName, pin }
  *
- * Validates the teller exists in the shop, then returns the synthetic email
- * so the client can call supabase.auth.signInWithPassword().
+ * Validates the teller exists in the shop, then performs the PIN sign-in
+ * SERVER-SIDE (setting the session cookies via @supabase/ssr) and returns
+ * { ok: true }. The client then hard-navigates to /sale (BUG-043).
  *
- * Does NOT perform the actual sign-in — that stays client-side so
- * the session cookie is set correctly by @supabase/ssr.
+ * Why server-side: the rate limiter below (10/min per IP) only gates a PIN
+ * brute-force if the actual signInWithPassword runs HERE. The previous design
+ * returned only the synthetic email and let the CLIENT call signInWithPassword
+ * straight to Supabase Auth — bypassing this limiter entirely (a 6-digit PIN is
+ * only 1,000,000 combinations). Keeping the sign-in server-side closes that,
+ * and — per BUG-043 — the session is established server-side before the client's
+ * hard nav, so it can never race the cookie write.
  */
 export async function POST(request: Request) {
   const { limited } = await checkRateLimit(request, { limit: 10, windowSecs: 60 })
@@ -41,7 +50,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid shop code or name' }, { status: 400 })
   }
 
-  const { shopCode, tellerName } = parsed.data
+  const { shopCode, tellerName, pin } = parsed.data
   const admin = createAdminClient()
 
   // Look up the shop by code
@@ -81,16 +90,32 @@ export async function POST(request: Request) {
     )
   }
 
-  // Return the synthetic email — client will use this to call signInWithPassword
+  // Perform the PIN sign-in SERVER-SIDE so the rate limit above actually gates
+  // brute-force attempts. The @supabase/ssr server client writes the session
+  // cookies onto this response via the next/headers cookie store (same proven
+  // pattern as /auth/callback); the client then hard-navigates to /sale.
   const syntheticEmail = buildTellerEmail(teller.name, shopCode)
+  const supabase = await createClient()
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: syntheticEmail,
+    password: pin,
+  })
 
-  // Also pre-set the locale cookie to the shop's language so the layout's
-  // first render after teller sign-in already has the right translations
-  // hydrated server-side.
-  const res = NextResponse.json({ syntheticEmail })
+  if (signInError) {
+    // Generic message — don't reveal anything beyond "the PIN was wrong".
+    return NextResponse.json(
+      { error: 'Incorrect PIN. Please try again.' },
+      { status: 401 },
+    )
+  }
+
+  // Pre-set the locale cookie to the shop's language so the first /sale render
+  // after sign-in already has the right translations hydrated server-side.
   const cookieLocale = parseLocale(shop.language as string | undefined)
   if (cookieLocale) {
-    res.cookies.set(LOCALE_COOKIE, cookieLocale, localeCookieOptions())
+    const store = await cookies()
+    store.set(LOCALE_COOKIE, cookieLocale, localeCookieOptions())
   }
-  return res
+
+  return NextResponse.json({ ok: true })
 }
