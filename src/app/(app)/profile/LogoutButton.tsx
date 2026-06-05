@@ -3,8 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { LogOut } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
-import { clearSessionCaches } from '@/lib/offline/clear-session-cache'
+import { signOutAndPurge } from '@/lib/offline/sign-out'
 
 interface Props {
   label: string
@@ -22,12 +21,10 @@ export function LogoutButton({ label, loadingLabel }: Props) {
     if (busy) return
     setBusy(true)
     try {
-      const supabase = createClient()
-      await supabase.auth.signOut()
+      // Sign out + purge all shop/user-scoped caches (SECURITY-001) before the
+      // next user can log in on this (often shared) device.
+      await signOutAndPurge()
     } finally {
-      // Purge all shop/user-scoped client caches before the next user can log in
-      // on this (often shared) device. (SECURITY-001)
-      await clearSessionCaches()
       router.push('/login')
     }
   }

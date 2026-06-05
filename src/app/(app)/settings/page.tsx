@@ -11,7 +11,7 @@ import { FullScreenSpinner } from '@/components/Spinner'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { Button, Card, FormField, Input, Callout, Badge, PageHeader } from '@/components/ui'
 import { useUserRole } from '@/hooks/useUserRole'
-import { createClient } from '@/lib/supabase/client'
+import { signOutAndPurge } from '@/lib/offline/sign-out'
 import type { SupportedLocale } from '@/lib/i18n/types'
 
 interface ShopSettings {
@@ -323,13 +323,10 @@ export default function SettingsPage() {
         setMessage({ type: 'err', key: 'danger_error' })
         return
       }
-      // Account is gone — sign out locally (best-effort) and hard-redirect to
-      // login. Use a full navigation so no stale authenticated state lingers.
-      try {
-        await createClient().auth.signOut()
-      } catch {
-        // user already deleted server-side — ignore
-      }
+      // Account is gone — sign out + purge all shop/user-scoped caches
+      // (SECURITY-001; signOut is best-effort since the user is already deleted
+      // server-side) then hard-redirect so no stale authenticated state lingers.
+      await signOutAndPurge()
       window.location.assign('/login')
     } catch {
       setDeleting(false)

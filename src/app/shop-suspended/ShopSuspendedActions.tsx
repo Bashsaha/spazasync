@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Repeat } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { signOutAndPurge } from '@/lib/offline/sign-out'
 import { Button } from '@/components/ui'
 
 interface Props {
@@ -23,7 +23,10 @@ export function ShopSuspendedActions({ label, loadingLabel }: Props) {
     if (busy) return
     setBusy(true)
     try {
-      await createClient().auth.signOut()
+      // Purge all shop/user-scoped caches (SECURITY-001): this screen is the
+      // owner⇄teller phone hand-off, the exact shared-device switch the leak
+      // was filed against.
+      await signOutAndPurge()
     } finally {
       window.location.assign('/login')
     }

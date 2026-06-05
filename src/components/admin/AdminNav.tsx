@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { signOutAndPurge } from '@/lib/offline/sign-out'
 import { useToast } from '@/components/Toast'
 
 const navLinks = [
@@ -20,12 +20,9 @@ export default function AdminNav({ hasShop }: { hasShop?: boolean }) {
 
   async function handleSignOut() {
     try {
-      const supabase = createClient()
-      const { error } = await supabase.auth.signOut()
-      if (error) {
-        addToast('Sign out failed', 'error')
-        return
-      }
+      // Sign out + purge all shop/user-scoped caches (SECURITY-001) before the
+      // next user logs in on this device.
+      await signOutAndPurge()
       router.push('/login')
     } catch {
       addToast('Sign out failed', 'error')
