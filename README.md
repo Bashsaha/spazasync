@@ -1,18 +1,28 @@
 # Movestock
 
-A mobile-first PWA for South African spaza shop and small retail owners. Scan barcodes, track sales, manage stock, and receive daily WhatsApp summaries — all from a smartphone.
+A mobile-first PWA for South African spaza shop and small-retail owners. Open the app on
+an Android phone → scan a barcode → product is added to the sale → stock auto-deducts →
+see an in-app daily summary each evening. Built for owners with no technical background on
+mid-range phones with flaky data.
+
+> **New to this codebase?** Read [ARCHITECTURE.md](ARCHITECTURE.md) first — it explains how
+> the app is wired (auth, data flow, folder layout, compliance subsystem). [CLAUDE.md](CLAUDE.md)
+> is the working reference (schema, conventions, workflow rules); [ARCHIVE.md](ARCHIVE.md) is the
+> phase-by-phase build history.
 
 ---
 
 ## Features
 
-- **Barcode scanning** — phone camera via `@zxing/browser`, no hardware needed
-- **Sale flow** — scan → cart → complete; stock auto-deducted
-- **Stock management** — stock take, manual adjustments, low-stock alerts
-- **Teller management** — owner creates teller accounts; tellers see only the sale screen
-- **WhatsApp summaries** — daily sales recap + low-stock warnings sent via Twilio at 22:00 SAST
+- **Barcode scanning** — phone camera via `@zxing/browser`, no hardware scanner needed
+- **Sale flow** — scan → cart → complete; stock auto-deducted (FEFO batch consumption)
+- **Stock management** — stock take, manual adjustments, low-stock + expiry alerts, stock-loss report
+- **Teller management** — owner creates teller accounts (6-digit PIN); tellers are locked to the sale screen
+- **In-app daily summary** — today's revenue, sales count, and low-stock warnings on the dashboard
 - **Offline support** — sales queued to IndexedDB when offline; synced on reconnect
-- **PWA** — installable on Android via manifest + service worker
+- **Compliance module** — guided journey for SA spaza regulation (permits, CoA, CIPC, SARS) + R500M Spaza Shop Support Fund readiness
+- **Subscriptions** — PayFast (recurring card) or manual EFT (admin reconciles bank statements)
+- **PWA** — installable on Android; cache-first App Shell opens instantly
 
 ---
 
@@ -22,11 +32,16 @@ A mobile-first PWA for South African spaza shop and small retail owners. Scan ba
 |---|---|
 | Framework | Next.js 16, App Router, TypeScript strict |
 | Styling | Tailwind CSS |
-| Database + Auth | Supabase (PostgreSQL, RLS) |
-| Messaging | Twilio WhatsApp Business API |
-| Deployment | Vercel + Vercel Cron Jobs |
+| Database + Auth | Supabase (PostgreSQL, Row-Level Security, Supabase Auth) |
+| Payments | PayFast (cards) + manual EFT reconciliation |
+| Deployment | Vercel + Vercel Cron |
 | Validation | Zod |
-| Testing | Vitest (125 tests) |
+| Barcode | `@zxing/browser` |
+| Offline | IndexedDB via `idb` |
+| Timezone | `date-fns-tz` (`Africa/Johannesburg`) |
+| Testing | Vitest (~790 unit tests) |
+
+See `package.json` for exact versions.
 
 ---
 
@@ -40,131 +55,128 @@ cd spaza-shop
 npm install
 ```
 
-### 2. Set up environment variables
+### 2. Environment variables
 
 ```bash
 cp .env.local.example .env.local
 ```
 
-Fill in all values — see the [Environment Variables](#environment-variables) section below.
+Fill in the values — see [Environment Variables](#environment-variables) below. At minimum you
+need the three Supabase variables to boot the app locally.
 
-### 3. Run Supabase migrations
+### 3. Apply the database schema
 
-In your Supabase project dashboard → SQL Editor, run all migrations in order:
+Movestock does **not** use the Supabase CLI to push migrations. Open your Supabase project →
+**SQL Editor** and run every file in `supabase/migrations/` **in numeric order** (`001` → `037`).
 
-```
-supabase/migrations/001_initial_schema.sql
-supabase/migrations/002_decrement_stock.sql
-supabase/migrations/003_stock_adjustments.sql
-supabase/migrations/004_optional_barcode.sql
-supabase/migrations/005_subscriptions.sql
-supabase/migrations/006_admin_dashboard.sql
-```
+> ⚠️ **Important:** A set of performance/scalability database objects (RPC functions, indexes,
+> RLS-policy rewrites from "Phase 45") were applied directly to production and are **not** captured
+> as numbered migrations. A fresh database is incomplete without them. See
+> [supabase/RUNBOOK.md](supabase/RUNBOOK.md) before relying on a freshly-provisioned database.
 
-### 4. Start the dev server
+Seed reference data (optional but recommended):
 
 ```bash
-npm run dev
+npx tsx scripts/seed-municipalities.ts   # compliance: metro offices + requirements
+npx tsx scripts/seed-catalog.ts          # shared barcode catalogue
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+### 4. Run
+
+```bash
+npm run dev          # http://localhost:3000
+npm test             # ~790 unit tests
+npm run build        # production build
+```
 
 ---
 
 ## Environment Variables
 
-| Variable | Description |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL (e.g. `https://xxx.supabase.co`) |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key — **server-side only, never expose to the client** |
-| `TWILIO_ACCOUNT_SID` | Twilio account SID (starts with `AC`) |
-| `TWILIO_AUTH_TOKEN` | Twilio auth token |
-| `TWILIO_WHATSAPP_FROM` | Twilio WhatsApp sender number (e.g. `whatsapp:+14155238886`) |
-| `CRON_SECRET` | Random secret used to protect the cron endpoint — generate with `openssl rand -hex 32` |
+| Variable | Required | Description |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Supabase anon/public key (safe to expose) |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ | Service-role key — **server-only, never `NEXT_PUBLIC_`** |
+| `CRON_SECRET` | ✅ | Bearer token guarding `/api/cron/*` — `openssl rand -hex 32` |
+| `NEXT_PUBLIC_APP_URL` | ✅ | Public app origin (PayFast return/notify URLs) |
+| `PAYFAST_MERCHANT_ID` / `_KEY` / `_PASSPHRASE` | for card payments | PayFast credentials |
+| `PAYFAST_SANDBOX` | for card payments | `true` in dev/sandbox |
+| `SUBSCRIPTION_PRICE_ZAR` | for payments | Monthly price (e.g. `349.99`) |
+| `EFT_BANK_NAME` / `_ACCOUNT_HOLDER` / `_ACCOUNT_NUMBER` / `_BRANCH_CODE` / `_ACCOUNT_TYPE` | for EFT | Bank details shown on `/subscribe/eft` |
+| `EXTERNAL_API_KEY` | for external API | Bearer token for the read-only business-portal API |
+| `UPSTASH_REDIS_REST_URL` / `_TOKEN` | recommended in prod | Durable rate limiting; falls back to in-memory when unset |
+
+There is **no Twilio/WhatsApp integration** — daily summaries are shown in-app, not sent by message.
+
+---
+
+## Auth Model (quick reference)
+
+| Role | Sign-in | Sees |
+|---|---|---|
+| **Owner** | Google OAuth | Full app; must select an active teller before scanning |
+| **Teller** | Shop code + name + 6-digit PIN | `/sale` only (locked by middleware) |
+| **Admin** | Promoted via `npx tsx scripts/set-admin.ts user@example.com` | `/admin/*` (+ shop pages if dual-role) |
+
+Full detail (RLS scoping, synthetic teller emails, access matrix) is in [ARCHITECTURE.md](ARCHITECTURE.md)
+and [CLAUDE.md](CLAUDE.md).
 
 ---
 
 ## Deploying to Vercel
 
-### Prerequisites
+1. Push to GitHub and import the repo at [vercel.com/new](https://vercel.com/new) (Next.js preset auto-detected).
+2. Add every variable from the table above under **Settings → Environment Variables** (Production + Preview).
+3. Vercel builds and deploys on each push to `master`. Cron schedules live in `vercel.json`
+   (`/api/cron/expire-subscriptions`, `/api/cron/prune-reminders`, `/api/cron/archive-old-sales`).
 
-- [Supabase](https://supabase.com) project with migrations applied and email auth enabled
-- [Twilio](https://twilio.com) account with a WhatsApp-enabled number
-- [Vercel](https://vercel.com) account
+### Post-deploy smoke test
 
-### Steps
+- [ ] Sign in with Google → land on `/onboarding` → create a shop
+- [ ] Create a teller, then test teller login (shop code + name + PIN) → lands on `/sale`
+- [ ] Scan/add a product and complete a sale
+- [ ] Confirm stock decremented on `/stock`
+- [ ] Confirm the dashboard daily summary updates
 
-1. **Push to GitHub** (or connect your repo to Vercel directly)
-
-2. **Import the project in Vercel**
-   - Go to [vercel.com/new](https://vercel.com/new) → Import Git repository
-   - Framework preset: **Next.js** (auto-detected)
-
-3. **Set environment variables in Vercel**
-   - Project → Settings → Environment Variables
-   - Add all 7 variables from the table above
-   - Set them for **Production** (and Preview if desired)
-
-4. **Deploy**
-   - Vercel builds and deploys automatically on each push to `main`
-   - The cron job (`/api/cron/daily-summary`) runs at 20:00 UTC (22:00 SAST) daily — configured in `vercel.json`
-
-### Post-deploy checklist
-
-- [ ] Open `/onboarding` and create an owner account
-- [ ] Create a teller and test teller login (shop code + name + password)
-- [ ] Scan a product barcode and complete a sale
-- [ ] Visit `/stock` to verify stock was deducted
-- [ ] Trigger the WhatsApp summary manually: `GET /api/cron/daily-summary` with `Authorization: Bearer <CRON_SECRET>`
+> **Service worker:** Movestock is a PWA. Any deploy that ships user-facing code **must** bump the
+> `CACHE` constant in `public/sw.js`, or returning users keep the old cached build. See the
+> "Service Worker Cache Bump" rule in [CLAUDE.md](CLAUDE.md).
 
 ---
 
 ## Security
 
-### What's in place
-
 | Protection | Implementation |
 |---|---|
-| Authentication | Supabase Auth (JWT); all API routes check `auth.getUser()` before processing |
-| Authorisation | Row-Level Security on all Supabase tables; teller-only route `/sale` enforced in middleware |
-| Input validation | Zod schemas on every API route — rejects malformed UUIDs, injection strings, and out-of-range values |
-| Rate limiting | In-memory rate limiter on `/api/auth/teller-login` (10 req/60s) and `/api/onboarding` (3 req/60s) |
-| Cron protection | `CRON_SECRET` bearer token required on `/api/cron/daily-summary` |
-| HTTP headers | `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`, `Content-Security-Policy` |
-| Service role key | Used only in server-side admin client (`src/lib/supabase/admin.ts`) — never exposed to the browser |
+| Authentication | Supabase Auth (JWT); write routes verify `getUser()` before processing |
+| Authorisation | Row-Level Security on every table; route gating in `src/proxy.ts` (middleware) |
+| Input validation | Zod schemas on every API route (`src/lib/validation/schemas.ts`) |
+| Rate limiting | `checkRateLimit` — Upstash Redis (durable) with in-memory fallback |
+| Cron protection | `CRON_SECRET` bearer token on `/api/cron/*` |
+| HTTP headers | CSP (per-request nonce), HSTS, `X-Frame-Options: DENY`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` |
+| Secrets | Service-role key only in `src/lib/supabase/admin.ts`; verified absent from the client bundle |
 
-### Security checklist before going live
-
-- [ ] Generate a strong `CRON_SECRET` (`openssl rand -hex 32`) — never reuse a password
-- [ ] Confirm `SUPABASE_SERVICE_ROLE_KEY` is **not** prefixed with `NEXT_PUBLIC_`
-- [ ] Enable Row Level Security in Supabase (pre-configured in migrations; verify in dashboard)
-- [ ] Rotate Twilio auth token if it was ever committed or shared
-- [ ] Review Supabase Auth settings: disable sign-ups if you want only invited owners
+The full pre-production checklist (auth, domain, SMTP, POPIA) lives in [CLAUDE.md](CLAUDE.md).
 
 ---
 
 ## Testing
 
 ```bash
-npm test             # run all tests (113 tests across 6 files)
-npm run test:watch   # watch mode
+npm test              # ~790 unit tests across tests/unit/
+npm run test:watch    # watch mode
 npm run test:coverage # coverage report
 ```
 
-Test files:
-
-| File | What it covers |
-|---|---|
-| `tests/unit/currency.test.ts` | `formatZAR`, `parsePrice`, `calcSubtotal`, `calcTotal` |
-| `tests/unit/whatsapp-format.test.ts` | `formatDailySummary` message formatter |
-| `tests/unit/date.test.ts` | SAST timezone helpers |
-| `tests/unit/validation.test.ts` | All 10 Zod schemas (happy + sad paths) |
-| `tests/unit/rate-limit.test.ts` | Rate limiter with fake timers |
-| `tests/unit/security.test.ts` | Schema rejection of injection/malformed input |
+Tests are organised by domain in `tests/unit/` (compliance, sales/reporting, validation/security,
+i18n parity, EFT, barcode, etc.). There are currently **no** integration or end-to-end tests —
+critical cross-module flows (sale → stock decrement, realtime, offline sync) are verified manually
+on a real device.
 
 ---
 
 ## Project Structure
 
-See [CLAUDE.md](CLAUDE.md) for the full file tree and phase-by-phase build history.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the folder-purpose guide and how the layers fit together,
+and [CLAUDE.md](CLAUDE.md) for the annotated file tree, schema, and conventions.
