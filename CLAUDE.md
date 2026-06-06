@@ -169,9 +169,27 @@ Plan to `tasks/todo.md` with checkable items → verify with user → mark progr
 
 ## Supabase Access Rules
 
-- **CAN read** via REST API with service role key from `.env.local`. Use `curl` with `apikey` + `Authorization` headers.
+> **CLAUDE HAS LIVE READ ACCESS TO THE PRODUCTION DATABASE. USE IT — DO NOT ASK, DO NOT ASSUME.**
+> The service-role key is in `.env.local`. Before claiming anything about the schema, data, whether
+> a migration/column/function exists, or whether something is "outdated/broken" — **query the live DB
+> and report facts.** Trust exact counts over planner estimates (`db_size_stats` `rows_estimate` can be stale).
+
+**Read recipe (copy-paste):**
+```bash
+URL=$(grep '^NEXT_PUBLIC_SUPABASE_URL=' .env.local | cut -d= -f2- | tr -d '\r')
+K=$(grep '^SUPABASE_SERVICE_ROLE_KEY=' .env.local | cut -d= -f2- | tr -d '\r')
+# table/column exists? (200 = yes; an error names the missing column)
+curl -s -o /dev/null -w "%{http_code}\n" "$URL/rest/v1/<table>?select=<cols>&limit=0" -H "apikey: $K" -H "Authorization: Bearer $K"
+# exact row count (read Content-Range header)
+curl -s -D - -o /dev/null "$URL/rest/v1/<table>?select=id&limit=1" -H "apikey: $K" -H "Authorization: Bearer $K" -H "Prefer: count=exact" | grep -i content-range
+# call a READ-ONLY rpc (never call a mutating one like complete_sale/archive_old_sales/expire_due_shops)
+curl -s -X POST "$URL/rest/v1/rpc/db_size_stats" -H "apikey: $K" -H "Authorization: Bearer $K" -H "Content-Type: application/json" -d '{}'
+```
+Never print the key in output (use it only in `-H` headers).
+
 - **CANNOT write** (no migrations, no schema changes). Only the user runs SQL in Supabase SQL Editor.
-- **Migration workflow:** (1) write `.sql` migration locally, (2) output raw SQL for user to paste, (3) verify via REST API: `curl -s "https://<project>.supabase.co/rest/v1/<table>?select=id&limit=0"` returns `[]` if exists.
+- **Migration workflow:** (1) write `.sql` migration locally, (2) output raw SQL for user to paste, (3) verify via REST API as above (`limit=0` returns `[]` / `200` if the table exists).
+- **Reproducibility note:** "Phase 45" objects (RPCs/indexes/RLS rewrites) are live in prod but NOT in `migrations/` — see [supabase/RUNBOOK.md](supabase/RUNBOOK.md).
 
 ---
 
