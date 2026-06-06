@@ -44,3 +44,31 @@ body {
 .animate-slide-down {
   animation: slide-down 0.3s ease-out;
 }
+
+/* ---- Stocky, the feature guide (Phase 46) ---- */
+@keyframes stocky-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes stocky-pop {
+  from { transform: scale(0.6) translateY(12px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+@keyframes stocky-wave {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(18deg); }
+  60% { transform: rotate(-12deg); }
+}
+@keyframes stocky-ring {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.06); opacity: 0.4; }
+}
+.stocky-bob { animation: stocky-bob 2.6s ease-in-out infinite; }
+.stocky-pop { animation: stocky-pop 0.35s ease-out; }
+.stocky-wave { transform-origin: 70% 70%; animation: stocky-wave 0.7s ease-in-out 2; }
+.stocky-ring { animation: stocky-ring 1.5s ease-in-out infinite; }
+
+/* Respect reduced-motion: Stocky still appears, just without the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .stocky-bob, .stocky-pop, .stocky-wave, .stocky-ring { animation: none; }
+}

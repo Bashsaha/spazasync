@@ -17,7 +17,7 @@ const APP_SHELL_NAMESPACES: TranslationNamespace[] = [
   'products', 'tellers', 'expiry', 'settings', 'suppliers', 'checklist',
   'documents', 'waste-pest', 'inspection', 'inventory', 'manage',
   'compliance-onboarding', 'compliance-journey', 'compliance-fund',
-  'compliance-reminders', 'sales-statistics',
+  'compliance-reminders', 'sales-statistics', 'guide',
 ]
 
 /**

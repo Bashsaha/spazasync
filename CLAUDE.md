@@ -267,7 +267,9 @@ The file tree below is ground truth. After every phase: Glob scan, diff against 
 
 ## Living Scope
 
-Phases 1–36c + 37a–37g + 38 + 39 + 40 + 41a + 41b + 41c + 41d + 41e + 42 + 43 + 44 + 45 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+Phases 1–36c + 37a–37g + 38 + 39 + 40 + 41a + 41b + 41c + 41d + 41e + 42 + 43 + 44 + 45 + 46 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+
+**Phase 46 — "Stocky" the in-app feature guide — COMPLETE (2026-06-06).** A small friendly robot (inline SVG, CSS-animated, no deps, offline-safe) that occasionally appears on the home hubs (owners/admins only) and teaches ONE feature at a time with a dimmed spotlight + pulsing brand ring on the target element. 100% plain software — NO AI at runtime: reads a hand-authored static catalog (`lib/guide/catalog.ts`) + rule-based contextual triggers (`lib/guide/triggers.ts` — low-stock/expiring/missing-cost/no-sale-today) evaluated against `/api/summary/daily`. Calm cadence: home screens only (`/dashboard`,`/sales`,`/inventory`,`/manage`), after ~4s idle, ≤1 tip / 48h / session, hard-suppressed during any task or sale. Per-user localStorage state (`lib/guide/storage.ts`); pure selection/cadence logic in `lib/guide/select-tip.ts` (unit-tested, `tests/unit/guide.test.ts`). Pages opt in with a one-line `data-tour="<token>"` attribute (on the BottomNav tabs, the New-Sale FAB, the dashboard Today card). Mounts once in `AppChrome`; Settings → "Helper tips" toggle re-enables after "Don't show tips". New `guide` i18n namespace × 5 locales. SW cache v88→v89. **Live phone test still recommended** (the spotlight/coachmark render path isn't exercised by tsc/unit/build).
 
 **Phase 44 — App Shell Architecture / instant-open PWA — COMPLETE (2026-06-02), incl. the static App Shell + phone-verified.** 44a (resume-crash foundation), 44b (per-screen cache-first + the BUG-050 staleTimes resume-nav fix), AND the static **App Shell** (Stage 1 splash + Stage 2 data-free `(app)` shell + the dashboard increment) are all DONE and confirmed working on a real phone. **Cold START / app-kill is now solved:** `/`, `/sale`, `/dashboard` paint instantly from the SW cache on a cold open, with data hydrating cache-first. See the App Shell entry in "Most recent" for how it works.
 
@@ -281,7 +283,7 @@ When starting a new phase, append it here and update the file tree.
 
 ## Current File Tree
 
-_Last updated: Phase 45 Scalability Hardening COMPLETE (2026-06-03)_
+_Last updated: Phase 46 "Stocky" feature guide COMPLETE (2026-06-06)_
 
 ```
 spaza shop/
@@ -447,6 +449,12 @@ spaza shop/
 │   │   ├── LaunchRouter.tsx                 # App Shell — splash brain: local session → hard-nav to dest
 │   │   ├── AppChrome.tsx                    # App Shell — client chrome + owner-gate/teller-lockout nets (data-free layout)
 │   │   ├── LegalFooter.tsx                  # 'use client' — Terms/Privacy links under login + onboarding
+│   │   ├── guide/                           # Phase 46 — "Stocky" feature guide (self-contained)
+│   │   │   ├── RobotGuide.tsx               # orchestrator (the only AppChrome mount): idle/cadence/nudge/spotlight
+│   │   │   ├── RobotBuddy.tsx               # inline SVG mascot (CSS-animated, reduced-motion aware)
+│   │   │   ├── SpotlightOverlay.tsx         # portal: 4-panel dim + live punch-out + pulsing ring + bubble
+│   │   │   ├── useTourTarget.ts             # resolve data-tour anchor → tracked DOMRect (poll + rAF, graceful miss)
+│   │   │   └── GuideTipsToggle.tsx          # Settings "Helper tips" re-entry toggle
 │   │   └── ui/                              # Design-system primitives (2026-05-19)
 │   │       ├── Button.tsx, Card.tsx, PageHeader.tsx, SectionHeader.tsx
 │   │       ├── FormField.tsx, Callout.tsx, Badge.tsx, EmptyState.tsx
@@ -459,6 +467,7 @@ spaza shop/
 │   │   ├── auth/{teller.ts, admin-guard.ts, shop-auth.ts, external-api-guard.ts, recent-users.ts,
 │   │   │          route-access.ts,          # route allow-lists extracted from proxy.ts (testable; BUG-047)
 │   │   │          claims.ts}                # Phase 44a — getAuthClaims(); shop-auth.ts adds getShopAuthFast (45e, reads)
+│   │   ├── guide/{types.ts, catalog.ts, triggers.ts, select-tip.ts, storage.ts}  # Phase 46 — Stocky data + pure logic (no AI, no DOM)
 │   │   ├── realtime/shop-channel.ts         # Phase 45d — subscribeShopBroadcast (per-shop Broadcast, replaces postgres_changes)
 │   │   ├── subscription/expiry.ts           # pure isSubscriptionExpired — shared by owner gate + teller lockout
 │   │   ├── payfast/index.ts
@@ -492,7 +501,7 @@ spaza shop/
 │   │   │                # fund.ts (37e), reminders.ts (37g — pure evaluator + bucket-key engine)
 │   │   ├── i18n/
 │   │   │   ├── types.ts, interpolate.ts, loader.ts, server.ts
-│   │   │   └── translations/{en,so,am,zu,ur}/  (24 namespaces each)
+│   │   │   └── translations/{en,so,am,zu,ur}/  (25 namespaces each — +guide Phase 46)
 │   │   │       # common, auth, sale, sales, sales-statistics, dashboard, settings, stock,
 │   │   │       # stock-loss, products, tellers, expiry, summary, suppliers, checklist, documents,
 │   │   │       # waste-pest, inspection, inventory, manage, compliance-onboarding,
@@ -551,5 +560,6 @@ spaza shop/
     ├── barcode-scanner.test.ts
     ├── eft-reconcile.test.ts                      # EFT match engine + OFX/CSV adapters
     ├── subscription-expiry.test.ts                # shared isSubscriptionExpired helper (owner gate + teller lockout)
+    ├── guide.test.ts                              # Phase 46 — Stocky tip selection + cadence gate + triggers
     └── route-access.test.ts                       # BUG-047 invariant: teller redirect targets are reachable
 ```

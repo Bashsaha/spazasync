@@ -85,6 +85,7 @@ export function BottomNav({ role, hasShop }: BottomNavProps) {
         <Link
           href="/sale"
           prefetch
+          data-tour="start-sale"
           className="fixed z-30 right-4 bg-brand text-white rounded-full active:bg-brand-hover transition-colors flex items-center gap-2 pl-4 pr-5 h-14"
           style={{ bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
           aria-label={t('nav_start_sale')}
@@ -117,6 +118,9 @@ export function BottomNav({ role, hasShop }: BottomNavProps) {
                 key={item.href}
                 href={item.href}
                 prefetch
+                // Stocky feature-guide anchors (Phase 46): /dashboard→nav-home,
+                // /sales→nav-sales, /inventory→nav-inventory, /manage→nav-manage.
+                data-tour={`nav-${item.href === '/dashboard' ? 'home' : item.href.slice(1)}`}
                 className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 min-h-[56px] min-w-[56px] transition-colors ${
                   isActive ? 'text-brand' : 'text-gray-400 active:text-brand'
                 }`}

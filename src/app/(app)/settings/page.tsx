@@ -10,6 +10,7 @@ import { BackButton } from '@/components/BackButton'
 import { FullScreenSpinner } from '@/components/Spinner'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { Button, Card, FormField, Input, Callout, Badge, PageHeader } from '@/components/ui'
+import { GuideTipsToggle } from '@/components/guide/GuideTipsToggle'
 import { useUserRole } from '@/hooks/useUserRole'
 import { signOutAndPurge } from '@/lib/offline/sign-out'
 import type { SupportedLocale } from '@/lib/i18n/types'
@@ -537,6 +538,10 @@ export default function SettingsPage() {
           {tChk('history_link')} →
         </Link>
       </Card>
+
+      {/* Stocky helper-tips toggle (Phase 46) — the re-entry point after
+          "Don't show tips". Owners only (tellers never see Stocky). */}
+      {role === 'owner' && <GuideTipsToggle />}
 
       {/* Phase 37e — Government fund eligibility (SA citizens only) */}
       {settings?.nationality_type === 'sa_citizen' && (

@@ -50,7 +50,10 @@ export function DashboardSummaryCards() {
 
   return (
     <>
-      <TodaySummaryView summary={data.sales} profitTrackingEnabled={data.profitTrackingEnabled} />
+      {/* data-tour: Stocky "today's money" anchor (Phase 46) */}
+      <div data-tour="today-summary">
+        <TodaySummaryView summary={data.sales} profitTrackingEnabled={data.profitTrackingEnabled} />
+      </div>
 
       {lowStock.length > 0 && (
         <a

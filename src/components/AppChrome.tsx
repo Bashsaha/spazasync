@@ -8,6 +8,7 @@ import { TopAppBar } from '@/components/TopAppBar'
 import DailySummaryAlert from '@/components/DailySummaryAlert'
 import { InstallPwaButton } from '@/components/InstallPwaButton'
 import { ChecklistReminderFab } from '@/components/ChecklistReminderFab'
+import { RobotGuide } from '@/components/guide/RobotGuide'
 import { SaleDataWarmup } from '@/components/SaleDataWarmup'
 import { ResumeGuard } from '@/components/ResumeGuard'
 import { createClient } from '@/lib/supabase/client'
@@ -211,6 +212,9 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
           wrong-role bar; returning users have it in the mirror so it's instant. */}
       {role !== null && <BottomNav role={role} hasShop={!!shopId} />}
       {isOwnerish && shopId && <ChecklistReminderFab initialVisible={false} />}
+      {/* Stocky — the feature guide. Owners/admins only; self-gates to home
+          screens + the calm 48h cadence, renders nothing otherwise. */}
+      {isOwnerish && shopId && <RobotGuide userId={id.userId} />}
       {shopId && <SaleDataWarmup />}
     </>
   )
