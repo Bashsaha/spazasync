@@ -1,30 +1,39 @@
 'use client'
 
 /**
- * Per-user, per-device persistence for Stocky (Phase 46).
+ * Per-user, per-device persistence for Stocky (Phase 46 → 47).
  *
  * localStorage (not a DB table, not IndexedDB): synchronous so there's no flash,
  * tiny payload, and it matches the existing ChecklistReminderFab / shell-mirror
- * patterns. Worst case under Android storage eviction is a tip re-appearing —
- * harmless for a guide. State is namespaced by userId because Movestock devices
- * are shared (owner + teller on one phone), so one person's "seen" must not hide
- * tips from another. The AppChrome user-switch purge clears this alongside the
- * other caches.
+ * patterns. Worst case under Android storage eviction is the welcome re-showing
+ * once — harmless for a guide. State is namespaced by userId because Movestock
+ * devices are shared (owner + teller on one phone), so one person's "seen" must
+ * not hide tips from another. The AppChrome user-switch purge clears this
+ * alongside the other caches.
  */
 
 const STATE_KEY = 'mvs_guide_state'
-const SESSION_NUDGE_KEY = 'mvs_guide_session_nudged'
 
 export interface GuideState {
   /** Tip ids acknowledged with "Got it". */
   seen: string[]
-  /** Epoch ms of the last proactive nudge (0 = never). */
-  lastShownAt: number
-  /** User turned tips off. Re-enabled from Settings. */
+  /** User turned the helper off. Re-enabled from Settings. */
   dismissedAll: boolean
+  /** Epoch ms the one-time welcome was acknowledged (0 = never shown). */
+  introShownAt: number
+  /** How many times the "Tap me for help" caption has shown (capped). */
+  helperHintCount: number
+  /** Whether the help sheet has ever been opened (gates the first-open hint). */
+  helperSheetOpened: boolean
 }
 
-const EMPTY: GuideState = { seen: [], lastShownAt: 0, dismissedAll: false }
+const EMPTY: GuideState = {
+  seen: [],
+  dismissedAll: false,
+  introShownAt: 0,
+  helperHintCount: 0,
+  helperSheetOpened: false,
+}
 
 type AllState = Record<string, GuideState>
 
@@ -67,36 +76,32 @@ export function markTipSeen(userId: string, tipId: string): GuideState {
   return update(userId, { seen: [...current.seen, tipId] })
 }
 
-/** Record that a proactive nudge just fired (starts the 48h cooldown). */
-export function recordShown(userId: string, now: number): GuideState {
-  return update(userId, { lastShownAt: now })
+/** Record that the one-time welcome was acknowledged (or self-discovered). */
+export function markIntroSeen(userId: string, now: number): GuideState {
+  return update(userId, { introShownAt: now })
 }
 
-/** Turn tips on/off (Settings toggle + "Don't show tips"). */
+/** Allow the welcome to show again (used when re-enabling tips in Settings). */
+export function resetIntro(userId: string): GuideState {
+  return update(userId, { introShownAt: 0, helperHintCount: 0 })
+}
+
+/** Count one showing of the "Tap me for help" caption. */
+export function bumpHelperHint(userId: string): GuideState {
+  const current = readGuideState(userId)
+  return update(userId, { helperHintCount: current.helperHintCount + 1 })
+}
+
+/** Remember the help sheet has been opened (so the first-open hint shows once). */
+export function markSheetOpened(userId: string): GuideState {
+  return update(userId, { helperSheetOpened: true })
+}
+
+/** Turn the helper on/off (Settings toggle + "Hide helper"). */
 export function setTipsEnabled(userId: string, enabled: boolean): GuideState {
   return update(userId, { dismissedAll: !enabled })
 }
 
 export function readTipsEnabled(userId: string): boolean {
   return !readGuideState(userId).dismissedAll
-}
-
-// ---- session-scoped "already nudged" flag (resets each app open) ----------
-
-export function isSessionNudged(): boolean {
-  if (typeof window === 'undefined') return false
-  try {
-    return window.sessionStorage.getItem(SESSION_NUDGE_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-
-export function markSessionNudged(): void {
-  if (typeof window === 'undefined') return
-  try {
-    window.sessionStorage.setItem(SESSION_NUDGE_KEY, '1')
-  } catch {
-    /* ignore */
-  }
 }

@@ -63,12 +63,17 @@ body {
   0%, 100% { transform: scale(1); opacity: 0.9; }
   50% { transform: scale(1.06); opacity: 0.4; }
 }
+@keyframes stocky-sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
 .stocky-bob { animation: stocky-bob 2.6s ease-in-out infinite; }
 .stocky-pop { animation: stocky-pop 0.35s ease-out; }
 .stocky-wave { transform-origin: 70% 70%; animation: stocky-wave 0.7s ease-in-out 2; }
 .stocky-ring { animation: stocky-ring 1.5s ease-in-out infinite; }
+.stocky-sheet-up { animation: stocky-sheet-up 0.22s ease-out; }
 
 /* Respect reduced-motion: Stocky still appears, just without the movement. */
 @media (prefers-reduced-motion: reduce) {
-  .stocky-bob, .stocky-pop, .stocky-wave, .stocky-ring { animation: none; }
+  .stocky-bob, .stocky-pop, .stocky-wave, .stocky-ring, .stocky-sheet-up { animation: none; }
 }

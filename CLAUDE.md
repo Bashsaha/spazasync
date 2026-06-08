@@ -267,7 +267,9 @@ The file tree below is ground truth. After every phase: Glob scan, diff against 
 
 ## Living Scope
 
-Phases 1–36c + 37a–37g + 38 + 39 + 40 + 41a + 41b + 41c + 41d + 41e + 42 + 43 + 44 + 45 + 46 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+Phases 1–36c + 37a–37g + 38 + 39 + 40 + 41a + 41b + 41c + 41d + 41e + 42 + 43 + 44 + 45 + 46 + 47 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+
+**Phase 47 — "Stocky 2.0": always-on, discoverable helper — COMPLETE (2026-06-08).** Reworked Stocky from a proactive-only rare nudge (the "saw it once and never again" bug: a 48h cooldown + once-per-session gate strangled it, with no way to summon it) into an **always-visible, tappable helper button** in the TopAppBar next to the bell (owners/admins; hidden on /sale, tellers, and off guide routes). Tap → a **"What can I show you here?" bottom sheet** of the current page's tips (`StockyTipSheet`); pick one → the existing dimmed **spotlight** highlights the real element. An **amber dot** on the button flags an active contextual trigger (low-stock/expiring/missing-cost/no-sale) — it replaces the deleted auto-popup. **Discoverability:** a one-time **welcome** spotlights the button itself on first dashboard visit (after 4s idle, single "Got it"), a "Tap me for help" caption shows on the first 3 home visits, and the sheet self-explains (+ a first-open "I highlight things for you" line). Re-enabling tips in Settings resets the welcome. **Coverage:** per-page tips + `data-tour` anchors on /dashboard, /inventory, /stock, /products, /sales, /manage. Pure logic rewritten to `listPageTips`/`hasActiveTip` (no cadence; `tests/unit/guide.test.ts` updated). RobotGuide deleted; mount moved to `TopAppBar` via `helperUserId`. New i18n keys × 5 locales (parity-enforced). SW cache v90→v91. 809/809 tests, tsc + build clean. **Live phone test still recommended** (the spotlight/sheet/welcome render path isn't exercised by tsc/unit/build).
 
 **Phase 46 — "Stocky" the in-app feature guide — COMPLETE (2026-06-06).** A small friendly robot (inline SVG, CSS-animated, no deps, offline-safe) that occasionally appears on the home hubs (owners/admins only) and teaches ONE feature at a time with a dimmed spotlight + pulsing brand ring on the target element. 100% plain software — NO AI at runtime: reads a hand-authored static catalog (`lib/guide/catalog.ts`) + rule-based contextual triggers (`lib/guide/triggers.ts` — low-stock/expiring/missing-cost/no-sale-today) evaluated against `/api/summary/daily`. Calm cadence: home screens only (`/dashboard`,`/sales`,`/inventory`,`/manage`), after ~4s idle, ≤1 tip / 48h / session, hard-suppressed during any task or sale. Per-user localStorage state (`lib/guide/storage.ts`); pure selection/cadence logic in `lib/guide/select-tip.ts` (unit-tested, `tests/unit/guide.test.ts`). Pages opt in with a one-line `data-tour="<token>"` attribute (on the BottomNav tabs, the New-Sale FAB, the dashboard Today card). Mounts once in `AppChrome`; Settings → "Helper tips" toggle re-enables after "Don't show tips". New `guide` i18n namespace × 5 locales. SW cache v88→v89. **Live phone test still recommended** (the spotlight/coachmark render path isn't exercised by tsc/unit/build).
 
@@ -449,12 +451,13 @@ spaza shop/
 │   │   ├── LaunchRouter.tsx                 # App Shell — splash brain: local session → hard-nav to dest
 │   │   ├── AppChrome.tsx                    # App Shell — client chrome + owner-gate/teller-lockout nets (data-free layout)
 │   │   ├── LegalFooter.tsx                  # 'use client' — Terms/Privacy links under login + onboarding
-│   │   ├── guide/                           # Phase 46 — "Stocky" feature guide (self-contained)
-│   │   │   ├── RobotGuide.tsx               # orchestrator (the only AppChrome mount): idle/cadence/nudge/spotlight
+│   │   ├── guide/                           # Phase 46→47 — "Stocky" feature guide (self-contained)
+│   │   │   ├── StockyHelper.tsx             # orchestrator + resting button (mounted in TopAppBar): intro/sheet/spotlight/dot
+│   │   │   ├── StockyTipSheet.tsx           # Phase 47 — "What can I show you here?" per-page tip sheet (portal)
 │   │   │   ├── RobotBuddy.tsx               # inline SVG mascot (CSS-animated, reduced-motion aware)
-│   │   │   ├── SpotlightOverlay.tsx         # portal: 4-panel dim + live punch-out + pulsing ring + bubble
+│   │   │   ├── SpotlightOverlay.tsx         # portal: 4-panel dim + punch-out + ring + bubble (+ gotItOnly welcome variant)
 │   │   │   ├── useTourTarget.ts             # resolve data-tour anchor → tracked DOMRect (poll + rAF, graceful miss)
-│   │   │   └── GuideTipsToggle.tsx          # Settings "Helper tips" re-entry toggle
+│   │   │   └── GuideTipsToggle.tsx          # Settings "Helper tips" re-entry toggle (re-enable resets the welcome)
 │   │   └── ui/                              # Design-system primitives (2026-05-19)
 │   │       ├── Button.tsx, Card.tsx, PageHeader.tsx, SectionHeader.tsx
 │   │       ├── FormField.tsx, Callout.tsx, Badge.tsx, EmptyState.tsx
@@ -467,7 +470,7 @@ spaza shop/
 │   │   ├── auth/{teller.ts, admin-guard.ts, shop-auth.ts, external-api-guard.ts, recent-users.ts,
 │   │   │          route-access.ts,          # route allow-lists extracted from proxy.ts (testable; BUG-047)
 │   │   │          claims.ts}                # Phase 44a — getAuthClaims(); shop-auth.ts adds getShopAuthFast (45e, reads)
-│   │   ├── guide/{types.ts, catalog.ts, triggers.ts, select-tip.ts, storage.ts}  # Phase 46 — Stocky data + pure logic (no AI, no DOM)
+│   │   ├── guide/{types.ts, catalog.ts, triggers.ts, select-tip.ts, storage.ts}  # Phase 46→47 — Stocky data + pure logic (listPageTips/hasActiveTip; no AI, no DOM)
 │   │   ├── realtime/shop-channel.ts         # Phase 45d — subscribeShopBroadcast (per-shop Broadcast, replaces postgres_changes)
 │   │   ├── subscription/expiry.ts           # pure isSubscriptionExpired — shared by owner gate + teller lockout
 │   │   ├── payfast/index.ts

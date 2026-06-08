@@ -112,6 +112,7 @@ export default function StockPage() {
         </div>
         <button
           onClick={() => setScanning(true)}
+          data-tour="stock-scan"
           className="flex items-center gap-1.5 text-sm font-semibold text-white bg-brand px-4 py-2 rounded-full active:bg-brand-hover"
         >
           {t('btn_scan')}

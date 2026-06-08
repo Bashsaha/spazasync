@@ -32,6 +32,7 @@ export default async function ManageHubPage() {
 
         <Link
           href="/compliance/journey"
+          data-tour="manage-journey"
           className="flex items-center justify-between bg-brand-light rounded-2xl p-5 border border-brand-light active:bg-brand-light"
         >
           <div>

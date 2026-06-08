@@ -3,18 +3,22 @@
 import Link from 'next/link'
 import { useTranslation } from '@/components/LanguageProvider'
 import { NotificationBell } from '@/components/NotificationBell'
+import { StockyHelper } from '@/components/guide/StockyHelper'
 
 export function TopAppBar({
   title,
   subtitle,
   initial,
   bellShopId,
+  helperUserId,
 }: {
   title: string
   subtitle?: string
   initial: string
   /** When set, renders the owner notification bell wired to this shop. */
   bellShopId?: string
+  /** When set (owner/admin with a shop), renders the Stocky helper button. */
+  helperUserId?: string
 }) {
   const { t } = useTranslation()
 
@@ -31,6 +35,7 @@ export function TopAppBar({
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
+          {helperUserId && <StockyHelper userId={helperUserId} />}
           {bellShopId && <NotificationBell shopId={bellShopId} />}
 
           {/* Avatar opens the Profile page (WhatsApp-style entry point). */}

@@ -66,6 +66,7 @@ export default function ProductsPage() {
         <CatalogImportSheet />
         <Link
           href="/products/new"
+          data-tour="product-add"
           className="flex items-center justify-center bg-brand text-white text-sm font-semibold px-4 py-2.5 rounded-full active:bg-brand-hover"
         >
           {t('btn_add')}

@@ -25,13 +25,17 @@ export function SpotlightOverlay({
   onGotIt,
   onClose,
   onDisable,
+  gotItOnly = false,
 }: {
   rect: TargetRect
   title: string
   body: string
   onGotIt: () => void
   onClose: () => void
-  onDisable: () => void
+  /** Omitted in welcome mode (no "Don't show tips" link there). */
+  onDisable?: () => void
+  /** Welcome mode: a single full-width "Got it" button, no Not now / Disable. */
+  gotItOnly?: boolean
 }) {
   const { t } = useTranslation('guide')
   const [vw, setVw] = useState(0)
@@ -93,15 +97,19 @@ export function SpotlightOverlay({
           </div>
           <div className="flex items-center gap-2 mt-3">
             <Button size="md" onClick={onGotIt} className="flex-1">{t('btn_got_it')}</Button>
-            <Button size="md" variant="outline" onClick={onClose}>{t('btn_not_now')}</Button>
+            {!gotItOnly && (
+              <Button size="md" variant="outline" onClick={onClose}>{t('btn_not_now')}</Button>
+            )}
           </div>
-          <button
-            type="button"
-            onClick={onDisable}
-            className="mt-2 w-full text-center text-xs text-gray-400 active:text-gray-600 py-1"
-          >
-            {t('btn_disable')}
-          </button>
+          {!gotItOnly && onDisable && (
+            <button
+              type="button"
+              onClick={onDisable}
+              className="mt-2 w-full text-center text-xs text-gray-400 active:text-gray-600 py-1"
+            >
+              {t('btn_hide_helper')}
+            </button>
+          )}
         </div>
       </div>
     </div>

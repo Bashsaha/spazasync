@@ -111,6 +111,7 @@ export default function SalesHubPage() {
       {/* View by date — drill-down link */}
       <Link
         href="/sales/history"
+        data-tour="sales-history"
         className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50 mb-3"
       >
         <div>

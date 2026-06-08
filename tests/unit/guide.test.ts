@@ -1,9 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { selectTip, canAutoShow, type SelectInput } from '@/lib/guide/select-tip'
+import { listPageTips, hasActiveTip, type SelectInput } from '@/lib/guide/select-tip'
 import { isTriggerActive } from '@/lib/guide/triggers'
-import { COOLDOWN_MS, type GuideSignals } from '@/lib/guide/types'
-
-const NOW = 1_700_000_000_000
+import type { GuideSignals } from '@/lib/guide/types'
 
 const noSignals: GuideSignals = {
   salesTodayCount: 3,
@@ -17,14 +15,12 @@ function input(over: Partial<SelectInput> = {}): SelectInput {
   return {
     pathname: '/dashboard',
     seen: [],
-    dismissedAll: false,
-    lastShownAt: 0,
-    sessionNudged: false,
-    now: NOW,
     signals: noSignals,
     ...over,
   }
 }
+
+const ids = (tips: ReturnType<typeof listPageTips>) => tips.map((p) => p.tip.id)
 
 // ── triggers ──────────────────────────────────────────────────────────────
 
@@ -49,83 +45,73 @@ describe('isTriggerActive', () => {
   })
 })
 
-// ── selectTip ───────────────────────────────────────────────────────────────
+// ── listPageTips ────────────────────────────────────────────────────────────
 
-describe('selectTip', () => {
-  it('teaches the money-making core first (start-sale)', () => {
-    expect(selectTip(input())?.id).toBe('start-sale')
+describe('listPageTips', () => {
+  it('lists a route tip + ambient FAB tip on the dashboard, in curriculum order', () => {
+    // /dashboard has start-sale (order 10) and today-summary (order 20); the
+    // contextual no-sale-today tip is ambient but its trigger is off here.
+    expect(ids(listPageTips(input()))).toEqual(['start-sale', 'today-summary'])
   })
 
-  it('advances to the next curriculum tip once one is acknowledged', () => {
-    expect(selectTip(input({ seen: ['start-sale'] }))?.id).toBe('today-summary')
+  it('shows each guide route its own route tip', () => {
+    expect(ids(listPageTips(input({ pathname: '/stock' })))).toEqual(['stock-scan'])
+    expect(ids(listPageTips(input({ pathname: '/products' })))).toEqual(['product-add'])
+    expect(ids(listPageTips(input({ pathname: '/sales' })))).toEqual(['sales-history'])
+    expect(ids(listPageTips(input({ pathname: '/manage' })))).toEqual(['manage-journey'])
+    expect(ids(listPageTips(input({ pathname: '/inventory' })))).toEqual(['inventory-stock'])
   })
 
-  it('skips a routed tip when restricted to another screen', () => {
-    // today-summary lives on /dashboard; on /sales only ambient tips qualify.
-    const tip = selectTip(input({ pathname: '/sales', seen: ['start-sale'] }), true)
-    expect(tip?.id).not.toBe('today-summary')
-    expect(tip?.route === undefined || tip?.route === '/sales').toBe(true)
+  it('never returns an empty list on a guide route (route tip always present)', () => {
+    expect(listPageTips(input({ pathname: '/inventory' })).length).toBeGreaterThan(0)
   })
 
-  it('lets an active contextual tip jump the queue', () => {
-    const tip = selectTip(
-      input({ pathname: '/inventory', signals: { ...noSignals, lowStockCount: 4 } }),
+  it('floats an active contextual tip to the top', () => {
+    const tips = listPageTips(
+      input({ pathname: '/stock', signals: { ...noSignals, lowStockCount: 4 } }),
     )
-    expect(tip?.id).toBe('low-stock')
+    expect(tips[0].tip.id).toBe('low-stock')
+    expect(tips[0].active).toBe(true)
+    // the page's own route tip is still listed, after the contextual one
+    expect(ids(tips)).toContain('stock-scan')
   })
 
   it('keeps a contextual tip hidden while its trigger is inactive', () => {
-    // Curriculum tips ahead of inventory-hub are already seen, so it's next in
-    // line; the contextual low-stock tip must stay hidden (its trigger is off).
-    const tip = selectTip(
-      input({
-        pathname: '/inventory',
-        seen: ['start-sale', 'today-summary', 'sales-hub', 'manage-hub'],
-        signals: noSignals,
-      }),
-    )
-    expect(tip?.trigger).toBeUndefined()
-    expect(tip?.id).toBe('inventory-hub')
+    const tips = listPageTips(input({ pathname: '/stock', signals: noSignals }))
+    expect(ids(tips)).not.toContain('low-stock')
   })
 
-  it('returns null once every tip is seen', () => {
-    const allIds = [
-      'start-sale', 'today-summary', 'inventory-hub', 'sales-hub', 'manage-hub',
-      'low-stock', 'expiring-soon', 'missing-cost', 'no-sale-today',
-    ]
-    expect(selectTip(input({ seen: allIds, signals: noSignals }))).toBeNull()
+  it('sorts a seen tip last and flags it', () => {
+    const tips = listPageTips(
+      input({ pathname: '/dashboard', seen: ['start-sale'] }),
+    )
+    // today-summary (unseen) before start-sale (seen)
+    expect(ids(tips)).toEqual(['today-summary', 'start-sale'])
+    expect(tips.find((p) => p.tip.id === 'start-sale')?.seen).toBe(true)
+  })
+
+  it('surfaces ambient contextual tips on any guide route', () => {
+    const onProducts = listPageTips(
+      input({ pathname: '/products', signals: { ...noSignals, expiringCount: 2 } }),
+    )
+    expect(ids(onProducts)).toContain('expiring-soon')
   })
 })
 
-// ── canAutoShow (cadence gate) ───────────────────────────────────────────────
+// ── hasActiveTip (the dot) ───────────────────────────────────────────────────
 
-describe('canAutoShow', () => {
-  it('allows a calm first nudge on a home screen', () => {
-    expect(canAutoShow(input())).toBe(true)
+describe('hasActiveTip', () => {
+  it('is false with no contextual condition', () => {
+    expect(hasActiveTip(input({ pathname: '/dashboard' }))).toBe(false)
   })
 
-  it('blocks when tips are turned off', () => {
-    expect(canAutoShow(input({ dismissedAll: true }))).toBe(false)
+  it('is true when something is low', () => {
+    expect(
+      hasActiveTip(input({ pathname: '/dashboard', signals: { ...noSignals, lowStockCount: 1 } })),
+    ).toBe(true)
   })
 
-  it('blocks a second nudge in the same session', () => {
-    expect(canAutoShow(input({ sessionNudged: true }))).toBe(false)
-  })
-
-  it('blocks off the home screens', () => {
-    expect(canAutoShow(input({ pathname: '/stock' }))).toBe(false)
-  })
-
-  it('respects the 48h cooldown', () => {
-    expect(canAutoShow(input({ lastShownAt: NOW - COOLDOWN_MS + 1000 }))).toBe(false)
-    expect(canAutoShow(input({ lastShownAt: NOW - COOLDOWN_MS - 1000 }))).toBe(true)
-  })
-
-  it('blocks when there is nothing left to teach', () => {
-    const allIds = [
-      'start-sale', 'today-summary', 'inventory-hub', 'sales-hub', 'manage-hub',
-      'low-stock', 'expiring-soon', 'missing-cost', 'no-sale-today',
-    ]
-    expect(canAutoShow(input({ seen: allIds }))).toBe(false)
+  it('is false when signals are unavailable (offline)', () => {
+    expect(hasActiveTip(input({ pathname: '/dashboard', signals: null }))).toBe(false)
   })
 })

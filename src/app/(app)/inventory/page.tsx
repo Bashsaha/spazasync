@@ -54,6 +54,7 @@ export default async function InventoryHubPage() {
         <div className="space-y-3">
           <Link
             href="/stock"
+            data-tour="inventory-stock"
             className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
           >
             <div>

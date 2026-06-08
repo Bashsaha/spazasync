@@ -4,7 +4,7 @@
  * Pure inline SVG, themed off the brand tokens, animated with the CSS keyframes
  * in globals.css (which already honour prefers-reduced-motion). No Lottie, no
  * dependency, no network — it ships in the bundle and works offline, which a PWA
- * needs. Presentational only: all behaviour lives in RobotGuide.
+ * needs. Presentational only: all behaviour lives in StockyHelper.
  */
 export function RobotBuddy({
   size = 48,

@@ -5,7 +5,7 @@ import { Sparkles } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { useTranslation } from '@/components/LanguageProvider'
 import { createClient } from '@/lib/supabase/client'
-import { readTipsEnabled, setTipsEnabled } from '@/lib/guide/storage'
+import { readTipsEnabled, setTipsEnabled, resetIntro } from '@/lib/guide/storage'
 
 /**
  * Settings re-entry toggle for Stocky (Phase 46). Self-contained: resolves its
@@ -35,6 +35,9 @@ export function GuideTipsToggle() {
     const next = !enabled
     setEnabled(next)
     setTipsEnabled(userId, next)
+    // Re-enabling is an explicit "show me the helper again" → let the one-time
+    // welcome (and the first-visit caption) run once more.
+    if (next) resetIntro(userId)
   }
 
   return (

@@ -1,82 +1,65 @@
 import type { FeatureTip, GuideSignals } from './types'
-import { HOME_ROUTES, COOLDOWN_MS } from './types'
 import { CATALOG } from './catalog'
 import { isTriggerActive } from './triggers'
 
 /**
- * Pure tip-selection + cadence logic (Phase 46). No DOM, no React — unit-tested
- * in isolation (tests/unit/guide.test.ts). This is the part most likely to
- * regress, so it is deliberately side-effect-free.
+ * Pure tip-listing logic (Phase 47). No DOM, no React — unit-tested in isolation
+ * (tests/unit/guide.test.ts). This is the part most likely to regress, so it is
+ * deliberately side-effect-free.
+ *
+ * The model is on-demand: the owner taps Stocky and we show the tips for the
+ * page they're on. There is no proactive cadence to gate anymore — discovery is
+ * handled by the always-visible button + a one-time welcome (in the React layer).
  */
 
 export interface SelectInput {
   pathname: string
   /** Tip ids the user has already acknowledged ("Got it"). */
   seen: string[]
-  /** User turned tips off ("Don't show tips" / Settings toggle). */
-  dismissedAll: boolean
-  /** Epoch ms of the last proactive nudge (0 = never). */
-  lastShownAt: number
-  /** Already nudged once in this app session. */
-  sessionNudged: boolean
-  now: number
   /** Live facts for contextual triggers; null when unavailable (offline). */
   signals: GuideSignals | null
   /** Injectable for tests; defaults to the real catalog. */
   catalog?: FeatureTip[]
 }
 
-function isHomeRoute(pathname: string): boolean {
-  return (HOME_ROUTES as readonly string[]).includes(pathname)
+export interface PageTip {
+  tip: FeatureTip
+  /** A contextual trigger is firing → sort first + light the dot. */
+  active: boolean
+  /** Already acknowledged → grey it + sort last (kept so help stays re-findable). */
+  seen: boolean
 }
 
-/** An ambient tip (no route) shows on any home screen; a routed tip's anchor
- *  only exists on its own route. For PROACTIVE (auto) selection we only pick
- *  tips renderable on the current screen, so Stocky never yanks the user to
- *  another page uninvited. */
-function onCurrentScreen(tip: FeatureTip, pathname: string): boolean {
+/** An ambient tip (no route) belongs to every guide screen; a routed tip only
+ *  to its own screen. */
+function onRoute(tip: FeatureTip, pathname: string): boolean {
   return tip.route === undefined || tip.route === pathname
 }
 
 /**
- * Choose the next tip, or null if none qualifies.
- *
- * Priority: an ACTIVE contextual tip (lowest order) beats curriculum tips
- * (lowest order). A contextual tip whose trigger is NOT active is skipped
- * entirely — it stays contextual.
- *
- * `restrictToScreen` is true for proactive nudges (no surprise navigation) and
- * false when the user explicitly summons Stocky (cross-screen tips allowed).
+ * The tips to list in the help sheet for the current page, already ordered:
+ * active-contextual first, then unseen, then seen; ties broken by curriculum
+ * order. A contextual tip whose trigger is NOT active is omitted entirely — it
+ * stays contextual. Every guide route has at least one (non-contextual) route
+ * tip, so the list is never empty.
  */
-export function selectTip(input: SelectInput, restrictToScreen = true): FeatureTip | null {
+export function listPageTips(input: SelectInput): PageTip[] {
   const catalog = input.catalog ?? CATALOG
   const seen = new Set(input.seen)
 
-  let pool = catalog.filter((t) => !seen.has(t.id))
-  if (restrictToScreen) pool = pool.filter((t) => onCurrentScreen(t, input.pathname))
-
-  const byOrder = (a: FeatureTip, b: FeatureTip) => a.order - b.order
-
-  // 1) Active contextual tips win.
-  const contextual = pool
-    .filter((t) => isTriggerActive(t.trigger, input.signals))
-    .sort(byOrder)
-  if (contextual.length) return contextual[0]
-
-  // 2) Otherwise the next curriculum tip (those without a trigger).
-  const curriculum = pool.filter((t) => !t.trigger).sort(byOrder)
-  return curriculum[0] ?? null
+  return catalog
+    .filter((t) => onRoute(t, input.pathname))
+    .filter((t) => !t.trigger || isTriggerActive(t.trigger, input.signals))
+    .map((t) => ({ tip: t, active: Boolean(t.trigger), seen: seen.has(t.id) }))
+    .sort((a, b) => {
+      if (a.active !== b.active) return a.active ? -1 : 1
+      if (a.seen !== b.seen) return a.seen ? 1 : -1
+      return a.tip.order - b.tip.order
+    })
 }
 
-/**
- * May Stocky PROACTIVELY appear right now? (the "calm, earned, rare" gate)
- * — tips are enabled, on a home screen, not already nudged this session, the
- * 48h cooldown has elapsed, and there is actually an on-screen tip to give.
- */
-export function canAutoShow(input: SelectInput): boolean {
-  if (input.dismissedAll) return false
-  if (input.sessionNudged) return false
-  if (!isHomeRoute(input.pathname)) return false
-  if (input.now - input.lastShownAt < COOLDOWN_MS) return false
-  return selectTip(input, true) !== null
+/** Whether any contextual tip is currently active on this page → show the amber
+ *  dot on the resting button. */
+export function hasActiveTip(input: SelectInput): boolean {
+  return listPageTips(input).some((p) => p.active)
 }

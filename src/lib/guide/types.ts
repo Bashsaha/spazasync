@@ -1,14 +1,17 @@
 // ============================================================
-// Stocky — the in-app feature guide (Phase 46)
+// Stocky — the in-app feature guide (Phase 46 → 47)
 // ============================================================
 //
-// "Stocky" is a small, friendly robot that occasionally appears on the home
-// screens and teaches ONE app feature at a time, pointing at the thing to tap.
+// "Stocky" is a small, friendly robot that lives in the top app bar. The owner
+// can TAP it at any time to get help about the screen they're on, and a calm
+// amber dot appears when something actually needs attention (low stock,
+// expiring, etc.). A one-time welcome (Phase 47) introduces it by spotlighting
+// the button itself, so owners discover it instead of never noticing it.
 //
 // HARD CONSTRAINT: this is plain software, NOT an AI feature. At build time the
-// catalog below is hand-authored from a walk of the whole app; at RUNTIME the
-// guide only reads this static data + a couple of already-existing read
-// endpoints. No LLM, no inference, no per-tip network call.
+// catalog is hand-authored from a walk of the whole app; at RUNTIME the guide
+// only reads this static data + one already-existing read endpoint. No LLM, no
+// inference, no per-tip network call.
 //
 // This file holds the shared types + tuning constants. The pure logic lives in
 // select-tip.ts / triggers.ts (unit-tested, no DOM); the catalog data in
@@ -21,7 +24,7 @@ export type GuideRole = 'owner' | 'admin'
 /** Rule-based "right moment" triggers. Each maps to a pure predicate in
  *  triggers.ts evaluated against {@link GuideSignals}. A tip carrying a trigger
  *  is CONTEXTUAL: it only surfaces while its condition is true (and then it
- *  jumps the queue), otherwise it stays hidden. */
+ *  floats to the top of the sheet + lights the dot), otherwise it stays hidden. */
 export type TriggerId =
   | 'low_stock'      // something is running low → teach the stock screen
   | 'expiring_soon'  // batches expiring → teach expiry monitor
@@ -30,8 +33,8 @@ export type TriggerId =
 
 /** Lightweight facts the guide reads (once) from /api/summary/daily to decide
  *  whether any contextual trigger is active. All optional sources default to 0
- *  so a missing/failed fetch simply means "no trigger fires" (curriculum order
- *  still works offline). */
+ *  so a missing/failed fetch simply means "no trigger fires" (the per-page route
+ *  tip still works offline). */
 export interface GuideSignals {
   salesTodayCount: number
   lowStockCount: number
@@ -47,10 +50,10 @@ export interface FeatureTip {
   /** The `data-tour="<token>"` attribute of the element to highlight. */
   anchor: string
   /**
-   * Route the anchor lives on. OMIT for "ambient" anchors that exist on every
-   * home screen (the bottom-nav tabs + the New-Sale FAB) — those tips show
-   * in-place wherever the user already is. When set, the tip is specific to one
-   * screen and Stocky navigates there before highlighting.
+   * Route the tip belongs to. OMIT for "ambient" tips (the contextual ones)
+   * whose anchor lives on every guide screen (the bottom-nav tabs + the New-Sale
+   * FAB) — those surface wherever the owner already is. When set, the tip only
+   * appears in that screen's help sheet.
    */
   route?: string
   /** i18n keys in the `guide` namespace. */
@@ -59,21 +62,29 @@ export interface FeatureTip {
   /** Curriculum order — lower shows first among non-contextual tips. */
   order: number
   /** Optional contextual trigger. When present, the tip ONLY shows while the
-   *  trigger is active (and then it takes priority over curriculum tips). */
+   *  trigger is active (and then it sorts first + lights the dot). */
   trigger?: TriggerId
 }
 
-/** The only screens Stocky is allowed to appear on — calm "decision/browse"
- *  hubs, never task screens (/sale, forms, scanning). */
-export const HOME_ROUTES = ['/dashboard', '/sales', '/inventory', '/manage'] as const
+/** Screens where the Stocky helper button appears + has authored page tips. The
+ *  button is hidden everywhere else (forms, /sale, deep compliance pages) so it
+ *  never shows up with nothing relevant to say. */
+export const GUIDE_ROUTES = [
+  '/dashboard',
+  '/sales',
+  '/inventory',
+  '/manage',
+  '/stock',
+  '/products',
+] as const
 
-/** Cadence: at most one proactive tip every 48 hours (plus the once-per-session
- *  guard in storage). Tunable from one place. */
-export const COOLDOWN_MS = 48 * 60 * 60 * 1000
+/** The one screen the first-run welcome fires on (the calm overview hub). */
+export const INTRO_ROUTE = '/dashboard'
 
-/** Idle settle before Stocky may appear — the screen must be still this long so
- *  we never interrupt someone who just arrived and is actively reading/tapping. */
+/** Idle settle before the first-run welcome may appear — the screen must be
+ *  still this long so we never interrupt someone who just arrived. */
 export const IDLE_SETTLE_MS = 4000
 
-/** If a proactive nudge is ignored this long, Stocky quietly leaves. */
-export const AUTO_DISMISS_MS = 14000
+/** The "Tap me for help" caption shows on at most this many home-screen visits
+ *  after the welcome, then never again. */
+export const HELPER_HINT_MAX = 3
