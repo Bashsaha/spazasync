@@ -267,7 +267,9 @@ The file tree below is ground truth. After every phase: Glob scan, diff against 
 
 ## Living Scope
 
-Phases 1–36c + 37a–37g + 38 + 39 + 40 + 41a + 41b + 41c + 41d + 41e + 42 + 43 + 44 + 45 + 46 + 47 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+Phases 1–36c + 37a–37g + 38 + 39 + 40 + 41a + 41b + 41c + 41d + 41e + 42 + 43 + 44 + 45 + 46 + 47 + 48 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+
+**Phase 48 — "No-name product" quick sale — COMPLETE (2026-06-08).** Lets a teller ring up an unnamed / no-barcode loose item (loosie, single sweet, ice, vetkoek) without leaving the sale to create a product. A per-shop catch-all product literally named "No-name product" is pinned at the top of the "Add manually" picker with an inline price input; the teller types the price and it drops into the cart. It's a real `products` row, so it shows in recent sales + reports for free, but is `track_stock=false` (never deducts stock) + `is_catch_all=true` (hidden from every product/stock/inventory/stock-take list + the low-stock/missing-cost/missing-supplier nudges). **Migration 038** adds the two columns + a one-catch-all-per-shop partial unique index, and patches BOTH `decrement_stock_fefo` overloads to early-return for `track_stock=false` (the live `complete_sale` calls the **3-arg** overload — verified via `pg_get_functiondef` before shipping; the 2-arg patch alone would have 422'd every no-name sale). Lazy creation via [GET /api/products/catch-all](src/app/api/products/catch-all/route.ts) (localized to shop language, service-role insert), cached in IndexedDB for offline sales. Cart refactored to pure, unit-tested per-line operations ([lib/cart/operations.ts](src/lib/cart/operations.ts)) so multiple no-name lines at different prices stay separate (they share one product.id) — keyed by `lineId ?? product.id`. Owner-only "Add to products" nudge on the sale-complete screen. New i18n keys × 5 locales (parity-enforced), `cart-operations.test.ts` (9 tests). SW cache v91→v92. 818/818 tests, tsc + build clean. **Live phone test recommended** (the picker/price-entry render path isn't exercised by tsc/unit/build).
 
 **Phase 47 — "Stocky 2.0": always-on, discoverable helper — COMPLETE (2026-06-08).** Reworked Stocky from a proactive-only rare nudge (the "saw it once and never again" bug: a 48h cooldown + once-per-session gate strangled it, with no way to summon it) into an **always-visible, tappable helper button** in the TopAppBar next to the bell (owners/admins; hidden on /sale, tellers, and off guide routes). Tap → a **"What can I show you here?" bottom sheet** of the current page's tips (`StockyTipSheet`); pick one → the existing dimmed **spotlight** highlights the real element. An **amber dot** on the button flags an active contextual trigger (low-stock/expiring/missing-cost/no-sale) — it replaces the deleted auto-popup. **Discoverability:** a one-time **welcome** spotlights the button itself on first dashboard visit (after 4s idle, single "Got it"), a "Tap me for help" caption shows on the first 3 home visits, and the sheet self-explains (+ a first-open "I highlight things for you" line). Re-enabling tips in Settings resets the welcome. **Coverage:** per-page tips + `data-tour` anchors on /dashboard, /inventory, /stock, /products, /sales, /manage. Pure logic rewritten to `listPageTips`/`hasActiveTip` (no cadence; `tests/unit/guide.test.ts` updated). RobotGuide deleted; mount moved to `TopAppBar` via `helperUserId`. New i18n keys × 5 locales (parity-enforced). SW cache v90→v91. 809/809 tests, tsc + build clean. **Live phone test still recommended** (the spotlight/sheet/welcome render path isn't exercised by tsc/unit/build).
 
@@ -348,7 +350,7 @@ spaza shop/
 │   │       ├── account/{route.ts, export/route.ts}         # DELETE = self-delete; export = POPIA data export (2026-05-24)
 │   │       ├── onboarding/route.ts
 │   │       ├── catalog/importable/route.ts
-│   │       ├── products/{route.ts, [id]/route.ts, popular/route.ts, bulk-import/route.ts, bulk-supplier/route.ts}
+│   │       ├── products/{route.ts, [id]/route.ts, popular/route.ts, bulk-import/route.ts, bulk-supplier/route.ts, catch-all/route.ts}   # catch-all = Phase 48 "No-name product"
 │   │       ├── sales/{route.ts, by-date/route.ts, statistics/route.ts, hub/route.ts}    # statistics = Phase 42; hub = /sales cache-first
 │   │       ├── batches/{route.ts, [id]/route.ts}
 │   │       ├── stock/{route.ts, expiry/route.ts}
@@ -472,6 +474,7 @@ spaza shop/
 │   │   │          claims.ts}                # Phase 44a — getAuthClaims(); shop-auth.ts adds getShopAuthFast (45e, reads)
 │   │   ├── guide/{types.ts, catalog.ts, triggers.ts, select-tip.ts, storage.ts}  # Phase 46→47 — Stocky data + pure logic (listPageTips/hasActiveTip; no AI, no DOM)
 │   │   ├── realtime/shop-channel.ts         # Phase 45d — subscribeShopBroadcast (per-shop Broadcast, replaces postgres_changes)
+│   │   ├── cart/operations.ts               # Phase 48 — pure cart-line ops (merge/custom-line/qty/total); unit-tested
 │   │   ├── subscription/expiry.ts           # pure isSubscriptionExpired — shared by owner gate + teller lockout
 │   │   ├── payfast/index.ts
 │   │   ├── db/
@@ -539,7 +542,9 @@ spaza shop/
 │   │                                     ├── 033_foreign_national_path_corrections.sql
 │   │                                     ├── 034_cost_optimisation_indexes.sql
 │   │                                     ├── 035_eft_deposits.sql
-│   └──                                   └── 036_scaling_levers.sql
+│   │                                     ├── 036_scaling_levers.sql
+│   │                                     ├── 037_security_hardening_search_path.sql
+│   └──                                   └── 038_catch_all_product.sql   # Phase 48 — No-name product + track_stock
 ├── data/sa-products.csv
 ├── scripts/{set-admin.ts, seed-catalog.ts, seed-municipalities.ts,
 │            generate-pwa-icons.mjs}                                # Rasterises brand SVGs → PNG icon set via sharp (BUG-021)
@@ -564,5 +569,6 @@ spaza shop/
     ├── eft-reconcile.test.ts                      # EFT match engine + OFX/CSV adapters
     ├── subscription-expiry.test.ts                # shared isSubscriptionExpired helper (owner gate + teller lockout)
     ├── guide.test.ts                              # Phase 46 — Stocky tip selection + cadence gate + triggers
+    ├── cart-operations.test.ts                    # Phase 48 — cart line merge / custom no-name lines / qty / total
     └── route-access.test.ts                       # BUG-047 invariant: teller redirect targets are reachable
 ```

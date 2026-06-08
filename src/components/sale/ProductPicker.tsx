@@ -5,12 +5,17 @@ import type { Product } from '@/types'
 import { formatZAR } from '@/lib/utils/currency'
 import { cacheProducts, getCachedProducts, isProductCacheStale } from '@/lib/offline/db'
 import { useTranslation } from '@/components/LanguageProvider'
+import { Button } from '@/components/ui'
 
 interface ProductPickerProps {
   onSelect: (product: Product) => void
   onClose: () => void
   /** Product IDs already in the cart — surfaced as a "In your cart" shortcut row. */
   recentIds?: string[]
+  /** The shop's "No-name product" catch-all (Phase 47), or null until loaded. */
+  catchAll?: Product | null
+  /** Add a no-name line at the typed price. */
+  onAddNoName?: (unitPrice: number) => void
 }
 
 function ProductRow({
@@ -41,9 +46,10 @@ function ProductRow({
   )
 }
 
-export function ProductPicker({ onSelect, onClose, recentIds = [] }: ProductPickerProps) {
+export function ProductPicker({ onSelect, onClose, recentIds = [], catchAll, onAddNoName }: ProductPickerProps) {
   const { t } = useTranslation('sale')
   const [search, setSearch] = useState('')
+  const [noNamePrice, setNoNamePrice] = useState('')
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [usingStaleCache, setUsingStaleCache] = useState(false)
@@ -141,6 +147,16 @@ export function ProductPicker({ onSelect, onClose, recentIds = [] }: ProductPick
     ? products.filter((p) => !popularSet.has(p.id) && !recentSet.has(p.id))
     : products
 
+  function submitNoName() {
+    const price = parseFloat(noNamePrice)
+    if (isNaN(price) || price <= 0) return
+    onAddNoName?.(price)
+    setNoNamePrice('')
+    onClose()
+  }
+
+  const showNoName = noSearch && catchAll && onAddNoName
+
   return (
     <div className="fixed inset-0 z-50 bg-white flex flex-col">
       <div className="w-full px-4 pt-5 pb-4 flex-1 flex flex-col min-h-0">
@@ -193,6 +209,46 @@ export function ProductPicker({ onSelect, onClose, recentIds = [] }: ProductPick
         )}
 
         <div className="overflow-y-auto flex-1 -mx-4 px-4">
+          {/* Pinned "No-name product" quick row (Phase 47) — always above the
+              lists when not searching. Type the price and add; handles unnamed /
+              no-barcode loose items without leaving the sale. */}
+          {showNoName && (
+            <div className="mb-4">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-1 pb-1">
+                {t('no_name_section')}
+              </p>
+              <div className="flex items-center gap-2 px-3 py-3 rounded-2xl border border-brand/30 bg-brand-light/50">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{catchAll.name}</p>
+                  <p className="text-xs text-gray-400">{t('no_name_hint')}</p>
+                </div>
+                <div className="relative">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-gray-400">R</span>
+                  <input
+                    value={noNamePrice}
+                    onChange={(e) => setNoNamePrice(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') submitNoName() }}
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    min="0.01"
+                    placeholder="0.00"
+                    aria-label={t('no_name_price_label')}
+                    className="w-24 border border-gray-200 rounded-xl pl-6 pr-2 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand"
+                  />
+                </div>
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={submitNoName}
+                  disabled={!(parseFloat(noNamePrice) > 0)}
+                >
+                  {t('no_name_add')}
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Only show the full-area loading placeholder on the very first load
               (empty list). On subsequent keystrokes we keep the previous results
               visible so the list doesn't blink away while re-fetching (BUG-042). */}

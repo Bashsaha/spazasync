@@ -53,7 +53,9 @@ export async function GET(request: Request) {
   const missingSupplier = searchParams.get('missing_supplier') === '1'
   const missingCost = searchParams.get('missing_cost') === '1'
 
-  let q = supabase.from('products').select('*').order('name').limit(5000)
+  // The catch-all "No-name product" is surfaced only as a pinned sale-screen
+  // row, never in the product list/picker (Phase 47).
+  let q = supabase.from('products').select('*').eq('is_catch_all', false).order('name').limit(5000)
   if (search) {
     const s = sanitizeSearch(search)
     q = q.or(`name.ilike.%${s}%,barcode.ilike.%${s}%`)

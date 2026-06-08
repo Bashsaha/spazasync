@@ -12,6 +12,8 @@ export interface Product {
   stock_qty: number
   supplier_id: string | null  // last-known supplier (Phase 30b)
   created_at: string
+  track_stock?: boolean   // Phase 47 — false = never deducts stock (e.g. the catch-all)
+  is_catch_all?: boolean  // Phase 47 — true for the per-shop "No-name product"
 }
 
 export interface CreateProductInput {

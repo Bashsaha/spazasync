@@ -2,14 +2,28 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { saveCart, loadCart, clearCartCache } from '@/lib/offline/db'
+import {
+  addProductLine,
+  addCustomCartLine,
+  removeCartLine,
+  updateCartLineQty,
+  cartTotal,
+} from '@/lib/cart/operations'
 import type { CartItem, Product } from '@/types'
 
 interface UseCartReturn {
   items: CartItem[]
   total: number
   addItem: (product: Product) => void
-  removeItem: (productId: string) => void
-  updateQty: (productId: string, qty: number) => void
+  /**
+   * Add a custom-priced line for the "No-name product" catch-all (Phase 47).
+   * Always a NEW line (its own lineId) so multiple no-name items at different
+   * prices stay separate. `unitPrice` is the price the teller typed.
+   */
+  addCustomLine: (product: Product, unitPrice: number) => void
+  /** key = lineId for custom lines, product.id for normal lines. */
+  removeItem: (key: string) => void
+  updateQty: (key: string, qty: number) => void
   clearCart: () => void
 }
 
@@ -37,36 +51,22 @@ export function useCart(): UseCartReturn {
     }
   }, [items])
 
-  const total = items.reduce((sum, item) => sum + item.subtotal, 0)
+  const total = cartTotal(items)
 
   const addItem = useCallback((product: Product) => {
-    setItems((prev) => {
-      const existing = prev.find((i) => i.product.id === product.id)
-      if (existing) {
-        const qty = existing.quantity + 1
-        return prev.map((i) =>
-          i.product.id === product.id
-            ? { ...i, quantity: qty, subtotal: qty * product.price }
-            : i,
-        )
-      }
-      return [...prev, { product, quantity: 1, subtotal: product.price }]
-    })
+    setItems((prev) => addProductLine(prev, product))
   }, [])
 
-  const removeItem = useCallback((productId: string) => {
-    setItems((prev) => prev.filter((i) => i.product.id !== productId))
+  const addCustomLine = useCallback((product: Product, unitPrice: number) => {
+    setItems((prev) => addCustomCartLine(prev, product, unitPrice, crypto.randomUUID()))
   }, [])
 
-  const updateQty = useCallback((productId: string, qty: number) => {
-    if (qty < 1) return
-    setItems((prev) =>
-      prev.map((i) =>
-        i.product.id === productId
-          ? { ...i, quantity: qty, subtotal: qty * i.product.price }
-          : i,
-      ),
-    )
+  const removeItem = useCallback((key: string) => {
+    setItems((prev) => removeCartLine(prev, key))
+  }, [])
+
+  const updateQty = useCallback((key: string, qty: number) => {
+    setItems((prev) => updateCartLineQty(prev, key, qty))
   }, [])
 
   const clearCart = useCallback(() => {
@@ -74,5 +74,5 @@ export function useCart(): UseCartReturn {
     clearCartCache()
   }, [])
 
-  return { items, total, addItem, removeItem, updateQty, clearCart }
+  return { items, total, addItem, addCustomLine, removeItem, updateQty, clearCart }
 }

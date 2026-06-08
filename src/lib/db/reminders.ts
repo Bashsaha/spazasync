@@ -71,10 +71,12 @@ export async function getDashboardReminder(
     supabase
       .from('products')
       .select('id', { count: 'exact', head: true })
+      .eq('is_catch_all', false)
       .is('cost_price', null),
     supabase
       .from('products')
       .select('id', { count: 'exact', head: true })
+      .eq('is_catch_all', false)
       .is('supplier_id', null),
     supabase
       .from('suppliers')
@@ -205,10 +207,12 @@ export async function listDashboardReminders(
     supabase
       .from('products')
       .select('id', { count: 'exact', head: true })
+      .eq('is_catch_all', false)
       .is('cost_price', null),
     supabase
       .from('products')
       .select('id', { count: 'exact', head: true })
+      .eq('is_catch_all', false)
       .is('supplier_id', null),
     supabase
       .from('suppliers')

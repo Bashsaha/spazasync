@@ -43,6 +43,7 @@ export async function GET(request: Request) {
         .from('products')
         .select('id', { count: 'exact', head: true })
         .eq('shop_id', shopId)
+        .eq('is_catch_all', false)
         .is('cost_price', null)
       productsMissingCost = count ?? 0
     }
@@ -52,6 +53,7 @@ export async function GET(request: Request) {
         .from('products')
         .select('id', { count: 'exact', head: true })
         .eq('shop_id', shopId)
+        .eq('is_catch_all', false)
         .is('supplier_id', null),
       auth.supabase
         .from('suppliers')

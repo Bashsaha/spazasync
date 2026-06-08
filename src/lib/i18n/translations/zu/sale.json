@@ -80,5 +80,13 @@
   "teller_loading": "Kulayishwa abasebenzi\u2026",
   "teller_none": "Basekho abasebenzi.",
   "teller_add_one": "Faka oyedwa",
-  "teller_who_serving": "Ubani osebenza?"
+  "teller_who_serving": "Ubani osebenza?",
+
+  "no_name_product": "Umkhiqizo ongenagama",
+  "no_name_section": "Into engenagama",
+  "no_name_hint": "Kwezinto ezingenabhakhodi — thayipha inani nje",
+  "no_name_price_label": "Inani lento engenagama",
+  "no_name_add": "Engeza",
+  "noname_nudge": "Uthengise into engenagama. Engeza izinto zakho ezivamile Kwimikhiqizo ukuze ukwazi ukulandelela isitoko nenzuzo ngokuhamba kwesikhathi.",
+  "noname_nudge_cta": "Engeza emikhiqizweni"
 }

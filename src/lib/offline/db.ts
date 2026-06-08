@@ -232,6 +232,24 @@ export async function clearShopDataCaches(): Promise<void> {
   await tx.done
 }
 
+// ── Catch-all "No-name product" cache ─────────────────────────────────────────
+// Stored in the `settings` store (key 'catch_all') so a teller can still ring up
+// an unnamed item while offline. It's shop-scoped, so clearShopDataCaches purges
+// it on sign-out (it clears the whole `settings` store). (Phase 47)
+
+/** Cache the shop's catch-all product for offline no-name sales. */
+export async function cacheCatchAll(product: Product): Promise<void> {
+  const db = await getDB()
+  await db.put('settings', { key: 'catch_all', product })
+}
+
+/** Load the cached catch-all product. Returns null if not cached. */
+export async function getCachedCatchAll(): Promise<Product | null> {
+  const db = await getDB()
+  const record = await db.get('settings', 'catch_all')
+  return record?.product ?? null
+}
+
 // ── Product cache staleness ──────────────────────────────────────────────────
 
 /** Check if the product cache is older than PRODUCT_CACHE_TTL_MS. */

@@ -6,7 +6,7 @@ import { Check, WifiOff } from 'lucide-react'
 import { formatZAR } from '@/lib/utils/currency'
 import { useTranslation } from '@/components/LanguageProvider'
 import { useUserRole } from '@/hooks/useUserRole'
-import { Button } from '@/components/ui'
+import { Button, LinkButton, Callout } from '@/components/ui'
 
 function SaleCompleteContent() {
   const searchParams = useSearchParams()
@@ -17,6 +17,7 @@ function SaleCompleteContent() {
   const totalRaw = searchParams.get('total')
   const total = totalRaw ? parseFloat(totalRaw) : 0
   const isOffline = searchParams.get('offline') === '1'
+  const hadNoName = searchParams.get('noname') === '1'
 
   return (
     <main className="min-h-screen bg-surface flex flex-col items-center justify-center px-6 text-center">
@@ -46,6 +47,17 @@ function SaleCompleteContent() {
       )}
 
       <p className="text-4xl font-bold text-gray-900 mb-10">{formatZAR(total)}</p>
+
+      {/* Nudge owners to turn no-name sales into real products over time
+          (Phase 47). Tellers can't manage products, so it's owner/admin-only. */}
+      {hadNoName && role !== 'teller' && (
+        <Callout tone="info" className="max-w-xs mb-8 text-left">
+          {t('noname_nudge')}
+          <LinkButton href="/products" variant="outline" size="sm" className="mt-3">
+            {t('noname_nudge_cta')}
+          </LinkButton>
+        </Callout>
+      )}
 
       <Button
         variant="primary"

@@ -80,5 +80,13 @@
   "teller_loading": "Waa la soo rarayaa shaqaalaha\u2026",
   "teller_none": "Weli shaqaale ma jiro.",
   "teller_add_one": "Hal ku dar",
-  "teller_who_serving": "Yaa adeegaya?"
+  "teller_who_serving": "Yaa adeegaya?",
+
+  "no_name_product": "Alaab aan magac lahayn",
+  "no_name_section": "Shay aan magac lahayn",
+  "no_name_hint": "Alaabta aan baar-kood lahayn — kaliya qor qiimaha",
+  "no_name_price_label": "Qiimaha shayga aan magaca lahayn",
+  "no_name_add": "Ku dar",
+  "noname_nudge": "Waxaad iibisay shay aan magac lahayn. Ku dar alaabtaada caadiga ah Alaabta si aad waqti ka dib u raacdo kaydka iyo faa'iidada.",
+  "noname_nudge_cta": "Ku dar alaabta"
 }

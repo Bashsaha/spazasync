@@ -32,7 +32,12 @@ export async function listProductsWithStock(
   const threshold = (shop?.low_stock_threshold as number) ?? 5
 
   // Fetch products ordered by stock_qty ascending (lowest first)
-  const base = supabase.from('products').select('*').order('stock_qty', { ascending: true })
+  // Exclude the "No-name product" catch-all from stock listings (Phase 47).
+  const base = supabase
+    .from('products')
+    .select('*')
+    .eq('is_catch_all', false)
+    .order('stock_qty', { ascending: true })
   const s = search?.trim() ? sanitizeSearch(search) : ''
   const { data } = s
     ? await base.or(`name.ilike.%${s}%,barcode.ilike.%${s}%`)

@@ -22,11 +22,12 @@ export async function GET() {
   const threshold = (shop?.low_stock_threshold as number | undefined) ?? 5
 
   const [{ count: total }, { count: low }, expiryStats] = await Promise.all([
-    supabase.from('products').select('id', { count: 'exact', head: true }).eq('shop_id', shopId),
+    supabase.from('products').select('id', { count: 'exact', head: true }).eq('shop_id', shopId).eq('is_catch_all', false),
     supabase
       .from('products')
       .select('id', { count: 'exact', head: true })
       .eq('shop_id', shopId)
+      .eq('is_catch_all', false)
       .lte('stock_qty', threshold),
     getExpiryStats(shopId),
   ])

@@ -80,5 +80,13 @@
   "teller_loading": "አገልጋዮችን በመጫን ላይ…",
   "teller_none": "ገና አገልጋይ የለም።",
   "teller_add_one": "አንድ ጨምር",
-  "teller_who_serving": "ማን ያገለግላል?"
+  "teller_who_serving": "ማን ያገለግላል?",
+
+  "no_name_product": "ስም የሌለው ምርት",
+  "no_name_section": "ስም የሌለው እቃ",
+  "no_name_hint": "ባርኮድ ለሌላቸው እቃዎች — ዋጋውን ብቻ ይተይቡ",
+  "no_name_price_label": "የስም የሌለው እቃ ዋጋ",
+  "no_name_add": "ጨምር",
+  "noname_nudge": "ስም የሌለው እቃ ሸጡ። ከጊዜ ወደ ጊዜ ክምችትና ትርፍ መከታተል እንዲችሉ መደበኛ እቃዎችዎን ወደ ምርቶች ይጨምሩ።",
+  "noname_nudge_cta": "ወደ ምርቶች ጨምር"
 }

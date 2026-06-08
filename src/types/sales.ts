@@ -40,6 +40,13 @@ export interface CartItem {
   product: Product
   quantity: number
   subtotal: number
+  /**
+   * Stable per-line id (Phase 47). Set ONLY for custom-priced "No-name product"
+   * lines so several of them at different prices stay separate (they share one
+   * product.id). Normal products leave this undefined and merge by product.id.
+   * The cart's identity key is `lineId ?? product.id`.
+   */
+  lineId?: string
 }
 
 export interface Cart {

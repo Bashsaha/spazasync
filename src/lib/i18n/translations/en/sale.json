@@ -80,5 +80,13 @@
   "teller_loading": "Loading tellers\u2026",
   "teller_none": "No tellers yet.",
   "teller_add_one": "Add one",
-  "teller_who_serving": "Who is serving?"
+  "teller_who_serving": "Who is serving?",
+
+  "no_name_product": "No-name product",
+  "no_name_section": "No-name item",
+  "no_name_hint": "For items with no barcode \u2014 just type the price",
+  "no_name_price_label": "Price for the no-name item",
+  "no_name_add": "Add",
+  "noname_nudge": "You sold a no-name item. Add your regular items to Products so you can track stock and profit over time.",
+  "noname_nudge_cta": "Add to products"
 }

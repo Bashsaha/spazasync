@@ -8,7 +8,9 @@ export async function listProducts(
   opts?: { missingCost?: boolean; missingSupplier?: boolean },
 ): Promise<Product[]> {
   const supabase = await createClient()
-  let query = supabase.from('products').select('*').order('name').limit(5000)
+  // Exclude the "No-name product" catch-all — it's surfaced only as a pinned
+  // row on the sale screen, never in product-management lists (Phase 47).
+  let query = supabase.from('products').select('*').eq('is_catch_all', false).order('name').limit(5000)
   if (search?.trim()) {
     const s = sanitizeSearch(search)
     query = query.or(`name.ilike.%${s}%,barcode.ilike.%${s}%`)

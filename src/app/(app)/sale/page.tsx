@@ -17,7 +17,7 @@ import { ProductPicker } from '@/components/sale/ProductPicker'
 import { PaymentMethodSheet } from '@/components/sale/PaymentMethodSheet'
 import { Spinner, FullScreenSpinner } from '@/components/Spinner'
 import { Button, Callout, PageHeader, EmptyState } from '@/components/ui'
-import { enqueueSale, getCachedProductByBarcode, getCachedSettings, cacheSettings } from '@/lib/offline/db'
+import { enqueueSale, getCachedProductByBarcode, getCachedSettings, cacheSettings, cacheCatchAll, getCachedCatchAll } from '@/lib/offline/db'
 import { createClient } from '@/lib/supabase/client'
 import { emitDataChanged } from '@/lib/events'
 import type { Product } from '@/types'
@@ -26,7 +26,7 @@ export default function SalePage() {
   const router = useRouter()
   const isOnline = useOnlineStatus()
   const { activeTeller, setActiveTeller, clearActiveTeller, isLoading, role } = useActiveTeller()
-  const { items, total, addItem, removeItem, updateQty, clearCart } = useCart()
+  const { items, total, addItem, addCustomLine, removeItem, updateQty, clearCart } = useCart()
   const { addToast } = useToast()
   const { t } = useTranslation('sale')
 
@@ -41,6 +41,31 @@ export default function SalePage() {
 
   // Low-stock threshold from shop settings
   const [threshold, setThreshold] = useState(5)
+
+  // The shop's "No-name product" catch-all (Phase 47) — for selling unnamed /
+  // no-barcode loose items fast. Cache-first so it works offline.
+  const [catchAll, setCatchAll] = useState<Product | null>(null)
+
+  useEffect(() => {
+    getCachedCatchAll().then((cached) => {
+      if (cached) setCatchAll((prev) => prev ?? cached)
+    })
+    fetch('/api/products/catch-all')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((product: Product | null) => {
+        if (product?.id) {
+          setCatchAll(product)
+          cacheCatchAll(product)
+        }
+      })
+      .catch(() => {}) // offline: cached value (if any) already applied
+  }, [])
+
+  // Add a no-name line at the price the teller typed. No stock toast — the
+  // catch-all has no meaningful stock level.
+  function handleAddNoName(unitPrice: number) {
+    if (catchAll) addCustomLine(catchAll, unitPrice)
+  }
 
   useEffect(() => {
     // Apply cached settings immediately (offline-first)
@@ -140,9 +165,10 @@ export default function SalePage() {
       retry_count: 0,
     })
 
+    const hadNoName = items.some((i) => i.product.is_catch_all)
     window.dispatchEvent(new Event('offlinequeue'))
     clearCart()
-    router.push(`/sale/complete?total=${encodeURIComponent(total.toFixed(2))}&offline=1`)
+    router.push(`/sale/complete?total=${encodeURIComponent(total.toFixed(2))}&offline=1${hadNoName ? '&noname=1' : ''}`)
   }
 
   // ── Complete sale ──────────────────────────────────────────────────────────
@@ -201,9 +227,10 @@ export default function SalePage() {
         return
       }
 
+      const hadNoName = items.some((i) => i.product.is_catch_all)
       emitDataChanged()
       clearCart()
-      router.push(`/sale/complete?total=${encodeURIComponent(total.toFixed(2))}`)
+      router.push(`/sale/complete?total=${encodeURIComponent(total.toFixed(2))}${hadNoName ? '&noname=1' : ''}`)
     } catch {
       // Network error mid-POST — auto-queue offline instead of showing error
       await queueAsOfflineSale()
@@ -322,7 +349,7 @@ export default function SalePage() {
           <div className="bg-white rounded-2xl px-4">
             {items.map((item) => (
               <CartItem
-                key={item.product.id}
+                key={item.lineId ?? item.product.id}
                 item={item}
                 onRemove={removeItem}
                 onUpdateQty={updateQty}
@@ -366,6 +393,8 @@ export default function SalePage() {
           onSelect={handleProductSelect}
           onClose={() => setIsPickerOpen(false)}
           recentIds={items.map((i) => i.product.id)}
+          catchAll={catchAll}
+          onAddNoName={handleAddNoName}
         />
       )}
 
