@@ -23,7 +23,7 @@
  *                            navigations; cached HTML never was.
  */
 
-const CACHE = 'movestock-v89'
+const CACHE = 'movestock-v90'
 
 // Resources that MUST always be fetched fresh from the network so Chrome's
 // installability checker (and the platform's home-screen icon installer) sees
@@ -269,7 +269,52 @@ self.addEventListener('fetch', (event) => {
     url.searchParams.has('_rsc') ||
     request.headers.get('RSC') === '1' ||
     request.headers.get('Next-Router-Prefetch') === '1'
-  if (!isDocument || isRscPayload) return
+  const isPrefetch = request.headers.get('Next-Router-Prefetch') === '1'
+
+  // RSC payload fetches come in two kinds:
+  //   • PREFETCH (Next-Router-Prefetch: 1) — fired in the background when a
+  //     <Link> scrolls into view. A hung prefetch never blocks the user, so let
+  //     it pass straight to network (no respondWith).
+  //   • NAVIGATION (RSC: 1, no prefetch header) — this is what runs when you TAP
+  //     a tab. It used to pass straight through with NO timeout. When Android
+  //     suspends the radio (the same cause documented on the document branch
+  //     below), this fetch can hang indefinitely and the destination route's
+  //     loading.tsx spinner shows forever — the "some pages randomly load
+  //     endlessly until I manually reload" bug. Manual reload recovers because a
+  //     full-document load DOES hit the 25s net below. So we give the blocking
+  //     RSC navigation its OWN timeout: on hang, resolve a 504 so Next's router
+  //     falls back to a hard document navigation (which then has the document
+  //     offline net). Shorter than the document timeout (12s) since the user is
+  //     actively waiting on an in-app tap.
+  if (isRscPayload) {
+    if (isPrefetch) return
+    event.respondWith(
+      new Promise((resolve) => {
+        let settled = false
+        const timer = setTimeout(() => {
+          if (settled) return
+          settled = true
+          resolve(new Response('', { status: 504, statusText: 'RSC timeout' }))
+        }, 12000)
+        fetch(request)
+          .then((res) => {
+            if (settled) return
+            settled = true
+            clearTimeout(timer)
+            resolve(res)
+          })
+          .catch(() => {
+            if (settled) return
+            settled = true
+            clearTimeout(timer)
+            resolve(new Response('', { status: 504, statusText: 'RSC failed' }))
+          })
+      }),
+    )
+    return
+  }
+
+  if (!isDocument) return
 
   // App Shell entry `/` — static + data-free splash (Phase 44 Stage 1). Serve
   // cache-first (instant cold open). BUG-040-safe: no per-user data; the CACHE
