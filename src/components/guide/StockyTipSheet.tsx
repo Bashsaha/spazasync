@@ -17,14 +17,12 @@ export function StockyTipSheet({
   tips,
   firstOpen,
   onPick,
-  onHide,
   onClose,
 }: {
   tips: PageTip[]
   /** First time this owner has opened the sheet → show the "what is this" line. */
   firstOpen: boolean
   onPick: (tip: FeatureTip) => void
-  onHide: () => void
   onClose: () => void
 }) {
   const { t } = useTranslation('guide')
@@ -87,14 +85,6 @@ export function StockyTipSheet({
             </li>
           ))}
         </ul>
-
-        <button
-          type="button"
-          onClick={onHide}
-          className="mt-3 w-full text-center text-xs text-gray-400 active:text-gray-600 py-1.5"
-        >
-          {t('btn_hide_helper')}
-        </button>
       </div>
     </div>
   )

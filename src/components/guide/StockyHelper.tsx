@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { usePathname, useRouter } from 'next/navigation'
 import { useTranslation } from '@/components/LanguageProvider'
 import { RobotBuddy } from './RobotBuddy'
@@ -17,7 +16,6 @@ import {
   markIntroSeen,
   bumpHelperHint,
   markSheetOpened,
-  setTipsEnabled,
 } from '@/lib/guide/storage'
 
 /**
@@ -60,7 +58,6 @@ export function StockyHelper({ userId }: { userId: string }) {
   const [tip, setTip] = useState<FeatureTip | null>(null)
   const [stateV, setStateV] = useState(0) // bump to re-read persisted state
   const [showHint, setShowHint] = useState(false)
-  const [farewell, setFarewell] = useState(false)
   const introArmed = useRef(false)
   const hintArmed = useRef(false)
   const firstOpenRef = useRef(false)
@@ -198,15 +195,6 @@ export function StockyHelper({ userId }: { userId: string }) {
     setStateV((v) => v + 1)
   }, [tip, userId])
 
-  const hideHelper = useCallback(() => {
-    setTipsEnabled(userId, false)
-    setPhase('idle')
-    setTip(null)
-    setStateV((v) => v + 1)
-    setFarewell(true)
-    window.setTimeout(() => setFarewell(false), 3800)
-  }, [userId])
-
   return (
     <>
       {visible && (
@@ -239,7 +227,6 @@ export function StockyHelper({ userId }: { userId: string }) {
           tips={pageTips}
           firstOpen={firstOpenRef.current}
           onPick={pickTip}
-          onHide={hideHelper}
           onClose={closeAll}
         />
       )}
@@ -262,20 +249,8 @@ export function StockyHelper({ userId }: { userId: string }) {
           body={t(tip.bodyKey)}
           onGotIt={gotIt}
           onClose={closeAll}
-          onDisable={hideHelper}
         />
       )}
-
-      {farewell &&
-        createPortal(
-          <div
-            className="fixed left-1/2 -translate-x-1/2 z-50 w-[min(90vw,24rem)] rounded-2xl bg-gray-900 text-white text-sm text-center px-4 py-3 shadow-xl"
-            style={{ bottom: 'calc(96px + env(safe-area-inset-bottom, 0px))' }}
-          >
-            {t('hide_toast')}
-          </div>,
-          document.body,
-        )}
     </>
   )
 }

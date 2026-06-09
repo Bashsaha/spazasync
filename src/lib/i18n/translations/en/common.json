@@ -21,7 +21,7 @@
   "profile_role_teller": "Teller",
   "profile_role_admin": "Admin",
   "profile_shop_code": "Shop code {code}",
-  "profile_section_shop": "Shop details",
+  "profile_section_shop": "Settings",
   "profile_section_shop_desc": "Name, address, language, equipment",
   "profile_section_compliance": "Compliance",
   "profile_section_compliance_desc": "Documents and journey",

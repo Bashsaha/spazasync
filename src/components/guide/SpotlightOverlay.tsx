@@ -24,7 +24,6 @@ export function SpotlightOverlay({
   body,
   onGotIt,
   onClose,
-  onDisable,
   gotItOnly = false,
 }: {
   rect: TargetRect
@@ -32,9 +31,7 @@ export function SpotlightOverlay({
   body: string
   onGotIt: () => void
   onClose: () => void
-  /** Omitted in welcome mode (no "Don't show tips" link there). */
-  onDisable?: () => void
-  /** Welcome mode: a single full-width "Got it" button, no Not now / Disable. */
+  /** Welcome mode: a single full-width "Got it" button, no Not now. */
   gotItOnly?: boolean
 }) {
   const { t } = useTranslation('guide')
@@ -101,15 +98,6 @@ export function SpotlightOverlay({
               <Button size="md" variant="outline" onClick={onClose}>{t('btn_not_now')}</Button>
             )}
           </div>
-          {!gotItOnly && onDisable && (
-            <button
-              type="button"
-              onClick={onDisable}
-              className="mt-2 w-full text-center text-xs text-gray-400 active:text-gray-600 py-1"
-            >
-              {t('btn_hide_helper')}
-            </button>
-          )}
         </div>
       </div>
     </div>

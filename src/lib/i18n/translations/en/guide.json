@@ -32,8 +32,6 @@
   "btn_not_now": "Not now",
   "btn_got_it": "Got it 👍",
   "btn_disable": "Don't show tips",
-  "btn_hide_helper": "Hide helper",
-  "hide_toast": "Helper hidden. Turn it back on in Settings → Helper tips.",
   "robot_aria": "Open Stocky, your helper",
   "helper_aria_tip": "Stocky helper — something needs your attention",
   "settings_section": "Helper tips",
