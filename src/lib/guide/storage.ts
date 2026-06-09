@@ -105,3 +105,28 @@ export function setTipsEnabled(userId: string, enabled: boolean): GuideState {
 export function readTipsEnabled(userId: string): boolean {
   return !readGuideState(userId).dismissedAll
 }
+
+const UNHIDE_FLAG = 'mvs_guide_unhide_v1'
+
+/**
+ * One-time migration: the top-bar "Hide helper" button was removed, which left
+ * anyone who had hidden Stocky with no way to bring it back (the only remaining
+ * off-switch is Settings → Helper tips, which a hidden user can't discover).
+ * Clear the dismissedAll flag for every stored user, once per device. This also
+ * re-enables tips for the rare user who turned them off in Settings — acceptable,
+ * since they can simply turn them off again.
+ */
+export function unhideAllOnce(): void {
+  if (typeof window === 'undefined') return
+  try {
+    if (window.localStorage.getItem(UNHIDE_FLAG)) return
+    const all = readAll()
+    for (const id of Object.keys(all)) {
+      if (all[id]?.dismissedAll) all[id] = { ...all[id], dismissedAll: false }
+    }
+    writeAll(all)
+    window.localStorage.setItem(UNHIDE_FLAG, '1')
+  } catch {
+    /* private mode / quota — best effort */
+  }
+}

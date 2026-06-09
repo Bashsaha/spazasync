@@ -16,6 +16,7 @@ import {
   markIntroSeen,
   bumpHelperHint,
   markSheetOpened,
+  unhideAllOnce,
 } from '@/lib/guide/storage'
 
 /**
@@ -74,6 +75,13 @@ export function StockyHelper({ userId }: { userId: string }) {
   )
   const pageTips = useMemo(() => listPageTips(input), [input])
   const showDot = useMemo(() => hasActiveTip(input), [input])
+
+  // One-time: bring Stocky back for anyone who hid it via the now-removed
+  // top-bar "Hide helper" button. Runs once per device, then re-reads state.
+  useEffect(() => {
+    unhideAllOnce()
+    setStateV((v) => v + 1)
+  }, [])
 
   // Pull trigger signals once (best-effort, read-only, SW-cached). Failure just
   // means the dot/contextual tips stay quiet — route tips still work.
