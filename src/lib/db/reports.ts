@@ -221,6 +221,7 @@ export async function getLowStockForShop(
     .from('products')
     .select('name, stock_qty')
     .eq('shop_id', shopId)
+    .eq('is_catch_all', false)   // the "No-name product" has no real stock (Phase 48)
     .lte('stock_qty', threshold)
     .order('stock_qty', { ascending: true })
 
@@ -245,6 +246,7 @@ export async function getProductsForShop(
     .from('products')
     .select('id, name, barcode, price, stock_qty')
     .eq('shop_id', shopId)
+    .eq('is_catch_all', false)   // hide the "No-name product" from stock APIs (Phase 48)
     .order('name', { ascending: true })
 
   if (error) throw error
