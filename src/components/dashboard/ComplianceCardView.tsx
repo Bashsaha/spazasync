@@ -63,7 +63,7 @@ export function ComplianceCardView({ data }: { data: ComplianceCardData }) {
   const overflow = Math.max(0, labelled.length - MAX_VISIBLE_ALERTS)
 
   return (
-    <Link href="/inspection" className={`flex items-start gap-3 rounded-2xl px-4 py-3 mb-4 ${tone.wrap}`}>
+    <Link href="/inspection" data-tour="compliance-card" className={`flex items-start gap-3 rounded-2xl px-4 py-3 mb-4 ${tone.wrap}`}>
       <div className="relative flex items-center justify-center shrink-0">
         <svg width="68" height="68" viewBox="0 0 68 68" className="-rotate-90">
           <circle cx="34" cy="34" r={radius} strokeWidth="6" fill="none" className={tone.track} stroke="currentColor" />

@@ -401,7 +401,7 @@ function StockAdjustContent() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Mode toggle */}
-            <div className="flex gap-2">
+            <div data-tour="adjust-mode" className="flex gap-2">
               {(['add', 'remove'] as Mode[]).map((m) => (
                 <button
                   key={m}
@@ -421,7 +421,7 @@ function StockAdjustContent() {
             </div>
 
             {/* Quick amounts */}
-            <div>
+            <div data-tour="adjust-quick">
               <p className="text-xs text-gray-500 mb-2 font-medium">{t('adjust_quick_amounts')}</p>
               <div className="flex gap-2 flex-wrap">
                 {QUICK_AMOUNTS.map((q) => (
@@ -607,7 +607,7 @@ function StockAdjustContent() {
           </form>
 
           {/* ── Expiry Batches Section ── */}
-          <div className="mt-8">
+          <div data-tour="stock-batches" className="mt-8">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-bold text-gray-900">{t('batches_title')}</h2>
               <button

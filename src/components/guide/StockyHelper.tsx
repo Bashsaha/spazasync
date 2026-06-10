@@ -8,8 +8,8 @@ import { SpotlightOverlay } from './SpotlightOverlay'
 import { StockyTipSheet } from './StockyTipSheet'
 import { useTourTarget } from './useTourTarget'
 import type { FeatureTip, GuideSignals } from '@/lib/guide/types'
-import { GUIDE_ROUTES, INTRO_ROUTE, IDLE_SETTLE_MS, HELPER_HINT_MAX } from '@/lib/guide/types'
-import { listPageTips, hasActiveTip, type SelectInput } from '@/lib/guide/select-tip'
+import { INTRO_ROUTE, IDLE_SETTLE_MS, HELPER_HINT_MAX, matchGuideRoute } from '@/lib/guide/types'
+import { listPageTips, groupPageTips, hasActiveTip, type SelectInput } from '@/lib/guide/select-tip'
 import {
   readGuideState,
   markTipSeen,
@@ -66,7 +66,7 @@ export function StockyHelper({ userId }: { userId: string }) {
   // Re-read persisted state only when we've changed it (cheap + stable refs).
   const state = useMemo(() => readGuideState(userId), [userId, stateV])
 
-  const onGuideRoute = (GUIDE_ROUTES as readonly string[]).includes(pathname)
+  const onGuideRoute = matchGuideRoute(pathname) !== null
   const visible = !state.dismissedAll && onGuideRoute
 
   const input: SelectInput = useMemo(
@@ -74,6 +74,7 @@ export function StockyHelper({ userId }: { userId: string }) {
     [pathname, state.seen, signals],
   )
   const pageTips = useMemo(() => listPageTips(input), [input])
+  const sections = useMemo(() => groupPageTips(input), [input])
   const showDot = useMemo(() => hasActiveTip(input), [input])
 
   // One-time: bring Stocky back for anyone who hid it via the now-removed
@@ -168,8 +169,12 @@ export function StockyHelper({ userId }: { userId: string }) {
   const pickTip = useCallback(
     (chosen: FeatureTip) => {
       setTip(chosen)
-      // Route tips match the current page, but stay safe for ambient anchors.
-      if (chosen.route && chosen.route !== pathname) router.push(chosen.route)
+      // Listed routed tips already belong to the current page, so a nav is
+      // normally unnecessary; only push for a static cross-route target (never a
+      // dynamic key like `/stock/[id]`, which isn't a real path).
+      if (chosen.route && !chosen.route.includes('[') && chosen.route !== pathname) {
+        router.push(chosen.route)
+      }
       setPhase('spotlight')
     },
     [pathname, router],
@@ -232,7 +237,7 @@ export function StockyHelper({ userId }: { userId: string }) {
 
       {visible && phase === 'sheet' && (
         <StockyTipSheet
-          tips={pageTips}
+          sections={sections}
           firstOpen={firstOpenRef.current}
           onPick={pickTip}
           onClose={closeAll}

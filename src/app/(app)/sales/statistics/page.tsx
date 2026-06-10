@@ -61,7 +61,7 @@ export default function SalesStatisticsPage() {
       <p className="text-gray-500 text-sm mb-5 ml-12">{t('subtitle')}</p>
 
       {/* Date range card */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
+      <div data-tour="stats-range" className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
           {t('pick_range')}
         </p>
@@ -107,7 +107,7 @@ export default function SalesStatisticsPage() {
       {!loading && !error && data && totals && (
         <>
           {/* Summary tiles */}
-          <div className={`grid ${profitOn ? 'grid-cols-2' : 'grid-cols-3'} gap-2 mb-4`}>
+          <div data-tour="stats-tiles" className={`grid ${profitOn ? 'grid-cols-2' : 'grid-cols-3'} gap-2 mb-4`}>
             <SummaryTile label={t('summary_sales')} value={String(totals.sales_count)} />
             <SummaryTile label={t('summary_units')} value={String(totals.units_sold)} />
             <SummaryTile label={t('summary_revenue')} value={formatZAR(totals.revenue)} />
@@ -123,7 +123,7 @@ export default function SalesStatisticsPage() {
           </div>
 
           {/* Revenue trend chart */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
+          <div data-tour="stats-trend" className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-semibold text-gray-900">{t('trend_title')}</p>
               <span className="text-xs font-medium text-gray-400">
@@ -141,15 +141,17 @@ export default function SalesStatisticsPage() {
           </div>
 
           {/* Top sellers */}
-          <MovementSection
-            icon={<TrendingUp className="w-4 h-4 text-brand" strokeWidth={2.25} />}
-            title={t('top_title')}
-            subtitle={t('top_subtitle')}
-            rows={data.top_sellers}
-            metric="units"
-            tPlural={tPlural}
-            emptyText={t('list_empty_sales')}
-          />
+          <div data-tour="stats-top">
+            <MovementSection
+              icon={<TrendingUp className="w-4 h-4 text-brand" strokeWidth={2.25} />}
+              title={t('top_title')}
+              subtitle={t('top_subtitle')}
+              rows={data.top_sellers}
+              metric="units"
+              tPlural={tPlural}
+              emptyText={t('list_empty_sales')}
+            />
+          </div>
 
           {/* Lowest sellers */}
           <MovementSection
@@ -199,14 +201,16 @@ export default function SalesStatisticsPage() {
           />
 
           {/* Download PDF */}
-          <PdfDownloadButton
-            href={pdfUrl}
-            fallbackFilename={`sales-statistics-${from}-to-${to}.pdf`}
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-full text-sm font-semibold mt-2 bg-brand text-white active:bg-brand-hover disabled:opacity-70 disabled:cursor-wait"
-          >
-            <Download className="w-4 h-4" />
-            {t('download_pdf')}
-          </PdfDownloadButton>
+          <div data-tour="stats-pdf">
+            <PdfDownloadButton
+              href={pdfUrl}
+              fallbackFilename={`sales-statistics-${from}-to-${to}.pdf`}
+              className="flex items-center justify-center gap-2 w-full py-3 rounded-full text-sm font-semibold mt-2 bg-brand text-white active:bg-brand-hover disabled:opacity-70 disabled:cursor-wait"
+            >
+              <Download className="w-4 h-4" />
+              {t('download_pdf')}
+            </PdfDownloadButton>
+          </div>
 
           <p className="text-xs text-gray-400 text-center mt-5">{t('footer_note')}</p>
 

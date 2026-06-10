@@ -111,7 +111,7 @@ function SalesHistoryContent() {
       </div>
 
       {/* Date picker — chevron buttons flank a prominent date label; native picker sits below as a relative-tap-target */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
+      <div data-tour="hist-date" className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
         <div className="flex items-center justify-between gap-2">
           <button
             type="button"
@@ -148,7 +148,7 @@ function SalesHistoryContent() {
 
       {/* Totals strip */}
       {!loading && !error && totals && (
-        <div className={`grid ${profitTrackingOn ? 'grid-cols-3' : 'grid-cols-2'} gap-2 mb-5`}>
+        <div data-tour="hist-totals" className={`grid ${profitTrackingOn ? 'grid-cols-3' : 'grid-cols-2'} gap-2 mb-5`}>
           <div className="bg-white border border-gray-100 rounded-2xl p-3 text-center ">
             <p className="text-xl font-bold text-gray-900">{totals.saleCount}</p>
             <p className="text-xs text-gray-500 mt-0.5">
@@ -185,7 +185,7 @@ function SalesHistoryContent() {
       )}
 
       {/* Monthly PDF downloads — full-page reload is fine, browser will trigger download */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-5 ">
+      <div data-tour="hist-pdf" className="bg-white border border-gray-100 rounded-2xl p-4 mb-5 ">
         <p className="text-sm font-semibold text-gray-900">{t('download_pdf_title')}</p>
         <p className="text-xs text-gray-500 mt-0.5">{t('download_pdf_desc')}</p>
         <div className="flex flex-col sm:flex-row gap-2 mt-3">
@@ -226,7 +226,7 @@ function SalesHistoryContent() {
 
       {/* Sales list */}
       {!loading && !error && sales.length > 0 && (
-        <ul className="space-y-2">
+        <ul data-tour="hist-list" className="space-y-2">
           {sales.map((sale) => {
             const isOpen = expanded.has(sale.id)
             return (

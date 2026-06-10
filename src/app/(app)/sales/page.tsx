@@ -47,6 +47,7 @@ export default function SalesHubPage() {
       {/* Big primary CTA — Start a Sale (always visible, no data dependency) */}
       <Link
         href="/sale"
+        data-tour="sales-start-sale"
         className="flex items-center justify-between bg-brand text-white rounded-full p-5 mb-4 active:bg-brand-hover"
       >
         <div>
@@ -64,12 +65,14 @@ export default function SalesHubPage() {
         </>
       ) : (
         <>
-          <TodaySummaryView
-            summary={data.summary}
-            profitTrackingEnabled={data.profitTrackingEnabled}
-          />
+          <div data-tour="sales-today">
+            <TodaySummaryView
+              summary={data.summary}
+              profitTrackingEnabled={data.profitTrackingEnabled}
+            />
+          </div>
 
-          <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
+          <div data-tour="sales-weekly" className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
               {t('weekly_title')}
             </p>
@@ -84,7 +87,7 @@ export default function SalesHubPage() {
           </div>
 
           {data.topProducts.length > 0 && (
-            <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
+            <div data-tour="sales-top-products" className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
                 {t('top_products_title')}
               </p>
@@ -124,6 +127,7 @@ export default function SalesHubPage() {
       {/* Sales statistics — period analytics drill-down */}
       <Link
         href="/sales/statistics"
+        data-tour="sales-statistics"
         className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
       >
         <div>

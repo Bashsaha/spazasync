@@ -21,6 +21,7 @@ export default async function ManageHubPage() {
       <div className="space-y-3">
         <Link
           href="/tellers"
+          data-tour="manage-staff"
           className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
         >
           <div>
@@ -44,6 +45,7 @@ export default async function ManageHubPage() {
 
         <Link
           href="/inspection"
+          data-tour="manage-compliance"
           className="flex items-center justify-between bg-brand-light rounded-2xl p-5 border border-brand-light active:bg-brand-light"
         >
           <div>

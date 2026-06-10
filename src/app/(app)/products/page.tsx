@@ -113,6 +113,7 @@ export default function ProductsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t('search_placeholder')}
+          data-tour="products-search"
           className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
         />
       </div>
@@ -131,8 +132,8 @@ export default function ProductsPage() {
         </p>
       ) : (
         <ul className="space-y-2">
-          {products.map((p) => (
-            <li key={p.id}>
+          {products.map((p, i) => (
+            <li key={p.id} data-tour={i === 0 ? 'products-row' : undefined}>
               <ProductListRow
                 product={p}
                 href={`/products/${p.id}`}

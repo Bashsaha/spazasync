@@ -33,7 +33,9 @@ export default async function InventoryHubPage() {
       </div>
 
       {/* Summary strip — cache-first (Phase 44b) */}
-      <InventorySummaryStrip />
+      <div data-tour="inventory-counts">
+        <InventorySummaryStrip />
+      </div>
 
       {/* Tile grid. Granted tellers get a single tile — count stock. Owners /
           admins get the full hub. */}
@@ -66,6 +68,7 @@ export default async function InventoryHubPage() {
 
           <Link
             href="/products"
+            data-tour="inventory-products"
             className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
           >
             <div>
@@ -77,6 +80,7 @@ export default async function InventoryHubPage() {
 
           <Link
             href="/stock-take"
+            data-tour="inventory-stock-take"
             className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
           >
             <div>
@@ -88,6 +92,7 @@ export default async function InventoryHubPage() {
 
           <Link
             href="/expiry"
+            data-tour="inventory-expiry"
             className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
           >
             <div>
@@ -99,6 +104,7 @@ export default async function InventoryHubPage() {
 
           <Link
             href="/suppliers"
+            data-tour="inventory-suppliers"
             className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
           >
             <div>

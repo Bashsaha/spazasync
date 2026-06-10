@@ -22,7 +22,7 @@ export function LatestSalesView({ sales }: { sales: RecentSale[] }) {
   }
 
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
+    <div data-tour="latest-sales" className="bg-white border border-gray-100 rounded-2xl p-4 mb-4">
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
           {t('latest_sales_title')}

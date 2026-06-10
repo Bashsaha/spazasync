@@ -155,7 +155,7 @@ export default function StockPage() {
 
       {/* Summary strip */}
       {!loading && !error && (
-        <div className="grid grid-cols-4 gap-2 mb-5">
+        <div data-tour="stock-summary" className="grid grid-cols-4 gap-2 mb-5">
           <div className="bg-white rounded-2xl p-3 border border-gray-100 text-center ">
             <p className="text-xl font-bold text-gray-900">{products.length}</p>
             <p className="text-xs text-gray-500 mt-0.5">{t('summary_products')}</p>
@@ -199,11 +199,12 @@ export default function StockPage() {
         onChange={(e) => setSearch(e.target.value)}
         placeholder={t('search_placeholder')}
         aria-label={t('search_placeholder')}
+        data-tour="stock-search"
         className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand mb-3"
       />
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-4">
+      <div data-tour="stock-tabs" className="flex gap-2 mb-4">
         {(['all', 'low', 'expiring'] as Tab[]).map((tabId) => (
           <button
             key={tabId}

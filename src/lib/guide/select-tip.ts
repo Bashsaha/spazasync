@@ -1,5 +1,6 @@
-import type { FeatureTip, GuideSignals } from './types'
+import type { FeatureTip, GuideGroup, GuideSignals } from './types'
 import { CATALOG } from './catalog'
+import { GUIDE_GROUP_ORDER, matchGuideRoute } from './types'
 import { isTriggerActive } from './triggers'
 
 /**
@@ -31,9 +32,10 @@ export interface PageTip {
 }
 
 /** An ambient tip (no route) belongs to every guide screen; a routed tip only
- *  to its own screen. */
+ *  to its own screen. The live pathname is resolved to a canonical route key so
+ *  dynamic screens (e.g. `/stock/abc` → `/stock/[id]`) match their tips. */
 function onRoute(tip: FeatureTip, pathname: string): boolean {
-  return tip.route === undefined || tip.route === pathname
+  return tip.route === undefined || tip.route === matchGuideRoute(pathname)
 }
 
 /**
@@ -62,4 +64,31 @@ export function listPageTips(input: SelectInput): PageTip[] {
  *  dot on the resting button. */
 export function hasActiveTip(input: SelectInput): boolean {
   return listPageTips(input).some((p) => p.active)
+}
+
+export interface TipSection {
+  group: GuideGroup
+  tips: PageTip[]
+}
+
+/**
+ * The page's tips bucketed into labelled sheet sections (Phase 49), in fixed
+ * `GUIDE_GROUP_ORDER`. Keeps the long-list sheet scannable: an active contextual
+ * tip is pinned into `attention` (regardless of its authored group); every other
+ * tip uses its authored `group` (default `basics`). Within a section the existing
+ * ordering holds (unseen before seen, then curriculum order). Empty sections are
+ * dropped so the sheet never shows a bare header.
+ */
+export function groupPageTips(input: SelectInput): TipSection[] {
+  const buckets = new Map<GuideGroup, PageTip[]>()
+  for (const pt of listPageTips(input)) {
+    const group: GuideGroup = pt.active ? 'attention' : (pt.tip.group ?? 'basics')
+    const list = buckets.get(group) ?? []
+    list.push(pt)
+    buckets.set(group, list)
+  }
+  return GUIDE_GROUP_ORDER.filter((g) => (buckets.get(g)?.length ?? 0) > 0).map((group) => ({
+    group,
+    tips: buckets.get(group)!,
+  }))
 }

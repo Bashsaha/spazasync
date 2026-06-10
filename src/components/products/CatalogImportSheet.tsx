@@ -56,6 +56,7 @@ export function CatalogImportSheet() {
     <>
       <button
         onClick={() => setIsOpen(true)}
+        data-tour="products-import"
         className="w-full text-sm font-semibold text-brand border border-brand bg-white px-4 py-2.5 rounded-full active:bg-brand-light"
       >
         {t('import_btn_open')}

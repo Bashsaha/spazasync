@@ -3,23 +3,32 @@
 import { createPortal } from 'react-dom'
 import { useTranslation } from '@/components/LanguageProvider'
 import { RobotBuddy } from './RobotBuddy'
-import type { PageTip } from '@/lib/guide/select-tip'
-import type { FeatureTip } from '@/lib/guide/types'
+import type { TipSection } from '@/lib/guide/select-tip'
+import type { FeatureTip, GuideGroup } from '@/lib/guide/types'
 
 /**
- * The "What can I show you here?" sheet (Phase 47). Lists the current page's
- * tips; tapping one hands back to the orchestrator which spotlights the real
- * element. Self-explaining (names Stocky + says it'll point at things) so an
- * owner who never saw the welcome still learns the model. Portaled to body so it
- * sits above the app chrome regardless of stacking context.
+ * The "What can I show you here?" sheet (Phase 47 → 49). Lists the current page's
+ * tips, bucketed into labelled sections (Phase 49) so a page with many tips stays
+ * scannable instead of being one long wall. Tapping a tip hands back to the
+ * orchestrator which spotlights the real element. Self-explaining (names Stocky +
+ * says it'll point at things) so an owner who never saw the welcome still learns
+ * the model. Portaled to body so it sits above the app chrome regardless of
+ * stacking context.
  */
+const GROUP_LABEL_KEY: Record<GuideGroup, string> = {
+  attention: 'group_attention',
+  basics: 'group_basics',
+  reports: 'group_reports',
+  setup: 'group_setup',
+}
+
 export function StockyTipSheet({
-  tips,
+  sections,
   firstOpen,
   onPick,
   onClose,
 }: {
-  tips: PageTip[]
+  sections: TipSection[]
   /** First time this owner has opened the sheet → show the "what is this" line. */
   firstOpen: boolean
   onPick: (tip: FeatureTip) => void
@@ -55,36 +64,52 @@ export function StockyTipSheet({
           </div>
         )}
 
-        <ul className="space-y-2">
-          {tips.map((pt) => (
-            <li key={pt.tip.id}>
-              <button
-                type="button"
-                onClick={() => onPick(pt.tip)}
-                className={`w-full flex items-center justify-between gap-3 rounded-2xl border p-3.5 text-left active:bg-gray-50 ${
-                  pt.seen ? 'border-gray-100 bg-gray-50' : 'border-line bg-white'
-                }`}
-              >
-                <span
-                  className={`min-w-0 font-semibold ${pt.seen ? 'text-gray-500' : 'text-gray-900'}`}
+        <div className="space-y-4">
+          {sections.map((section) => {
+            const isAttention = section.group === 'attention'
+            return (
+              <div key={section.group}>
+                <p
+                  className={`text-[11px] font-bold uppercase tracking-wide mb-2 ${
+                    isAttention ? 'text-[#B57814]' : 'text-gray-400'
+                  }`}
                 >
-                  {t(pt.tip.titleKey)}
-                </span>
-                <span className="flex items-center gap-2 shrink-0">
-                  {pt.active && (
-                    <span aria-hidden className="w-2.5 h-2.5 rounded-full bg-[#F5A623]" />
-                  )}
-                  {pt.seen && (
-                    <span className="text-[10px] uppercase tracking-wide text-gray-400">
-                      {t('tip_seen_badge')}
-                    </span>
-                  )}
-                  <span className="text-brand font-bold text-lg leading-none">›</span>
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
+                  {t(GROUP_LABEL_KEY[section.group])}
+                </p>
+                <ul className="space-y-2">
+                  {section.tips.map((pt) => (
+                    <li key={pt.tip.id}>
+                      <button
+                        type="button"
+                        onClick={() => onPick(pt.tip)}
+                        className={`w-full flex items-center justify-between gap-3 rounded-2xl border p-3.5 text-left active:bg-gray-50 ${
+                          pt.seen ? 'border-gray-100 bg-gray-50' : 'border-line bg-white'
+                        }`}
+                      >
+                        <span
+                          className={`min-w-0 font-semibold ${pt.seen ? 'text-gray-500' : 'text-gray-900'}`}
+                        >
+                          {t(pt.tip.titleKey)}
+                        </span>
+                        <span className="flex items-center gap-2 shrink-0">
+                          {pt.active && (
+                            <span aria-hidden className="w-2.5 h-2.5 rounded-full bg-[#F5A623]" />
+                          )}
+                          {pt.seen && (
+                            <span className="text-[10px] uppercase tracking-wide text-gray-400">
+                              {t('tip_seen_badge')}
+                            </span>
+                          )}
+                          <span className="text-brand font-bold text-lg leading-none">›</span>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )

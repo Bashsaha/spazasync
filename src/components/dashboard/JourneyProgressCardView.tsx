@@ -22,7 +22,7 @@ export function JourneyProgressCardView({ data }: { data: JourneyCardData }) {
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0
 
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl mb-4 overflow-hidden">
+    <div data-tour="journey-card" className="bg-white border border-gray-100 rounded-2xl mb-4 overflow-hidden">
       <Link href="/compliance/journey" className="block p-4 active:bg-gray-50">
         <div className="flex items-baseline justify-between mb-2">
           <p className="text-sm font-bold text-gray-900">{t('journey_card_title')}</p>
