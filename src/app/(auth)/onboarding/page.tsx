@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { PartyPopper, Check, Copy } from 'lucide-react'
+import { PartyPopper, Check, Copy, Mail, ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
@@ -143,7 +143,15 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-surface flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-brand">Movestock</h1>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/icons/icon.svg"
+            alt="Movestock"
+            width={64}
+            height={64}
+            className="mx-auto rounded-2xl shadow-sm"
+          />
+          <h1 className="text-2xl font-bold text-brand mt-3">Movestock</h1>
           <p className="text-gray-500 mt-1 text-sm">{subtitle}</p>
         </div>
 
@@ -248,53 +256,53 @@ function GoogleSignInStep({
   const { t } = useTranslation()
   const [showEmail, setShowEmail] = useState(false)
 
+  // Email path selected → show the form with a way back to the two bubbles.
+  if (showEmail) {
+    return (
+      <div className="space-y-3">
+        <button
+          type="button"
+          onClick={() => setShowEmail(false)}
+          className="flex items-center gap-1.5 text-sm text-gray-500 font-medium active:opacity-70 min-h-[44px]"
+        >
+          <ArrowLeft className="w-4 h-4" strokeWidth={2} />
+          {t('back')}
+        </button>
+        <EmailOtpForm initialEmail={email} onVerified={onEmailVerified} autoFocusEmail />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4">
-      <p className="text-sm text-gray-600">{t('google_signin_subtitle')}</p>
+      <p className="text-sm text-gray-600">{t('signin_choose_title')}</p>
 
-      <Button variant="outline" size="lg" fullWidth onClick={onSignIn} disabled={loading}>
-        <GoogleGlyph />
-        {t('btn_continue_with_google')}
-      </Button>
+      <div className="space-y-3">
+        <Button
+          variant="primary"
+          size="lg"
+          fullWidth
+          className="py-4"
+          icon={Mail}
+          onClick={() => setShowEmail(true)}
+          disabled={loading}
+        >
+          {t('btn_signin_with_email')}
+        </Button>
+        <Button
+          variant="outline"
+          size="lg"
+          fullWidth
+          className="py-4"
+          onClick={onSignIn}
+          disabled={loading}
+        >
+          <GoogleGlyph />
+          {t('btn_continue_with_google')}
+        </Button>
+      </div>
 
       {error && <Callout tone="error">{error}</Callout>}
-
-      {/* Email OTP — secondary path, collapsed by default */}
-      <div className="pt-1">
-        {!showEmail ? (
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-gray-200" />
-            <button
-              type="button"
-              onClick={() => setShowEmail(true)}
-              className="text-sm text-brand font-medium active:opacity-70"
-            >
-              {t('otp_show_email_link')}
-            </button>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div>
-        ) : (
-          <div className="space-y-3 pt-2 border-t border-gray-100">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                {t('otp_divider_or')}
-              </p>
-              <button
-                type="button"
-                onClick={() => setShowEmail(false)}
-                className="text-xs text-gray-500 active:opacity-70"
-              >
-                {t('otp_hide_email_link')}
-              </button>
-            </div>
-            <EmailOtpForm
-              initialEmail={email}
-              onVerified={onEmailVerified}
-              autoFocusEmail
-            />
-          </div>
-        )}
-      </div>
     </div>
   )
 }

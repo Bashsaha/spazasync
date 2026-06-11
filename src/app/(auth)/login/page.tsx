@@ -1,13 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { X } from 'lucide-react'
+import { ArrowLeft, Mail, UserRound, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
 import { FullScreenSpinner } from '@/components/Spinner'
-import { Button, Card, FormField, Input, Callout } from '@/components/ui'
+import { Button, LinkButton, Card, FormField, Input, Callout } from '@/components/ui'
 import { EmailOtpForm } from '@/components/auth/EmailOtpForm'
 import {
   getRecentUsers,
@@ -18,15 +17,22 @@ import {
   type RecentUser,
 } from '@/lib/auth/recent-users'
 
-type Tab = 'owner' | 'teller'
+// Single-page flow with view states (no extra routes):
+//   home   → logo + "Sign in" / "Sign up" bubbles
+//   signin → "Email" / "Connect with Google" / "I'm the teller" bubbles
+//   email  → owner email + 6-digit code form
+//   teller → teller shop-code + name + PIN form
+type View = 'home' | 'signin' | 'email' | 'teller'
 
 export default function LoginPage() {
   const { locale, t, setLocale } = useTranslation()
-  const [tab, setTab] = useState<Tab>('owner')
+  const [view, setView] = useState<View>('home')
   const [ownerEmail, setOwnerEmail] = useState('')
   const [tellerShopCode, setTellerShopCode] = useState('')
   const [tellerName, setTellerName] = useState('')
   const [recents, setRecents] = useState<RecentUser[]>([])
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [googleError, setGoogleError] = useState('')
 
   useEffect(() => {
     setRecents(getRecentUsers())
@@ -34,12 +40,12 @@ export default function LoginPage() {
 
   function handleSelectRecent(u: RecentUser) {
     if (u.kind === 'teller') {
-      setTab('teller')
       setTellerShopCode(u.shop_code)
       setTellerName(u.display_name)
+      setView('teller')
     } else {
-      setTab('owner')
       setOwnerEmail(u.email)
+      setView('email')
     }
   }
 
@@ -48,85 +54,133 @@ export default function LoginPage() {
     setRecents(getRecentUsers())
   }
 
+  async function handleGoogleSignIn() {
+    setGoogleError('')
+    setGoogleLoading(true)
+    const supabase = createClient()
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    })
+    if (oauthError) {
+      setGoogleError(t('google_signin_error'))
+      setGoogleLoading(false)
+    }
+    // On success the browser redirects to Google and never returns here.
+  }
+
   function handleOwnerSuccess(email: string) {
     recordRecentUser({ kind: 'owner', email })
     // Hard nav (not router.push) so the server re-renders with the freshly-set
-    // session cookie. The OAuth path never reaches here (browser redirects away),
-    // but the email-OTP path lands here client-side after verifyOtp — same race
-    // condition that bit the teller flow in BUG-043. proxy.ts will route a
-    // role-less new owner to /onboarding.
+    // session cookie — same cookie-race the teller flow hit in BUG-043.
     window.location.assign('/dashboard')
   }
 
   function handleTellerSuccess(shopCode: string, name: string) {
     recordRecentUser({ kind: 'teller', shop_code: shopCode.toUpperCase(), display_name: name })
-    // Hard navigation (not router.push) so the server re-renders with the
-    // freshly-set session cookie. A soft RSC navigation right after a client-
-    // side signInWithPassword raced the cookie propagation and left the page
-    // spinning until a manual reload. A full load is instant here and reliable.
+    // Hard navigation so the server re-renders with the freshly-set session
+    // cookie (a soft RSC nav raced the cookie propagation — BUG-043).
     window.location.assign('/sale')
   }
 
   return (
     <div className="min-h-screen bg-surface flex flex-col items-center justify-center px-4 py-8">
+      {googleLoading && <FullScreenSpinner label={t('btn_signing_in')} />}
       <div className="w-full max-w-sm">
-        {/* Logo / App name */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-brand">Movestock</h1>
-          <p className="text-gray-500 mt-1 text-sm">{t('login_subtitle')}</p>
-        </div>
+        <Logo subtitle={t('login_subtitle')} />
 
-        {/* Recently used row */}
-        {recents.length > 0 && (
-          <RecentUsersRow
-            users={recents}
-            onSelect={handleSelectRecent}
-            onRemove={handleRemoveRecent}
-          />
+        {view === 'home' ? (
+          <div className="space-y-5">
+            {recents.length > 0 && (
+              <RecentUsersRow
+                users={recents}
+                onSelect={handleSelectRecent}
+                onRemove={handleRemoveRecent}
+              />
+            )}
+            <div className="space-y-3">
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                className="py-4"
+                onClick={() => setView('signin')}
+              >
+                {t('btn_sign_in')}
+              </Button>
+              <LinkButton href="/onboarding" variant="outline" size="lg" fullWidth className="py-4">
+                {t('btn_sign_up')}
+              </LinkButton>
+            </div>
+          </div>
+        ) : view === 'signin' ? (
+          <div>
+            <BackButton onClick={() => setView('home')} label={t('back')} />
+            <p className="text-center text-sm text-gray-600 mb-5">{t('signin_choose_title')}</p>
+            <div className="space-y-3">
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                className="py-4"
+                icon={Mail}
+                onClick={() => setView('email')}
+              >
+                {t('btn_signin_with_email')}
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                fullWidth
+                className="py-4"
+                onClick={handleGoogleSignIn}
+                disabled={googleLoading}
+              >
+                <GoogleGlyph />
+                {t('btn_continue_with_google')}
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                fullWidth
+                className="py-4"
+                icon={UserRound}
+                onClick={() => setView('teller')}
+              >
+                {t('btn_im_the_teller')}
+              </Button>
+            </div>
+            {googleError && (
+              <div className="mt-4">
+                <Callout tone="error">{googleError}</Callout>
+              </div>
+            )}
+          </div>
+        ) : view === 'email' ? (
+          <div>
+            <BackButton onClick={() => setView('signin')} label={t('back')} />
+            <Card padding="lg">
+              <EmailOtpForm
+                initialEmail={ownerEmail}
+                onVerified={handleOwnerSuccess}
+                autoFocusEmail
+              />
+            </Card>
+          </div>
+        ) : (
+          <div>
+            <BackButton onClick={() => setView('signin')} label={t('back')} />
+            <Card padding="lg">
+              <TellerLoginForm
+                shopCode={tellerShopCode}
+                setShopCode={setTellerShopCode}
+                name={tellerName}
+                setName={setTellerName}
+                onSuccess={handleTellerSuccess}
+              />
+            </Card>
+          </div>
         )}
-
-        {/* Tab switcher */}
-        <div className="flex rounded-xl overflow-hidden border border-gray-200 mb-6">
-          <button
-            onClick={() => setTab('owner')}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors ${
-              tab === 'owner'
-                ? 'bg-brand text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            {t('tab_owner')}
-          </button>
-          <button
-            onClick={() => setTab('teller')}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors ${
-              tab === 'teller'
-                ? 'bg-brand text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            {t('tab_teller')}
-          </button>
-        </div>
-
-        {/* Form card */}
-        <Card padding="lg">
-          {tab === 'owner' ? (
-            <OwnerLoginForm
-              email={ownerEmail}
-              setEmail={setOwnerEmail}
-              onSuccess={handleOwnerSuccess}
-            />
-          ) : (
-            <TellerLoginForm
-              shopCode={tellerShopCode}
-              setShopCode={setTellerShopCode}
-              name={tellerName}
-              setName={setTellerName}
-              onSuccess={handleTellerSuccess}
-            />
-          )}
-        </Card>
 
         {/* Language switcher */}
         <div className="mt-6">
@@ -134,6 +188,40 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// ── Logo ─────────────────────────────────────────────────────
+
+function Logo({ subtitle }: { subtitle: string }) {
+  return (
+    <div className="text-center mb-8">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/icons/icon.svg"
+        alt="Movestock"
+        width={72}
+        height={72}
+        className="mx-auto rounded-2xl shadow-sm"
+      />
+      <h1 className="text-2xl font-bold text-brand mt-3">Movestock</h1>
+      <p className="text-gray-500 mt-1 text-sm">{subtitle}</p>
+    </div>
+  )
+}
+
+// ── Back button ──────────────────────────────────────────────
+
+function BackButton({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-1.5 text-sm text-gray-500 font-medium active:opacity-70 mb-4 min-h-[44px]"
+    >
+      <ArrowLeft className="w-4 h-4" strokeWidth={2} />
+      {label}
+    </button>
   )
 }
 
@@ -150,7 +238,7 @@ function RecentUsersRow({
 }) {
   const { t } = useTranslation()
   return (
-    <div className="mb-5">
+    <div>
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
         {t('recent_users_title')}
       </p>
@@ -185,106 +273,6 @@ function RecentUsersRow({
           </li>
         ))}
       </ul>
-    </div>
-  )
-}
-
-// ── Owner login ──────────────────────────────────────────────
-
-function OwnerLoginForm({
-  email,
-  setEmail,
-  onSuccess,
-}: {
-  email: string
-  setEmail: (v: string) => void
-  onSuccess: (email: string) => void
-}) {
-  const { t } = useTranslation()
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [showEmail, setShowEmail] = useState(false)
-
-  async function handleGoogleSignIn() {
-    setError('')
-    setLoading(true)
-    const supabase = createClient()
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    })
-    if (oauthError) {
-      setError(t('google_signin_error'))
-      setLoading(false)
-    }
-    // On success the browser redirects to Google and never returns here.
-  }
-
-  function handleEmailVerified(verifiedEmail: string) {
-    setEmail(verifiedEmail)
-    onSuccess(verifiedEmail)
-  }
-
-  return (
-    <div className="space-y-4">
-      {loading && <FullScreenSpinner label={t('btn_signing_in')} />}
-      <p className="text-sm text-gray-600">{t('google_signin_subtitle')}</p>
-
-      <Button
-        variant="outline"
-        size="lg"
-        fullWidth
-        onClick={handleGoogleSignIn}
-        disabled={loading}
-      >
-        <GoogleGlyph />
-        {t('btn_continue_with_google')}
-      </Button>
-
-      {error && <Callout tone="error">{error}</Callout>}
-
-      {/* Email OTP — secondary path, collapsed by default */}
-      <div className="pt-1">
-        {!showEmail ? (
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-gray-200" />
-            <button
-              type="button"
-              onClick={() => setShowEmail(true)}
-              className="text-sm text-brand font-medium active:opacity-70"
-            >
-              {t('otp_show_email_link')}
-            </button>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div>
-        ) : (
-          <div className="space-y-3 pt-2 border-t border-gray-100">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                {t('otp_divider_or')}
-              </p>
-              <button
-                type="button"
-                onClick={() => setShowEmail(false)}
-                className="text-xs text-gray-500 active:opacity-70"
-              >
-                {t('otp_hide_email_link')}
-              </button>
-            </div>
-            <EmailOtpForm
-              initialEmail={email}
-              onVerified={handleEmailVerified}
-              autoFocusEmail
-            />
-          </div>
-        )}
-      </div>
-
-      <p className="text-center text-sm">
-        <Link href="/onboarding" className="text-brand font-medium">
-          {t('link_create_shop')}
-        </Link>
-      </p>
     </div>
   )
 }
