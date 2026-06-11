@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Mail, UserRound, X } from 'lucide-react'
+import { ChevronLeft, Mail, UserRound, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
@@ -84,8 +84,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col items-center justify-center px-4 py-8">
+    <div className="relative min-h-screen bg-surface flex flex-col items-center justify-center px-4 py-8">
       {googleLoading && <FullScreenSpinner label={t('btn_signing_in')} />}
+      {view !== 'home' && (
+        <BackButton onClick={() => setView(view === 'signin' ? 'home' : 'signin')} label={t('back')} />
+      )}
       <div className="w-full max-w-sm">
         <Logo subtitle={t('login_subtitle')} />
 
@@ -115,7 +118,6 @@ export default function LoginPage() {
           </div>
         ) : view === 'signin' ? (
           <div>
-            <BackButton onClick={() => setView('home')} label={t('back')} />
             <p className="text-center text-sm text-gray-600 mb-5">{t('signin_choose_title')}</p>
             <div className="space-y-3">
               <Button
@@ -158,7 +160,6 @@ export default function LoginPage() {
           </div>
         ) : view === 'email' ? (
           <div>
-            <BackButton onClick={() => setView('signin')} label={t('back')} />
             <Card padding="lg">
               <EmailOtpForm
                 initialEmail={ownerEmail}
@@ -169,7 +170,6 @@ export default function LoginPage() {
           </div>
         ) : (
           <div>
-            <BackButton onClick={() => setView('signin')} label={t('back')} />
             <Card padding="lg">
               <TellerLoginForm
                 shopCode={tellerShopCode}
@@ -198,11 +198,11 @@ function Logo({ subtitle }: { subtitle: string }) {
     <div className="text-center mb-8">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/icons/icon.svg"
+        src="/icons/logo-mark.svg"
         alt="Movestock"
-        width={72}
-        height={72}
-        className="mx-auto rounded-2xl shadow-sm"
+        width={76}
+        height={76}
+        className="mx-auto rounded-3xl shadow-sm"
       />
       <h1 className="text-2xl font-bold text-brand mt-3">Movestock</h1>
       <p className="text-gray-500 mt-1 text-sm">{subtitle}</p>
@@ -217,10 +217,10 @@ function BackButton({ onClick, label }: { onClick: () => void; label: string }) 
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center gap-1.5 text-sm text-gray-500 font-medium active:opacity-70 mb-4 min-h-[44px]"
+      aria-label={label}
+      className="absolute left-4 top-4 w-11 h-11 flex items-center justify-center rounded-full bg-white border border-line shadow-sm text-gray-700 active:bg-gray-50"
     >
-      <ArrowLeft className="w-4 h-4" strokeWidth={2} />
-      {label}
+      <ChevronLeft className="w-6 h-6" strokeWidth={2.25} />
     </button>
   )
 }

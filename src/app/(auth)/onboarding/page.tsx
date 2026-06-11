@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { PartyPopper, Check, Copy, Mail, ArrowLeft } from 'lucide-react'
+import { PartyPopper, Check, Copy, Mail, ChevronLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from '@/components/LanguageProvider'
 import { LanguagePicker } from '@/components/LanguagePicker'
@@ -145,11 +145,11 @@ export default function OnboardingPage() {
         <div className="text-center mb-8">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/icons/icon.svg"
+            src="/icons/logo-mark.svg"
             alt="Movestock"
-            width={64}
-            height={64}
-            className="mx-auto rounded-2xl shadow-sm"
+            width={68}
+            height={68}
+            className="mx-auto rounded-3xl shadow-sm"
           />
           <h1 className="text-2xl font-bold text-brand mt-3">Movestock</h1>
           <p className="text-gray-500 mt-1 text-sm">{subtitle}</p>
@@ -263,10 +263,10 @@ function GoogleSignInStep({
         <button
           type="button"
           onClick={() => setShowEmail(false)}
-          className="flex items-center gap-1.5 text-sm text-gray-500 font-medium active:opacity-70 min-h-[44px]"
+          aria-label={t('back')}
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-line shadow-sm text-gray-700 active:bg-gray-50"
         >
-          <ArrowLeft className="w-4 h-4" strokeWidth={2} />
-          {t('back')}
+          <ChevronLeft className="w-5 h-5" strokeWidth={2.25} />
         </button>
         <EmailOtpForm initialEmail={email} onVerified={onEmailVerified} autoFocusEmail />
       </div>
