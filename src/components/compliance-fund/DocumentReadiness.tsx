@@ -1,12 +1,14 @@
 /**
  * Phase 37e — Document readiness list.
+ * Phase 50 — ported to Card / SectionHeader / Badge / LinkButton primitives;
+ * header now shows a "X of Y ready" count.
  *
  * Shows each fund-required document with its status and a deep-link to the
  * matching journey step when missing. Server component.
  */
 
-import Link from 'next/link'
 import { Check, X } from 'lucide-react'
+import { Card, SectionHeader, Badge, LinkButton } from '@/components/ui'
 import type { FundReadinessDocRow } from '@/lib/compliance/fund'
 import type { BusinessDocument, DocumentType } from '@/types'
 
@@ -32,17 +34,23 @@ const STEP_HASH: Record<DocumentType, string> = {
 }
 
 export function DocumentReadiness({ rows, documents, t }: Props) {
+  const ready = rows.filter((r) => r.ok).length
   return (
-    <section className="bg-white border border-gray-100 rounded-2xl p-5 mb-4 ">
-      <h2 className="text-sm font-semibold text-gray-900 mb-3">
-        {t('docs_header')}
-      </h2>
+    <Card padding="lg" className="mb-4">
+      <SectionHeader
+        title={t('docs_header')}
+        action={
+          <Badge tone={ready === rows.length ? 'green' : 'gray'}>
+            {t('docs_ready_count', { ready, total: rows.length })}
+          </Badge>
+        }
+      />
       <ul className="divide-y divide-gray-100">
         {rows.map((row) => {
           const dbRow = documents.find((d) => d.document_type === row.document_type)
           const status = dbRow?.status ?? 'missing'
           return (
-            <li key={row.document_type} className="py-3">
+            <li key={row.document_type} className="py-3 first:pt-0">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900">
@@ -55,7 +63,7 @@ export function DocumentReadiness({ rows, documents, t }: Props) {
                   )}
                   <p className="text-xs mt-0.5">
                     {row.ok ? (
-                      <span className="inline-flex items-center gap-1 text-brand-hover">
+                      <span className="inline-flex items-center gap-1 text-brand-dark">
                         <Check className="w-3.5 h-3.5 text-green-600" strokeWidth={2.25} />
                         {t(`doc_status_${status}`)}
                         {dbRow?.reference_number ? ` · ${dbRow.reference_number}` : ''}
@@ -69,18 +77,19 @@ export function DocumentReadiness({ rows, documents, t }: Props) {
                   </p>
                 </div>
                 {!row.ok && (
-                  <Link
+                  <LinkButton
                     href={`/compliance/journey#${STEP_HASH[row.document_type]}`}
-                    className="text-xs text-brand font-semibold whitespace-nowrap active:text-brand-hover"
+                    variant="ghost"
+                    size="sm"
                   >
                     {t('doc_fix_now')} →
-                  </Link>
+                  </LinkButton>
                 )}
               </div>
             </li>
           )
         })}
       </ul>
-    </section>
+    </Card>
   )
 }

@@ -28,4 +28,8 @@ export { EmptyState } from './EmptyState'
 
 export { SectionHeader } from './SectionHeader'
 
+export { Disclosure } from './Disclosure'
+
+export { ProgressMeter, progressPct } from './ProgressMeter'
+
 export { cx } from './cx'

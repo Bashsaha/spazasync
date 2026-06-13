@@ -267,7 +267,9 @@ The file tree below is ground truth. After every phase: Glob scan, diff against 
 
 ## Living Scope
 
-Phases 1–36c + 37a–37g + 38 + 39 + 40 + 41a + 41b + 41c + 41d + 41e + 42 + 43 + 44 + 45 + 46 + 47 + 48 + 49 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+Phases 1–36c + 37a–37g + 38 + 39 + 40 + 41a + 41b + 41c + 41d + 41e + 42 + 43 + 44 + 45 + 46 + 47 + 48 + 49 + 50 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+
+**Phase 50 — Government Fund page IA + copy redesign — COMPLETE (2026-06-13).** Reworked `/compliance/fund` from 11 equal-weight stacked cards (read like a diagnostic dashboard; the core message was buried) into a guided flow whose spine is **"to qualify, finish your compliance steps."** New **`FundQualifyHero`** is the one dominant element: an anchor sentence + a `ProgressMeter` over the fund-required registrations + green/amber/red verdict badge + compliance-score chip + one primary CTA → `/compliance/journey`. It absorbs the old `FundHeroStatus` (verdict) and `ComplianceReadiness` (score → now a chip; standalone card cut). Dense reference content folds behind new `Disclosure` accordions (eligibility & priority, "what you could receive", how-to-apply); the scam warning is pulled OUT to a persistent page-level `Callout` (never behind a tap); documents + application-pack stay visible/actionable. Merged the two tier explanations (`FundTierLadder` + `FundBreakdown` → **`FundReceiveSection`**) and the three scattered "priority" mentions (`EligibilitySection` + `PrioritySelfDeclaration` → **`EligibilityAndPriority`**). **Two new design-system primitives** (convention-first): `Disclosure` (collapsible, reduced-motion-safe) + `ProgressMeter` (bar + pure `progressPct` helper), exported from `ui/index.ts`. Six obsolete components deleted; every remaining fund component ported off hand-rolled `bg-white border rounded-2xl`/buttons to `Card`/`Callout`/`Badge`/`Button`/`LinkButton`. Copy reframed (3 status messages now name the compliance path as the route to qualifying; acronyms plain-led — "Company registration (CIPC)", "Small business registration (SMMESA)", "part grant, part loan"; redundant keys removed). i18n: en rewritten + mirrored across so/am/zu/ur (this namespace ships English across all 5 — parity-enforced; 217 i18n tests pass). No DB/schema/endpoint/cost change — pure IA + copy + presentation; `fund.ts` engine untouched. New `progress-meter.test.ts` (3). SW cache v97→v98. 833/833 tests, tsc + build clean. **Live phone test recommended** (the hero/disclosure render path isn't exercised by tsc/unit/build).
 
 **Phase 49 — Stocky comprehensive coverage + grouped sheet + autoscroll — COMPLETE (2026-06-10).** Grew Stocky from 1 tip/page (11 catalog entries) to full per-page coverage (~44 entries) and made the longer list neat. **Grouped sheet:** `FeatureTip` gained an optional `group` (`attention`|`basics`|`reports`|`setup`); `groupPageTips()` buckets a page's tips into labelled sections (active contextual tips pinned into a leading "Needs attention" section), rendered by `StockyTipSheet` under small uppercase headers — everything visible, no extra taps. **Detail-page reach:** `GUIDE_ROUTES` + new pure `matchGuideRoute(pathname)` now resolve dynamic/child screens, so the button + tips also appear on `/stock/[id]`, `/sales/statistics`, `/sales/history` (`/stock/abc` → `/stock/[id]`). **Autoscroll:** `useTourTarget` now `scrollIntoView({block:'center'})` on first resolve when the target is off-screen (instant under `prefers-reduced-motion`); the existing rAF tracker re-glues the spotlight as the page scrolls. Added ~30 `data-tour` anchors across 12 page/component files (pure attribute adds), ~66 new tip strings + 4 group labels mirrored across all 5 locales (parity-enforced), and extended `guide.test.ts` (26 tests: `matchGuideRoute`, grouping/pinning, catalog integrity). 100% static — no AI, no new endpoints, no DB/cost impact. SW cache v94→v95. 830/830 tests, tsc + build clean. **Live phone test recommended** (spotlight/scroll/sheet render path isn't exercised by tsc/unit/build).
 
@@ -436,9 +438,11 @@ spaza shop/
 │   │   │   └── steps/{TradingPermitStep, HealthCertificateStep, CIPCStep,
 │   │   │              SARSStep, UIFStep, FoodSafetyStep, SMMESAStep,
 │   │   │              RightToTradeStep}.tsx   # RightToTradeStep = Phase 43 (foreign-national-only)
-│   │   ├── compliance-fund/                              # Phase 37e
-│   │   │   ├── FundHeroStatus.tsx, EligibilitySection.tsx, DocumentReadiness.tsx
-│   │   │   ├── ComplianceReadiness.tsx, FundBreakdown.tsx
+│   │   ├── compliance-fund/                              # Phase 37e (+ 50 IA redesign)
+│   │   │   ├── FundQualifyHero.tsx                       # Phase 50 — "route to qualifying" hero (progress + verdict + CTA)
+│   │   │   ├── EligibilityAndPriority.tsx               # Phase 50 — merged eligibility + all 3 priority groups
+│   │   │   ├── FundReceiveSection.tsx                   # Phase 50 — merged tier ladder + breakdown
+│   │   │   ├── DocumentReadiness.tsx, SarsGraceCountdown.tsx
 │   │   │   └── GenerateApplicationPackButton.tsx, ApplySection.tsx
 │   │   ├── compliance-reminders/                         # Phase 37g
 │   │   │   ├── ReminderBanner.tsx                        # presentational, 4-tone borders
@@ -465,6 +469,7 @@ spaza shop/
 │   │   └── ui/                              # Design-system primitives (2026-05-19)
 │   │       ├── Button.tsx, Card.tsx, PageHeader.tsx, SectionHeader.tsx
 │   │       ├── FormField.tsx, Callout.tsx, Badge.tsx, EmptyState.tsx
+│   │       ├── Disclosure.tsx, ProgressMeter.tsx          # Phase 50 — accordion + progress bar
 │   │       ├── cx.ts, index.ts
 │   ├── hooks/
 │   │   ├── useActiveTeller.ts, useCart.ts, useScanner.ts, useUserRole.ts, useCachedData.ts  # useCachedData = Phase 44b cache-first engine
@@ -572,5 +577,6 @@ spaza shop/
     ├── subscription-expiry.test.ts                # shared isSubscriptionExpired helper (owner gate + teller lockout)
     ├── guide.test.ts                              # Phase 46 — Stocky tip selection + cadence gate + triggers
     ├── cart-operations.test.ts                    # Phase 48 — cart line merge / custom no-name lines / qty / total
-    └── route-access.test.ts                       # BUG-047 invariant: teller redirect targets are reachable
+    ├── route-access.test.ts                       # BUG-047 invariant: teller redirect targets are reachable
+    └── progress-meter.test.ts                     # Phase 50 — progressPct clamp helper
 ```

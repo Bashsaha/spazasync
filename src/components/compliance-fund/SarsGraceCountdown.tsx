@@ -1,27 +1,23 @@
 /**
  * Phase 41d — visualise the SARS 6-month grace window for the owner.
- *
- * The window itself was wired into the fund engine in Phase 41a
- * (`shops.sars_grace_period_until` + `computeFundReadiness`'s `sarsGraceActive`
- * branch), but until now the owner had no way to see how much time was left.
- * If SARS is the only missing doc, the fund readiness moves to GREEN once
- * SARS is registered — but the owner had no visible deadline to plan around.
+ * Phase 50 — ported to the <Callout> primitive (was a hand-rolled banner).
  *
  * Renders only when:
  *   1. `sars_grace_period_until` is set on the shop, AND
  *   2. SARS is currently being treated as "ok" via the grace branch
  *      (`fundReadiness.sarsInGracePeriod === true`).
  *
- * Server component, pure presentation. Day-precision math is enough — the
- * owner needs "about 4 months left" granularity, not minutes.
+ * Urgency tone mirrors the document-expiry buckets in reminders.ts:
+ * ≤30d error, ≤60d warning, otherwise brand. Server component.
  */
 
 import { CalendarClock } from 'lucide-react'
+import { Callout, type CalloutTone } from '@/components/ui'
 
 type T = (key: string, params?: Record<string, string | number>) => string
 
 interface Props {
-  sarsGracePeriodUntil: string | null   // YYYY-MM-DD
+  sarsGracePeriodUntil: string | null // YYYY-MM-DD
   sarsInGracePeriod: boolean
   t: T
 }
@@ -44,28 +40,16 @@ export function SarsGraceCountdown({
   // shouldn't get here — but defence in depth.
   if (days < 0) return null
 
-  // Pick urgency colour based on remaining time. Mirrors the document-expiry
-  // bucket rules in reminders.ts: ≤30d urgent, ≤60d warning, otherwise info.
-  const tone =
-    days <= 30
-      ? { border: 'border-red-200', bg: 'bg-red-50', text: 'text-red-800', icon: 'text-red-700' }
-      : days <= 60
-      ? { border: 'border-amber-200', bg: 'bg-amber-50', text: 'text-amber-800', icon: 'text-amber-700' }
-      : { border: 'border-brand-light', bg: 'bg-brand-light/40', text: 'text-brand-hover', icon: 'text-brand' }
+  const tone: CalloutTone = days <= 30 ? 'error' : days <= 60 ? 'warning' : 'brand'
 
   return (
-    <section className={`rounded-2xl border ${tone.border} ${tone.bg} p-4 mb-4`}>
-      <div className="flex items-start gap-2.5">
-        <CalendarClock className={`w-5 h-5 ${tone.icon} shrink-0 mt-0.5`} strokeWidth={1.75} aria-hidden="true" />
-        <div className="flex-1 min-w-0">
-          <h3 className={`text-sm font-bold ${tone.text}`}>
-            {t('sars_grace_countdown_title', { days })}
-          </h3>
-          <p className={`text-xs ${tone.text} mt-1 opacity-90`}>
-            {t('sars_grace_countdown_body', { date: sarsGracePeriodUntil })}
-          </p>
-        </div>
-      </div>
-    </section>
+    <Callout
+      tone={tone}
+      icon={CalendarClock}
+      title={t('sars_grace_countdown_title', { days })}
+      className="mb-4"
+    >
+      {t('sars_grace_countdown_body', { date: sarsGracePeriodUntil })}
+    </Callout>
   )
 }

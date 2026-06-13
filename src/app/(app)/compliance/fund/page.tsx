@@ -1,5 +1,10 @@
 /**
  * Phase 37e — Fund Readiness Checker.
+ * Phase 50 — IA + copy redesign. The page now leads with one dominant
+ * "Your route to qualifying" hero that ties fund eligibility directly to
+ * finishing the compliance journey, keeps the actionable bits (documents,
+ * application pack) visible, and folds the dense reference content
+ * (eligibility, funding tiers, how-to-apply) behind <Disclosure> accordions.
  *
  * Owner-only. Doubly gated: layout.tsx blocks tellers; the composite
  * reader returns null (→ redirect) if the owner is not an SA citizen
@@ -7,18 +12,17 @@
  */
 
 import { redirect } from 'next/navigation'
+import { ShieldAlert } from 'lucide-react'
 import { BackButton } from '@/components/BackButton'
+import { Callout, Disclosure, Badge } from '@/components/ui'
 import { getShopAuth } from '@/lib/auth/shop-auth'
 import { getFundReadinessData } from '@/lib/db/fund-readiness'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
-import { FundHeroStatus } from '@/components/compliance-fund/FundHeroStatus'
-import { EligibilitySection } from '@/components/compliance-fund/EligibilitySection'
-import { DocumentReadiness } from '@/components/compliance-fund/DocumentReadiness'
-import { ComplianceReadiness } from '@/components/compliance-fund/ComplianceReadiness'
-import { FundBreakdown } from '@/components/compliance-fund/FundBreakdown'
-import { FundTierLadder } from '@/components/compliance-fund/FundTierLadder'
-import { PrioritySelfDeclaration } from '@/components/compliance-fund/PrioritySelfDeclaration'
+import { FundQualifyHero } from '@/components/compliance-fund/FundQualifyHero'
 import { SarsGraceCountdown } from '@/components/compliance-fund/SarsGraceCountdown'
+import { DocumentReadiness } from '@/components/compliance-fund/DocumentReadiness'
+import { EligibilityAndPriority } from '@/components/compliance-fund/EligibilityAndPriority'
+import { FundReceiveSection } from '@/components/compliance-fund/FundReceiveSection'
 import { GenerateApplicationPackButton } from '@/components/compliance-fund/GenerateApplicationPackButton'
 import { ApplySection } from '@/components/compliance-fund/ApplySection'
 
@@ -39,6 +43,9 @@ export default async function FundReadinessPage() {
   const locale = await getServerLocale()
   const { t } = await getServerTranslations(locale, ['compliance-fund'])
 
+  const eligibilityBlocked =
+    data.shop.fund_township_rural === false || data.shop.fund_owner_managed === false
+
   return (
     <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
       <div className="flex items-center gap-3 mb-2">
@@ -47,50 +54,63 @@ export default async function FundReadinessPage() {
       </div>
       <p className="text-sm text-gray-500 mb-6">{t('subtitle')}</p>
 
-      <FundHeroStatus
+      {/* HERO — the route to qualifying (verdict + progress + score + CTA) */}
+      <FundQualifyHero
         status={data.fundReadiness.status}
         missingCount={data.fundReadiness.missingDocCount}
+        requiredDocs={data.fundReadiness.requiredDocs}
+        complianceScore={data.complianceScoreResult.overall}
         t={t}
       />
 
-      {/* Phase 41d — visualises the SARS 6-month grace window (Phase 41a
-          stored the date but never surfaced it to the owner). Renders only
-          when SARS is currently being treated as ok via the grace branch. */}
+      {/* Time-sensitive SARS grace nudge (only while in the grace window) */}
       <SarsGraceCountdown
         sarsGracePeriodUntil={data.shop.sars_grace_period_until}
         sarsInGracePeriod={data.fundReadiness.sarsInGracePeriod}
         t={t}
       />
 
-      <EligibilitySection
-        initialTownshipRural={data.shop.fund_township_rural}
-        initialOwnerManaged={data.shop.fund_owner_managed}
-        initialHasDisability={data.ownerProfile.has_disability}
-      />
-
+      {/* SECONDARY (visible, actionable) — your registrations */}
       <DocumentReadiness
         rows={data.fundReadiness.requiredDocs}
         documents={data.documents}
         t={t}
       />
 
-      <ComplianceReadiness result={data.complianceScoreResult} t={t} />
+      {/* REFERENCE (collapsed) — eligibility & priority */}
+      <Disclosure
+        title={t('eligibility_header')}
+        summary={
+          <Badge tone={eligibilityBlocked ? 'red' : 'green'}>
+            {t(eligibilityBlocked ? 'eligibility_summary_blocked' : 'eligibility_summary_ok')}
+          </Badge>
+        }
+        className="mb-4"
+      >
+        <EligibilityAndPriority
+          initialTownshipRural={data.shop.fund_township_rural}
+          initialOwnerManaged={data.shop.fund_owner_managed}
+          initialHasDisability={data.ownerProfile.has_disability}
+        />
+      </Disclosure>
 
-      {/* Phase 41b — new visual tier ladder makes the R80k CIPC threshold
-          unmissable. Keep FundBreakdown below it for the detailed line-item
-          breakdown of each tier's components. */}
-      <FundTierLadder cipcRegistered={data.fundReadiness.cipcRegistered} t={t} />
+      {/* REFERENCE (collapsed) — what you could receive */}
+      <Disclosure title={t('breakdown_header')} className="mb-4">
+        <FundReceiveSection cipcRegistered={data.fundReadiness.cipcRegistered} t={t} />
+      </Disclosure>
 
-      <FundBreakdown cipcRegistered={data.fundReadiness.cipcRegistered} t={t} />
-
-      {/* Phase 41b — youth + women-owned self-declaration. UI-only per
-          Design Rule 6; surfaces a reminder to flag priority on the
-          SEDFA application. */}
-      <PrioritySelfDeclaration />
-
+      {/* SECONDARY (visible, actionable) — the payoff button */}
       <GenerateApplicationPackButton missingDocCount={data.fundReadiness.missingDocCount} />
 
-      <ApplySection t={t} />
+      {/* Persistent fraud warning — never hidden behind a tap */}
+      <Callout tone="error" icon={ShieldAlert} title={t('apply_scam_warning_title')} className="mb-4">
+        {t('apply_scam_warning_body')}
+      </Callout>
+
+      {/* REFERENCE (collapsed) — how to apply */}
+      <Disclosure title={t('apply_header')}>
+        <ApplySection t={t} />
+      </Disclosure>
     </main>
   )
 }
