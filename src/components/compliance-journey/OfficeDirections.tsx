@@ -23,6 +23,10 @@ interface Props {
 
 export function OfficeDirections({ offices, areaText, t, headerKey }: Props) {
   if (offices.length === 0) {
+    const mapsQuery = encodeURIComponent(
+      `environmental health office ${areaText ?? ''}`.trim(),
+    )
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`
     return (
       <section>
         <h4 className="text-sm font-semibold text-gray-800 mb-2">{t(headerKey)}</h4>
@@ -30,7 +34,16 @@ export function OfficeDirections({ offices, areaText, t, headerKey }: Props) {
           <p className="mb-2">
             {t('office_unknown_fallback', { area: areaText ?? t('office_unknown_area') })}
           </p>
-          <p className="text-xs text-gray-500">{t('office_unknown_hint')}</p>
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand active:text-brand-hover"
+          >
+            <MapPin className="w-4 h-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+            {t('office_find_link')}
+          </a>
+          <p className="text-xs text-gray-500 mt-2">{t('office_unknown_hint')}</p>
         </div>
       </section>
     )

@@ -1,9 +1,10 @@
 /**
  * Phase 37d — Landlord Affidavit template PDF.
  *
- * Pre-fills the shop address (from settings) and the owner's name. The
- * landlord's name, ID, address, signature and the Commissioner of Oaths
- * stamp are all blank — those are filled in offline at the police station.
+ * A blank standard template — no shop/owner details are pre-filled. Every
+ * field (property address, business operator, landlord's name/ID/address,
+ * signature, Commissioner of Oaths stamp) is filled in by hand offline at
+ * the police station.
  */
 
 import { NextResponse } from 'next/server'
@@ -67,18 +68,20 @@ export async function GET() {
     y += 8
 
     const para = (text: string) => {
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(0)
       const lines = doc.splitTextToSize(text, pageWidth - 28)
       doc.text(lines, 14, y)
       y += 6 * lines.length + 3
     }
 
-    doc.setFontSize(10)
+    para('1. I am the owner / authorised representative of the property located at:')
+    drawBlank('Property address', '(fill in)')
     para(
-      `1. I am the owner / authorised representative of the property located at:\n     ${data.shop.location ?? '[shop address — please update in Movestock Settings]'}`,
+      '2. I grant permission to the person named below to operate a spaza shop / retail business on the above-mentioned property:',
     )
-    para(
-      `2. I grant permission to ${data.ownerName ?? '[owner — update your account name in Settings]'} to operate a spaza shop / retail business on the above-mentioned property.`,
-    )
+    drawBlank('Business operator', '(fill in)')
     para('3. I am aware of the nature of the business to be conducted on my property.')
     para(
       '4. I understand that this affidavit may be submitted to the local municipality as part of a trading permit application.',

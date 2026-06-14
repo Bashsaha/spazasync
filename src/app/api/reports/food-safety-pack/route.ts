@@ -80,14 +80,13 @@ export async function GET() {
     })
 
     // ── 1. Summary ──
-    y = drawSectionHeading(doc, y, '1. Compliance Summary')
+    y = drawSectionHeading(doc, y, '1. Summary')
     const expiredCount = data.expiryBatches.filter((b) => b.expiry_date < today).length
     const supplierPct =
       data.scoreInputs.productCount > 0
         ? Math.round((data.scoreInputs.productsWithSupplier / data.scoreInputs.productCount) * 100)
         : 0
     const summaryLines = [
-      `Overall compliance score: ${data.score.overall} / 100`,
       `Daily checklist completion: ${data.checklistStats.compliancePct}% (${data.checklistStats.completedDays}/${data.checklistStats.totalDays} days)`,
       data.checklistStats.avgFridgeTemp !== null
         ? `Average fridge temperature: ${data.checklistStats.avgFridgeTemp}°C (target: 1–5°C)`

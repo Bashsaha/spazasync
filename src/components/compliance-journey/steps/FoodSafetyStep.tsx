@@ -13,7 +13,6 @@
 
 import { Check } from 'lucide-react'
 import { StaffTrainingList } from '../StaffTrainingList'
-import { GenerateDocButton } from '../GenerateDocButton'
 import { MarkAsDoneButtons } from '../MarkAsDoneButtons'
 import type {
   ComplianceJourneyData,
@@ -93,12 +92,9 @@ export function FoodSafetyStep({ step, data, t }: Props) {
             {t('food_owner_not_trained')}
           </p>
         )}
-        <div className="mt-2">
-          <GenerateDocButton
-            titleKey="food_upload_cert_title"
-            descriptionKey="food_upload_cert_desc"
-          />
-        </div>
+        <p className="mt-2 text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2">
+          {t('food_keep_cert_note')}
+        </p>
       </section>
 
       <section>

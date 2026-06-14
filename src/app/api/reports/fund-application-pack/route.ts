@@ -16,7 +16,6 @@
 import { NextResponse } from 'next/server'
 import { getShopAuth } from '@/lib/auth/shop-auth'
 import { getOwnerProfileReportData } from '@/lib/db/owner-profile-report'
-import { getComplianceScore } from '@/lib/db/compliance-score'
 import { qualifiesAsSaCitizenForFund } from '@/lib/compliance/fund'
 import { formatSAST } from '@/lib/utils/date'
 import {
@@ -98,7 +97,6 @@ export async function GET() {
       )
     }
 
-    const { result: score } = await getComplianceScore(auth.supabase, auth.shopId)
     const docByType = new Map<DocumentType, BusinessDocument>(
       data.documents.map((d) => [d.document_type, d]),
     )
@@ -175,18 +173,6 @@ export async function GET() {
       y += 5
     }
     y += 4
-
-    // ── Compliance summary ──
-    y = drawSectionHeading(doc, y, 'Compliance records')
-    doc.setFontSize(10)
-    doc.text(`Compliance score: ${score.overall} / 100`, 14, y)
-    y += 5
-    for (const cat of score.categories) {
-      doc.setFontSize(9)
-      doc.text(`• ${cat.key}: ${cat.score}/100 (weight ${cat.weight}%)`, 18, y)
-      y += 4.5
-    }
-    y += 6
 
     // ── Submission instructions ──
     y = drawSectionHeading(doc, y, 'Where to submit')

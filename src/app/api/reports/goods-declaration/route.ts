@@ -1,9 +1,9 @@
 /**
  * Phase 37d — Goods Declaration Affidavit template PDF.
  *
- * The owner's name + shop address are pre-filled (from Movestock). The
- * owner's ID is left blank per Design Rule 6 — to be written in by the
- * owner before the police station Commissioner stamps the affidavit.
+ * A blank standard template — nothing is pre-filled. The owner writes in
+ * their name, ID, and business address by hand (Design Rule 6) before the
+ * police station Commissioner stamps the affidavit.
  */
 
 import { NextResponse } from 'next/server'
@@ -41,44 +41,36 @@ export async function GET() {
     doc.text('I, the undersigned,', 14, y)
     y += 10
 
-    // Pre-filled owner name
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Full name:', 14, y)
-    doc.setFont('helvetica', 'normal')
-    doc.text(data.ownerName ?? '[update your account name in Settings]', 60, y)
-    y += 8
+    // Blank standard template — every field is filled in by hand (Design Rule 6).
+    const drawBlank = (label: string, hint: string) => {
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.text(`${label}:`, 14, y)
+      doc.setDrawColor(150)
+      doc.line(60, y + 0.5, pageWidth - 14, y + 0.5)
+      y += 4
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'italic')
+      doc.setTextColor(120)
+      doc.text(hint, 60, y)
+      doc.setTextColor(0)
+      y += 8
+    }
 
-    // Blank ID number (Design Rule 6)
-    doc.setFont('helvetica', 'bold')
-    doc.text('ID number:', 14, y)
-    doc.setDrawColor(150)
-    doc.line(60, y + 0.5, pageWidth - 14, y + 0.5)
-    y += 4
-    doc.setFontSize(8)
-    doc.setFont('helvetica', 'italic')
-    doc.setTextColor(120)
-    doc.text('(fill in yourself)', 60, y)
+    drawBlank('Full name', '(fill in)')
+    drawBlank('ID number', '(fill in)')
+    drawBlank('Business address', '(fill in)')
+
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
     doc.setTextColor(0)
-    y += 8
-
-    // Pre-filled addresses
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    doc.text(
-      doc.splitTextToSize(
-        `operating a business at: ${data.shop.location ?? '[shop address — update in Settings]'}`,
-        pageWidth - 28,
-      ),
-      14,
-      y,
-    )
-    y += 12
-
     doc.text('do hereby declare under oath that:', 14, y)
     y += 8
 
     const para = (text: string) => {
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(0)
       const lines = doc.splitTextToSize(text, pageWidth - 28)
       doc.text(lines, 14, y)
       y += 6 * lines.length + 3
