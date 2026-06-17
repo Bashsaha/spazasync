@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
 import { signOutAndPurge } from '@/lib/offline/sign-out'
 import { useToast } from '@/components/Toast'
 
@@ -42,9 +43,9 @@ export default function AdminNav({ hasShop }: { hasShop?: boolean }) {
             {hasShop && (
               <Link
                 href="/dashboard"
-                className="px-3 py-1.5 text-sm font-semibold rounded-full bg-brand text-white hover:bg-brand-hover transition-colors whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-full bg-brand text-white hover:bg-brand-hover transition-colors whitespace-nowrap"
               >
-                My Shop &rarr;
+                <ArrowLeft className="w-4 h-4" aria-hidden /> Shop app
               </Link>
             )}
             <button

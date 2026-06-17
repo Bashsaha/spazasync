@@ -195,6 +195,22 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
   const personName = id.personName
   const initial = (personName ?? shopName).trim().charAt(0).toUpperCase() || 'M'
 
+  // Admin area = a focused "admin mode": the /admin/* pages bring their OWN
+  // chrome (the AdminNav header, which carries the "Back to shop app" button).
+  // We suppress the shop chrome (TopAppBar / BottomNav / FAB / alerts) here so
+  // the admin sees only the admin UI instead of two stacked navs. The auth +
+  // subscription logic in the effect above still runs identically. (Phase 51b)
+  const isAdminArea = pathname === '/admin' || pathname.startsWith('/admin/')
+
+  if (isAdminArea) {
+    return (
+      <>
+        <ResumeGuard />
+        <OfflineSyncProvider>{children}</OfflineSyncProvider>
+      </>
+    )
+  }
+
   return (
     <>
       <ResumeGuard />
