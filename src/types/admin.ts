@@ -50,3 +50,71 @@ export interface AdminOverviewStats {
   manualOverrideShops: number
   recentSignUps: number
 }
+
+// ── Field Sales / shop-visit CRM (Phase 51) ─────────────────────────────────
+
+export const LEAD_STATUSES = [
+  'prospect',
+  'contacted',
+  'interested',
+  'signed',
+  'not_interested',
+] as const
+export type LeadStatus = (typeof LEAD_STATUSES)[number]
+
+export const VISIT_OUTCOMES = [
+  'left_info',
+  'demo_given',
+  'callback',
+  'signed',
+  'not_interested',
+  'no_answer',
+  'other',
+] as const
+export type VisitOutcome = (typeof VISIT_OUTCOMES)[number]
+
+export interface Lead {
+  id: string
+  business_name: string
+  owner_name: string | null
+  phone: string | null
+  whatsapp_number: string | null
+  address: string | null
+  area: string | null
+  status: LeadStatus
+  notes: string | null
+  shop_id: string | null
+  next_follow_up_at: string | null // YYYY-MM-DD
+  next_follow_up_note: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+/** A lead row enriched with visit aggregates for list / area views. */
+export interface LeadListItem extends Lead {
+  visit_count: number
+  last_visited_at: string | null
+}
+
+export interface ShopVisit {
+  id: string
+  lead_id: string
+  visited_at: string
+  notes: string | null
+  outcome: VisitOutcome | null
+  visited_by: string | null
+  created_at: string
+}
+
+export interface LeadDetail extends Lead {
+  visits: ShopVisit[]
+}
+
+/** One bucket on the area / map view. */
+export interface AreaGroup {
+  area: string
+  total: number
+  visited: number // leads with at least one logged visit
+  signed: number
+}

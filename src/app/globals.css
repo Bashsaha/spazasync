@@ -45,6 +45,16 @@ body {
   animation: slide-down 0.3s ease-out;
 }
 
+/* Hide the scrollbar on horizontally-scrollable strips (e.g. the admin section
+   nav on narrow screens) while keeping the content scrollable. */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* ---- Stocky, the feature guide (Phase 46) ---- */
 @keyframes stocky-bob {
   0%, 100% { transform: translateY(0); }

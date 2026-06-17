@@ -213,6 +213,79 @@ export const adminStoreListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
 })
 
+// --- Field Sales / shop-visit CRM (Phase 51, admin-only) ---
+
+const leadStatusEnum = z.enum([
+  'prospect',
+  'contacted',
+  'interested',
+  'signed',
+  'not_interested',
+])
+
+const visitOutcomeEnum = z.enum([
+  'left_info',
+  'demo_given',
+  'callback',
+  'signed',
+  'not_interested',
+  'no_answer',
+  'other',
+])
+
+// Empty string → undefined so optional text fields clear cleanly from forms.
+const optionalText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .optional()
+    .transform((v) => (v ? v : undefined))
+
+// YYYY-MM-DD or empty (cleared). Kept as a plain date string (no timezone).
+const optionalDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a valid date')
+  .optional()
+  .or(z.literal('').transform(() => undefined))
+
+export const createLeadSchema = z.object({
+  business_name: z.string().trim().min(1, 'Business name is required').max(120),
+  owner_name: optionalText(120),
+  phone: optionalText(30),
+  whatsapp_number: optionalText(30),
+  address: optionalText(300),
+  area: optionalText(120),
+  status: leadStatusEnum.default('prospect'),
+  notes: optionalText(2000),
+  shop_id: z.string().uuid().optional(),
+  next_follow_up_at: optionalDate,
+  next_follow_up_note: optionalText(300),
+})
+
+// All fields optional on update; at least the patch shape is validated.
+export const updateLeadSchema = createLeadSchema.partial().extend({
+  // allow explicitly clearing the shop link / follow-up
+  shop_id: z.string().uuid().nullable().optional(),
+})
+
+export const createVisitSchema = z.object({
+  visited_at: z.string().datetime().optional(), // defaults to now() server-side
+  notes: optionalText(2000),
+  outcome: visitOutcomeEnum.optional(),
+  // Optional follow-up to set on the parent lead when logging this visit.
+  next_follow_up_at: optionalDate,
+  next_follow_up_note: optionalText(300),
+})
+
+export const leadListQuerySchema = z.object({
+  search: z.string().max(100).optional(),
+  status: leadStatusEnum.optional(),
+  area: z.string().max(120).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(200).default(50),
+})
+
 // --- Admin EFT reconciliation (bank-statement upload) ---
 
 export const EFT_FILE_FORMATS = ['ofx', 'csv'] as const
