@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   if (parsed instanceof NextResponse) return parsed
 
   try {
-    const sale = await completeSale(parsed)
+    const sale = await completeSale(parsed, { supabase: auth.supabase, shopId: auth.shopId })
     return NextResponse.json(sale, { status: 201 })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to complete sale'

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Sale, CompleteSaleInput } from '@/types'
 
 /**
@@ -15,16 +15,20 @@ import type { Sale, CompleteSaleInput } from '@/types'
  *
  * One RPC round-trip total, instead of (insert sale) + (cost lookup) +
  * (insert items) + one round-trip per cart line.
+ *
+ * The caller (POST /api/sales) has already validated the user via
+ * `getShopAuth()` (one `getUser()` round-trip) — we reuse that authenticated
+ * `{ supabase, shopId }` context instead of calling `getUser()` a second time.
+ * On a stale session (app idle "for a while") the redundant call meant TWO
+ * sequential auth-server round-trips on the sale's critical path; this is one.
+ * Security is unchanged: the RPC runs through the same RLS-scoped client, and
+ * `shopId` came from a freshly server-validated user.
  */
-export async function completeSale(input: CompleteSaleInput): Promise<Sale> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
-
-  const shopId = user.app_metadata?.shop_id as string | undefined
-  if (!shopId) throw new Error('No shop associated with this account')
+export async function completeSale(
+  input: CompleteSaleInput,
+  ctx: { supabase: SupabaseClient; shopId: string },
+): Promise<Sale> {
+  const { supabase, shopId } = ctx
 
   const { data, error } = await supabase.rpc('complete_sale', {
     p_shop_id: shopId,
