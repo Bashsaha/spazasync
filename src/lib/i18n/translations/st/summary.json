@@ -1,0 +1,33 @@
+{
+  "banner_text": "Kakaretso ya hao ya letsatsi e se e loketse",
+  "btn_view": "Sheba",
+  "btn_loading": "E a kenya…",
+  "dismiss": "Tlosa",
+  "close": "Kwala",
+
+  "modal_title": "Kakaretso ya Kajeno",
+
+  "sales_text_one": "O entse {amount} thekisong e {count} kajeno",
+  "sales_text_other": "O entse {amount} dithekisong tse {count} kajeno",
+  "profit_text": "Phaello ya kajeno: {amount}",
+  "top_sellers": "Tse rekisang ka ho fetisisa:",
+  "sold": "{name} — {count} di rekisitswe",
+
+  "no_sales": "Ha ho thekiso kajeno",
+  "no_sales_encourage": "Hosane ke letsatsi le lecha — o tla khona!",
+
+  "low_stock_one": "Setoko se fokola ({count} sehlahiswa)",
+  "low_stock_other": "Setoko se fokola (dihlahiswa tse {count})",
+  "low_stock_item": "{name} — {count} e setseng",
+  "low_stock_more": "…le tse ding tse {count}",
+
+  "expiring_title": "Dihlahiswa tse tla fela haufinyane",
+  "expiring_item_expired": "{name} — {count} di felile",
+  "expiring_item_soon": "{name} — {count} di tla fela haufinyane",
+
+  "btn_close": "Ke utlwile",
+
+  "missing_cost_alert_one": "Sehlahiswa se {count} ha se na theko ya tjeo — phaello ya hao e ka nna ya se nepe.",
+  "missing_cost_alert_other": "Dihlahiswa tse {count} ha di na theko ya tjeo — phaello ya hao e ka nna ya se nepe.",
+  "missing_cost_btn": "Kenya ditheko tsa tjeo →"
+}

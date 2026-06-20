@@ -23,7 +23,7 @@
  *                            navigations; cached HTML never was.
  */
 
-const CACHE = 'movestock-v101'
+const CACHE = 'movestock-v102'
 
 // Resources that MUST always be fetched fresh from the network so Chrome's
 // installability checker (and the platform's home-screen icon installer) sees
@@ -85,7 +85,7 @@ const APP_SHELL_DOC = '/'
 // mvs_locale cookie) so each language gets its correct copy with no flash.
 // ONLY add a route here once it renders NO per-user server data (BUG-040).
 const SHELL_DOC_LOCALE_PATHS = ['/sale', '/dashboard']
-const SUPPORTED_LOCALES = ['en', 'so', 'am', 'zu', 'ur']
+const SUPPORTED_LOCALES = ['en', 'zu', 'st', 'ur']
 
 /** Locale from the request's mvs_locale cookie (default 'en'). Lets us cache a
  *  separate shell copy per language. */

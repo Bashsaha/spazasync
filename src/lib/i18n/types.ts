@@ -2,9 +2,9 @@
 // Movestock — i18n Type Definitions
 // ============================================================
 
-export type SupportedLocale = 'en' | 'so' | 'am' | 'zu' | 'ur'
+export type SupportedLocale = 'en' | 'zu' | 'st' | 'ur'
 
-export const SUPPORTED_LOCALES: SupportedLocale[] = ['en', 'so', 'am', 'zu', 'ur']
+export const SUPPORTED_LOCALES: SupportedLocale[] = ['en', 'zu', 'st', 'ur']
 
 export const DEFAULT_LOCALE: SupportedLocale = 'en'
 
@@ -16,9 +16,8 @@ export interface LocaleMeta {
 
 export const LOCALE_META: Record<SupportedLocale, LocaleMeta> = {
   en: { label: 'English', nativeName: 'English', dir: 'ltr' },
-  so: { label: 'Somali', nativeName: 'Soomaali', dir: 'ltr' },
-  am: { label: 'Amharic', nativeName: 'አማርኛ', dir: 'ltr' },
   zu: { label: 'IsiZulu', nativeName: 'IsiZulu', dir: 'ltr' },
+  st: { label: 'Sesotho', nativeName: 'Sesotho', dir: 'ltr' },
   ur: { label: 'Urdu', nativeName: 'اردو', dir: 'rtl' },
 }
 

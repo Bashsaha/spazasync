@@ -1,0 +1,49 @@
+{
+  "title": "Itokisetse Tlhahlobo",
+  "subtitle": "Telello ya hao ya ho latela melao le seo o lokelang ho se lokisa pele mohlahlobi a fihla.",
+  "back": "← Morao",
+
+  "score_label": "Telello ya ho Latela Melao",
+  "score_out_of": "ho tse 100",
+  "band_ready": "O loketse tlhahlobo",
+  "band_improving": "Dintho tse seng kae tse hlokang ho lokiswa",
+  "band_urgent": "Potlako: lokisa tsena pele mohlahlobi a etela",
+
+  "pre_check_header": "Lethathamo la letsatsi la tlhahlobo",
+  "pc_municipal": "Ngodiso ya masepala e teng",
+  "pc_coa": "Setifikeiti sa Ho Amoheleha se sebetsa",
+  "pc_checklist_week": "Mathathamo a letsatsi le letsatsi a phethilwe bekeng ena",
+  "pc_suppliers": "Dintho tsohle tsa setoko di na le direkoto tsa bafani",
+  "pc_no_expired": "Ha ho dintho tse felileng setokong",
+  "pc_pest": "Taolo ya dikokwanyana e ntjhafalitswe",
+  "pc_temp_today": "Direkoto tsa mocheso di ngotswe kajeno",
+  "fix_now": "Lokisa hona jwale",
+  "ok": "E entswe",
+
+  "download_inspection_pack": "Jarolla Sephutheloana sa Tlhahlobo",
+  "download_inspection_pack_hint": "Telello, ditokomane, mathathamo, setoko, bafani, taolo ya dikokwanyana le koetliso ya basebetsi PDF e le nngwe.",
+
+  "breakdown_header": "Telello ya hao e baloa jwang",
+  "breakdown_contribution": "{score}/100 × boima ba {weight}%",
+  "cat_checklist": "Mathathamo a letsatsi le letsatsi",
+  "cat_expiry": "Ha ho setoko se felileng",
+  "cat_suppliers": "Direkoto tsa bafani",
+  "cat_documents": "Ditokomane tsa kgwebo",
+  "cat_waste_pest": "Taolo ya ditshila le dikokwanyana",
+
+  "tip_checklist": "Ngola lethathamo la letsatsi hoseng ho hong le ho hong — o ho {pct}%.",
+  "tip_expiry": "Dintho tse {count} tse felileng di sa ntse di le setokong. Di tlose sheleletšeng.",
+  "tip_suppliers": "Eketsa mofani dihlahisweng tse ling tse {count}.",
+  "tip_documents": "Ngola ditokomane tsa kgwebo ya hao mme o di boloke di sebetsa.",
+  "tip_waste_pest": "Ngola maeto a taolo ya dikokwanyana mme o netefatse tokisetso ya hao ya ditshila kgwedi le kgwedi.",
+
+  "monthly_alert_title": "Telello ya hao ya kgwedi ya ho latela melao",
+  "monthly_alert_body": "Telello ya hao ya kgwedi e fetileng e ne e le {score}/100. {tip}",
+  "monthly_alert_tip_good": "Mosebetsi o motle — tswela pele.",
+  "monthly_alert_tip_improve": "Mona ke seo o lokelang ho se sebetsa.",
+  "monthly_cta_view": "Sheba tlaleho e felletseng",
+  "monthly_cta_dismiss": "Hamorao",
+
+  "loading": "E kenya telello ya hao…",
+  "error_load": "Ha e a kgona ho kenya telello ya hao. Leka hape."
+}

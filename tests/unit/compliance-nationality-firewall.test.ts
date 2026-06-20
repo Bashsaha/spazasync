@@ -28,7 +28,7 @@ import {
 } from '@/lib/compliance/nationality-divergence'
 
 const ROOT = process.cwd()
-const LOCALES = ['en', 'so', 'am', 'zu', 'ur'] as const
+const LOCALES = ['en', 'zu', 'st', 'ur'] as const
 
 function loadNamespace(locale: string): Record<string, string> {
   const path = join(ROOT, 'src', 'lib', 'i18n', 'translations', locale, 'compliance-journey.json')

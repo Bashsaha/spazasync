@@ -1,0 +1,57 @@
+{
+  "staff_login_code": "Khoutu ya ho kena ya basebetsi:",
+  "staff_login_hint": "(fa basebetsi ba hao yona)",
+
+  "sub_ended": "{label} ya hao e felile.",
+  "sub_ending_one": "{label} ya hao e fela ka letsatsi le {count}.",
+  "sub_ending_other": "{label} ya hao e fela ka matsatsi a {count}.",
+  "sub_free_trial": "teko ya mahala",
+  "sub_subscription": "peeletso",
+  "sub_tap_subscribe": "Tobetsa mona ho ngodisa le ho tswela pele ho sebedisa Movestock.",
+
+  "compliance_action_title": "Ho hlokahala ketso",
+  "compliance_action_checklist": "Lethathamo la letsatsi ha le a etswa kajeno",
+  "compliance_action_documents_one": "Tokomane ya kgwebo e {count} e hloka tlhokomelo",
+  "compliance_action_documents_other": "Ditokomane tsa kgwebo tse {count} di hloka tlhokomelo",
+  "compliance_action_pest": "Leeto la taolo ya dikokwanyana le fetilwe ke nako",
+  "compliance_action_waste": "Tokisetso ya ditshila e hloka ho netefatswa",
+  "compliance_action_more_one": "+{count} tse ding",
+  "compliance_action_more_other": "+{count} tse ding",
+  "compliance_clear_title": "Ho latela melao hohle ho ntjhafalitswe",
+  "compliance_clear_hint": "Tobetsa ho jarolla PDF ya hao ya mohlahlobi",
+
+  "today": "Kajeno",
+  "today_made": "o entse",
+  "today_sale_one": "thekiso",
+  "today_sale_other": "dithekiso",
+  "today_teller_one": "mosebetsi",
+  "today_teller_other": "basebetsi",
+  "today_no_sales": "Ha ho dithekiso kajeno",
+  "today_profit": "phaello",
+
+  "low_stock_title": "Setoko se fokola",
+  "low_stock_out_one": "Ntho e {count} e felletse",
+  "low_stock_out_other": "Dintho tse {count} di felletse",
+  "low_stock_low_one": "Ntho e {count} e batla e fela",
+  "low_stock_low_other": "Dintho tse {count} di batla di fela",
+  "low_stock_badge_out": "e felile",
+  "low_stock_badge_left": "{count} e setseng",
+  "low_stock_more": "+{count} tse ding…",
+
+  "expiring_title": "Dihlahiswa tse tla fela haufinyane",
+  "expiring_expired": "{count} di felile",
+  "expiring_soon": "{count} di tla fela haufinyane",
+
+  "latest_sales_title": "Dithekiso tsa morao-rao",
+  "latest_sales_by": "ka {name}",
+  "latest_sales_none": "Ha ho dithekiso tse ngotsweng. Qala thekiso ya hao ya pele!",
+  "latest_sales_ago": "{time} tse fetileng",
+  "latest_sales_see_all": "Sheba tsohle →",
+
+  "journey_card_title": "Leeto la ho latela melao",
+  "journey_card_count": "{completed} ho tse {total} di entswe",
+  "journey_card_all_done": "Mehato yohle ya ngodiso e entswe — u sebeditse hantle!",
+  "journey_card_next_label": "E latelang:",
+  "journey_card_continue_arrow": "→",
+  "journey_card_fund_teaser": "Mehato e mmalwa hape mme o ka tshwaneleha ho fumana thuso ya chelete e fihlang ho R300,000."
+}

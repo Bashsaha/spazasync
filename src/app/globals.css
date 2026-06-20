@@ -27,11 +27,6 @@ body {
   color: var(--color-ink);
 }
 
-/* Amharic: fall back to Noto Sans Ethiopic when the Latin font can't render Ge'ez */
-:lang(am) {
-  font-family: var(--font-ethiopic), var(--font-jakarta), system-ui, sans-serif;
-}
-
 /* Urdu: use Nastaliq script */
 :lang(ur) {
   font-family: var(--font-nastaliq), var(--font-jakarta), system-ui, sans-serif;

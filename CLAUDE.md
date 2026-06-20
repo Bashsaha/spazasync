@@ -48,7 +48,7 @@ Movestock (formerly SpazaSync) is a mobile-first PWA for South African spaza sho
 All tables have RLS enabled. `admin_payments` and `barcode_catalog` writes are service-role-only.
 
 ### Tables
-- `shops` — id, name, code (unique), whatsapp_number, low_stock_threshold, language ('en'/'so'/'am'/'zu'/'ur'), subscription_status, trial_ends_at, subscription_ends_at, payfast_token, access_granted, admin_notes, registration_number, location, has_fridge, has_freezer, municipality_id (FK→municipalities, ON DELETE SET NULL), municipality_area_text (free-text fallback when "Other / not sure" picked at signup), has_employees, fund_interest, onboarding_compliance_completed, onboarding_compliance_dismissed_at, onboarding_compliance_dismiss_count, fund_township_rural (Phase 37e — nullable yes/no), fund_owner_managed (Phase 37e — nullable yes/no), sars_grace_period_until (Phase 41a — DATE; six-month SARS transitional window for Spaza Shop Support Fund eligibility, set at compliance-onboarding completion, backfilled to created_at + 6 months for existing shops)
+- `shops` — id, name, code (unique), whatsapp_number, low_stock_threshold, language ('en'/'zu'/'st'/'ur' — Phase 52; was 'en'/'so'/'am'/'zu'/'ur'), subscription_status, trial_ends_at, subscription_ends_at, payfast_token, access_granted, admin_notes, registration_number, location, has_fridge, has_freezer, municipality_id (FK→municipalities, ON DELETE SET NULL), municipality_area_text (free-text fallback when "Other / not sure" picked at signup), has_employees, fund_interest, onboarding_compliance_completed, onboarding_compliance_dismissed_at, onboarding_compliance_dismiss_count, fund_township_rural (Phase 37e — nullable yes/no), fund_owner_managed (Phase 37e — nullable yes/no), sars_grace_period_until (Phase 41a — DATE; six-month SARS transitional window for Spaza Shop Support Fund eligibility, set at compliance-onboarding completion, backfilled to created_at + 6 months for existing shops)
 - `shop_users` — maps auth users to shops with role (owner | teller)
 - `tellers` — name (unique per shop), optional auth user_id, `food_safety_trained_at` (Phase 37c — Step 6 staff training)
 - `products` — barcode (nullable), name, price, stock_qty, cost_price, supplier_id; unique(shop_id, barcode WHERE NOT NULL); unique(shop_id, LOWER(name))
@@ -121,7 +121,7 @@ EXTERNAL_API_KEY=
 **NEVER auto-start the next phase.** After a phase: STOP, update CLAUDE.md (file tree, Living Scope, what was built), then WAIT for user to say "go".
 
 ### i18n Coverage Rule (CRITICAL)
-Locales: `en`, `so`, `am`, `zu`, `ur`. Any user-facing string added/changed/removed in `src/lib/i18n/translations/en/*.json` MUST be mirrored in all 4 other locales **in the same phase**. Translations must be native, plain-English-tone (short, friendly, no jargon). Every page/component with user-visible text MUST use `useTranslation()` (client) or `getServerTranslations()` (server) — NEVER hardcode strings. Adding a new namespace `en/foo.json` requires `so/foo.json`, `am/foo.json`, `zu/foo.json`, `ur/foo.json` in the same commit. The `tests/unit/i18n.test.ts` test enforces parity.
+Locales: `en`, `zu`, `st`, `ur` (English, IsiZulu, Sesotho, Urdu). Any user-facing string added/changed/removed in `src/lib/i18n/translations/en/*.json` MUST be mirrored in all 3 other locales **in the same phase**. Translations must be native, plain-English-tone (short, friendly, no jargon). Every page/component with user-visible text MUST use `useTranslation()` (client) or `getServerTranslations()` (server) — NEVER hardcode strings. Adding a new namespace `en/foo.json` requires `zu/foo.json`, `st/foo.json`, `ur/foo.json` in the same commit. The `tests/unit/i18n.test.ts` test enforces parity. (Somali `so` + Amharic `am` were removed and Sesotho `st` added in Phase 52 — migration 040.)
 
 ### UI Primitives Convention (CRITICAL)
 Visual primitives live in [src/components/ui/](src/components/ui/). New code MUST assemble pages from these — hand-writing `bg-brand text-white rounded-full ...`, `bg-amber-50 border-amber-200 ...`, `<input className="w-full border border-gray-200 rounded-xl ...">` etc. is a smell. Reach for:
@@ -269,7 +269,9 @@ The file tree below is ground truth. After every phase: Glob scan, diff against 
 
 ## Living Scope
 
-Phases 1–36c + 37a–37g + 38 + 39 + 40 + 41a + 41b + 41c + 41d + 41e + 42 + 43 + 44 + 45 + 46 + 47 + 48 + 49 + 50 + 51 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+Phases 1–36c + 37a–37g + 38 + 39 + 40 + 41a + 41b + 41c + 41d + 41e + 42 + 43 + 44 + 45 + 46 + 47 + 48 + 49 + 50 + 51 + 52 complete. See [ARCHIVE.md](ARCHIVE.md) for detailed summaries (compressed per Rule 7).
+
+**Phase 52 — Language set reduced to 4 (en, zu, st, ur) — COMPLETE (2026-06-21).** Dropped **Somali (`so`)** and **Amharic (`am`)** and added **Sesotho (`st`)**; final locale set is English, IsiZulu, Sesotho, Urdu. `SupportedLocale`/`SUPPORTED_LOCALES`/`LOCALE_META` updated in [types.ts](src/lib/i18n/types.ts) (order en→zu→st→ur). Deleted the `so/` + `am/` translation dirs; authored a full **Sesotho** set of all 25 namespaces (machine-translated — flagged for native-speaker review before launch). Removed the now-unused Noto Sans Ethiopic font + `:lang(am)` CSS rule (Nastaliq kept for `ur`). **Migration 040** tightens the `shops.language` CHECK to `('en','zu','st','ur')` (no live data migration needed — all shops were `en`; verified via REST). Everything else is locale-list-driven (LanguagePicker, schemas, catch-all, LanguageProvider) so it picked up the change automatically. Firewall-test `LOCALES` array updated; i18n parity test now enforces the 4-locale set × 25 namespaces. SW cache v101→v102. **Migration 040 must be applied in Supabase. Live phone test + native Sesotho review recommended.**
 
 **Phase 51 — Field Sales / shop-visit CRM (admin-only) — COMPLETE (2026-06-17).** Expanded the admin portal beyond shop-administration into a lightweight field-sales tool for the operator: track the shops you visit (a mix of **prospects** not yet on Movestock AND **existing customers**), log each visit with notes + outcome, and keep a per-lead follow-up reminder. **Migration 039** adds two OPERATOR-scoped tables — `leads` (business_name, contact, area, status prospect→signed, optional `shop_id` bridge to a real customer, `next_follow_up_at`/`next_follow_up_note`) and `shop_visits` (lead_id, visited_at, notes, outcome) — both **RLS enabled, NO policies, service-role only** (BUG-012 pattern; all access via `createAdminClient()` inside `requireAdmin()`-gated routes). New routes under `/admin/field-sales` (hub with follow-ups-due + search/status/area filters, `/new`, `/[id]` detail with edit + log-visit + tel:/wa.me quick actions + delete, `/areas` grouped view) + 5 API routes under `/api/admin/field-sales/*`. Pure logic (`lib/field-sales/logic.ts` — `isFollowUpDue`/`dueFollowUps`/`groupByArea`) unit-tested (`field-sales.test.ts`, 9 tests). **AdminNav made mobile-friendly** (the existing horizontal nav overflowed on phones): brand+account on row 1, horizontally-scrollable section pills on row 2 (`.no-scrollbar` utility added to globals.css) — plus a "Field sales" tab. English-only by admin precedent (no i18n namespace → parity rule not triggered). Built from UI primitives. SW cache v99→v100. 842/842 tests, tsc + build clean. **Migration 039 must be applied in Supabase before the section works.** **Live phone test recommended.**
 
@@ -518,7 +520,7 @@ spaza shop/
 │   │   │                # fund.ts (37e), reminders.ts (37g — pure evaluator + bucket-key engine)
 │   │   ├── i18n/
 │   │   │   ├── types.ts, interpolate.ts, loader.ts, server.ts
-│   │   │   └── translations/{en,so,am,zu,ur}/  (25 namespaces each — +guide Phase 46)
+│   │   │   └── translations/{en,zu,st,ur}/  (25 namespaces each; Phase 52 dropped so/am, added st)
 │   │   │       # common, auth, sale, sales, sales-statistics, dashboard, settings, stock,
 │   │   │       # stock-loss, products, tellers, expiry, summary, suppliers, checklist, documents,
 │   │   │       # waste-pest, inspection, inventory, manage, compliance-onboarding,
@@ -556,7 +558,8 @@ spaza shop/
 │   │                                     ├── 036_scaling_levers.sql
 │   │                                     ├── 037_security_hardening_search_path.sql
 │   │                                     ├── 038_catch_all_product.sql   # Phase 48 — No-name product + track_stock
-│   └──                                   └── 039_field_sales.sql         # Phase 51 — leads + shop_visits (admin CRM)
+│   │                                     ├── 039_field_sales.sql         # Phase 51 — leads + shop_visits (admin CRM)
+│   └──                                   └── 040_language_set_en_zu_st_ur.sql  # Phase 52 — drop so/am, add st
 ├── data/sa-products.csv
 ├── scripts/{set-admin.ts, seed-catalog.ts, seed-municipalities.ts,
 │            generate-pwa-icons.mjs}                                # Rasterises brand SVGs → PNG icon set via sharp (BUG-021)

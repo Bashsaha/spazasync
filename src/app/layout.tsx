@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { headers } from 'next/headers'
-import { Plus_Jakarta_Sans, Noto_Sans_Ethiopic, Noto_Nastaliq_Urdu } from 'next/font/google'
+import { Plus_Jakarta_Sans, Noto_Nastaliq_Urdu } from 'next/font/google'
 import './globals.css'
 import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar'
 
@@ -11,19 +11,10 @@ const plusJakarta = Plus_Jakarta_Sans({
   display: 'swap',
 })
 
-// Ethiopic + Nastaliq are only used via `:lang(am)` / `:lang(ur)` in globals.css.
-// `preload: false` stops Next.js emitting a `<link rel="preload" as="font">` for
-// every page load — without it, every user downloads ~500KB of Urdu Nastaliq +
-// ~150KB of Ge'ez glyphs they will never render. The fonts still load on demand
-// when a page renders text in those scripts.
-const notoEthiopic = Noto_Sans_Ethiopic({
-  subsets: ['ethiopic'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-ethiopic',
-  display: 'swap',
-  preload: false,
-})
-
+// Nastaliq is only used via `:lang(ur)` in globals.css. `preload: false` stops
+// Next.js emitting a `<link rel="preload" as="font">` for every page load —
+// without it, every user downloads ~500KB of Urdu Nastaliq they will never
+// render. The font still loads on demand when a page renders Urdu text.
 const notoNastaliqUrdu = Noto_Nastaliq_Urdu({
   subsets: ['arabic'],
   weight: ['400', '500', '600', '700'],
@@ -72,7 +63,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang="en"
-      className={`${plusJakarta.variable} ${notoEthiopic.variable} ${notoNastaliqUrdu.variable}`}
+      className={`${plusJakarta.variable} ${notoNastaliqUrdu.variable}`}
     >
       <body className="antialiased font-sans bg-surface text-ink">
         {/* Capture beforeinstallprompt as early as possible — Chrome only fires

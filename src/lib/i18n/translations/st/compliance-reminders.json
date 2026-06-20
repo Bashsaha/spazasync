@@ -1,0 +1,70 @@
+{
+  "cta_dismiss": "Tlosa",
+  "cta_view_step": "Bula leeto la ho latela melao",
+  "cta_continue_journey": "Tswela pele ka leeto",
+  "cta_check_fund": "Hlahloba tshwaneleho",
+  "cta_apply_fund": "Etsa kopo jwale",
+  "cta_open_bizportal": "Bula BizPortal",
+  "cta_open_checklist": "Phetha lethathamo la kajeno",
+  "cta_view_inspection": "Sheba dintlha",
+  "cta_generate_evidence_pack": "Hlahisa Sephutheloana sa Bopaki",
+
+  "coa_expiry_2m_title": "Setifikeiti sa Bophelo se fela ka dikgwedi tse 2",
+  "coa_expiry_2m_body": "Setifikeiti sa hao sa Bophelo se fela ka {date}. Ikopanye le Environmental Health ho hlophisa tlhahlobo ya ntjhafatso.",
+  "coa_expiry_1m_title": "Setifikeiti sa Bophelo se fela ka matsatsi a {days}",
+  "coa_expiry_1m_body": "Setifikeiti sa hao sa Bophelo se fela ka {date}. Tlisa Sephutheloana sa hao sa Bopaki ba Polokeho ya Dijo tlhahlobong ya hao.",
+  "coa_expiry_expired_title": "Setifikeiti sa Bophelo se felile",
+  "coa_expiry_expired_body": "Setifikeiti sa hao sa Bophelo se felile. Lebenkele la hao le ka kwalwa. Ikopanye le Environmental Health hang-hang ho ntjhafatsa.",
+
+  "permit_expiry_2m_title": "Tumello ya kgwebo e fela ka dikgwedi tse 2",
+  "permit_expiry_2m_body": "Tumello ya hao ya kgwebo e fela ka {date}. Qala ntjhafatso ya hao ofising ya masepala.",
+  "permit_expiry_1m_title": "Tumello ya kgwebo e fela ka matsatsi a {days}",
+  "permit_expiry_1m_body": "Tumello ya hao ya kgwebo e fela ka {date}. Ntjhafatsa jwale ho qoba ho kwalwa.",
+  "permit_expiry_expired_title": "Tumello ya kgwebo e felile",
+  "permit_expiry_expired_body": "Tumello ya hao ya kgwebo e felile. Ntjhafatsa hang-hang ho tswela pele ho rekisa ka molao.",
+
+  "cipc_annual_title": "Kgutliso ya selemo ya CIPC e tlamehang",
+  "cipc_annual_body": "Kgutliso ya hao ya selemo ya CIPC ya {year} e a tlamehang. E faele ho bizportal.gov.za ho boloka ngodiso ya hao e sebetsa. Tjeo: R100 (Pty e ka tlase ho R1m chelete e kenang) kapa R450 (ka hodimo ho R1m).",
+
+  "visa_90d_title": "{visa_type} e fela ka matsatsi a {days}",
+  "visa_90d_body": "Viza ya hao e fela ka {date}. Qala ntjhafatso ya hao jwale — tumello ya hao ya kgwebo e hokahane le viza ya hao.",
+  "visa_60d_title": "{visa_type} e fela ka matsatsi a {days}",
+  "visa_60d_body": "Viza ya hao e fela ka {date}. Ntjhafatsa kapele ho qoba ho lahlehelwa ke tumello ya hao ya kgwebo.",
+  "visa_30d_title": "Potlako: viza e fela ka matsatsi a {days}",
+  "visa_30d_body": "Viza ya hao e fela ka {date}. Tumello ya hao ya kgwebo e ba e sa sebetseng haeba viza ya hao e fela. Ntjhafatsa hang-hang.",
+  "visa_expired_title": "Viza e felile",
+  "visa_expired_body": "Viza ya hao e felile. Tumello ya hao ya kgwebo ha e sa sebetsa. Etela Home Affairs hang-hang.",
+
+  "journey_nudge_title": "Mohato wa hao o latelang wa ho latela melao o emetse",
+  "journey_nudge_body_municipal_registration": "Mohato {step}: fumana tumello ya hao ya kgwebo. Re tla o tataisa ho seo o lokelang ho se tlisa.",
+  "journey_nudge_body_coa": "Mohato {step}: fumana Setifikeiti sa hao sa Bophelo. Dikopo tse ngata di nka dibeke tse 1–2.",
+  "journey_nudge_body_cipc": "Mohato {step}: ngodisa kgwebo ya hao le CIPC. E ja R175 inthaneteng.",
+  "journey_nudge_body_sars_tax": "Mohato {step}: ngodisa le SARS bakeng sa lekgetho. Ke mahala mme e nka metsotso e 10 inthaneteng.",
+  "journey_nudge_body_uif": "Mohato {step}: ngodisa le UIF. E hlokahala ha o na le basebetsi.",
+  "journey_nudge_body_food_safety_training": "Mohato {step}: phetha koetliso ya polokeho ya dijo. E hlokahala pele ho Setifikeiti sa hao sa Bophelo.",
+  "journey_nudge_body_smmesa": "Mohato {step}: ngodisa le SMMESA. E hlokahala bakeng sa letlole la mmuso.",
+
+  "fund_nudge_title": "O haufi le ho tshwaneleha letlole",
+  "fund_nudge_body": "Telello ya hao ya ho latela melao ke {score}/100. Phetha mohato o latelang ho tshwaneleha thuso e fihlang ho R300,000.",
+  "fund_qualified_title": "O a tshwaneleha bakeng sa Spaza Shop Support Fund",
+  "fund_qualified_body": "Hlahisa sephutheloana sa hao sa kopo mme o etse kopo jwale — o ka fumana ho fihla ho R300,000.",
+
+  "score_drop_amber_title": "Telello ya hao ya ho latela melao e theohetse ho {score}",
+  "score_drop_amber_body": "Dintho tse seng kae di hloka tlhokomelo pele ho tlhahlobo ya hao e latelang.",
+  "score_drop_red_title": "Telello ya hao ya ho latela melao ke {score}",
+  "score_drop_red_body": "Dibaka tse ngata di hloka tlhokomelo. Lebenkele la hao le ka nna la se fete tlhahlobo hona jwale.",
+
+  "checklist_streak_title": "Ha o so etse lethathamo la hao ka matsatsi a {days}",
+  "checklist_streak_body": "Mathathamo a letsatsi a boloka telello ya hao ya ho latela melao e phahame le tlhahlobo ya hao e itokiseditswe. Nka metsotswana e 30 ho tlatsa la kajeno.",
+
+  "admin_alert_title": "{title}",
+  "admin_alert_body": "{message}",
+  "admin_alert_cta": "Bula",
+
+  "products_missing_cost_title": "Dihlahiswa tse {count} di haellwa ke ditheko tsa tjeo",
+  "products_missing_cost_body": "Kenya ditheko tsa tjeo hore dikerafo tsa hao tsa phaello di nepe.",
+  "cta_set_cost_prices": "Kenya ditheko tsa tjeo",
+  "products_missing_supplier_title": "Dihlahiswa tse {count} ha di na mofani ya hokahantsweng",
+  "products_missing_supplier_body": "Ho hokahanya bafani ho etsa ho kenya setoko hape ho potlake.",
+  "cta_assign_suppliers": "Abela bafani"
+}

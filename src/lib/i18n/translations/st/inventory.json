@@ -1,0 +1,34 @@
+{
+  "title": "Thepa",
+  "hint": "Tsohle tseo o di rekisang, sebakeng se le seng",
+
+  "summary_total_one": "Sehlahiswa",
+  "summary_total_other": "Dihlahiswa",
+  "summary_low": "E fokolang",
+  "summary_expiring": "E felang",
+
+  "card_stock": "Sheba Setoko",
+  "card_stock_desc": "Sheba seo o setseng le sona",
+  "card_products": "Dihlahiswa",
+  "card_products_desc": "Eketsa kapa fetola dintho tseo o di rekisang",
+  "card_count": "Bala Setoko",
+  "card_count_desc": "Ntjhafatsa dipalo tsa nnete ho tswa palong ya setoko",
+  "card_expiry": "Matsatsi a ho Fela",
+  "card_expiry_desc": "Latela hore na dihlahiswa di tla senyeha neng",
+  "card_suppliers": "Bafani",
+  "card_suppliers_desc": "Batho ba o fang thepa",
+
+  "access_denied_title": "Ho hlokahala phihlello ya thepa",
+  "access_explanation": "Dipalo tsa setoko, dihlahiswa, le ho latela ho fela ho hloka tumello ya mong'a lebenkele. Tobetsa ka tlase ho kopa.",
+  "access_btn_request": "Kopa phihlello",
+  "access_btn_requesting": "E a romella…",
+  "access_btn_request_again": "Kopa hape",
+  "access_pending_title": "Ho emetswe tumello ya mong'a lebenkele",
+  "access_pending_hint": "Mong'a lebenkele o tla fumana tsebiso. Phihlello e nka dihora tse 4 ha e se e filwe.",
+  "access_denied_status": "Mong'a lebenkele o hanne kopo ena.",
+  "access_revoked": "Mong'a lebenkele o hlakotse phihlello ya hao.",
+  "access_expired": "Phihlello ya hao ya pele e felile.",
+  "access_error_pending": "O se o na le kopo e emetseng.",
+  "access_error_granted": "O se o na le phihlello.",
+  "access_error_generic": "Ha e a kgona ho romella kopo. Leka hape."
+}

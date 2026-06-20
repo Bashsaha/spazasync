@@ -1,0 +1,25 @@
+{
+  "title": "Laola",
+  "hint": "Basebetsi le ho latela melao",
+
+  "card_staff": "Laola Basebetsi",
+  "card_staff_desc": "Batho ba etsang dithekiso fonong ya hao",
+  "card_compliance": "Ditokomane tsa Tlhahlobo",
+  "card_compliance_desc": "Telello ya ho latela melao le ho jarolla sephutheloana sa tlhahlobo",
+  "card_journey": "Leeto la ho Latela Melao",
+  "card_journey_desc": "Moralo wa mehato ho boloka lebenkele la hao le molaong",
+
+  "bell_title": "Ditsebiso",
+  "bell_empty": "Ha ho letho hona jwale",
+  "bell_section_reminders": "Dikgopotso",
+  "bell_section_access": "Dikopo tsa phihlello",
+  "bell_btn_view": "Bula",
+  "bell_btn_dismiss": "Tlosa",
+  "bell_pending_one": "Kopo e {count} e emetseng",
+  "bell_pending_other": "Dikopo tse {count} tse emetseng",
+  "bell_request_label": "{name} o batla phihlello ya thepa",
+  "bell_btn_grant": "Fana ka tumello",
+  "bell_btn_deny": "Hana",
+  "bell_btn_close": "Kwala",
+  "bell_grant_hint": "E nka dihora tse 4 · O ka e hlakola neng kapa neng"
+}

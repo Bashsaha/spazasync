@@ -1,0 +1,36 @@
+{
+  "title": "Basebetsi",
+  "back": "← Morao",
+  "btn_add": "+ Eketsa",
+
+  "empty": "Ha ho na basebetsi ho fihlela jwale. Tobetsa + Eketsa ho theha e mong.",
+  "empty_hint": "Basebetsi ba ka etsa dithekiso fonong ena ka ho kena ka tsa bona.",
+  "has_login": "O na le ho kena ha hae",
+  "no_login": "Ha a na ho kena",
+  "btn_remove": "Tlosa",
+  "confirm_remove": "Tlosa {name} ho basebetsi ba hao?",
+
+  "add_title": "Eketsa Mosebetsi",
+  "add_desc": "Fa mosebetsi lebitso la hae le PIN ya dinomoro tse 6. A ka kena fonong ya hae a sebedisa khoutu ya lebenkele la hao, lebitso la hae, le PIN ena.",
+  "label_name": "Lebitso la mosebetsi",
+  "placeholder_name": "mohlala, Maria",
+  "label_pin": "PIN ya dinomoro tse 6",
+  "placeholder_pin": "······",
+  "hint_pin": "Arolelana PIN ena le mosebetsi. O tla e sebedisa ho kena.",
+  "btn_create": "Eketsa Mosebetsi",
+  "btn_creating": "E a theha…",
+
+  "msg_created": "Mosebetsi o thehilwe!",
+  "msg_removed": "Mosebetsi o tlositswe.",
+  "error_load": "Ha e a kgona ho kenya basebetsi",
+  "error_create": "Ho na le se sa tsamaeang hantle",
+  "error_remove": "Ha e a kgona ho tlosa mosebetsi.",
+  "error_generic": "Ho na le se sa tsamaeang hantle.",
+  "error_network": "Ho na le se sa tsamaeang hantle. Leka hape.",
+
+  "access_active_title": "Phihlello e sebetsang",
+  "access_active_subtitle": "{name} a ka sebedisa karolo ya thepa",
+  "access_active_expires": "E fela ka {time}",
+  "access_btn_revoke": "Hlakola",
+  "access_btn_revoking": "E a hlakola…"
+}

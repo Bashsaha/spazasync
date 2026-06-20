@@ -1,0 +1,52 @@
+{
+  "title": "Matsatsi a ho Fela",
+  "back": "← Morao",
+
+  "group_expired": "E felile",
+  "group_expiring_soon": "E tla fela haufinyane",
+  "group_ok": "E lokile",
+
+  "badge_expired": "E FELILE",
+  "badge_expiring_soon": "E a fela",
+  "badge_ok": "E LOKILE",
+  "badge_tracked": "{count} di a latelwa",
+
+  "btn_remove_expired": "Tlosa setoko se felileng",
+  "btn_manage_stock": "Laola setoko",
+
+  "expires_on": "E fela ka {date}",
+  "expired_on": "E felile ka {date}",
+  "qty": "dintho tse {count}",
+  "total_stock": "Setoko sohle: dintho tse {count}",
+
+  "summary_expired": "E felile",
+  "summary_expiring": "E a fela",
+  "summary_ok": "E lokile",
+
+  "loading": "E kenya matsatsi a ho fela…",
+  "error_load": "Ha e a kgona ho kenya tlhahisoleseling ya ho fela. Ka kopo leka hape.",
+
+  "empty": "Ha ho matsatsi a ho fela a latelwang. Kenya matsatsi a ho fela ha o amohela setoko.",
+  "empty_title": "Ha ho dihlahiswa tse nang le matsatsi a ho fela a latelwang ho fihlela jwale.",
+  "empty_subtitle": "Kenya matsatsi a ho fela ha o amohela setoko se secha.",
+
+  "expired_warning": "Dintho tsena di fetile letsatsi la ho di sebedisa mme di lokela ho tloswa thekisong.",
+
+  "rel_yesterday": "Maobane",
+  "rel_today": "Kajeno",
+  "rel_tomorrow": "Hosane",
+  "rel_days_ago_other": "matsatsi a {count} a fetileng",
+  "rel_in_days": "Ka matsatsi a {count}",
+  "rel_in_weeks_one": "Ka beke e {count}",
+  "rel_in_weeks_other": "Ka dibeke tse {count}",
+
+  "entry_label_date": "E fela neng?",
+  "entry_label_qty": "Tse kae?",
+  "entry_btn_add": "+ Eketsa letsatsi le leng la ho fela",
+  "entry_btn_remove_aria": "Tlosa letsatsi lena la ho fela",
+  "entry_summary_one": "{entered} ho tse {total} e na le letsatsi la ho fela",
+  "entry_summary_other": "{entered} ho tse {total} di na le matsatsi a ho fela",
+  "entry_summary_all": "Dintho tsohle tse {total} di na le letsatsi la ho fela.",
+  "entry_summary_remaining": "O kentse {entered} ho tse {total}. Tse setseng ({remaining}) di ke ke tsa ba le letsatsi la ho fela.",
+  "entry_summary_over": "O kentse dintho tse fetang palo ya setoko."
+}

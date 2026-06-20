@@ -1,0 +1,47 @@
+{
+  "title": "Dipalopalo tsa dithekiso",
+  "subtitle": "Sheba se rekisang, se sa rekiseng, le se o etsetsang chelete",
+  "pick_range": "Kgetha sebaka sa nako",
+  "from_label": "Ho tloha",
+  "to_label": "Ho fihla",
+  "loading": "E a kenya…",
+  "error_load": "Ha e a kgona ho kenya dipalopalo. Leka hape.",
+
+  "summary_sales": "Dithekiso",
+  "summary_units": "Dintho tse rekisitsweng",
+  "summary_revenue": "Chelete e kenang",
+  "summary_avg": "Thekiso e tlwaelehileng",
+  "summary_profit": "Phaello",
+
+  "trend_title": "Chelete e kenang ka nako",
+  "trend_daily": "Ka letsatsi",
+  "trend_weekly": "Ka beke",
+  "trend_no_data": "Ha ho dithekiso nakong ena",
+  "trend_sale_one": "thekiso",
+  "trend_sale_other": "dithekiso",
+
+  "top_title": "Tse rekisang ka ho fetisisa",
+  "top_subtitle": "Dintho tse ngata tse rekisitsweng",
+  "lowest_title": "Tse rekisang hanyenyane",
+  "lowest_subtitle": "Tse rekisitsweng hanyenyane (di rekisitswe bonyane hang)",
+  "profit_title": "Tse nang le phaello e kgolo",
+  "profit_subtitle": "Phaello e kgolo e fumanweng",
+  "nonmovers_title": "Tse sa tsamaeng",
+  "nonmovers_subtitle": "Di setokong empa ha ho seo se rekisitsweng nakong ena",
+
+  "units_sold_one": "{count} ntho",
+  "units_sold_other": "dintho tse {count}",
+  "in_stock_one": "{count} setokong",
+  "in_stock_other": "{count} setokong",
+
+  "list_empty_sales": "Ha ho dithekiso nakong ena.",
+  "nonmovers_empty": "Tsohle tse nang le setoko di rekisitswe bonyane hang.",
+  "profit_empty": "Beha ditheko tsa tjeo dihlahisweng tsa hao ho bona phaello.",
+
+  "profit_missing_cost_one": "Sehlahiswa se {count} se rekisitsweng ha se na theko ya tjeo — tatellano ya phaello e felletse karolwana.",
+  "profit_missing_cost_other": "Dihlahiswa tse {count} tse rekisitsweng ha di na theko ya tjeo — tatellano ya phaello e felletse karolwana.",
+  "profit_missing_cost_link": "Kenya ditheko tsa tjeo →",
+
+  "download_pdf": "Jarolla tlaleho (PDF)",
+  "footer_note": "Tse sa tsamaeng ha di kenyeletse dihlahiswa tse ekeditsweng kamora nako ena."
+}
