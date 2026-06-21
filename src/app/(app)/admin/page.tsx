@@ -1,15 +1,16 @@
 import Link from 'next/link'
 import { getOverviewStats } from '@/lib/db/admin'
+import { formatZAR } from '@/lib/utils/currency'
 import { ComplianceVerificationWidget } from '@/components/admin/ComplianceVerificationWidget'
 import { DbSizeWidget } from '@/components/admin/DbSizeWidget'
 
 const statCards = [
-  { key: 'totalShops', label: 'Total Shops', color: 'bg-gray-50 border-gray-200 text-gray-900' },
-  { key: 'activeShops', label: 'Active', color: 'bg-green-50 border-green-200 text-green-700' },
-  { key: 'trialingShops', label: 'Trialing', color: 'bg-brand-light border-brand-light text-brand-hover' },
-  { key: 'expiredShops', label: 'Expired', color: 'bg-red-50 border-red-200 text-red-700' },
-  { key: 'manualOverrideShops', label: 'Manual Override', color: 'bg-amber-50 border-amber-200 text-amber-700' },
-  { key: 'recentSignUps', label: 'New This Week', color: 'bg-purple-50 border-purple-200 text-purple-700' },
+  { key: 'totalShops', label: 'Total Shops', color: 'bg-gray-50 border-gray-200 text-gray-900', href: '/admin/shops' },
+  { key: 'activeShops', label: 'Active', color: 'bg-green-50 border-green-200 text-green-700', href: '/admin/shops?status=active' },
+  { key: 'trialingShops', label: 'Trialing', color: 'bg-brand-light border-brand-light text-brand-hover', href: '/admin/shops?status=trialing' },
+  { key: 'expiredShops', label: 'Expired', color: 'bg-red-50 border-red-200 text-red-700', href: '/admin/shops?status=expired' },
+  { key: 'manualOverrideShops', label: 'Manual Override', color: 'bg-amber-50 border-amber-200 text-amber-700', href: '/admin/shops?status=manual_override' },
+  { key: 'recentSignUps', label: 'New This Week', color: 'bg-purple-50 border-purple-200 text-purple-700', href: '/admin/shops' },
 ] as const
 
 export default async function AdminOverviewPage() {
@@ -20,6 +21,8 @@ export default async function AdminOverviewPage() {
     expiredShops: 0,
     manualOverrideShops: 0,
     recentSignUps: 0,
+    revenueThisMonth: 0,
+    revenueAllTime: 0,
   }
 
   try {
@@ -32,15 +35,28 @@ export default async function AdminOverviewPage() {
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Admin Dashboard</h1>
 
+      {/* Revenue — payments recorded via admin_payments (manual + EFT reconcile) */}
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="border border-emerald-200 bg-emerald-50 text-emerald-800 rounded-2xl p-4">
+          <p className="text-2xl font-bold">{formatZAR(stats.revenueThisMonth)}</p>
+          <p className="text-sm mt-1 opacity-75">Revenue this month</p>
+        </div>
+        <div className="border border-gray-200 bg-gray-50 text-gray-900 rounded-2xl p-4">
+          <p className="text-2xl font-bold">{formatZAR(stats.revenueAllTime)}</p>
+          <p className="text-sm mt-1 opacity-75">Revenue all-time</p>
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
         {statCards.map((card) => (
-          <div
+          <Link
             key={card.key}
-            className={`border rounded-2xl p-4 ${card.color}`}
+            href={card.href}
+            className={`border rounded-2xl p-4 transition-shadow hover:shadow-md ${card.color}`}
           >
             <p className="text-3xl font-bold">{stats[card.key]}</p>
             <p className="text-sm mt-1 opacity-75">{card.label}</p>
-          </div>
+          </Link>
         ))}
       </div>
 

@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Store } from 'lucide-react'
 import type { AdminShopListItem, SubscriptionStatus } from '@/types'
 import { statusBadgeColors } from '@/lib/utils/statusBadge'
+import { Badge, EmptyState } from '@/components/ui'
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: 'All statuses' },
@@ -16,8 +18,12 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
 
 export default function AdminShopsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [search, setSearch] = useState('')
-  const [status, setStatus] = useState('')
+  const [status, setStatus] = useState(() => {
+    const s = searchParams.get('status') ?? ''
+    return STATUS_OPTIONS.some((o) => o.value === s) ? s : ''
+  })
   const [page, setPage] = useState(1)
   const [shops, setShops] = useState<AdminShopListItem[]>([])
   const [total, setTotal] = useState(0)
@@ -68,7 +74,10 @@ export default function AdminShopsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-4">All Shops</h1>
+      <div className="flex items-center gap-3 mb-4">
+        <h1 className="text-2xl font-bold text-gray-900">All Shops</h1>
+        {!loading && <Badge tone="gray">{total} {total === 1 ? 'shop' : 'shops'}</Badge>}
+      </div>
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <input
@@ -110,14 +119,18 @@ export default function AdminShopsPage() {
           ))}
         </div>
       ) : shops.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-12">No shops found.</p>
+        <EmptyState
+          icon={Store}
+          title="No shops found"
+          body={search || status ? 'Try a different search or filter.' : 'No shops have signed up yet.'}
+        />
       ) : (
         <div className="space-y-3">
           {shops.map((shop) => (
             <button
               key={shop.id}
               onClick={() => router.push(`/admin/shops/${shop.id}`)}
-              className="w-full text-left bg-white border border-gray-100 rounded-full p-4 hover:border-brand-light hover:bg-brand-light/30 transition-colors"
+              className="w-full text-left bg-white border border-gray-100 rounded-2xl p-4 hover:border-brand-light hover:bg-brand-light/30 transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">

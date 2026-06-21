@@ -2,6 +2,7 @@ import 'server-only'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { updateShopUsersSubscription } from '@/lib/auth/teller'
 import { sanitizeSearch } from '@/lib/utils/search'
+import { formatSAST } from '@/lib/utils/date'
 import type { AdminOverviewStats, AdminShopListItem, AdminPayment, SubscriptionStatus } from '@/types'
 
 /**
@@ -10,15 +11,33 @@ import type { AdminOverviewStats, AdminShopListItem, AdminPayment, SubscriptionS
 export async function getOverviewStats(): Promise<AdminOverviewStats> {
   const admin = createAdminClient()
 
-  const { data: shops, error } = await admin
-    .from('shops')
-    .select('subscription_status, created_at')
+  // Start of the current calendar month in SAST, as a timezone-anchored ISO
+  // string (e.g. "2026-06-01T00:00:00+02:00") — precise at the month boundary.
+  const monthStartIso = `${formatSAST(new Date(), 'yyyy-MM')}-01T00:00:00+02:00`
 
-  if (error) throw error
+  const [shopsResult, paymentsResult] = await Promise.all([
+    admin.from('shops').select('subscription_status, created_at'),
+    admin.from('admin_payments').select('amount, recorded_at'),
+  ])
 
-  const all = shops ?? []
+  if (shopsResult.error) throw shopsResult.error
+  if (paymentsResult.error) throw paymentsResult.error
+
+  const all = shopsResult.data ?? []
+  const payments = paymentsResult.data ?? []
   const now = new Date()
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const monthStart = new Date(monthStartIso).getTime()
+
+  let revenueThisMonth = 0
+  let revenueAllTime = 0
+  for (const p of payments) {
+    const amount = Number(p.amount) || 0
+    revenueAllTime += amount
+    if (new Date(p.recorded_at).getTime() >= monthStart) {
+      revenueThisMonth += amount
+    }
+  }
 
   return {
     totalShops: all.length,
@@ -27,6 +46,8 @@ export async function getOverviewStats(): Promise<AdminOverviewStats> {
     expiredShops: all.filter((s) => s.subscription_status === 'expired').length,
     manualOverrideShops: all.filter((s) => s.subscription_status === 'manual_override').length,
     recentSignUps: all.filter((s) => new Date(s.created_at) >= sevenDaysAgo).length,
+    revenueThisMonth,
+    revenueAllTime,
   }
 }
 

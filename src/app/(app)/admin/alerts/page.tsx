@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { Megaphone } from 'lucide-react'
 import type { AdminAlert } from '@/types'
+import { EmptyState } from '@/components/ui'
 
 const PRIORITY_BADGE: Record<AdminAlert['priority'], string> = {
   urgent: 'bg-red-100 text-red-700',
@@ -84,14 +86,18 @@ export default function AdminAlertsPage() {
           ))}
         </div>
       ) : alerts.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-12">No alerts published yet.</p>
+        <EmptyState
+          icon={Megaphone}
+          title="No alerts published yet"
+          body="Broadcast an in-app banner to all shops or a targeted audience."
+        />
       ) : (
         <div className="space-y-3">
           {alerts.map((a) => (
             <button
               key={a.id}
               onClick={() => router.push(`/admin/alerts/${a.id}`)}
-              className="w-full text-left bg-white border border-gray-100 rounded-full p-4 hover:border-brand-light hover:bg-brand-light/30 transition-colors"
+              className="w-full text-left bg-white border border-gray-100 rounded-2xl p-4 hover:border-brand-light hover:bg-brand-light/30 transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">

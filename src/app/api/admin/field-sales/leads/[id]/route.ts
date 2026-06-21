@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth/admin-guard'
+import { checkRateLimit } from '@/lib/utils/rateLimit'
 import { updateLeadSchema } from '@/lib/validation/schemas'
 import { deleteLead, getLeadDetail, updateLead } from '@/lib/db/field-sales'
 
@@ -19,6 +20,10 @@ export async function GET(_req: Request, { params }: RouteContext) {
 export async function PATCH(req: Request, { params }: RouteContext) {
   const user = await requireAdmin()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { limited } = await checkRateLimit(req, { limit: 30, windowSecs: 60 })
+  if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+
   const { id } = await params
 
   let body: unknown
@@ -42,9 +47,13 @@ export async function PATCH(req: Request, { params }: RouteContext) {
   }
 }
 
-export async function DELETE(_req: Request, { params }: RouteContext) {
+export async function DELETE(req: Request, { params }: RouteContext) {
   const user = await requireAdmin()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { limited } = await checkRateLimit(req, { limit: 30, windowSecs: 60 })
+  if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+
   const { id } = await params
   try {
     await deleteLead(id)

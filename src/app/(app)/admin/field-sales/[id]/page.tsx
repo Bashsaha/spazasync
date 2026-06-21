@@ -13,6 +13,8 @@ import {
   Callout,
   EmptyState,
 } from '@/components/ui'
+import { ConfirmModal } from '@/components/ConfirmModal'
+import { useToast } from '@/components/Toast'
 import LeadForm, { type LeadFormValues } from '@/components/admin/field-sales/LeadForm'
 import LogVisitForm, { type LogVisitValues } from '@/components/admin/field-sales/LogVisitForm'
 import {
@@ -32,6 +34,7 @@ function waLink(num: string): string {
 export default function LeadDetailPage() {
   const router = useRouter()
   const params = useParams<{ id: string }>()
+  const { addToast } = useToast()
   const id = params.id
 
   const [lead, setLead] = useState<LeadDetail | null>(null)
@@ -39,6 +42,7 @@ export default function LeadDetailPage() {
   const [notFound, setNotFound] = useState(false)
   const [editing, setEditing] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/admin/field-sales/leads/${id}`)
@@ -85,14 +89,14 @@ export default function LeadDetailPage() {
   }
 
   async function handleDelete() {
-    if (!confirm('Delete this shop and all its visits? This cannot be undone.')) return
+    setConfirmingDelete(false)
     setDeleting(true)
     const res = await fetch(`/api/admin/field-sales/leads/${id}`, { method: 'DELETE' })
     if (res.ok) {
       router.push('/admin/field-sales')
     } else {
       setDeleting(false)
-      alert('Could not delete. Try again.')
+      addToast('Could not delete. Try again.', 'error')
     }
   }
 
@@ -228,12 +232,22 @@ export default function LeadDetailPage() {
               size="sm"
               icon={Trash2}
               loading={deleting}
-              onClick={handleDelete}
+              onClick={() => setConfirmingDelete(true)}
             >
               Delete shop
             </Button>
           </div>
         </>
+      )}
+
+      {confirmingDelete && (
+        <ConfirmModal
+          message="Delete this shop and all its visits? This cannot be undone."
+          confirmLabel="Delete"
+          isDestructive
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmingDelete(false)}
+        />
       )}
     </div>
   )

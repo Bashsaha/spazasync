@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { Barcode } from 'lucide-react'
 import type { BarcodeCatalogEntry } from '@/types'
+import { Badge, EmptyState } from '@/components/ui'
 
 export default function AdminCatalogPage() {
   const router = useRouter()
@@ -57,7 +59,10 @@ export default function AdminCatalogPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Barcode Catalog</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-gray-900">Barcode Catalog</h1>
+          {!loading && <Badge tone="gray">{total} {total === 1 ? 'entry' : 'entries'}</Badge>}
+        </div>
         <button
           onClick={() => router.push('/admin/catalog/new')}
           className="px-4 py-2 text-sm font-semibold rounded-full bg-brand text-white hover:bg-brand-hover transition-colors"
@@ -92,14 +97,18 @@ export default function AdminCatalogPage() {
           ))}
         </div>
       ) : entries.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-12">No catalog entries found.</p>
+        <EmptyState
+          icon={Barcode}
+          title="No catalog entries found"
+          body={search ? 'Try a different search.' : 'Add your first barcode entry to get started.'}
+        />
       ) : (
         <div className="space-y-3">
           {entries.map((entry) => (
             <button
               key={entry.id}
               onClick={() => router.push(`/admin/catalog/${entry.id}`)}
-              className="w-full text-left bg-white border border-gray-100 rounded-full p-4 hover:border-brand-light hover:bg-brand-light/30 transition-colors"
+              className="w-full text-left bg-white border border-gray-100 rounded-2xl p-4 hover:border-brand-light hover:bg-brand-light/30 transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">

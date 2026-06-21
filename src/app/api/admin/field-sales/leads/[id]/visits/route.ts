@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth/admin-guard'
+import { checkRateLimit } from '@/lib/utils/rateLimit'
 import { createVisitSchema } from '@/lib/validation/schemas'
 import { createVisit } from '@/lib/db/field-sales'
 
@@ -10,6 +11,10 @@ interface RouteContext {
 export async function POST(req: Request, { params }: RouteContext) {
   const user = await requireAdmin()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { limited } = await checkRateLimit(req, { limit: 30, windowSecs: 60 })
+  if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+
   const { id } = await params
 
   let body: unknown

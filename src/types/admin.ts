@@ -49,6 +49,10 @@ export interface AdminOverviewStats {
   expiredShops: number
   manualOverrideShops: number
   recentSignUps: number
+  /** Total of all admin_payments amounts recorded this calendar month (SAST), in ZAR. */
+  revenueThisMonth: number
+  /** Total of all admin_payments amounts ever recorded, in ZAR. */
+  revenueAllTime: number
 }
 
 // ── Field Sales / shop-visit CRM (Phase 51) ─────────────────────────────────

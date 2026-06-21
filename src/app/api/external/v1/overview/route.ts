@@ -7,7 +7,8 @@ export async function GET(request: Request) {
   if (denied) return denied
 
   try {
-    const stats = await getOverviewStats()
+    // Revenue figures are operator-internal — never surfaced to external API consumers.
+    const { revenueThisMonth: _r1, revenueAllTime: _r2, ...stats } = await getOverviewStats()
     return NextResponse.json(stats)
   } catch (err) {
     console.error('External API /overview error:', err)
