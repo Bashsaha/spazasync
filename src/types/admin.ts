@@ -48,6 +48,8 @@ export interface AdminOverviewStats {
   trialingShops: number
   expiredShops: number
   manualOverrideShops: number
+  /** Shops in the 4-day grace window after their subscription lapsed (Phase 54). */
+  processingCancellationShops: number
   recentSignUps: number
   /** Total of all admin_payments amounts recorded this calendar month (SAST), in ZAR. */
   revenueThisMonth: number

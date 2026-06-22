@@ -10,6 +10,7 @@
   "sub_free_trial": "Teko ya Mahala",
   "sub_active": "E a sebetsa",
   "sub_cancelled": "E hlakotswe",
+  "sub_payment_due": "Tefo e hlokahala",
   "sub_expired": "E felile",
   "sub_renews": "E ntjhafala ka {date}",
   "sub_days_left_one": "Letsatsi le {count} le setseng",

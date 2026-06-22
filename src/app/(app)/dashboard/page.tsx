@@ -94,7 +94,8 @@ export default function DashboardPage() {
   const endDate =
     shop?.subscription_status === 'trialing'
       ? shop?.trial_ends_at
-      : shop?.subscription_status === 'cancelled'
+      : shop?.subscription_status === 'cancelled' ||
+          shop?.subscription_status === 'processing_cancellation'
         ? shop?.subscription_ends_at
         : null
   const daysLeft = endDate

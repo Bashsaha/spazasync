@@ -401,6 +401,7 @@ export default function SettingsPage() {
       case 'trialing': return t('sub_free_trial')
       case 'active': return t('sub_active')
       case 'cancelled': return t('sub_cancelled')
+      case 'processing_cancellation': return t('sub_payment_due')
       default: return t('sub_expired')
     }
   }
@@ -596,6 +597,7 @@ export default function SettingsPage() {
                     settings.subscription_status === 'active' ? 'green'
                       : settings.subscription_status === 'trialing' ? 'brand'
                       : settings.subscription_status === 'cancelled' ? 'amber'
+                      : settings.subscription_status === 'processing_cancellation' ? 'amber'
                       : 'red'
                   }
                 >

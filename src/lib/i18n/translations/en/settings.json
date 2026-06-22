@@ -10,6 +10,7 @@
   "sub_free_trial": "Free Trial",
   "sub_active": "Active",
   "sub_cancelled": "Cancelled",
+  "sub_payment_due": "Payment due",
   "sub_expired": "Expired",
   "sub_renews": "Renews {date}",
   "sub_days_left_one": "{count} day left",

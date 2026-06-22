@@ -10,6 +10,7 @@
   "sub_free_trial": "Isilingo Samahhala",
   "sub_active": "Kuyasebenza",
   "sub_cancelled": "Kukhanselwe",
+  "sub_payment_due": "Inkokhelo iyadingeka",
   "sub_expired": "Kuphelelwe yisikhathi",
   "sub_renews": "Kuvuselelwa ngo-{date}",
   "sub_days_left_one": "Kusele usuku olungu-{count}",

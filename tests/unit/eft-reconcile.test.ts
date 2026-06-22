@@ -137,6 +137,18 @@ describe('computeRenewalEnd', () => {
     expect(end.getTime()).toBe(new Date(trialEnd).getTime() + 30 * 24 * 60 * 60 * 1000)
   })
 
+  it('processing_cancellation (in grace) with a future deadline stacks onto it', () => {
+    // Phase 54 — a shop paying during its 4-day grace renews from the grace
+    // deadline, not from today.
+    const graceEnd = '2026-06-03T00:00:00Z'
+    const end = computeRenewalEnd(
+      { subscription_status: 'processing_cancellation', subscription_ends_at: graceEnd, trial_ends_at: null },
+      1,
+      NOW,
+    )
+    expect(end.getTime()).toBe(new Date(graceEnd).getTime() + 30 * 24 * 60 * 60 * 1000)
+  })
+
   it('cancelled but past end date starts from today', () => {
     const end = computeRenewalEnd(
       { subscription_status: 'cancelled', subscription_ends_at: '2026-01-01T00:00:00Z', trial_ends_at: null },

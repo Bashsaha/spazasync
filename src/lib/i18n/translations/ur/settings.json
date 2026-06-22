@@ -10,6 +10,7 @@
   "sub_free_trial": "مفت آزمائش",
   "sub_active": "فعال",
   "sub_cancelled": "منسوخ",
+  "sub_payment_due": "ادائیگی باقی ہے",
   "sub_expired": "ختم",
   "sub_renews": "{date} کو تجدید ہو گی",
   "sub_days_left_one": "{count} دن باقی",

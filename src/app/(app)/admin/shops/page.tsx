@@ -13,6 +13,7 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: 'active', label: 'Active' },
   { value: 'cancelled', label: 'Cancelled' },
   { value: 'expired', label: 'Expired' },
+  { value: 'processing_cancellation', label: 'Processing cancellation' },
   { value: 'manual_override', label: 'Manual Override' },
 ]
 
@@ -151,7 +152,7 @@ export default function AdminShopsPage() {
                       statusBadgeColors[shop.subscription_status] ?? 'bg-gray-100 text-gray-600'
                     }`}
                   >
-                    {shop.subscription_status.replace('_', ' ')}
+                    {shop.subscription_status.replace(/_/g, ' ')}
                   </span>
                 </div>
               </div>

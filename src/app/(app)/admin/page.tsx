@@ -9,6 +9,7 @@ const statCards = [
   { key: 'activeShops', label: 'Active', color: 'bg-green-50 border-green-200 text-green-700', href: '/admin/shops?status=active' },
   { key: 'trialingShops', label: 'Trialing', color: 'bg-brand-light border-brand-light text-brand-hover', href: '/admin/shops?status=trialing' },
   { key: 'expiredShops', label: 'Expired', color: 'bg-red-50 border-red-200 text-red-700', href: '/admin/shops?status=expired' },
+  { key: 'processingCancellationShops', label: 'Processing cancellation', color: 'bg-amber-50 border-amber-200 text-amber-700', href: '/admin/shops?status=processing_cancellation' },
   { key: 'manualOverrideShops', label: 'Manual Override', color: 'bg-amber-50 border-amber-200 text-amber-700', href: '/admin/shops?status=manual_override' },
   { key: 'recentSignUps', label: 'New This Week', color: 'bg-purple-50 border-purple-200 text-purple-700', href: '/admin/shops' },
 ] as const
@@ -20,6 +21,7 @@ export default async function AdminOverviewPage() {
     trialingShops: 0,
     expiredShops: 0,
     manualOverrideShops: 0,
+    processingCancellationShops: 0,
     recentSignUps: 0,
     revenueThisMonth: 0,
     revenueAllTime: 0,

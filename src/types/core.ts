@@ -7,7 +7,17 @@ import type { SupportedLocale } from '@/lib/i18n/types'
 
 export type UserRole = 'owner' | 'teller' | 'admin'
 
-export type SubscriptionStatus = 'trialing' | 'active' | 'cancelled' | 'expired' | 'manual_override'
+// 'processing_cancellation' is the 4-day grace window between a subscription's
+// end date and full expiry (Phase 54). It is set ONLY by the daily cron
+// (expire_due_shops) — never chosen by an admin — so it is intentionally absent
+// from adminUpdateSubscriptionSchema's enum.
+export type SubscriptionStatus =
+  | 'trialing'
+  | 'active'
+  | 'cancelled'
+  | 'expired'
+  | 'manual_override'
+  | 'processing_cancellation'
 
 export interface Shop {
   id: string

@@ -35,8 +35,10 @@ export async function PATCH(
     await updateShopSubscription(
       id,
       parsed.data.subscription_status,
-      parsed.data.subscription_ends_at,
-      parsed.data.trial_ends_at,
+      // Only honoured for manual_override; all other dates are server-derived.
+      parsed.data.subscription_status === 'manual_override'
+        ? parsed.data.subscription_ends_at
+        : undefined,
     )
     return NextResponse.json({ success: true })
   } catch (err) {

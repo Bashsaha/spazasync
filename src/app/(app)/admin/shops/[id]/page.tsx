@@ -69,11 +69,14 @@ export default function AdminShopDetailPage() {
       const data: ShopDetail = await res.json()
       setShop(data)
       setNotes(data.admin_notes ?? '')
-      setSubStatus(data.subscription_status)
-      const endDate = data.subscription_status === 'trialing'
-        ? data.trial_ends_at
-        : data.subscription_ends_at
-      setSubEndDate(endDate ? endDate.slice(0, 10) : '')
+      // Grace ('processing_cancellation') is cron-only and not a dropdown option —
+      // default the editable control to 'active' (one-tap recovery) while the real
+      // grace state still shows in the badge + callout above.
+      setSubStatus(
+        data.subscription_status === 'processing_cancellation' ? 'active' : data.subscription_status,
+      )
+      // subEndDate is only used by the manual_override path now.
+      setSubEndDate(data.subscription_ends_at ? data.subscription_ends_at.slice(0, 10) : '')
     } catch {
       setError('Failed to load shop details')
     } finally {
@@ -120,14 +123,11 @@ export default function AdminShopDetailPage() {
   async function handleUpdateSubscription() {
     setSubSaving(true)
     try {
+      // Dates are server-derived (active = +30d, trialing = +7d, expired/cancelled
+      // = now). Only manual_override carries an admin-chosen end date.
       const body: Record<string, unknown> = { subscription_status: subStatus }
-      if (subEndDate) {
-        const isoDate = new Date(subEndDate + 'T23:59:59.999Z').toISOString()
-        if (subStatus === 'trialing') {
-          body.trial_ends_at = isoDate
-        } else {
-          body.subscription_ends_at = isoDate
-        }
+      if (subStatus === 'manual_override' && subEndDate) {
+        body.subscription_ends_at = new Date(subEndDate + 'T23:59:59.999Z').toISOString()
       }
       const res = await fetch(`/api/admin/shops/${id}/subscription`, {
         method: 'PATCH',
@@ -290,7 +290,7 @@ export default function AdminShopDetailPage() {
               statusBadgeColors[shop.subscription_status] ?? 'bg-gray-100 text-gray-600'
             }`}
           >
-            {shop.subscription_status.replace('_', ' ')}
+            {shop.subscription_status.replace(/_/g, ' ')}
           </span>
           <button
             onClick={handleAccessClick}
@@ -305,27 +305,50 @@ export default function AdminShopDetailPage() {
           </button>
         </div>
 
+        {/* Grace-window explainer — cron-set; not selectable by the admin. */}
+        {shop.subscription_status === 'processing_cancellation' && (
+          <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <p className="text-sm font-semibold text-amber-800">Processing cancellation</p>
+            <p className="text-xs text-amber-700 mt-1">
+              The subscription lapsed but access continues until{' '}
+              <strong>
+                {shop.subscription_ends_at
+                  ? new Date(shop.subscription_ends_at).toLocaleDateString('en-ZA', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })
+                  : 'soon'}
+              </strong>
+              , then it expires automatically. Choose <strong>Active</strong> below and Update to
+              keep it running.
+            </p>
+          </div>
+        )}
+
         {/* Subscription management controls */}
         <div className="border-t border-gray-100 pt-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label htmlFor="sub-status" className="text-xs text-gray-500 mb-1 block">Status</label>
-              <select
-                id="sub-status"
-                value={subStatus}
-                onChange={(e) => setSubStatus(e.target.value as SubscriptionStatus)}
-                className="w-full border border-gray-200 rounded-2xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
-              >
-                <option value="trialing">Trialing</option>
-                <option value="active">Active</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="expired">Expired</option>
-                <option value="manual_override">Manual Override</option>
-              </select>
-            </div>
+          <div>
+            <label htmlFor="sub-status" className="text-xs text-gray-500 mb-1 block">Status</label>
+            <select
+              id="sub-status"
+              value={subStatus}
+              onChange={(e) => setSubStatus(e.target.value as SubscriptionStatus)}
+              className="w-full border border-gray-200 rounded-2xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+            >
+              <option value="trialing">Trialing (7-day trial)</option>
+              <option value="active">Active (30-day subscription)</option>
+              <option value="manual_override">Manual override (pick a date)</option>
+              <option value="expired">Expired (end access now)</option>
+              <option value="cancelled">Cancelled (end access now)</option>
+            </select>
+          </div>
+
+          {/* Date input ONLY for manual override; every other status is auto-dated. */}
+          {subStatus === 'manual_override' ? (
             <div>
               <label htmlFor="sub-end-date" className="text-xs text-gray-500 mb-1 block">
-                {subStatus === 'trialing' ? 'Trial ends' : 'Subscription ends'}
+                Access ends
               </label>
               <input
                 id="sub-end-date"
@@ -334,8 +357,20 @@ export default function AdminShopDetailPage() {
                 onChange={(e) => setSubEndDate(e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               />
+              <p className="text-xs text-gray-400 mt-1">
+                Comped / special-deal end date. The shop keeps access until this day.
+              </p>
             </div>
-          </div>
+          ) : (
+            <p className="text-xs text-gray-500 rounded-xl bg-gray-50 px-3 py-2">
+              {subStatus === 'active'
+                ? `Subscription will run to ${new Date(Date.now() + 30 * 86400000).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })} (30 days from today).`
+                : subStatus === 'trialing'
+                  ? `Trial will run to ${new Date(Date.now() + 7 * 86400000).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })} (7 days from today).`
+                  : 'Access ends immediately when you Update.'}
+            </p>
+          )}
+
           <button
             onClick={handleUpdateSubscription}
             disabled={subSaving}

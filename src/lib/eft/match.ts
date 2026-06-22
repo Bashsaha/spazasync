@@ -61,7 +61,10 @@ export function computeRenewalEnd(
 
   let currentUntil: Date | null = null
   if (
-    (status === 'active' || status === 'manual_override' || status === 'cancelled') &&
+    (status === 'active' ||
+      status === 'manual_override' ||
+      status === 'cancelled' ||
+      status === 'processing_cancellation') &&
     subEnd &&
     subEnd.getTime() > now.getTime()
   ) {

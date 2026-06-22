@@ -20,17 +20,18 @@ describe('statusBadgeColors', () => {
     'cancelled',
     'expired',
     'manual_override',
+    'processing_cancellation',
   ]
 
-  it('has entries for all 5 subscription statuses', () => {
+  it('has entries for all 6 subscription statuses', () => {
     for (const s of allStatuses) {
       expect(statusBadgeColors[s]).toBeDefined()
       expect(typeof statusBadgeColors[s]).toBe('string')
     }
   })
 
-  it('has no extra keys beyond the 5 statuses', () => {
-    expect(Object.keys(statusBadgeColors)).toHaveLength(5)
+  it('has no extra keys beyond the 6 statuses', () => {
+    expect(Object.keys(statusBadgeColors)).toHaveLength(6)
   })
 })
 

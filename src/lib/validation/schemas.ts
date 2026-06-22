@@ -433,11 +433,15 @@ export const adminCatalogSearchSchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
 })
 
+// Phase 54: dates for active/trialing are now server-derived (active = now+30d,
+// trialing = now+7d), so the client no longer sends them. The only client-chosen
+// date is the manual_override end date. 'processing_cancellation' is intentionally
+// NOT settable here — it's a cron-only grace state.
 export const adminUpdateSubscriptionSchema = z.object({
   shop_id: z.string().uuid(),
   subscription_status: z.enum(['trialing', 'active', 'cancelled', 'expired', 'manual_override']),
+  /** Only used (and honoured) when subscription_status === 'manual_override'. */
   subscription_ends_at: z.string().datetime().optional(),
-  trial_ends_at: z.string().datetime().optional(),
 })
 
 // ============================================================

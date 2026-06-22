@@ -18,6 +18,9 @@ describe('subscriptionEndDate()', () => {
     expect(subscriptionEndDate('cancelled', FUTURE, PAST)).toBe(PAST)
     expect(subscriptionEndDate('expired', FUTURE, PAST)).toBe(PAST)
     expect(subscriptionEndDate('manual_override', FUTURE, PAST)).toBe(PAST)
+    // Phase 54 grace — the cron stores the grace deadline in subscription_ends_at,
+    // so a graced shop's effective end must read from there (not trial_ends_at).
+    expect(subscriptionEndDate('processing_cancellation', FUTURE, PAST)).toBe(PAST)
   })
 
   it('returns null when the relevant date is absent', () => {
@@ -71,6 +74,21 @@ describe('isSubscriptionExpired()', () => {
 
   it('cancelled with a past date IS expired', () => {
     expect(expired({ status: 'cancelled', subUntil: PAST, accessGranted: false })).toBe(true)
+  })
+
+  // ── Phase 54 grace window (processing_cancellation) ──────────────────────
+  // Grace rides the existing "other status + future date" branch: access is kept
+  // until the 4-day deadline the cron wrote into subscription_ends_at, then expires.
+  it('processing_cancellation with a future grace deadline is NOT expired (access kept)', () => {
+    expect(expired({ status: 'processing_cancellation', subUntil: FUTURE, accessGranted: false })).toBe(false)
+  })
+
+  it('processing_cancellation with a past grace deadline IS expired', () => {
+    expect(expired({ status: 'processing_cancellation', subUntil: PAST, accessGranted: false })).toBe(true)
+  })
+
+  it('processing_cancellation with no deadline IS expired (corrupted grace state)', () => {
+    expect(expired({ status: 'processing_cancellation', subUntil: null, accessGranted: false })).toBe(true)
   })
 
   // ── explicit expired status ──────────────────────────────────────────────

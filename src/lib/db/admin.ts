@@ -45,6 +45,7 @@ export async function getOverviewStats(): Promise<AdminOverviewStats> {
     trialingShops: all.filter((s) => s.subscription_status === 'trialing').length,
     expiredShops: all.filter((s) => s.subscription_status === 'expired').length,
     manualOverrideShops: all.filter((s) => s.subscription_status === 'manual_override').length,
+    processingCancellationShops: all.filter((s) => s.subscription_status === 'processing_cancellation').length,
     recentSignUps: all.filter((s) => new Date(s.created_at) >= sevenDaysAgo).length,
     revenueThisMonth,
     revenueAllTime,
@@ -272,30 +273,74 @@ export async function toggleShopAccess(shopId: string, accessGranted: boolean): 
   }
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000
+
 /**
- * Directly update a shop's subscription status and end dates.
- * Syncs JWT metadata for all shop users.
+ * Directly update a shop's subscription status. Dates are SERVER-DERIVED
+ * (Phase 54) — the admin picks a status and the end date is computed here, so
+ * the admin and the daily cron always agree on one rule:
+ *   - active   → subscription_ends_at = now + 30 days (trial date cleared)
+ *   - trialing → trial_ends_at        = now + 7 days
+ *   - manual_override → admin-chosen date (or now + 30d), access_granted = true
+ *   - expired / cancelled → access ends immediately (subscription_ends_at = now)
+ *
+ * The 4-day grace state ('processing_cancellation') is never set here — only the
+ * cron transitions a lapsed shop into and out of grace.
+ *
+ * Syncs JWT metadata for all shop users so the owner gate (proxy.ts) stays in
+ * step with the live shop row.
  */
 export async function updateShopSubscription(
   shopId: string,
   status: SubscriptionStatus,
-  subscriptionEndsAt?: string,
-  trialEndsAt?: string,
+  manualEndDate?: string,
 ): Promise<void> {
   const admin = createAdminClient()
 
+  const now = Date.now()
   const update: Record<string, unknown> = { subscription_status: status }
+  let subUntil = ''
+  let accessGranted: boolean | undefined
 
-  if (subscriptionEndsAt !== undefined) {
-    update.subscription_ends_at = subscriptionEndsAt
-  }
-  if (trialEndsAt !== undefined) {
-    update.trial_ends_at = trialEndsAt
-  }
-
-  // If expiring, revoke access_granted
-  if (status === 'expired') {
-    update.access_granted = false
+  switch (status) {
+    case 'active': {
+      // Always overwrite — re-activating a shop in grace/expired must push the
+      // end date back out to a fresh 30 days, not keep a stale short date.
+      const ends = new Date(now + 30 * DAY_MS).toISOString()
+      update.subscription_ends_at = ends
+      update.trial_ends_at = null // clear any leftover trial date
+      subUntil = ends
+      break
+    }
+    case 'trialing': {
+      const ends = new Date(now + 7 * DAY_MS).toISOString()
+      update.trial_ends_at = ends
+      subUntil = ends
+      break
+    }
+    case 'manual_override': {
+      const ends = manualEndDate ?? new Date(now + 30 * DAY_MS).toISOString()
+      update.subscription_ends_at = ends
+      update.access_granted = true
+      subUntil = ends
+      accessGranted = true
+      break
+    }
+    case 'expired':
+    case 'cancelled': {
+      // End access now.
+      const ends = new Date(now).toISOString()
+      update.subscription_ends_at = ends
+      update.access_granted = false
+      subUntil = ends
+      accessGranted = false
+      break
+    }
+    default: {
+      // Defensive: any other status (incl. the cron-only grace) keeps its
+      // current dates; re-read below for the JWT sync.
+      break
+    }
   }
 
   const { error } = await admin
@@ -305,12 +350,6 @@ export async function updateShopSubscription(
 
   if (error) throw error
 
-  // Determine the sub_until value for JWT metadata
-  const subUntil = status === 'trialing'
-    ? (trialEndsAt ?? '')
-    : (subscriptionEndsAt ?? '')
-
-  const accessGranted = status === 'expired' ? false : undefined
   await updateShopUsersSubscription(shopId, status, subUntil, accessGranted)
 }
 
