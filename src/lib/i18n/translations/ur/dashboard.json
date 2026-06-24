@@ -53,5 +53,10 @@
   "journey_card_all_done": "All registration steps done — well done!",
   "journey_card_next_label": "Next:",
   "journey_card_continue_arrow": "→",
-  "journey_card_fund_teaser": "A few more steps and you could qualify for up to R300,000 in funding."
+  "journey_card_fund_teaser": "A few more steps and you could qualify for up to R300,000 in funding.",
+
+  "streak_title_one": "{count} دن کی مسلسل چیک لسٹ",
+  "streak_title_other": "{count} دن کی مسلسل چیک لسٹ",
+  "streak_done_today": "آج کی حفاظتی چیک لسٹ مکمل ہے ✓",
+  "streak_keep_going": "اپنا سلسلہ جاری رکھنے کے لیے آج کی چیک لسٹ مکمل کریں"
 }

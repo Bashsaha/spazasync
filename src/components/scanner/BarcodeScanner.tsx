@@ -16,10 +16,20 @@ interface BarcodeScannerProps {
 export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [zoom, setZoomLevel] = useState(2)
+  const [flash, setFlash] = useState(false)
 
   function handleScan(barcode: string) {
-    onScan(barcode)
-    onClose()
+    // Positive "got it" confirmation: a short buzz + a green flash so the teller
+    // trusts the scan landed before the camera disappears (a silent close makes
+    // people second-guess and re-scan). vibrate is Android-only — guarded.
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      navigator.vibrate(60)
+    }
+    setFlash(true)
+    window.setTimeout(() => {
+      onScan(barcode)
+      onClose()
+    }, 160)
   }
 
   const { startScanning, stopScanning, setZoom, zoomCapability, focusAt } = useScanner({
@@ -55,6 +65,20 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col">
+      {/* success flash — brief green wash over the whole scanner on a good scan */}
+      {flash && (
+        <div
+          className="absolute inset-0 z-[60] bg-green-400/40 pointer-events-none flex items-center justify-center"
+          aria-hidden
+        >
+          <div className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center">
+            <svg viewBox="0 0 24 24" className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth="3">
+              <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+        </div>
+      )}
+
       {/* header */}
       <div className="flex items-center justify-between px-4 pt-safe-top py-3">
         <span className="text-white font-semibold text-lg">Scan Barcode</span>

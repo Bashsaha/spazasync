@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Users, Map, ClipboardList } from 'lucide-react'
+import { Users, Map, ClipboardList, Sparkles } from 'lucide-react'
 import { getShopAuth } from '@/lib/auth/shop-auth'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 
@@ -53,6 +53,18 @@ export default async function ManageHubPage() {
             <p className="text-brand text-sm">{t('card_compliance_desc')}</p>
           </div>
           <ClipboardList className="w-7 h-7 text-brand-hover" strokeWidth={1.75} />
+        </Link>
+
+        <Link
+          href="/waste-pest"
+          data-tour="manage-waste-pest"
+          className="flex items-center justify-between bg-white rounded-2xl p-5 border border-gray-100 active:bg-gray-50"
+        >
+          <div>
+            <p className="font-bold text-gray-900">{t('card_waste_pest')}</p>
+            <p className="text-gray-400 text-sm">{t('card_waste_pest_desc')}</p>
+          </div>
+          <Sparkles className="w-7 h-7 text-brand" strokeWidth={1.75} />
         </Link>
       </div>
     </main>

@@ -3,6 +3,7 @@ import {
   fridgeInRange,
   freezerInRange,
   computeChecklistStats,
+  computeChecklistStreak,
 } from '@/lib/checklist/stats'
 import type { DailyChecklist } from '@/types'
 
@@ -128,5 +129,48 @@ describe('computeChecklistStats', () => {
     ]
     const s = computeChecklistStats(rows, 30)
     expect(s.outOfRangeDays).toBe(0)
+  })
+})
+
+describe('computeChecklistStreak', () => {
+  const today = '2026-06-24'
+
+  it('returns 0 with no dates', () => {
+    expect(computeChecklistStreak([], today)).toEqual({ streak: 0, completedToday: false })
+  })
+
+  it('counts a run ending today', () => {
+    const r = computeChecklistStreak(['2026-06-24', '2026-06-23', '2026-06-22'], today)
+    expect(r).toEqual({ streak: 3, completedToday: true })
+  })
+
+  it('keeps the streak alive when today is not done but yesterday was', () => {
+    const r = computeChecklistStreak(['2026-06-23', '2026-06-22'], today)
+    expect(r).toEqual({ streak: 2, completedToday: false })
+  })
+
+  it('breaks to 0 when the most recent day is two days ago (a full day missed)', () => {
+    const r = computeChecklistStreak(['2026-06-22', '2026-06-21'], today)
+    expect(r).toEqual({ streak: 0, completedToday: false })
+  })
+
+  it('stops at the first gap', () => {
+    // today, yesterday, then a gap (skips the 22nd) — older days don't count
+    const r = computeChecklistStreak(['2026-06-24', '2026-06-23', '2026-06-21', '2026-06-20'], today)
+    expect(r).toEqual({ streak: 2, completedToday: true })
+  })
+
+  it('is robust to duplicates and unsorted input', () => {
+    const r = computeChecklistStreak(['2026-06-23', '2026-06-24', '2026-06-24', '2026-06-22'], today)
+    expect(r).toEqual({ streak: 3, completedToday: true })
+  })
+
+  it('handles a single day done today', () => {
+    expect(computeChecklistStreak(['2026-06-24'], today)).toEqual({ streak: 1, completedToday: true })
+  })
+
+  it('crosses a month boundary correctly', () => {
+    const r = computeChecklistStreak(['2026-07-01', '2026-06-30', '2026-06-29'], '2026-07-01')
+    expect(r).toEqual({ streak: 3, completedToday: true })
   })
 })

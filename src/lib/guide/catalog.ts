@@ -363,6 +363,15 @@ export const CATALOG: FeatureTip[] = [
     group: 'setup',
     order: 14,
   },
+  {
+    id: 'manage-waste-pest',
+    anchor: 'manage-waste-pest',
+    route: '/manage',
+    titleKey: 'tip_manage_waste_pest_title',
+    bodyKey: 'tip_manage_waste_pest_body',
+    group: 'setup',
+    order: 16,
+  },
 
   // ======================================================================
   // /sales/statistics

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Store, Shield, Truck, Sparkles, Wallet, ClipboardList, ChevronRight } from 'lucide-react'
+import { Store, ClipboardList, ChevronRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 import { Card, PageHeader } from '@/components/ui'
@@ -29,27 +29,19 @@ export default async function ProfilePage() {
   const role = (user.app_metadata?.role as string) ?? 'owner'
   const shopId = user.app_metadata?.shop_id as string | undefined
 
-  // Pull shop name + code + nationality (drives the fund row visibility) in one go.
+  // Profile is now the "me & my account" surface only — just shop name + code.
+  // (Operational sections — compliance journey, suppliers, waste & pest, fund —
+  // moved to the Manage tab / Inventory hub so each lives in one logical place.)
   let shopName = 'Movestock'
   let shopCode: string | null = null
-  let isSACitizen = false
-  let fundInterest = false
   if (shopId) {
     const { data: shop } = await supabase
       .from('shops')
-      .select('name, code, fund_interest')
+      .select('name, code')
       .eq('id', shopId)
       .single()
     if (shop?.name) shopName = shop.name as string
     if (shop?.code) shopCode = shop.code as string
-    fundInterest = Boolean(shop?.fund_interest)
-
-    const { data: profile } = await supabase
-      .from('owner_profiles')
-      .select('nationality_type')
-      .eq('user_id', user.id)
-      .maybeSingle()
-    isSACitizen = profile?.nationality_type === 'sa_citizen'
   }
 
   // For tellers, show their display name in place of shop name in the header.
@@ -78,34 +70,6 @@ export default async function ProfilePage() {
       labelKey: 'profile_section_shop',
       descKey: 'profile_section_shop_desc',
       visible: isOwner,
-    },
-    {
-      href: '/compliance/journey',
-      icon: Shield,
-      labelKey: 'profile_section_compliance',
-      descKey: 'profile_section_compliance_desc',
-      visible: isOwner,
-    },
-    {
-      href: '/suppliers',
-      icon: Truck,
-      labelKey: 'profile_section_suppliers',
-      descKey: 'profile_section_suppliers_desc',
-      visible: isOwner,
-    },
-    {
-      href: '/waste-pest',
-      icon: Sparkles,
-      labelKey: 'profile_section_waste_pest',
-      descKey: 'profile_section_waste_pest_desc',
-      visible: isOwner,
-    },
-    {
-      href: '/compliance/fund',
-      icon: Wallet,
-      labelKey: 'profile_section_fund',
-      descKey: 'profile_section_fund_desc',
-      visible: isOwner && isSACitizen && fundInterest,
     },
     {
       href: '/subscribe',

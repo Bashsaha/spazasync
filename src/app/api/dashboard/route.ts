@@ -3,7 +3,8 @@ import { getShopAuthFast } from '@/lib/auth/shop-auth'
 import { checkRateLimit } from '@/lib/utils/rateLimit'
 import { STABLE_READ_CACHE } from '@/lib/utils/api'
 import { getComplianceScore } from '@/lib/db/compliance-score'
-import { getTodayChecklist, todaySAST } from '@/lib/db/daily-checklist'
+import { getTodayChecklist, getRecentChecklistDates, todaySAST } from '@/lib/db/daily-checklist'
+import { computeChecklistStreak } from '@/lib/checklist/stats'
 import { listBusinessDocuments } from '@/lib/db/business-documents'
 import { computeDocumentStatus } from '@/lib/compliance/document-status'
 import { getJourneyProgressSummary } from '@/lib/db/journey'
@@ -37,6 +38,10 @@ export async function GET(request: Request) {
 
   const { shopId, supabase, user } = auth
   const today = todaySAST()
+  // 60-day window is plenty to resolve any live streak for the dashboard chip.
+  const streakSince = new Date(Date.parse(`${today}T00:00:00Z`) - 60 * 86_400_000)
+    .toISOString()
+    .slice(0, 10)
 
   // Each reader degrades to a safe empty/null on its own throw so one slow query
   // can't 500 the whole dashboard.
@@ -51,6 +56,7 @@ export async function GET(request: Request) {
     journey,
     latestSales,
     profileRes,
+    checklistDates,
   ] = await Promise.all([
     safe(
       supabase
@@ -79,7 +85,10 @@ export async function GET(request: Request) {
         .then((r) => r.data),
       null as null | Record<string, unknown>,
     ),
+    safe(getRecentChecklistDates(shopId, streakSince), [] as string[]),
   ])
+
+  const checklistStreak = computeChecklistStreak(checklistDates, today)
 
   // ── Compliance card (band/score + typed alert descriptors) ───────────────
   let compliance: {
@@ -165,6 +174,7 @@ export async function GET(request: Request) {
         : null,
       compliance,
       journey: journeyCard,
+      checklistStreak,
       latestSales,
       onboarding: {
         docs: onboardingDocs,

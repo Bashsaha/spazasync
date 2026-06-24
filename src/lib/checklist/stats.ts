@@ -14,6 +14,45 @@ export function freezerInRange(temp: number | null): boolean {
   return temp <= -18
 }
 
+/**
+ * Consecutive-day daily-checklist streak (the dashboard "🔥 N-day" habit chip).
+ *
+ * `dates` = the dates a checklist was completed (YYYY-MM-DD, any order, may
+ * contain duplicates). `today` = SAST today (YYYY-MM-DD).
+ *
+ * The streak is the run of consecutive days ending at today — OR at yesterday
+ * when today's checklist isn't done yet (the streak is still "alive", we just
+ * nudge them to keep it). A gap of a full missed day breaks it back to 0.
+ */
+export function computeChecklistStreak(
+  dates: string[],
+  today: string,
+): { streak: number; completedToday: boolean } {
+  const set = new Set(dates)
+  const completedToday = set.has(today)
+  const DAY_MS = 86_400_000
+  const ymd = (ms: number) => new Date(ms).toISOString().slice(0, 10)
+
+  const todayMs = Date.parse(`${today}T00:00:00Z`)
+  if (Number.isNaN(todayMs)) return { streak: 0, completedToday }
+
+  let cursor: number
+  if (completedToday) {
+    cursor = todayMs
+  } else if (set.has(ymd(todayMs - DAY_MS))) {
+    cursor = todayMs - DAY_MS // not done today, but yesterday — streak still alive
+  } else {
+    return { streak: 0, completedToday: false }
+  }
+
+  let streak = 0
+  while (set.has(ymd(cursor))) {
+    streak += 1
+    cursor -= DAY_MS
+  }
+  return { streak, completedToday }
+}
+
 /** Compute compliance stats across a list of checklist rows over a window. */
 export function computeChecklistStats(
   rows: DailyChecklist[],

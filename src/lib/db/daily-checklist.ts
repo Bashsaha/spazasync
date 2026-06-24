@@ -3,7 +3,7 @@ import { formatInTimeZone } from 'date-fns-tz'
 import { SAST_TZ } from '@/lib/utils/date'
 import type { DailyChecklist, DailyChecklistInput } from '@/types'
 
-export { fridgeInRange, freezerInRange, computeChecklistStats } from '@/lib/checklist/stats'
+export { fridgeInRange, freezerInRange, computeChecklistStats, computeChecklistStreak } from '@/lib/checklist/stats'
 
 /** SAST-local date for "today" (YYYY-MM-DD). */
 export function todaySAST(): string {
@@ -127,6 +127,21 @@ export async function getChecklistStreakStatus(
   const lastMs = new Date(`${lastDate}T00:00:00Z`).getTime()
   const days = Math.max(0, Math.round((todayMs - lastMs) / 86400000))
   return { daysSinceLastCompleted: days, completedToday: lastDate === today }
+}
+
+/**
+ * Just the completion dates (YYYY-MM-DD) on/after `sinceDate`, newest first.
+ * Lightweight feed for the dashboard streak chip (computeChecklistStreak).
+ */
+export async function getRecentChecklistDates(shopId: string, sinceDate: string): Promise<string[]> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('daily_checklists')
+    .select('date')
+    .eq('shop_id', shopId)
+    .gte('date', sinceDate)
+    .order('date', { ascending: false })
+  return ((data as { date: string }[] | null) ?? []).map((r) => r.date)
 }
 
 /**

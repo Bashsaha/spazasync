@@ -10,6 +10,7 @@ import { DashboardSummaryCards } from '@/components/dashboard/DashboardSummaryCa
 import { DashboardRealtime } from '@/components/dashboard/DashboardRealtime'
 import { ComplianceCardView, type ComplianceCardData } from '@/components/dashboard/ComplianceCardView'
 import { JourneyProgressCardView, type JourneyCardData } from '@/components/dashboard/JourneyProgressCardView'
+import { ChecklistStreakChip, type ChecklistStreakData } from '@/components/dashboard/ChecklistStreakChip'
 import { LatestSalesView } from '@/components/dashboard/LatestSalesView'
 import { DashboardComplianceOnboarding } from '@/components/compliance-onboarding/DashboardComplianceOnboarding'
 import type {
@@ -44,6 +45,7 @@ type DashboardPayload = {
   } | null
   compliance: ComplianceCardData | null
   journey: JourneyCardData | null
+  checklistStreak: ChecklistStreakData
   latestSales: RecentSale[]
   onboarding: {
     docs: { document_type: OnboardingDocumentType; status: DocumentStatus }[]
@@ -157,6 +159,7 @@ export default function DashboardPage() {
         <>
           {data?.compliance && <ComplianceCardView data={data.compliance} />}
           {data?.journey && <JourneyProgressCardView data={data.journey} />}
+          {data?.checklistStreak && <ChecklistStreakChip data={data.checklistStreak} />}
           <DashboardSummaryCards />
           <LatestSalesView sales={data?.latestSales ?? EMPTY_SALES} />
         </>
