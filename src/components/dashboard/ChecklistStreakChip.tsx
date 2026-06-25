@@ -20,7 +20,7 @@ export function ChecklistStreakChip({ data }: { data: ChecklistStreakData }) {
 
   return (
     <Link
-      href="/checklist"
+      href="/checklist/history"
       data-tour="streak-chip"
       className="flex items-center justify-between gap-3 bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3 mb-4 active:bg-orange-100"
     >

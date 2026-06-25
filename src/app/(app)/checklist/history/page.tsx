@@ -41,6 +41,37 @@ function tempOutOfRange(
   return kind === 'fridge' ? n < 1 || n > 5 : n > -18
 }
 
+type DayStatus = 'missed' | 'done' | 'partial'
+
+const STATUS_CELL: Record<DayStatus, string> = {
+  done: 'bg-green-500 text-white',
+  partial: 'bg-amber-400 text-amber-900',
+  missed: 'bg-gray-100 text-gray-400',
+}
+
+/**
+ * Arrange the (most-recent-first) history entries into calendar weeks —
+ * Monday-start rows, with leading blanks so each weekday lines up in its column.
+ */
+function buildCalendar(
+  entries: HistoryEntry[],
+): Array<Array<HistoryEntry | null>> {
+  const asc = [...entries].sort((a, b) => a.date.localeCompare(b.date))
+  if (asc.length === 0) return []
+  // JS getDay(): 0=Sun..6=Sat → convert to 0=Mon..6=Sun.
+  const mondayIndex = (d: Date) => (d.getDay() + 6) % 7
+  const firstOffset = mondayIndex(new Date(`${asc[0].date}T00:00:00`))
+  const cells: Array<HistoryEntry | null> = [
+    ...Array(firstOffset).fill(null),
+    ...asc,
+  ]
+  const weeks: Array<Array<HistoryEntry | null>> = []
+  for (let i = 0; i < cells.length; i += 7) {
+    weeks.push(cells.slice(i, i + 7))
+  }
+  return weeks
+}
+
 export default function ChecklistHistoryPage() {
   const { t, tPlural, locale } = useTranslation('checklist')
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -114,6 +145,79 @@ export default function ChecklistHistoryPage() {
             })}
           </p>
         )}
+      </section>
+
+      {/* Calendar heatmap */}
+      <section className="bg-white border border-gray-100 rounded-2xl px-4 py-4 mb-4">
+        <h2 className="text-sm font-semibold text-gray-900 mb-3">
+          {t('heatmap_title')}
+        </h2>
+        {(() => {
+          const weeks = buildCalendar(entries)
+          // Monday-start weekday initials, localised.
+          const weekdayLabels = Array.from({ length: 7 }, (_, i) => {
+            // 2024-01-01 was a Monday — use it as a stable anchor for labels.
+            const d = new Date(2024, 0, 1 + i)
+            return d.toLocaleDateString(localeTag, { weekday: 'narrow' })
+          })
+          return (
+            <>
+              <div className="grid grid-cols-7 gap-1.5">
+                {weekdayLabels.map((lbl, i) => (
+                  <div
+                    key={`wd-${i}`}
+                    className="text-center text-[10px] font-medium text-gray-400"
+                  >
+                    {lbl}
+                  </div>
+                ))}
+                {weeks.map((week, wi) =>
+                  week.map((cell, ci) => {
+                    if (!cell) return <div key={`${wi}-${ci}`} aria-hidden />
+                    const status = dayStatus(cell.entry)
+                    const dayNum = new Date(`${cell.date}T00:00:00`).getDate()
+                    const dateLabel = new Date(
+                      `${cell.date}T00:00:00`,
+                    ).toLocaleDateString(localeTag, {
+                      weekday: 'short',
+                      day: 'numeric',
+                      month: 'short',
+                    })
+                    const statusLabel =
+                      status === 'done'
+                        ? t('history_done')
+                        : status === 'partial'
+                        ? t('history_partial')
+                        : t('history_missed')
+                    return (
+                      <div
+                        key={`${wi}-${ci}`}
+                        title={`${dateLabel} — ${statusLabel}`}
+                        className={`aspect-square rounded-md flex items-center justify-center text-[11px] font-semibold ${STATUS_CELL[status]}`}
+                      >
+                        {dayNum}
+                      </div>
+                    )
+                  }),
+                )}
+              </div>
+              <div className="flex items-center gap-3 mt-3 text-[11px] text-gray-500">
+                <span className="flex items-center gap-1">
+                  <span className="w-3 h-3 rounded bg-green-500" aria-hidden />
+                  {t('history_done')}
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-3 h-3 rounded bg-amber-400" aria-hidden />
+                  {t('history_partial')}
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-3 h-3 rounded bg-gray-100 border border-gray-200" aria-hidden />
+                  {t('history_missed')}
+                </span>
+              </div>
+            </>
+          )
+        })()}
       </section>
 
       {/* Daily list */}
