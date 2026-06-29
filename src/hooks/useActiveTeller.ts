@@ -93,6 +93,30 @@ export function useActiveTeller(): ActiveTellerState {
           }
         }
 
+        // A cold PWA launch clears sessionStorage, so the common "open the app
+        // fresh" case misses above and used to BLOCK first paint on /api/tellers
+        // (a cold-radio round-trip). Fall back to the durable localStorage mirror
+        // so New Sale paints instantly; the live roster still validates it in the
+        // background below. spaza_last_owner_teller is purged on user-switch
+        // (SECURITY-001), so this can't show another owner's teller after a
+        // shared-device hand-off.
+        if (!storedTeller) {
+          try {
+            const last = localStorage.getItem(LAST_OWNER_TELLER_KEY)
+            if (last) {
+              const parsed = JSON.parse(last) as Teller | null
+              if (parsed?.id) {
+                storedTeller = parsed
+                setActiveTellerState(parsed)
+                sessionStorage.setItem(SESSION_KEY, JSON.stringify(parsed))
+                setIsLoading(false)
+              }
+            }
+          } catch {
+            // ignore parse / storage errors — fall through to the network path
+          }
+        }
+
         // ── Background: refresh the roster (for offline + validation) ──────────
         let tellers: Teller[] = []
         let networkOk = false

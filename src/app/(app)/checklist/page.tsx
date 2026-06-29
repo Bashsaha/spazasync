@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/components/LanguageProvider'
 import { BackButton } from '@/components/BackButton'
@@ -8,6 +8,7 @@ import { useToast } from '@/components/Toast'
 import { Spinner, FullScreenSpinner } from '@/components/Spinner'
 import type { DailyChecklist, ExpiredItemsAction } from '@/types'
 import { emitDataChanged } from '@/lib/events'
+import { useCachedData } from '@/hooks/useCachedData'
 
 interface ExpiringTodayItem {
   product_id: string
@@ -74,10 +75,8 @@ export default function ChecklistPage() {
   const { t, tPlural, locale } = useTranslation('checklist')
   const { addToast } = useToast()
 
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [errorKey, setErrorKey] = useState<string | null>(null)
-  const [data, setData] = useState<ChecklistResponse | null>(null)
 
   const [fridgeOk, setFridgeOk] = useState<YesNo>(null)
   const [fridgeTemp, setFridgeTemp] = useState('')
@@ -90,69 +89,74 @@ export default function ChecklistPage() {
   const [wasteBinsOk, setWasteBinsOk] = useState<YesNo>(null)
   const [expiredAction, setExpiredAction] = useState<ExpiredItemsAction | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    // Per-day cache key: this endpoint is in the service worker's SWR list, but
-    // its payload is date-specific. Keying the URL by today's SAST date gives a
-    // fresh entry each day (no stale "empty form" served from yesterday's cache,
-    // which made owners fill it in twice) while same-day reopens still hit the
-    // cache instantly. SA has no DST, so UTC+2 is exact.
-    const sastToday = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString().slice(0, 10)
-    // Time the request out so a half-awake radio can't leave the page spinning
-    // forever (the "buzzer endlessly loads until I reload" report).
+  // Per-day cache key: the snapshot is date-specific, so keying by today's SAST
+  // date gives a fresh entry each day (no stale "empty form" from yesterday's
+  // cache, which made owners fill it in twice) while same-day reopens are
+  // instant. SA has no DST, so UTC+2 is exact.
+  const sastToday = useMemo(
+    () => new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    [],
+  )
+
+  const fetchChecklist = useCallback(async (): Promise<ChecklistResponse> => {
+    // Time the request out so a half-awake radio can't hang the revalidate
+    // (the "buzzer endlessly loads until I reload" report).
     const ctrl = new AbortController()
     const timer = setTimeout(() => ctrl.abort(), 12000)
-
-    fetch(`/api/daily-checklist?d=${sastToday}`, { signal: ctrl.signal })
-      .then(async (r) => {
-        if (!r.ok) throw new Error('load')
-        return r.json() as Promise<ChecklistResponse>
-      })
-      .then((json) => {
-        if (cancelled) return
-        setData(json)
-        const c = json.checklist
-        if (c) {
-          setFridgeOk(c.fridge_ok)
-          setFridgeTemp(c.fridge_temp !== null ? String(c.fridge_temp) : '')
-          setFreezerOk(c.freezer_ok)
-          if (c.freezer_temp !== null) {
-            setFreezerSign(c.freezer_temp < 0 ? '-' : '+')
-            setFreezerTemp(String(Math.abs(c.freezer_temp)))
-          } else {
-            setFreezerTemp('')
-          }
-          setSurfaces(c.surfaces_cleaned)
-          setFloor(c.floor_cleaned)
-          setStorage(c.storage_clean)
-          setWasteBinsOk(c.waste_bins_ok ?? null)
-          setExpiredAction(c.expired_items_action)
-        } else if (json.previousTemps) {
-          // Pre-fill yesterday's temps so owners with stable fridges don't retype
-          if (json.previousTemps.fridge_temp !== null) {
-            setFridgeTemp(String(json.previousTemps.fridge_temp))
-          }
-          if (json.previousTemps.freezer_temp !== null) {
-            const prev = json.previousTemps.freezer_temp
-            setFreezerSign(prev < 0 ? '-' : '+')
-            setFreezerTemp(String(Math.abs(prev)))
-          }
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setErrorKey('msg_load_failed')
-      })
-      .finally(() => {
-        clearTimeout(timer)
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
+    try {
+      const r = await fetch(`/api/daily-checklist?d=${sastToday}`, { signal: ctrl.signal })
+      if (!r.ok) throw new Error('load')
+      return (await r.json()) as ChecklistResponse
+    } finally {
       clearTimeout(timer)
-      ctrl.abort()
     }
-  }, [])
+  }, [sastToday])
+
+  // Cache-first (the Phase 44 instant-open engine): paint today's snapshot the
+  // instant the page mounts on a repeat open, then revalidate in the background.
+  // This screen was the one still gated behind a blocking network fetch — once
+  // the SECURITY-001 purge wiped the SW cache on an owner⇄teller hand-off, the
+  // next open paid a full cold round-trip. useCachedData fixes that the same way
+  // the dashboard/sales/inventory hubs already work.
+  const { data, loading, error } = useCachedData<ChecklistResponse>(
+    `daily-checklist:${sastToday}`,
+    fetchChecklist,
+  )
+
+  // Initialise the editable form ONCE from the first snapshot we see, so a
+  // background revalidate never overwrites the owner's in-progress answers.
+  const initialisedRef = useRef(false)
+  useEffect(() => {
+    if (!data || initialisedRef.current) return
+    initialisedRef.current = true
+    const c = data.checklist
+    if (c) {
+      setFridgeOk(c.fridge_ok)
+      setFridgeTemp(c.fridge_temp !== null ? String(c.fridge_temp) : '')
+      setFreezerOk(c.freezer_ok)
+      if (c.freezer_temp !== null) {
+        setFreezerSign(c.freezer_temp < 0 ? '-' : '+')
+        setFreezerTemp(String(Math.abs(c.freezer_temp)))
+      } else {
+        setFreezerTemp('')
+      }
+      setSurfaces(c.surfaces_cleaned)
+      setFloor(c.floor_cleaned)
+      setStorage(c.storage_clean)
+      setWasteBinsOk(c.waste_bins_ok ?? null)
+      setExpiredAction(c.expired_items_action)
+    } else if (data.previousTemps) {
+      // Pre-fill yesterday's temps so owners with stable fridges don't retype
+      if (data.previousTemps.fridge_temp !== null) {
+        setFridgeTemp(String(data.previousTemps.fridge_temp))
+      }
+      if (data.previousTemps.freezer_temp !== null) {
+        const prev = data.previousTemps.freezer_temp
+        setFreezerSign(prev < 0 ? '-' : '+')
+        setFreezerTemp(String(Math.abs(prev)))
+      }
+    }
+  }, [data])
 
   async function handleSave() {
     setSaving(true)
@@ -180,8 +184,9 @@ export default function ChecklistPage() {
         setErrorKey('msg_save_failed')
         return
       }
-      const saved = (await res.json()) as DailyChecklist
-      setData((prev) => (prev ? { ...prev, checklist: saved } : prev))
+      await res.json()
+      // Refreshes the cache-first snapshot (the GET now returns the saved row)
+      // and clears the pulsing checklist FAB.
       emitDataChanged()
       addToast(t('msg_saved'), 'success')
       // Re-run the (app) layout's server component so the pulsing
@@ -203,13 +208,13 @@ export default function ChecklistPage() {
     )
   }
 
-  if (errorKey && !data) {
+  if (error && !data) {
     return (
       <main className="px-4 pt-10 pb-32 max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
         <div className="mb-6">
           <BackButton fallbackHref="/manage" />
         </div>
-        <p className="text-red-600">{t(errorKey)}</p>
+        <p className="text-red-600">{t('msg_load_failed')}</p>
       </main>
     )
   }

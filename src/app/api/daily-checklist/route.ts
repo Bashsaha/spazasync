@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getShopAuth } from '@/lib/auth/shop-auth'
+import { getShopAuth, getShopAuthFast } from '@/lib/auth/shop-auth'
 import { parseBody, STABLE_READ_CACHE } from '@/lib/utils/api'
 import { upsertChecklistSchema } from '@/lib/validation/schemas'
 import {
@@ -17,7 +17,9 @@ import { listExpiringProducts } from '@/lib/db/batches'
  * inline nudge on the checklist page.
  */
 export async function GET() {
-  const auth = await getShopAuth()
+  // Read endpoint → local JWT verify (no auth-server round-trip). RLS is still
+  // the data boundary. POST keeps getShopAuth() (server-validated user).
+  const auth = await getShopAuthFast()
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const date = todaySAST()

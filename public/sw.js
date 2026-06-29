@@ -23,7 +23,7 @@
  *                            navigations; cached HTML never was.
  */
 
-const CACHE = 'movestock-v106'
+const CACHE = 'movestock-v107'
 
 // Resources that MUST always be fetched fresh from the network so Chrome's
 // installability checker (and the platform's home-screen icon installer) sees
@@ -52,6 +52,7 @@ const NEVER_CACHE_PATHS = [
 const SWR_GET_PATHS = [
   '/api/products',
   '/api/products/popular',
+  '/api/products/catch-all',
   '/api/settings',
   '/api/tellers',
   '/api/tellers/me',

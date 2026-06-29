@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getShopAuth } from '@/lib/auth/shop-auth'
+import { getShopAuthFast } from '@/lib/auth/shop-auth'
 import { getTodayChecklist, hasAnyChecklist, todaySAST } from '@/lib/db/daily-checklist'
 
 /** GET /api/daily-checklist/status
@@ -8,7 +8,8 @@ import { getTodayChecklist, hasAnyChecklist, todaySAST } from '@/lib/db/daily-ch
  *  the one-time intro explainer (everCompleted === false → first checklist).
  */
 export async function GET() {
-  const auth = await getShopAuth()
+  // Read-only status check → local JWT verify (no auth-server round-trip).
+  const auth = await getShopAuthFast()
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const [checklist, everCompleted] = await Promise.all([
